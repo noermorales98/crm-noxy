@@ -13,6 +13,7 @@ type Form = {
   isActive: boolean;
   companyId: string;
   company: { name: string };
+  project?: { name: string };
   createdAt: string;
   _count: { fields: number };
 };
@@ -27,11 +28,14 @@ export default function FormsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [companyId, setCompanyId] = useState("");
+  const [projectId, setProjectId] = useState("");
+  const [projects, setProjects] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchForms();
     fetchCompanies();
+    fetchProjects();
   }, []);
 
   const fetchForms = async () => {
@@ -60,6 +64,18 @@ export default function FormsPage() {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch("/api/projects");
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleCreateForm = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -67,13 +83,14 @@ export default function FormsPage() {
         const res = await fetch("/api/forms", {
             method: "POST",
             headers: { "Content-Type" : "application/json" },
-            body: JSON.stringify({ name, description, companyId })
+            body: JSON.stringify({ name, description, companyId, projectId: projectId || null })
         });
         
         if (res.ok) {
             setName("");
             setDescription("");
             setCompanyId("");
+            setProjectId("");
             setIsModalOpen(false);
             fetchForms();
         } else {
@@ -155,7 +172,10 @@ export default function FormsPage() {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
-                                <p className="text-xs text-gray-500 font-medium">Links to: {form.company?.name || "Unknown Company"}</p>
+                                <div className="text-xs text-gray-500 font-medium mt-1 flex flex-col gap-0.5">
+                                    <span>Company: {form.company?.name || "Unknown Company"}</span>
+                                    {form.project && <span className="text-blue-600">Project: {form.project.name}</span>}
+                                </div>
                             </div>
                             {form.isActive ? (
                                 <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md">
@@ -244,6 +264,20 @@ export default function FormsPage() {
                      <option value="" disabled>Select Company to assign Leads to</option>
                      {companies.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
+                     ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-gray-700">Project (Optional)</label>
+                  <select
+                     value={projectId}
+                     onChange={(e) => setProjectId(e.target.value)}
+                     className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm"
+                  >
+                     <option value="">No Project Attached</option>
+                     {projects.map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
                      ))}
                   </select>
                 </div>

@@ -25,6 +25,12 @@ export async function GET(req: Request) {
         company: {
           select: { name: true }
         },
+        project: {
+          select: { name: true }
+        },
+        welcomeEmail: {
+          select: { subject: true }
+        },
         _count: {
           select: { fields: true }
         }
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, companyId } = body;
+    const { name, description, companyId, projectId, welcomeEmailId } = body;
 
     if (!name || !companyId) {
       return NextResponse.json({ error: "Name and Target Company are required" }, { status: 400 });
@@ -72,6 +78,8 @@ export async function POST(req: Request) {
         description,
         organizationId: currentOrganizationId,
         companyId: companyId,
+        projectId: projectId || null,
+        welcomeEmailId: welcomeEmailId || null,
         isActive: true,
         successAction: "MESSAGE",
       },

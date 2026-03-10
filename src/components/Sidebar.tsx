@@ -5,9 +5,24 @@ import Image from "next/image";
 import { PROJECTS } from "@/src/lib/mockData";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function Sidebar() {
   const { data: session } = useSession();
+  const [projects, setProjects] = useState<any[]>([]);
+  
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/projects?limit=5")
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setProjects(data);
+          }
+        })
+        .catch(err => console.error("Error fetching projects:", err));
+    }
+  }, [session]);
 
   return (
     <aside className="w-64 bg-white h-screen flex flex-col border-r border-gray-100 flex-shrink-0 overflow-hidden">
@@ -31,22 +46,37 @@ export default function Sidebar() {
 
         {/* Projects */}
         <div className="px-6 pt-6 pb-2">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Projects</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Projects</h3>
+            <Link href="/projects/create" className="text-gray-400 hover:text-gray-900 transition-colors">
+              <Plus size={16} />
+            </Link>
+          </div>
           <div className="flex flex-col gap-3">
-            {PROJECTS.map((project: { id: number, name: string, count: number, icon: string }) => (
-              <div key={project.id} className="flex items-center justify-between text-gray-600 hover:text-gray-900 cursor-pointer group">
-                <div className="flex items-center gap-2">
-                  {project.icon === "zap" && <Zap size={18} className="text-gray-400 group-hover:text-gray-900" />}
-                  {project.icon === "trending-up" && <TrendingUp size={18} className="text-gray-400 group-hover:text-gray-900" />}
-                  {project.icon === "git-branch" && <GitBranch size={18} className="text-gray-400 group-hover:text-gray-900" />}
-                  {project.icon === "megaphone" && <Megaphone size={18} className="text-gray-400 group-hover:text-gray-900" />}
-                  <span className="text-sm font-medium">{project.name}</span>
-                </div>
-                {project.count > 0 && (
-                  <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{project.count}</span>
-                )}
-              </div>
-            ))}
+            {projects.map((project: any) => {
+              // Calculate total assets in this project based on relational counts
+              const assetCount = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
+
+              return (
+                <Link key={project.id} href={`/projects/${project.id}`} className="flex items-center justify-between text-gray-600 hover:text-gray-900 cursor-pointer group">
+                  <div className="flex items-center gap-2">
+                    {project.icon === "zap" && <Zap size={18} className="text-gray-400 group-hover:text-gray-900" />}
+                    {project.icon === "trending-up" && <TrendingUp size={18} className="text-gray-400 group-hover:text-gray-900" />}
+                    {project.icon === "git-branch" && <GitBranch size={18} className="text-gray-400 group-hover:text-gray-900" />}
+                    {project.icon === "megaphone" && <Megaphone size={18} className="text-gray-400 group-hover:text-gray-900" />}
+                    {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon) && <LayoutDashboard size={18} className="text-gray-400 group-hover:text-gray-900" />}
+                    <span className="text-sm font-medium w-32 truncate">{project.name}</span>
+                  </div>
+                  {assetCount > 0 && (
+                    <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{assetCount}</span>
+                  )}
+                </Link>
+              );
+            })}
+            
+            <Link href="/projects" className="text-xs font-medium text-blue-600 hover:text-blue-700 mt-2 px-1">
+              Ver todos ({projects.length > 0 ? projects.length : 0})
+            </Link>
           </div>
         </div>
 

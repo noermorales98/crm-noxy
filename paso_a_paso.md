@@ -86,7 +86,28 @@ Módulo complejo para conectar con suscriptores.
 
 ---
 
-## Paso 7: Analíticas y Dashboard
+## Paso 7: Gestión de Proyectos (Estilo HubSpot)
+
+Agrupación estratégica de activos e iniciativas. En HubSpot, los "Proyectos" (o Campañas) sirven para organizar todos los elementos de una iniciativa (ej. un lanzamiento, un webinar) en un solo lugar, permitiendo medir el impacto colectivo y organizar el trabajo del equipo.
+
+1.  **Modelado de Proyectos en MariaDB:**
+    *   Crear tabla `projects` con campos: `id`, `name`, `description`, `icon`, `organization_id`.
+    *   Definir relaciones en la base de datos para que un Proyecto pueda tener múltiples:
+        *   Formularios (`forms`)
+        *   Campañas de Marketing (`email_campaigns`)
+        *   Notificaciones/Automatizaciones de WhatsApp
+        *   Contactos (`contacts`)
+        *   Empresas (`companies`)
+2.  **Definición y Nomenclatura:**
+    *   Cada proyecto representa una iniciativa global (ej. "Lanzamiento Q3", "Campaña Black Friday", "Feria Inmobiliaria 2026").
+    *   Al crear un proyecto, el usuario podrá elegir un **Icono** visual, un **Nombre** y una **Descripción** detallada del objetivo.
+3.  **Gestión y Relaciones (UI/API):**
+    *   Pantalla de detalle del proyecto donde se puedan vincular activos existentes o crear nuevos desde el proyecto (ej. "Añadir formulario a este proyecto").
+    *   Filtros en las vistas de Contactos, Empresas y Formularios para ver rápidamente a qué Proyecto pertenecen.
+
+---
+
+## Paso 8: Analíticas y Dashboard
 
 El panel principal (Home) al que entra el usuario cada día.
 
@@ -94,13 +115,14 @@ El panel principal (Home) al que entra el usuario cada día.
     *   Contar (`COUNT`) leads nuevos, contactos totales.
     *   Sumar (`SUM`) el valor de los negocios "ganados".
     *   Calcular el Open Rate de campañas de email.
+    *   **Métricas por Proyecto:** ROI o cantidad de leads generados por un Proyecto específico.
 2.  **Dashboard Visual:**
     *   Tarjetas resumen con estadísticas usando Tailwind CSS.
     *   (Opcional) Gráficos simples usando bibliotecas como Tremor o Recharts.
 
 ---
 
-## Paso 8: Refinamiento, Testing y Despliegue
+## Paso 9: Refinamiento, Testing y Despliegue
 
 La puesta en marcha.
 

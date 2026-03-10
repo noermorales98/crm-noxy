@@ -58,6 +58,23 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     // Loop through all database-saved fields for this exact form
     for (const field of form.fields) {
+        if (field.type === "PREDEFINED_NAME") {
+             const first = submissionData[`${field.name}_first`];
+             const last = submissionData[`${field.name}_last`];
+             if (first) firstName = String(first);
+             if (last) lastName = String(last);
+             continue;
+        }
+
+        if (field.type === "PHONE_LADA") {
+             const code = submissionData[`${field.name}_code`];
+             const num = submissionData[`${field.name}_number`];
+             if (num) {
+                 phone = `${code || "+52"} ${num}`;
+             }
+             continue;
+        }
+
         const submittedValue = submissionData[field.name];
 
         if (submittedValue !== undefined && submittedValue !== null && submittedValue !== "") {
@@ -113,6 +130,18 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
                 organizationId: form.organizationId,
                 contactId: newContact.id,
                 assignedToId: owner.userId
+            }
+        });
+    }
+
+    // 4. Trigger Welcome Email if configured
+    if (form.welcomeEmailId && email) {
+        // Enqueue the email to be sent by creating a PENDING log
+        await prisma.emailLog.create({
+            data: {
+                 campaignId: form.welcomeEmailId,
+                 contactId: newContact.id,
+                 status: "PENDING"
             }
         });
     }

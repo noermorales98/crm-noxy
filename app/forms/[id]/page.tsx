@@ -10,9 +10,11 @@ import Link from "next/link";
 
 const FIELD_TYPES = [
   { value: "TEXT", label: "Short Text" },
+  { value: "PREDEFINED_NAME", label: "Full Name (First & Last)" },
   { value: "TEXTAREA", label: "Long Text (Paragraph)" },
   { value: "EMAIL", label: "Email Address" },
   { value: "PHONE", label: "Phone Number" },
+  { value: "PHONE_LADA", label: "Phone Number with Lada" },
   { value: "NUMBER", label: "Number" },
   { value: "DATE", label: "Date Picker" },
   { value: "SELECT", label: "Dropdown Select" },
@@ -34,6 +36,9 @@ export default function FormBuilderPage() {
   const [successAction, setSuccessAction] = useState("MESSAGE");
   const [successMessage, setSuccessMessage] = useState("Thank you for your submission!");
   const [redirectUrl, setRedirectUrl] = useState("");
+  const [welcomeEmailId, setWelcomeEmailId] = useState("");
+
+  const [campaigns, setCampaigns] = useState<any[]>([]);
 
   // Form Fields
   const [fields, setFields] = useState<any[]>([]);
@@ -43,7 +48,20 @@ export default function FormBuilderPage() {
 
   useEffect(() => {
     fetchForm();
+    fetchCampaigns();
   }, [id]);
+
+  const fetchCampaigns = async () => {
+     try {
+       const res = await fetch("/api/campaigns");
+       if (res.ok) {
+         const data = await res.json();
+         setCampaigns(data);
+       }
+     } catch (e) {
+       console.error(e);
+     }
+  };
 
   const fetchForm = async () => {
     try {
@@ -56,6 +74,7 @@ export default function FormBuilderPage() {
         setSuccessAction(data.successAction);
         setSuccessMessage(data.successMessage || "");
         setRedirectUrl(data.redirectUrl || "");
+        setWelcomeEmailId(data.welcomeEmailId || "");
         setFields(data.fields || []);
       } else {
          alert("Form not found");
@@ -84,6 +103,7 @@ export default function FormBuilderPage() {
             successAction,
             successMessage,
             redirectUrl,
+            welcomeEmailId,
             fields: orderedFields
          })
        });
@@ -235,6 +255,22 @@ export default function FormBuilderPage() {
                                <input type="url" placeholder="https://..." value={redirectUrl} onChange={e => setRedirectUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" />
                            </div>
                        )}
+
+                       <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">Auto-Welcome Email</h3>
+                       <div className="flex flex-col gap-2">
+                           <label className="text-sm font-semibold text-gray-700">Send an email automatically to new leads</label>
+                           <select 
+                             value={welcomeEmailId} 
+                             onChange={e => setWelcomeEmailId(e.target.value)} 
+                             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
+                           >
+                             <option value="">Do not send a welcome email</option>
+                             {campaigns.map(c => (
+                                <option key={c.id} value={c.id}>{c.subject}</option>
+                             ))}
+                           </select>
+                           <p className="text-xs text-gray-500 mt-1">Select an existing Campaign draft to act as a template.</p>
+                       </div>
                    </div>
                 )}
 

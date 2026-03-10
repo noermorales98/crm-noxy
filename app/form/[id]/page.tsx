@@ -132,11 +132,31 @@ export default function PublicFormPage() {
                            {field.type === "TEXT" && (
                                <input type="text" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
                            )}
+                           {field.type === "PREDEFINED_NAME" && (
+                               <div className="flex flex-col sm:flex-row gap-3">
+                                   <input type="text" required={field.isRequired} placeholder="First Name" value={formData[`${field.name}_first`]} onChange={e => handleInputChange(`${field.name}_first`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
+                                   <input type="text" required={field.isRequired} placeholder="Last Name" value={formData[`${field.name}_last`]} onChange={e => handleInputChange(`${field.name}_last`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
+                               </div>
+                           )}
                            {field.type === "EMAIL" && (
                                <input type="email" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
                            )}
                            {field.type === "PHONE" && (
                                <input type="tel" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
+                           )}
+                           {field.type === "PHONE_LADA" && (
+                               <div className="flex gap-2">
+                                   <select required={field.isRequired} value={formData[`${field.name}_code`]} onChange={e => handleInputChange(`${field.name}_code`, e.target.value, field.type)} className="w-[100px] px-2 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors">
+                                       <option value="+52">+52 (MX)</option>
+                                       <option value="+1">+1 (US/CA)</option>
+                                       <option value="+34">+34 (ES)</option>
+                                       <option value="+54">+54 (AR)</option>
+                                       <option value="+57">+57 (CO)</option>
+                                       <option value="+56">+56 (CL)</option>
+                                       <option value="+51">+51 (PE)</option>
+                                   </select>
+                                   <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Phone Number"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
+                               </div>
                            )}
                            {field.type === "NUMBER" && (
                                <input type="number" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />

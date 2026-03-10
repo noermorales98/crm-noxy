@@ -21,6 +21,9 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       include: {
          fields: {
             orderBy: { order: "asc" }
+         },
+         welcomeEmail: {
+            select: { subject: true }
          }
       }
     });
@@ -59,7 +62,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     }
 
     const body = await req.json();
-    const { name, description, isActive, successAction, successMessage, redirectUrl, fields } = body;
+    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, fields } = body;
 
     // Use a transaction to safely update the form and recreate its fields
     const updatedForm = await prisma.$transaction(async (tx) => {
@@ -72,7 +75,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                isActive,
                successAction,
                successMessage,
-               redirectUrl
+               redirectUrl,
+               welcomeEmailId: welcomeEmailId || null
             }
         });
 

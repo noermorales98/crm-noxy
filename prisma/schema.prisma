@@ -46,6 +46,7 @@ model Organization {
   tasks       Task[]
   campaigns   EmailCampaign[]
   forms       Form[]
+  projects    Project[]
 }
 
 enum Role {
@@ -68,6 +69,31 @@ model OrganizationMember {
   @@unique([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?      @db.Text
+  icon           String?      // Stores an icon name (e.g., 'Folder', 'Target', 'Star') or emoji
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  forms          Form[]
+  campaigns      EmailCampaign[]
+  contacts       Contact[]
+  companies      Company[]      @relation("ProjectCompanies")
+  tasks          Task[]
+
+  // Client company this project belongs to
+  companyId      String?
+  clientCompany  Company?       @relation("ProjectClientCompany", fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([companyId])
 }
 
 model Company {
@@ -94,7 +120,14 @@ model Company {
   campaigns      EmailCampaign[]
   forms          Form[]
 
+  projectId      String?
+  project        Project?     @relation("ProjectCompanies", fields: [projectId], references: [id], onDelete: SetNull)
+
+  // Projects that belong to this client company
+  clientProjects Project[]    @relation("ProjectClientCompany")
+
   @@index([organizationId])
+  @@index([projectId])
 }
 
 model Contact {
@@ -118,8 +151,12 @@ model Contact {
 
   source         String?      // E.g., "Manual", "Form: Contact Us"
 
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
   @@index([organizationId])
   @@index([companyId])
+  @@index([projectId])
 }
 
 model Pipeline {
@@ -199,10 +236,14 @@ model Task {
   contactId      String?
   contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
   @@index([organizationId])
   @@index([assignedToId])
   @@index([dealId])
   @@index([contactId])
+  @@index([projectId])
 }
 
 enum CampaignStatus {
@@ -226,10 +267,16 @@ model EmailCampaign {
   companyId      String
   company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  formsAsWelcome Form[]       @relation("WelcomeEmail")
+
   logs           EmailLog[]
 
   @@index([organizationId])
   @@index([companyId])
+  @@index([projectId])
 }
 
 enum EmailLogStatus {
@@ -277,10 +324,18 @@ model Form {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  welcomeEmailId String?
+  welcomeEmail   EmailCampaign? @relation("WelcomeEmail", fields: [welcomeEmailId], references: [id], onDelete: SetNull)
+
+  projectId      String?
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
   fields         FormField[]
 
   @@index([organizationId])
   @@index([companyId])
+  @@index([projectId])
+  @@index([welcomeEmailId])
 }
 
 model FormField {
