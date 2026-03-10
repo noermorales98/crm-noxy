@@ -68,7 +68,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             // Try to map to standard Contact object properties
             if (field.type === "EMAIL" && !email) {
                 email = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
-            } else if (field.type === "PHONE" && !phone) {
+            } else if ((field.type === "PHONE" || field.type === "NUMBER") && (fName.includes("phone") || fLabel.includes("phone") || fName.includes("tel") || fLabel.includes("tel") || fName.includes("numero") || fLabel.includes("numero") || fName.includes("número") || fLabel.includes("número")) && !phone) {
                 phone = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
             } else if (field.type === "TEXT" && (fName.includes("last") || fName.includes("apellido") || fLabel.includes("last") || fLabel.includes("apellido")) && !lastName) {
                 lastName = String(submittedValue);
