@@ -40,6 +40,19 @@ export async function POST(req: NextRequest) {
             organization: {
               create: {
                 name: organizationName,
+                pipelines: {
+                  create: {
+                    name: "Sales Pipeline",
+                    stages: {
+                      create: [
+                        { name: "Lead", order: 1 },
+                        { name: "Contacted", order: 2 },
+                        { name: "Proposal", order: 3 },
+                        { name: "Won", order: 4 },
+                      ]
+                    }
+                  }
+                }
               },
             },
           },

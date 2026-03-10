@@ -1,38 +1,131 @@
-import { COLUMNS, DEALS } from "@/src/lib/mockData";
+"use client";
+
+import { useEffect, useState } from "react";
 import { MoreVertical, Calendar, MessageSquare, Paperclip, ArrowDownUp } from "lucide-react";
-import Image from "next/image";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 export function KanbanBoard() {
+  const [pipeline, setPipeline] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPipeline();
+  }, []);
+
+  const fetchPipeline = async () => {
+    try {
+      const res = await fetch("/api/pipelines");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setPipeline(data[0]); // We use the first pipeline for now
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch pipeline", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    // Optimistic UI update
+    const sourceStageId = source.droppableId;
+    const destStageId = destination.droppableId;
+
+    const newPipeline = JSON.parse(JSON.stringify(pipeline));
+    const sourceStage = newPipeline.stages.find((s: any) => s.id === sourceStageId);
+    const destStage = newPipeline.stages.find((s: any) => s.id === destStageId);
+
+    const [movedDeal] = sourceStage.deals.splice(source.index, 1);
+    destStage.deals.splice(destination.index, 0, movedDeal);
+
+    setPipeline(newPipeline);
+
+    // Persist to API
+    try {
+      await fetch("/api/deals", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: draggableId, stageId: destStageId }),
+      });
+    } catch (error) {
+      console.error("Failed to update deal stage", error);
+      // Fallback
+      fetchPipeline();
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-gray-500">Loading pipeline...</div>;
+  }
+
+  if (!pipeline) {
+    return <div className="p-8 text-center text-gray-500 bg-white rounded-xl shadow-sm border border-gray-100">
+      <h3 className="text-lg font-bold text-gray-900 mb-2">No active pipeline</h3>
+      <p>Log out and create a new Organization account to auto-generate a sales pipeline.</p>
+    </div>;
+  }
+
   return (
-    <div className="flex-1 flex gap-6 overflow-x-auto pb-4">
-      {COLUMNS.map((col: { id: string, title: string, count: number }) => (
-        <div key={col.id} className="w-[300px] flex-shrink-0 flex flex-col">
-          {/* Column Header */}
-          <div className="flex items-center justify-between mb-4 sticky top-0 bg-[#f5f4ef] z-10 py-2">
-            <h3 className="font-semibold text-lg text-gray-900">{col.title}</h3>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white shadow-sm border border-gray-100/50">
-              <span className="text-sm font-semibold text-gray-700">{col.count}</span>
-              <ArrowDownUp size={14} className="text-gray-400" />
+    <DragDropContext onDragEnd={onDragEnd}>
+      <div className="flex-1 flex gap-6 overflow-x-auto pb-4 items-start h-full">
+        {pipeline.stages.map((stage: any) => (
+          <div key={stage.id} className="w-[300px] shrink-0 flex flex-col h-full max-h-full">
+            {/* Column Header */}
+            <div className="flex items-center justify-between mb-4 sticky top-0 bg-background z-10 py-2">
+              <h3 className="font-semibold text-lg text-gray-900">{stage.name}</h3>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white shadow-sm border border-gray-100/50">
+                <span className="text-sm font-semibold text-gray-700">{stage.deals?.length || 0}</span>
+                <ArrowDownUp size={14} className="text-gray-400" />
+              </div>
             </div>
+            
+            {/* Cards Container */}
+            <Droppable droppableId={stage.id}>
+              {(provided, snapshot) => (
+                <div 
+                  className={`flex flex-col gap-4 overflow-y-auto pr-1 flex-1 min-h-[150px] transition-colors rounded-xl ${snapshot.isDraggingOver ? 'bg-gray-100/50' : ''}`}
+                  ref={provided.innerRef} 
+                  {...provided.droppableProps}
+                >
+                  {stage.deals?.map((deal: any, index: number) => (
+                    <Draggable key={deal.id} draggableId={deal.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={{
+                            ...provided.draggableProps.style,
+                          }}
+                        >
+                          <KanbanCard deal={deal} isDragging={snapshot.isDragging} />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           </div>
-          
-          {/* Cards Container */}
-          <div className="flex flex-col gap-4 overflow-y-auto pr-1">
-            {DEALS.filter((d: { status: string }) => d.status === col.id).map((deal) => (
-              <KanbanCard key={deal.id} deal={deal} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </DragDropContext>
   );
 }
 
-function KanbanCard({ deal }: { deal: { id: string, title: string, description: string, location?: string, email?: string, managerId?: number, date: string, comments: number, attachments: number, status: string, isHighlighted?: boolean } }) {
-  const isDark = deal.isHighlighted;
+function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
+  const isDark = false; // Note: We can expand this logic later if we want high-value deals to be dark
   
   return (
-    <div className={`p-5 rounded-2xl shadow-sm border transition-shadow hover:shadow-md cursor-grab active:cursor-grabbing flex flex-col gap-4 ${isDark ? 'bg-[#222222] text-white border-transparent' : 'bg-white text-gray-900 border-gray-100'}`}>
+    <div className={`p-5 rounded-2xl shadow-sm border transition-shadow cursor-grab active:cursor-grabbing flex flex-col gap-4 ${isDark ? 'bg-[#222222] text-white border-transparent' : 'bg-white text-gray-900 border-gray-100'} ${isDragging ? 'shadow-lg ring-2 ring-black/5' : 'hover:shadow-md'}`}>
       
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -42,34 +135,15 @@ function KanbanCard({ deal }: { deal: { id: string, title: string, description: 
         </button>
       </div>
 
-      {/* Description */}
-      <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>
-        {deal.description}
+      {/* Description or value */}
+      <p className={`text-sm leading-relaxed font-semibold ${isDark ? 'text-gray-300' : 'text-green-600'}`}>
+        ${deal.value?.toLocaleString() || 0}
       </p>
-
-      {/* Dark Card Specific Info (Location/Email/Manager) */}
-      {isDark && (
-        <div className="flex flex-col gap-3 mt-2">
-            <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2 text-xs text-gray-400">
-                    <span className="mt-0.5">📍</span>
-                    <span>{deal.location}</span>
-                </div>
-                <div className="flex items-start gap-2 text-xs text-gray-400">
-                    <span className="mt-0.5">✉️</span>
-                    <span>{deal.email}</span>
-                </div>
-            </div>
-            <div className="flex items-center gap-2 mt-2">
-                 <div className="w-6 h-6 rounded-full overflow-hidden shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="https://i.pravatar.cc/150?u=2" alt="Manager" className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col">
-                    <span className="text-[10px] text-gray-400">Manager</span>
-                    <span className="text-xs font-semibold text-gray-200">Antony Cardenas</span>
-                </div>
-            </div>
+      
+      {(deal.company || deal.contact) && (
+        <div className="flex flex-col gap-1 text-xs text-gray-500">
+          {deal.company && <span>🏢 {deal.company.name}</span>}
+          {deal.contact && <span>👤 {deal.contact.firstName} {deal.contact.lastName}</span>}
         </div>
       )}
 
@@ -78,19 +152,7 @@ function KanbanCard({ deal }: { deal: { id: string, title: string, description: 
         {/* Date Badge */}
         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border ${isDark ? 'bg-[#333333] border-gray-600 text-gray-300' : 'bg-white border-gray-200 text-gray-600'}`}>
           <Calendar size={12} />
-          {deal.date}
-        </div>
-        
-        {/* Action Counters */}
-        <div className={`flex items-center gap-3 text-xs font-semibold ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          <div className="flex items-center gap-1">
-             <MessageSquare size={14} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
-             {deal.comments}
-          </div>
-          <div className="flex items-center gap-1">
-             <Paperclip size={14} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
-             {deal.attachments}
-          </div>
+          {new Date(deal.createdAt).toLocaleDateString()}
         </div>
       </div>
     </div>

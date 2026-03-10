@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut } from "lucide-react";
 import Image from "next/image";
-import { MEMBERS, PROJECTS } from "@/src/lib/mockData";
+import { PROJECTS } from "@/src/lib/mockData";
 import { useSession, signOut } from "next-auth/react";
 
 export default function Sidebar() {
@@ -47,30 +47,6 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Members */}
-        {/* We keep members in the scrollable area so it doesn't take up fixed space */}
-        <div className="px-6 pt-6 pb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Members</h3>
-            <button className="text-gray-400 hover:text-gray-900">
-              <Plus size={16} />
-            </button>
-          </div>
-          <div className="flex flex-col gap-4">
-            {MEMBERS.map((member: { id: number, name: string, role: string, imageUrl: string }) => (
-              <div key={member.id} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-gray-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={member.imageUrl} alt={member.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900 leading-none mb-1">{member.name}</span>
-                  <span className="text-xs text-gray-400 leading-none truncate w-32">{member.role}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Current User Logged In (Fixed Bottom) */}
