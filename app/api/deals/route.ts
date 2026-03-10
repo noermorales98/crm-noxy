@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 
 export async function POST(req: Request) {
   try {
@@ -89,6 +90,21 @@ export async function PATCH(req: Request) {
         contact: { select: { firstName: true, lastName: true } }
       }
     });
+
+    // Fire & Forget WhatsApp "Won Deal" Trigger
+    if (newStage.name.toLowerCase().includes("won") && session.user.id) {
+       prisma.callMeBot.findUnique({
+        where: { userId: session.user.id }
+      }).then((config: any) => {
+        if (config && config.phone && config.apiKey) {
+           sendWhatsAppNotification(
+             config.phone, 
+             config.apiKey, 
+             `🎉 DEAL WON!\nOpportunity: ${updatedDeal.title}\nValue: $${updatedDeal.value}\nAwesome job!`
+           );
+        }
+      });
+    }
 
     return NextResponse.json(updatedDeal);
   } catch (error: any) {

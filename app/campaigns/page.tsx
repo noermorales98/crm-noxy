@@ -1,0 +1,331 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Sidebar from "@/src/components/Sidebar";
+import Header from "@/src/components/Header";
+import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+
+type Campaign = {
+  id: string;
+  subject: string;
+  status: "DRAFT" | "SENDING" | "COMPLETED";
+  sentAt: string | null;
+  createdAt: string;
+  companyId: string;
+  company: { name: string };
+  _count: { logs: number };
+};
+
+export default function CampaignsPage() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [htmlBody, setHtmlBody] = useState("");
+  const [companyId, setCompanyId] = useState("");
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCampaigns();
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await fetch("/api/companies");
+      if (res.ok) {
+        const data = await res.json();
+        setCompanies(data);
+      }
+    } catch (e) {
+       console.error(e);
+    }
+  };
+
+  const fetchCampaigns = async () => {
+    try {
+      const res = await fetch("/api/campaigns");
+      if (res.ok) {
+        const data = await res.json();
+        setCampaigns(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch campaigns");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateDraft = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, body: htmlBody, companyId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create draft");
+      }
+
+      setSubject("");
+      setHtmlBody("");
+      setIsModalOpen(false);
+      fetchCampaigns(); // refresh list
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSendCampaign = async (campaignId: string) => {
+    if (!confirm("Are you sure you want to send this campaign to all your contacts?")) return;
+
+    try {
+      const res = await fetch("/api/campaigns/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campaignId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to schedule campaign");
+        return;
+      }
+      
+      const result = await res.json();
+      alert(`Success! ${result.totalScheduled} emails have been scheduled for dispatch.`);
+      fetchCampaigns(); // refresh list to see SENDING status
+    } catch (error) {
+      alert("An unexpected error occurred.");
+    }
+  };
+
+  const handleProcessQueue = async () => {
+    setIsProcessingQueue(true);
+    try {
+      const res = await fetch("/api/cron/process-emails");
+      const data = await res.json();
+      
+      if (res.ok) {
+        if (data.message === "No pending emails to process") {
+           alert("Queue is empty. No pending emails to process.");
+        } else {
+           alert("Queue processing triggered successfully! Check campaigns status.");
+        }
+        fetchCampaigns();
+      } else {
+        alert(data.error || "Failed to process queue.");
+      }
+    } catch (error) {
+       console.error(error);
+       alert("Error contacting the cron dispatcher.");
+    } finally {
+       setIsProcessingQueue(false);
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-background font-sans">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+              <Mail className="text-gray-400" size={28} />
+              Email Marketing
+            </h1>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleProcessQueue}
+                disabled={isProcessingQueue}
+                className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+              >
+                <RefreshCw size={16} className={isProcessingQueue ? "animate-spin" : ""} />
+                {isProcessingQueue ? "Processing..." : "Process Queue"}
+              </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+              >
+                <Plus size={18} />
+                New Campaign
+              </button>
+            </div>
+          </div>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+            </div>
+          ) : campaigns.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <Mail className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No campaigns yet</h3>
+              <p className="text-gray-500 text-sm mb-4">Start by creating your first email newsletter draft.</p>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-colors"
+               >
+                 <Plus size={16} /> Create Draft
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Recipients</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {campaigns.map((camp) => (
+                    <tr key={camp.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">{camp.subject}</td>
+                      <td className="px-6 py-4 text-gray-600">{camp.company?.name || "Unknown"}</td>
+                      <td className="px-6 py-4">
+                        {camp.status === "DRAFT" && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                             <Clock size={12} /> Draft
+                          </span>
+                        )}
+                        {camp.status === "SENDING" && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                             <Send size={12} /> Sending...
+                          </span>
+                        )}
+                        {camp.status === "COMPLETED" && (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                             <CheckCircle2 size={12} /> Completed
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {camp._count.logs > 0 ? camp._count.logs : "—"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                         {new Date(camp.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                         {camp.status === "DRAFT" ? (
+                           <button 
+                             onClick={() => handleSendCampaign(camp.id)}
+                             className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                           >
+                             Send Now
+                           </button>
+                         ) : (
+                           <span className="text-gray-400 text-xs">Locked</span>
+                         )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* CREATE MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <h3 className="text-lg font-bold text-gray-900">Create Email Campaign</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <form id="createCampaignForm" onSubmit={handleCreateDraft} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">Company (Sender Identity)</label>
+                  <select
+                     required
+                     value={companyId}
+                     onChange={(e) => setCompanyId(e.target.value)}
+                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
+                  >
+                     <option value="" disabled>Select a Company</option>
+                     {companies.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                     ))}
+                  </select>
+                  <p className="text-xs text-gray-500">The campaign will be sent to this company's contacts using its specific SMTP credentials.</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">Subject Line</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Exciting News from our Team!"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-gray-700">Email Body (HTML Supported)</label>
+                  <textarea
+                    required
+                    placeholder="<p>Hello! We wanted to reach out...</p>"
+                    rows={10}
+                    value={htmlBody}
+                    onChange={(e) => setHtmlBody(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm resize-y font-mono"
+                  ></textarea>
+                  <p className="text-xs text-gray-400">You can use raw HTML here to format your newsletter.</p>
+                </div>
+                
+                {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-gray-50 flex justify-end gap-3 shrink-0 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="createCampaignForm"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? "Saving..." : "Save Draft"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

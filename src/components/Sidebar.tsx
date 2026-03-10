@@ -1,9 +1,10 @@
 "use client";
 import Link from 'next/link';
-import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut, Mail, AppWindow } from "lucide-react";
 import Image from "next/image";
 import { PROJECTS } from "@/src/lib/mockData";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
   const { data: session } = useSession();
@@ -22,8 +23,10 @@ export default function Sidebar() {
           <NavItem href="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           <NavItem href="/companies" icon={<Activity size={20} />} label="Companies" />
           <NavItem href="/contacts" icon={<Users size={20} />} label="Contacts" />
-          <NavItem href="#" icon={<CheckSquare size={20} />} label="Tasks" badge={2} />
-          <NavItem href="#" icon={<Settings size={20} />} label="Settings" />
+          <NavItem href="/tasks" icon={<CheckSquare size={20} />} label="Tasks" />
+          <NavItem href="/campaigns" icon={<Mail size={20} />} label="Email Marketing" />
+          <NavItem href="/forms" icon={<AppWindow size={20} />} label="Forms & Capture" />
+          <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" />
         </div>
 
         {/* Projects */}
@@ -71,8 +74,8 @@ export default function Sidebar() {
 }
 
 function NavItem({ icon, label, href }: { icon: React.ReactNode, label: string, href: string, badge?: number }) {
-  // Simple check for active path based on window.location
-  const isActive = typeof window !== 'undefined' && window.location.pathname === href;
+  const pathname = usePathname();
+  const isActive = pathname === href;
 
   return (
     <Link href={href} className={`flex items-center justify-between px-3 py-2.5 rounded-xl cursor-pointer transition-colors ${isActive ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}>

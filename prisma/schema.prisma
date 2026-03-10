@@ -14,8 +14,22 @@ model User {
   passwordHash  String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
   organizations OrganizationMember[]
+  tasks         Task[]
+  callMeBot     CallMeBot?
+}
+
+model CallMeBot {
+  id        String   @id @default(cuid())
+  phone     String
+  apiKey    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Organization {
@@ -29,6 +43,9 @@ model Organization {
   contacts    Contact[]
   pipelines   Pipeline[]
   deals       Deal[]
+  tasks       Task[]
+  campaigns   EmailCampaign[]
+  forms       Form[]
 }
 
 enum Role {
@@ -64,8 +81,18 @@ model Company {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  // Custom SMTP settings for this company
+  smtpHost       String?
+  smtpPort       Int?
+  smtpUser       String?
+  smtpPass       String?
+  smtpFromEmail  String?
+  smtpSecure     Boolean?      @default(true)
+
   contacts       Contact[]
   deals          Deal[]
+  campaigns      EmailCampaign[]
+  forms          Form[]
 
   @@index([organizationId])
 }
@@ -86,6 +113,10 @@ model Contact {
   company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   deals          Deal[]
+  tasks          Task[]
+  emailLogs      EmailLog[]
+
+  source         String?      // E.g., "Manual", "Form: Contact Us"
 
   @@index([organizationId])
   @@index([companyId])
@@ -139,8 +170,132 @@ model Deal {
   contactId      String?
   contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
+  tasks          Task[]
+
   @@index([organizationId])
   @@index([stageId])
   @@index([companyId])
   @@index([contactId])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?      @db.Text
+  dueDate        DateTime?
+  isCompleted    Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  assignedToId   String
+  assignedTo     User         @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+
+  dealId         String?
+  deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([assignedToId])
+  @@index([dealId])
+  @@index([contactId])
+}
+
+enum CampaignStatus {
+  DRAFT
+  SENDING
+  COMPLETED
+}
+
+model EmailCampaign {
+  id             String       @id @default(cuid())
+  subject        String
+  body           String       @db.LongText
+  status         CampaignStatus @default(DRAFT)
+  sentAt         DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  logs           EmailLog[]
+
+  @@index([organizationId])
+  @@index([companyId])
+}
+
+enum EmailLogStatus {
+  PENDING
+  SENT
+  FAILED
+  OPENED
+}
+
+model EmailLog {
+  id             String         @id @default(cuid())
+  status         EmailLogStatus @default(PENDING)
+  errorReason    String?        @db.Text
+  sentAt         DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  campaignId     String
+  campaign       EmailCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  contactId      String
+  contact        Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([contactId])
+}
+
+model Form {
+  id             String      @id @default(cuid())
+  
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  companyId      String
+  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?     @db.Text
+  isActive       Boolean     @default(true)
+  
+  successAction  String      @default("MESSAGE") // "MESSAGE" or "REDIRECT"
+  successMessage String?     @db.Text
+  redirectUrl    String?
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  fields         FormField[]
+
+  @@index([organizationId])
+  @@index([companyId])
+}
+
+model FormField {
+  id          String   @id @default(cuid())
+  
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  type        String   // TEXT, EMAIL, PHONE, NUMBER, TEXTAREA, SELECT, CHECKBOX, RADIO, DATE
+  label       String
+  name        String   // Internal name e.g., 'firstName'
+  placeholder String?
+  isRequired  Boolean  @default(false)
+  options     String?  @db.Text // JSON string array for select/radio options
+  order       Int
+
+  @@index([formId])
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 
 export async function GET(req: Request) {
   try {
@@ -80,6 +81,21 @@ export async function POST(req: Request) {
         company: { select: { id: true, name: true } }
       }
     });
+
+    // Fire & Forget WhatsApp Notification Trigger
+    if (session.user.id) {
+      prisma.callMeBot.findUnique({
+        where: { userId: session.user.id }
+      }).then((config: any) => {
+        if (config && config.phone && config.apiKey) {
+           sendWhatsAppNotification(
+             config.phone, 
+             config.apiKey, 
+             `🚨 New Lead Added: ${firstName} ${lastName || ""}\nCRM Noxy`
+           );
+        }
+      });
+    }
 
     return NextResponse.json(contact, { status: 201 });
   } catch (error: any) {
