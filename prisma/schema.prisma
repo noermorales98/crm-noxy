@@ -25,6 +25,8 @@ model Organization {
   updatedAt   DateTime @updatedAt
 
   members     OrganizationMember[]
+  companies   Company[]
+  contacts    Contact[]
 }
 
 enum Role {
@@ -47,4 +49,39 @@ model OrganizationMember {
   @@unique([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+}
+
+model Company {
+  id             String       @id @default(cuid())
+  name           String
+  website        String?
+  industry       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  contacts       Contact[]
+
+  @@index([organizationId])
+}
+
+model Contact {
+  id             String       @id @default(cuid())
+  firstName      String
+  lastName       String?
+  email          String?
+  phone          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  companyId      String?
+  company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([companyId])
 }

@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BizLink CRM Dashboard",
+  title: "Noxy CRM Dashboard",
   description: "A modern CRM dashboard interface",
 };
 
