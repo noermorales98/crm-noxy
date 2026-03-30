@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Header from "@/src/components/Header";
 import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
+import { Trash2 } from "lucide-react";
 
 export default function CompaniesPage() {
   const { addToast } = useToast();
@@ -11,6 +13,7 @@ export default function CompaniesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", website: "", industry: "" });
+  const { confirm } = useConfirm();
 
   const [showSmtpModal, setShowSmtpModal] = useState(false);
   const [currentSmtpCompany, setCurrentSmtpCompany] = useState<any>(null);
@@ -58,6 +61,34 @@ export default function CompaniesPage() {
       industry: company.industry || "",
     });
     setShowModal(true);
+  };
+
+  const handleDelete = async (company: any) => {
+    const isConfirmed = await confirm({
+      title: "Eliminar empresa",
+      description: `¿Estás seguro de que quieres eliminar la empresa '${company.name}'? Todos los contactos, campañas y formularios asociados también podrían ser afectados. Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/companies/${company.id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        setCompanies(companies.filter(c => c.id !== company.id));
+        addToast("Empresa eliminada exitosamente.", "success");
+      } else {
+        const err = await res.json();
+        addToast(err.error || "Error al eliminar la empresa.", "error");
+      }
+    } catch (e) {
+      addToast("Error de conexión al eliminar.", "error");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,7 +240,7 @@ export default function CompaniesPage() {
                       <td className="px-6 py-4 text-gray-600">{c.industry || "-"}</td>
                       <td className="px-6 py-4 text-blue-600 hover:underline">{c.website ? <a href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank">{c.website}</a> : "-"}</td>
                       <td className="px-6 py-4 text-gray-600">{c._count?.contacts || 0}</td>
-                      <td className="px-6 py-4 text-right space-x-4">
+                      <td className="px-6 py-4 text-right space-x-3">
                         <button
                           onClick={() => openSmtpModal(c)}
                           className="text-orange-600 hover:text-orange-800 text-sm font-medium"
@@ -221,6 +252,13 @@ export default function CompaniesPage() {
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
                           Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(c)}
+                          className="text-gray-400 hover:text-red-600 text-sm font-medium transition-colors"
+                          title="Eliminar empresa"
+                        >
+                          <Trash2 size={16} className="inline-block" />
                         </button>
                       </td>
                     </tr>

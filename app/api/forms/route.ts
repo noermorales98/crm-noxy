@@ -32,7 +32,7 @@ export async function GET(req: Request) {
           select: { subject: true }
         },
         _count: {
-          select: { fields: true }
+          select: { fields: true, contacts: true }
         }
       }
     });

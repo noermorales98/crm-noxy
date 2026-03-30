@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { FormInput, Plus, Trash2, Edit, Code, Link as LinkIcon, Activity, XCircle } from "lucide-react";
+import { FormInput, Plus, Trash2, Edit, Code, Link as LinkIcon, Activity, XCircle, Users } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ type Form = {
   company: { name: string };
   project?: { name: string };
   createdAt: string;
-  _count: { fields: number };
+  _count: { fields: number, contacts?: number };
 };
 
 export default function FormsPage() {
@@ -33,6 +33,12 @@ export default function FormsPage() {
   const [projectId, setProjectId] = useState("");
   const [projects, setProjects] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Contacts Modal State
+  const [isContactsModalOpen, setIsContactsModalOpen] = useState(false);
+  const [selectedFormForContacts, setSelectedFormForContacts] = useState<Form | null>(null);
+  const [formContacts, setFormContacts] = useState<any[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(false);
 
   useEffect(() => {
     fetchForms();
@@ -131,6 +137,23 @@ export default function FormsPage() {
     addToast(`${title} copied to clipboard!`, "success");
   };
 
+  const handleViewContacts = async (form: Form) => {
+    setSelectedFormForContacts(form);
+    setIsContactsModalOpen(true);
+    setIsLoadingContacts(true);
+    setFormContacts([]);
+    try {
+      const res = await fetch(`/api/forms/${form.id}/contacts`);
+      if (res.ok) {
+        setFormContacts(await res.json());
+      }
+    } catch (e) {
+      addToast("Failed to load contacts.", "error");
+    } finally {
+      setIsLoadingContacts(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background font-sans">
       <Sidebar />
@@ -200,7 +223,8 @@ export default function FormsPage() {
                     </p>
 
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-4 pb-4 border-b border-gray-50">
-                      <span>{form._count.fields} Fields constructed</span>
+                      <span>{form._count.fields} Fields</span>
+                      <span className="font-semibold text-gray-700">{form._count.contacts || 0} Registrados</span>
                       <span>{new Date(form.createdAt).toLocaleDateString()}</span>
                     </div>
 
@@ -229,6 +253,13 @@ export default function FormsPage() {
                           title="Delete Form"
                         >
                           <Trash2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleViewContacts(form)}
+                          title="Ver Registrados"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          <Users size={14} /> Registrados
                         </button>
                         <Link
                           href={`/forms/${form.id}`}
@@ -330,6 +361,64 @@ export default function FormsPage() {
               >
                 {isSubmitting ? "Creando..." : "Crear formulario"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Contacts Modal */}
+      {isContactsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Registrados</h3>
+                <p className="text-sm text-gray-500">Últimos registros en {selectedFormForContacts?.name}</p>
+              </div>
+              <button onClick={() => setIsContactsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <XCircle size={24} />
+              </button>
+            </div>
+            
+            <div className="p-0 overflow-y-auto bg-gray-50/30 flex-1">
+              {isLoadingContacts ? (
+                 <div className="flex items-center justify-center py-20">
+                   <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+                 </div>
+              ) : formContacts.length === 0 ? (
+                 <div className="text-center py-16">
+                    <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                    <h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3>
+                    <p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p>
+                 </div>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {formContacts.map((contact, idx) => {
+                    const extraFieldsBody = contact.tasks?.[0]?.description;
+                    return (
+                      <li key={contact.id || idx} className="p-5 hover:bg-white transition-colors group">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[15px] font-bold text-gray-900">{contact.firstName} {contact.lastName || ""}</p>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                               {contact.email && <span>📧 {contact.email}</span>}
+                               {contact.phone && <span>📞 {contact.phone}</span>}
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                            {new Date(contact.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {extraFieldsBody && extraFieldsBody !== "No additional fields provided." && (
+                          <div className="mt-3 text-xs bg-gray-50 border border-gray-100 p-3 rounded-xl text-gray-600 whitespace-pre-line group-hover:bg-gray-100">
+                             {extraFieldsBody}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           </div>
         </div>

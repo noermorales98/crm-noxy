@@ -1,9 +1,10 @@
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import Link from "next/link";
-import { Plus, Folder, Calendar, ArrowRight, Activity, Zap, TrendingUp, GitBranch, Megaphone, LayoutDashboard } from "lucide-react";
+import { Plus, Folder, Calendar, ArrowRight, Activity, Zap, TrendingUp, GitBranch, Megaphone } from "lucide-react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
+import DeleteProjectButton from "@/src/components/DeleteProjectButton";
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -56,6 +57,7 @@ export default async function ProjectsPage() {
                         {project.icon === "megaphone" && <Megaphone size={24} />}
                         {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <Folder size={24} />}
                       </div>
+                      <DeleteProjectButton projectId={project.id} projectName={project.name} />
                     </div>
 
                     <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{project.name}</h3>

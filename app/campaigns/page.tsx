@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw, Trash2 } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
 
 type Campaign = {
   id: string;
@@ -19,8 +20,34 @@ type Campaign = {
 
 export default function CampaignsPage() {
   const { addToast, showConfirm } = useToast();
+  const { confirm } = useConfirm();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleDelete = async (campaign: Campaign) => {
+    const isConfirmed = await confirm({
+      title: "Eliminar campaña",
+      description: `¿Estás seguro de que quieres eliminar la campaña '${campaign.subject}'? Todo el historial de envíos asociado se perderá.`,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/campaigns/${campaign.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+        addToast("Campaña eliminada exitosamente.", "success");
+      } else {
+        const err = await res.json();
+        addToast(err.error || "Error al eliminar la campaña.", "error");
+      }
+    } catch (e) {
+      addToast("Error de conexión al eliminar.", "error");
+    }
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -232,16 +259,25 @@ export default function CampaignsPage() {
                         {new Date(camp.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        {camp.status === "DRAFT" ? (
+                        <div className="flex items-center justify-end gap-3">
+                          {camp.status === "DRAFT" ? (
+                            <button
+                              onClick={() => handleSendCampaign(camp.id)}
+                              className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                            >
+                              Send Now
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">Locked</span>
+                          )}
                           <button
-                            onClick={() => handleSendCampaign(camp.id)}
-                            className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                            onClick={() => handleDelete(camp)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar campaña"
                           >
-                            Send Now
+                            <Trash2 size={16} />
                           </button>
-                        ) : (
-                          <span className="text-gray-400 text-xs">Locked</span>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}

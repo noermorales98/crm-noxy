@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import AuthProvider from "@/src/components/AuthProvider";
 import { ToastProvider } from "@/src/context/ToastContext";
+import { ConfirmProvider } from "@/src/context/ConfirmContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,7 +22,9 @@ export default function RootLayout({
       <body className={`${inter.className} bg-[#f5f4ef] text-gray-800 antialiased`}>
         <AuthProvider>
           <ToastProvider>
-            {children}
+            <ConfirmProvider>
+              {children}
+            </ConfirmProvider>
           </ToastProvider>
         </AuthProvider>
       </body>

@@ -117,7 +117,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         phone,
         organizationId: form.organizationId,
         companyId: form.companyId,
-        source: `Form: ${form.name}`
+        source: `Form: ${form.name}`,
+        sourceFormId: form.id
       }
     });
 
@@ -173,6 +174,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           isCompleted: false,
           organizationId: form.organizationId,
           contactId: newContact.id,
+          formId: form.id,
           assignedToId: owner.userId
         }
       });

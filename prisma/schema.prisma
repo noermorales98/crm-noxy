@@ -8,12 +8,12 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String               @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String               @unique
   passwordHash  String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
   organizations OrganizationMember[]
   tasks         Task[]
   callMeBot     CallMeBot?
@@ -23,34 +23,35 @@ model CallMeBot {
   id                String   @id @default(cuid())
   phone             String
   apiKey            String
-  notificationEmail String?  // Email where form-submission alerts are sent
+  notificationEmail String? // Email where form-submission alerts are sent
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Organization {
-  id          String   @id @default(cuid())
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  members     OrganizationMember[]
-  companies   Company[]
-  contacts    Contact[]
-  pipelines   Pipeline[]
-  deals       Deal[]
-  tasks       Task[]
-  campaigns   EmailCampaign[]
-  forms       Form[]
-  projects    Project[]
+  members               OrganizationMember[]
+  companies             Company[]
+  contacts              Contact[]
+  pipelines             Pipeline[]
+  deals                 Deal[]
+  tasks                 Task[]
+  campaigns             EmailCampaign[]
+  forms                 Form[]
+  projects              Project[]
   availabilitySchedules AvailabilitySchedule[]
   appointmentTypes      AppointmentType[]
   appointments          Appointment[]
+  taskCategories        TaskCategory[]
 }
 
 enum Role {
@@ -60,15 +61,15 @@ enum Role {
 }
 
 model OrganizationMember {
-  id             String       @id @default(cuid())
-  role           Role         @default(MEMBER)
-  createdAt      DateTime     @default(now())
+  id        String   @id @default(cuid())
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
 
   userId         String
   organizationId String
 
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
   @@index([userId])
@@ -76,143 +77,149 @@ model OrganizationMember {
 }
 
 model Project {
-  id             String       @id @default(cuid())
-  name           String
-  description    String?      @db.Text
-  icon           String?      // Stores an icon name (e.g., 'Folder', 'Target', 'Star') or emoji
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  icon        String? // Stores an icon name (e.g., 'Folder', 'Target', 'Star') or emoji
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  forms          Form[]
-  campaigns      EmailCampaign[]
-  contacts       Contact[]
-  companies      Company[]      @relation("ProjectCompanies")
-  tasks          Task[]
+  forms     Form[]
+  campaigns EmailCampaign[]
+  contacts  Contact[]
+  companies Company[]       @relation("ProjectCompanies")
+  tasks     Task[]
 
   // Client company this project belongs to
-  companyId      String?
-  clientCompany  Company?       @relation("ProjectClientCompany", fields: [companyId], references: [id], onDelete: SetNull)
+  companyId     String?
+  clientCompany Company? @relation("ProjectClientCompany", fields: [companyId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([companyId])
 }
 
 model Company {
-  id             String       @id @default(cuid())
-  name           String
-  website        String?
-  industry       String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  website   String?
+  industry  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   // Custom SMTP settings for this company
-  smtpHost       String?
-  smtpPort       Int?
-  smtpUser       String?
-  smtpPass       String?
-  smtpFromEmail  String?
-  smtpSecure     Boolean?      @default(true)
+  smtpHost      String?
+  smtpPort      Int?
+  smtpUser      String?
+  smtpPass      String?
+  smtpFromEmail String?
+  smtpSecure    Boolean? @default(true)
 
   contacts       Contact[]
   deals          Deal[]
   campaigns      EmailCampaign[]
   forms          Form[]
+  taskCategories TaskCategory[]
+  tasks          Task[]
 
-  projectId      String?
-  project        Project?     @relation("ProjectCompanies", fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation("ProjectCompanies", fields: [projectId], references: [id], onDelete: SetNull)
 
   // Projects that belong to this client company
-  clientProjects Project[]    @relation("ProjectClientCompany")
+  clientProjects Project[] @relation("ProjectClientCompany")
 
   @@index([organizationId])
   @@index([projectId])
 }
 
 model Contact {
-  id             String       @id @default(cuid())
-  firstName      String
-  lastName       String?
-  email          String?
-  phone          String?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String?
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  companyId      String?
-  company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
-  deals          Deal[]
-  tasks          Task[]
-  emailLogs      EmailLog[]
-  appointments   Appointment[]
+  deals        Deal[]
+  tasks        Task[]
+  emailLogs    EmailLog[]
+  appointments Appointment[]
 
-  source         String?      // E.g., "Manual", "Form: Contact Us"
+  source String? // E.g., "Manual", "Form: Contact Us"
 
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  sourceFormId String?
+  sourceForm   Form?   @relation("FormContacts", fields: [sourceFormId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([companyId])
   @@index([projectId])
+  @@index([sourceFormId])
 }
 
 model Pipeline {
-  id             String       @id @default(cuid())
-  name           String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  stages         Stage[]
+  stages Stage[]
 
   @@index([organizationId])
 }
 
 model Stage {
-  id             String       @id @default(cuid())
-  name           String
-  order          Int
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  pipelineId     String
-  pipeline       Pipeline     @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
 
-  deals          Deal[]
+  deals Deal[]
 
   @@index([pipelineId])
 }
 
 model Deal {
-  id             String       @id @default(cuid())
-  title          String
-  value          Float?       @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  value     Float?   @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  stageId        String
-  stage          Stage        @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stageId String
+  stage   Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
-  companyId      String?
-  company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
-  contactId      String?
-  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
-  tasks          Task[]
+  tasks Task[]
 
   @@index([organizationId])
   @@index([stageId])
@@ -221,34 +228,50 @@ model Deal {
 }
 
 model Task {
-  id             String       @id @default(cuid())
-  title          String
-  description    String?      @db.Text
-  dueDate        DateTime?
-  isCompleted    Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  dueDate     DateTime?
+  isCompleted Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  assignedToId   String
-  assignedTo     User         @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  assignedToId String
+  assignedTo   User   @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
 
-  dealId         String?
-  deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
 
-  contactId      String?
-  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  categoryId String?
+  category   TaskCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  formId String?
+  form   Form?   @relation(fields: [formId], references: [id], onDelete: SetNull)
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([assignedToId])
   @@index([dealId])
   @@index([contactId])
   @@index([projectId])
+  @@index([categoryId])
+  @@index([companyId])
+  @@index([formId])
+  @@index([appointmentId])
 }
 
 enum CampaignStatus {
@@ -258,26 +281,26 @@ enum CampaignStatus {
 }
 
 model EmailCampaign {
-  id             String       @id @default(cuid())
-  subject        String
-  body           String       @db.LongText
-  status         CampaignStatus @default(DRAFT)
-  sentAt         DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String         @id @default(cuid())
+  subject   String
+  body      String         @db.LongText
+  status    CampaignStatus @default(DRAFT)
+  sentAt    DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  companyId      String
-  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
-  formsAsWelcome Form[]       @relation("WelcomeEmail")
+  formsAsWelcome Form[] @relation("WelcomeEmail")
 
-  logs           EmailLog[]
+  logs EmailLog[]
 
   @@index([organizationId])
   @@index([companyId])
@@ -292,53 +315,55 @@ enum EmailLogStatus {
 }
 
 model EmailLog {
-  id             String         @id @default(cuid())
-  status         EmailLogStatus @default(PENDING)
-  errorReason    String?        @db.Text
-  sentAt         DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  status      EmailLogStatus @default(PENDING)
+  errorReason String?        @db.Text
+  sentAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  campaignId     String
-  campaign       EmailCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
-  contactId      String
-  contact        Contact        @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
   @@index([contactId])
 }
 
 model Form {
-  id             String      @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
-  companyId      String
-  company        Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name           String
-  description    String?     @db.Text
-  isActive       Boolean     @default(true)
-  
-  successAction  String      @default("MESSAGE") // "MESSAGE" or "REDIRECT"
-  successMessage String?     @db.Text
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String? @db.Text
+  isActive    Boolean @default(true)
+
+  successAction  String  @default("MESSAGE") // "MESSAGE" or "REDIRECT"
+  successMessage String? @db.Text
   redirectUrl    String?
 
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   welcomeEmailId String?
   welcomeEmail   EmailCampaign? @relation("WelcomeEmail", fields: [welcomeEmailId], references: [id], onDelete: SetNull)
 
-  projectId      String?
-  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   appointmentTypeId String?
   appointmentType   AppointmentType? @relation("FormAppointmentType", fields: [appointmentTypeId], references: [id], onDelete: SetNull)
 
-  fields         FormField[]
+  fields   FormField[]
+  tasks    Task[]
+  contacts Contact[]   @relation("FormContacts")
 
   @@index([organizationId])
   @@index([companyId])
@@ -348,94 +373,115 @@ model Form {
 }
 
 model FormField {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  formId      String
-  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId String
+  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
 
-  type        String   // TEXT, EMAIL, PHONE, NUMBER, TEXTAREA, SELECT, CHECKBOX, RADIO, DATE
+  type        String // TEXT, EMAIL, PHONE, NUMBER, TEXTAREA, SELECT, CHECKBOX, RADIO, DATE
   label       String
-  name        String   // Internal name e.g., 'firstName'
+  name        String // Internal name e.g., 'firstName'
   placeholder String?
-  isRequired  Boolean  @default(false)
-  options     String?  @db.Text // JSON string array for select/radio options
+  isRequired  Boolean @default(false)
+  options     String? @db.Text // JSON string array for select/radio options
   order       Int
 
   @@index([formId])
 }
 
 model AvailabilitySchedule {
-  id             String   @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  timezone       String   @default("America/Mexico_City")
-  isDefault      Boolean  @default(false)
-  slots          AvailabilitySlot[]
+  id               String             @id @default(cuid())
+  organizationId   String
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String
+  timezone         String             @default("America/Mexico_City")
+  isDefault        Boolean            @default(false)
+  slots            AvailabilitySlot[]
   appointmentTypes AppointmentType[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([organizationId])
 }
 
 model AvailabilitySlot {
-  id          String   @id @default(cuid())
+  id          String               @id @default(cuid())
   scheduleId  String
   schedule    AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  dayOfWeek   Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startTime   String   // "09:00"
-  endTime     String   // "17:00"
-  isAvailable Boolean  @default(true)
+  dayOfWeek   Int // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime   String // "09:00"
+  endTime     String // "17:00"
+  isAvailable Boolean              @default(true)
 
   @@index([scheduleId])
 }
 
 model AppointmentType {
-  id             String   @id @default(cuid())
+  id             String               @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scheduleId     String
   schedule       AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   name           String
-  description    String?  @db.Text
-  duration       Int      // minutes
-  color          String   @default("#3B82F6")
+  description    String?              @db.Text
+  duration       Int // minutes
+  color          String               @default("#3B82F6")
   location       String?
   slug           String
-  isActive       Boolean  @default(true)
-  bufferAfter    Int      @default(0)
-  maxAdvanceDays Int      @default(30)
+  isActive       Boolean              @default(true)
+  bufferAfter    Int                  @default(0)
+  maxAdvanceDays Int                  @default(30)
   appointments   Appointment[]
-  forms          Form[]   @relation("FormAppointmentType")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  forms          Form[]               @relation("FormAppointmentType")
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
   @@unique([organizationId, slug])
   @@index([organizationId])
 }
 
 model Appointment {
-  id                String   @id @default(cuid())
+  id                String          @id @default(cuid())
   appointmentTypeId String
   appointmentType   AppointmentType @relation(fields: [appointmentTypeId], references: [id], onDelete: Cascade)
   organizationId    String
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contactId         String?
-  contact           Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contact           Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
   startTime         DateTime
   endTime           DateTime
-  timezone          String   @default("America/Mexico_City")
-  status            String   @default("CONFIRMED")
+  timezone          String          @default("America/Mexico_City")
+  status            String          @default("CONFIRMED")
   guestName         String
   guestEmail        String
   guestPhone        String?
-  notes             String?  @db.Text
-  cancelToken       String?  @unique
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  notes             String?         @db.Text
+  cancelToken       String?         @unique
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  tasks             Task[]
 
   @@index([appointmentTypeId])
   @@index([organizationId])
   @@index([contactId])
+}
+
+model TaskCategory {
+  id    String  @id @default(cuid())
+  name  String
+  color String? @default("#3B82F6")
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  tasks Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([companyId])
 }

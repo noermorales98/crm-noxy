@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Header from "@/src/components/Header";
 import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
+import { Trash2, Edit } from "lucide-react";
 
 export default function ContactsPage() {
   const { addToast } = useToast();
@@ -12,6 +14,7 @@ export default function ContactsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", phone: "", companyId: "" });
+  const { confirm } = useConfirm();
 
   useEffect(() => {
     fetchContacts();
@@ -60,6 +63,34 @@ export default function ContactsPage() {
       companyId: contact.companyId || "",
     });
     setShowModal(true);
+  };
+
+  const handleDelete = async (contact: any) => {
+    const isConfirmed = await confirm({
+      title: "Eliminar contacto",
+      description: `¿Estás seguro de que quieres eliminar a '${contact.firstName} ${contact.lastName || ""}'? Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/contacts/${contact.id}`, {
+        method: "DELETE"
+      });
+
+      if (res.ok) {
+        setContacts(contacts.filter(c => c.id !== contact.id));
+        addToast("Contacto eliminado exitosamente.", "success");
+      } else {
+        const err = await res.json();
+        addToast(err.error || "Error al eliminar el contacto.", "error");
+      }
+    } catch (e) {
+      addToast("Error de conexión al eliminar.", "error");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -154,12 +185,22 @@ export default function ContactsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => openEditModal(c)}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => openEditModal(c)}
+                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Editar contacto"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(c)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                            title="Eliminar contacto"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
