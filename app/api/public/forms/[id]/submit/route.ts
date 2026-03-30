@@ -64,45 +64,45 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     // Loop through all database-saved fields for this exact form
     for (const field of form.fields) {
-        if (field.type === "PREDEFINED_NAME") {
-             const first = submissionData[`${field.name}_first`];
-             const last = submissionData[`${field.name}_last`];
-             if (first) firstName = String(first);
-             if (last) lastName = String(last);
-             continue;
+      if (field.type === "PREDEFINED_NAME") {
+        const first = submissionData[`${field.name}_first`];
+        const last = submissionData[`${field.name}_last`];
+        if (first) firstName = String(first);
+        if (last) lastName = String(last);
+        continue;
+      }
+
+      if (field.type === "PHONE_LADA") {
+        const code = submissionData[`${field.name}_code`];
+        const num = submissionData[`${field.name}_number`];
+        if (num) {
+          phone = `${code || "+52"} ${num}`;
         }
+        continue;
+      }
 
-        if (field.type === "PHONE_LADA") {
-             const code = submissionData[`${field.name}_code`];
-             const num = submissionData[`${field.name}_number`];
-             if (num) {
-                 phone = `${code || "+52"} ${num}`;
-             }
-             continue;
+      const submittedValue = submissionData[field.name];
+
+      if (submittedValue !== undefined && submittedValue !== null && submittedValue !== "") {
+
+        const fName = field.name.toLowerCase();
+        const fLabel = field.label.toLowerCase();
+
+        // Try to map to standard Contact object properties
+        if (field.type === "EMAIL" && !email) {
+          email = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
+        } else if ((field.type === "PHONE" || field.type === "NUMBER") && (fName.includes("phone") || fLabel.includes("phone") || fName.includes("tel") || fLabel.includes("tel") || fName.includes("numero") || fLabel.includes("numero") || fName.includes("número") || fLabel.includes("número")) && !phone) {
+          phone = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
+        } else if (field.type === "TEXT" && (fName.includes("last") || fName.includes("apellido") || fLabel.includes("last") || fLabel.includes("apellido")) && !lastName) {
+          lastName = String(submittedValue);
+        } else if (field.type === "TEXT" && (fName.includes("name") || fName.includes("nombre") || fLabel.includes("name") || fLabel.includes("nombre")) && firstName === "New Lead") {
+          firstName = String(submittedValue);
+        } else {
+          // Formatting array values (like checkboxes)
+          const valueString = Array.isArray(submittedValue) ? submittedValue.join(", ") : String(submittedValue);
+          customNotes.push(`${field.label}: ${valueString}`);
         }
-
-        const submittedValue = submissionData[field.name];
-
-        if (submittedValue !== undefined && submittedValue !== null && submittedValue !== "") {
-            
-            const fName = field.name.toLowerCase();
-            const fLabel = field.label.toLowerCase();
-
-            // Try to map to standard Contact object properties
-            if (field.type === "EMAIL" && !email) {
-                email = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
-            } else if ((field.type === "PHONE" || field.type === "NUMBER") && (fName.includes("phone") || fLabel.includes("phone") || fName.includes("tel") || fLabel.includes("tel") || fName.includes("numero") || fLabel.includes("numero") || fName.includes("número") || fLabel.includes("número")) && !phone) {
-                phone = typeof submittedValue === 'string' ? submittedValue : String(submittedValue);
-            } else if (field.type === "TEXT" && (fName.includes("last") || fName.includes("apellido") || fLabel.includes("last") || fLabel.includes("apellido")) && !lastName) {
-                lastName = String(submittedValue);
-            } else if (field.type === "TEXT" && (fName.includes("name") || fName.includes("nombre") || fLabel.includes("name") || fLabel.includes("nombre")) && firstName === "New Lead") {
-                firstName = String(submittedValue);
-            } else {
-                // Formatting array values (like checkboxes)
-                const valueString = Array.isArray(submittedValue) ? submittedValue.join(", ") : String(submittedValue);
-                customNotes.push(`${field.label}: ${valueString}`);
-            }
-        }
+      }
     }
 
     const noteBody = customNotes.length > 0 ? `Form Details:\n${customNotes.join("\n")}` : "No additional fields provided.";
@@ -110,15 +110,15 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     // 2. Create the Lead Contact in the CRM immediately
     // Assigned automatically to the Form's Organization and Target Company.
     const newContact = await prisma.contact.create({
-        data: {
-             firstName,
-             lastName,
-             email,
-             phone,
-             organizationId: form.organizationId,
-             companyId: form.companyId,
-             source: `Form: ${form.name}`
-        }
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone,
+        organizationId: form.organizationId,
+        companyId: form.companyId,
+        source: `Form: ${form.name}`
+      }
     });
 
     // 2b. If form is linked to an appointment type and __appointment_slot was submitted, book the appointment
@@ -161,47 +161,47 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     // 3. Log a Task + send notifications to the owner
     const owner = await prisma.organizationMember.findFirst({
-        where: { organizationId: form.organizationId, role: "OWNER" },
-        include: { user: { select: { email: true, callMeBot: true } } }
+      where: { organizationId: form.organizationId, role: "OWNER" },
+      include: { user: { select: { email: true, callMeBot: true } } }
     });
 
     if (owner) {
-        await prisma.task.create({
-            data: {
-                title: `New Lead from Form: ${form.name}`,
-                description: noteBody,
-                isCompleted: false,
-                organizationId: form.organizationId,
-                contactId: newContact.id,
-                assignedToId: owner.userId
-            }
-        });
+      await prisma.task.create({
+        data: {
+          title: `Nuevo lead en ${form.name}`,
+          description: noteBody,
+          isCompleted: false,
+          organizationId: form.organizationId,
+          contactId: newContact.id,
+          assignedToId: owner.userId
+        }
+      });
 
-        const fullName = `${firstName}${lastName ? " " + lastName : ""}`;
-        const appointmentSlotForNotif = submissionData["__appointment_slot"];
-        const appointmentLine = appointmentSlotForNotif
-            ? `\n📅 Cita agendada: ${new Date(appointmentSlotForNotif).toLocaleString("es-MX", { dateStyle: "full", timeStyle: "short" })}`
-            : "";
+      const fullName = `${firstName}${lastName ? " " + lastName : ""}`;
+      const appointmentSlotForNotif = submissionData["__appointment_slot"];
+      const appointmentLine = appointmentSlotForNotif
+        ? `\n📅 Cita agendada: ${new Date(appointmentSlotForNotif).toLocaleString("es-MX", { dateStyle: "full", timeStyle: "short" })}`
+        : "";
 
-        // 3a. Notificación por email — usa SMTP de la empresa del formulario
-        const company = (form as any).company;
-        const destEmail = owner.user?.callMeBot?.notificationEmail || owner.user?.email;
+      // 3a. Notificación por email — usa SMTP de la empresa del formulario
+      const company = (form as any).company;
+      const destEmail = owner.user?.callMeBot?.notificationEmail || owner.user?.email;
 
-        if (destEmail && company?.smtpHost && company?.smtpUser && company?.smtpPass) {
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: company.smtpHost,
-                    port: company.smtpPort || 465,
-                    secure: company.smtpSecure ?? true,
-                    auth: { user: company.smtpUser, pass: company.smtpPass },
-                });
+      if (destEmail && company?.smtpHost && company?.smtpUser && company?.smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: company.smtpHost,
+            port: company.smtpPort || 465,
+            secure: company.smtpSecure ?? true,
+            auth: { user: company.smtpUser, pass: company.smtpPass },
+          });
 
-                const fieldsHtml = customNotes.map(n => `<li style="margin-bottom:4px">${n}</li>`).join("");
-                await transporter.sendMail({
-                    from: `"Noxy CRM" <${company.smtpFromEmail || company.smtpUser}>`,
-                    to: destEmail,
-                    subject: `🔔 Nuevo lead en "${form.name}"`,
-                    html: `
+          const fieldsHtml = customNotes.map(n => `<li style="margin-bottom:4px">${n}</li>`).join("");
+          await transporter.sendMail({
+            from: `"Noxy CRM" <${company.smtpFromEmail || company.smtpUser}>`,
+            to: destEmail,
+            subject: `🔔 Nuevo lead en "${form.name}"`,
+            html: `
                       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
                         <div style="background:#111;padding:20px 28px;border-radius:12px 12px 0 0">
                           <h2 style="color:#fff;margin:0;font-size:18px">🔔 Nuevo lead recibido</h2>
@@ -219,48 +219,48 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
                         </div>
                       </div>
                     `
-                });
-            } catch (err) {
-                console.error("Email notification error:", err);
-            }
+          });
+        } catch (err) {
+          console.error("Email notification error:", err);
         }
+      }
 
-        // 3b. Notificación por WhatsApp vía CallMeBot
-        if (owner.user?.callMeBot?.phone && owner.user?.callMeBot?.apiKey) {
-            const waMsg = [
-                `🔔 *Nuevo lead - ${form.name}*`,
-                `👤 ${fullName}`,
-                email  ? `📧 ${email}`  : null,
-                phone  ? `📞 ${phone}`  : null,
-                appointmentLine || null,
-                customNotes.length > 0 ? `📋 ${customNotes.join(" | ")}` : null,
-            ].filter(Boolean).join("\n");
+      // 3b. Notificación por WhatsApp vía CallMeBot
+      if (owner.user?.callMeBot?.phone && owner.user?.callMeBot?.apiKey) {
+        const waMsg = [
+          `🔔 *Nuevo lead - ${form.name}*`,
+          `👤 ${fullName}`,
+          email ? `📧 ${email}` : null,
+          phone ? `📞 ${phone}` : null,
+          appointmentLine || null,
+          customNotes.length > 0 ? `📋 ${customNotes.join(" | ")}` : null,
+        ].filter(Boolean).join("\n");
 
-            await sendWhatsAppNotification(
-                owner.user.callMeBot.phone,
-                owner.user.callMeBot.apiKey,
-                waMsg
-            ).catch(err => console.error("WhatsApp notification error:", err));
-        }
+        await sendWhatsAppNotification(
+          owner.user.callMeBot.phone,
+          owner.user.callMeBot.apiKey,
+          waMsg
+        ).catch(err => console.error("WhatsApp notification error:", err));
+      }
     }
 
     // 4. Trigger Welcome Email if configured
     if (form.welcomeEmailId && email) {
-        // Enqueue the email to be sent by creating a PENDING log
-        await prisma.emailLog.create({
-            data: {
-                 campaignId: form.welcomeEmailId,
-                 contactId: newContact.id,
-                 status: "PENDING"
-            }
-        });
+      // Enqueue the email to be sent by creating a PENDING log
+      await prisma.emailLog.create({
+        data: {
+          campaignId: form.welcomeEmailId,
+          contactId: newContact.id,
+          status: "PENDING"
+        }
+      });
     }
 
-    return corsResponse({ 
-         success: true, 
-         action: form.successAction, 
-         message: form.successMessage, 
-         redirectUrl: form.redirectUrl 
+    return corsResponse({
+      success: true,
+      action: form.successAction,
+      message: form.successMessage,
+      redirectUrl: form.redirectUrl
     }, { status: 201 });
 
   } catch (error: any) {

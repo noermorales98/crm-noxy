@@ -13,9 +13,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
   const currentOrganizationId = (session as any).currentOrganizationId;
 
   const project = await prisma.project.findUnique({
-    where: { 
+    where: {
       id: params.id,
-      organizationId: currentOrganizationId 
+      organizationId: currentOrganizationId
     },
     include: {
       clientCompany: true,
@@ -54,7 +54,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        
+
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="max-w-7xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
@@ -75,27 +75,27 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">{project.name}</h1>
                   {project.clientCompany && (
-                     <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full w-fit mb-3 border border-blue-100">
-                        <Building size={14} />
-                        Client: {project.clientCompany.name}
-                     </div>
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full w-fit mb-3 border border-blue-100">
+                      <Building size={14} />
+                      Client: {project.clientCompany.name}
+                    </div>
                   )}
-                  <p className="text-gray-500 max-w-2xl">{project.description || "No description provided."}</p>
+                  <p className="text-gray-500 max-w-2xl">{project.description || "Sin descripción."}</p>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1 bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100 shrink-0">
-                 <div className="text-2xl font-bold text-gray-900">{totalAssets}</div>
-                 <div className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Assets</div>
+                <div className="text-2xl font-bold text-gray-900">{totalAssets}</div>
+                <div className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Assets</div>
               </div>
             </div>
 
             {/* Project Dashboard Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              
+
               {/* Contacts */}
-              <DashboardCard 
-                title="Contacts" 
-                icon={<Users className="text-blue-500" size={20} />} 
+              <DashboardCard
+                title="Contacts"
+                icon={<Users className="text-blue-500" size={20} />}
                 count={project._count.contacts}
                 link="/contacts"
               >
@@ -114,9 +114,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               </DashboardCard>
 
               {/* Companies */}
-              <DashboardCard 
-                title="Companies" 
-                icon={<Building className="text-purple-500" size={20} />} 
+              <DashboardCard
+                title="Empresas"
+                icon={<Building className="text-purple-500" size={20} />}
                 count={project._count.companies}
                 link="/companies"
               >
@@ -135,9 +135,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               </DashboardCard>
 
               {/* Forms */}
-              <DashboardCard 
-                title="Lead Forms" 
-                icon={<AppWindow className="text-green-500" size={20} />} 
+              <DashboardCard
+                title="Lead Forms"
+                icon={<AppWindow className="text-green-500" size={20} />}
                 count={project._count.forms}
                 link="/forms"
               >
@@ -156,9 +156,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               </DashboardCard>
 
               {/* Email Campaigns */}
-              <DashboardCard 
-                title="Campaigns" 
-                icon={<Mail className="text-orange-500" size={20} />} 
+              <DashboardCard
+                title="Campaigns"
+                icon={<Mail className="text-orange-500" size={20} />}
                 count={project._count.campaigns}
                 link="/campaigns"
               >
@@ -177,9 +177,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               </DashboardCard>
 
               {/* Tasks */}
-              <DashboardCard 
-                title="Tasks" 
-                icon={<CheckSquare className="text-red-500" size={20} />} 
+              <DashboardCard
+                title="Tasks"
+                icon={<CheckSquare className="text-red-500" size={20} />}
                 count={project._count.tasks}
                 link="/tasks"
               >
@@ -196,7 +196,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                   </ul>
                 )}
               </DashboardCard>
-              
+
             </div>
 
           </div>

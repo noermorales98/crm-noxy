@@ -80,48 +80,48 @@ export default function FormsPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-        const res = await fetch("/api/forms", {
-            method: "POST",
-            headers: { "Content-Type" : "application/json" },
-            body: JSON.stringify({ name, description, companyId, projectId: projectId || null })
-        });
-        
-        if (res.ok) {
-            setName("");
-            setDescription("");
-            setCompanyId("");
-            setProjectId("");
-            setIsModalOpen(false);
-            fetchForms();
-        } else {
-            const err = await res.json();
-            alert(err.error || "Failed to create form");
-        }
+      const res = await fetch("/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description, companyId, projectId: projectId || null })
+      });
+
+      if (res.ok) {
+        setName("");
+        setDescription("");
+        setCompanyId("");
+        setProjectId("");
+        setIsModalOpen(false);
+        fetchForms();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Error al crear el formulario");
+      }
     } catch (e) {
-        alert("An unexpected error occurred.");
+      alert("Error inesperado.");
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, formName: string) => {
-      if(!confirm(`Are you sure you want to permanently delete '${formName}'? This will disable any live embeds.`)) return;
+    if (!confirm(`Are you sure you want to permanently delete '${formName}'? This will disable any live embeds.`)) return;
 
-      try {
-          const res = await fetch(`/api/forms/${id}`, { method: "DELETE" });
-          if(res.ok) {
-              fetchForms();
-          } else {
-              alert("Failed to delete form.");
-          }
-      } catch (e) {
-          alert("Unexpected error.");
+    try {
+      const res = await fetch(`/api/forms/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchForms();
+      } else {
+        alert("Failed to delete form.");
       }
+    } catch (e) {
+      alert("Unexpected error.");
+    }
   };
 
   const copyToClipboard = (text: string, title: string) => {
-      navigator.clipboard.writeText(text);
-      alert(`${title} copied to clipboard!`);
+    navigator.clipboard.writeText(text);
+    alert(`${title} copied to clipboard!`);
   };
 
   return (
@@ -129,7 +129,7 @@ export default function FormsPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        
+
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
@@ -141,7 +141,7 @@ export default function FormsPage() {
               className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
             >
               <Plus size={18} />
-              Create Form
+              Crear formulario
             </button>
           </div>
 
@@ -154,85 +154,85 @@ export default function FormsPage() {
               <FormInput className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No forms yet</h3>
               <p className="text-gray-500 text-sm mb-4">Create your first custom form to capture leads from your website.</p>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-colors"
-               >
-                 <Plus size={16} /> Create Form
+              >
+                <Plus size={16} /> Crear formulario
               </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {forms.map((form) => {
-                  const formUrl = typeof window !== 'undefined' ? `${window.location.origin}/form/${form.id}` : '';
-                  const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
+                const formUrl = typeof window !== 'undefined' ? `${window.location.origin}/form/${form.id}` : '';
+                const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
 
-                  return (
-                    <div key={form.id} className="bg-white border text-left border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
-                                <div className="text-xs text-gray-500 font-medium mt-1 flex flex-col gap-0.5">
-                                    <span>Company: {form.company?.name || "Unknown Company"}</span>
-                                    {form.project && <span className="text-blue-600">Project: {form.project.name}</span>}
-                                </div>
-                            </div>
-                            {form.isActive ? (
-                                <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md">
-                                    <Activity size={10} /> Active
-                                </span>
-                            ) : (
-                                <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
-                                    Offline
-                                </span>
-                            )}
+                return (
+                  <div key={form.id} className="bg-white border text-left border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
+                        <div className="text-xs text-gray-500 font-medium mt-1 flex flex-col gap-0.5">
+                          <span>Company: {form.company?.name || "Unknown Company"}</span>
+                          {form.project && <span className="text-blue-600">Project: {form.project.name}</span>}
                         </div>
-
-                        <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-2">
-                            {form.description || "No description provided."}
-                        </p>
-
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-4 pb-4 border-b border-gray-50">
-                            <span>{form._count.fields} Fields constructed</span>
-                            <span>{new Date(form.createdAt).toLocaleDateString()}</span>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-2 mt-auto">
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => copyToClipboard(formUrl, "Public Link")}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors tooltip-trigger"
-                                    title="Copy Public Link"
-                                >
-                                    <LinkIcon size={16} />
-                                </button>
-                                <button
-                                    onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")}
-                                    className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors tooltip-trigger"
-                                    title="Copy Iframe Code"
-                                >
-                                    <Code size={16} />
-                                </button>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleDelete(form.id, form.name)}
-                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Delete Form"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                                <Link
-                                    href={`/forms/${form.id}`}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                                >
-                                    <Edit size={14} /> Builder
-                                </Link>
-                            </div>
-                        </div>
+                      </div>
+                      {form.isActive ? (
+                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md">
+                          <Activity size={10} /> Active
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                          Offline
+                        </span>
+                      )}
                     </div>
-                  );
+
+                    <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-2">
+                      {form.description || "Sin descripción."}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-4 pb-4 border-b border-gray-50">
+                      <span>{form._count.fields} Fields constructed</span>
+                      <span>{new Date(form.createdAt).toLocaleDateString()}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 mt-auto">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => copyToClipboard(formUrl, "Public Link")}
+                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors tooltip-trigger"
+                          title="Copy Public Link"
+                        >
+                          <LinkIcon size={16} />
+                        </button>
+                        <button
+                          onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")}
+                          className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors tooltip-trigger"
+                          title="Copy Iframe Code"
+                        >
+                          <Code size={16} />
+                        </button>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleDelete(form.id, form.name)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Form"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                        <Link
+                          href={`/forms/${form.id}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        >
+                          <Edit size={14} /> Builder
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
               })}
             </div>
           )}
@@ -249,41 +249,41 @@ export default function FormsPage() {
                 <XCircle size={20} />
               </button>
             </div>
-            
+
             <div className="p-6">
               <form id="createForm" onSubmit={handleCreateForm} className="flex flex-col gap-4">
-                
+
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Form Target Company</label>
+                  <label className="text-sm font-semibold text-gray-700">Empresa</label>
                   <select
-                     required
-                     value={companyId}
-                     onChange={(e) => setCompanyId(e.target.value)}
-                     className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm"
+                    required
+                    value={companyId}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm"
                   >
-                     <option value="" disabled>Select Company to assign Leads to</option>
-                     {companies.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                     ))}
+                    <option value="" disabled>Seleccionar Empresa</option>
+                    {companies.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Project (Optional)</label>
+                  <label className="text-sm font-semibold text-gray-700">Proyecto (Opcional)</label>
                   <select
-                     value={projectId}
-                     onChange={(e) => setProjectId(e.target.value)}
-                     className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm"
+                    value={projectId}
+                    onChange={(e) => setProjectId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm"
                   >
-                     <option value="">No Project Attached</option>
-                     {projects.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                     ))}
+                    <option value="">No Project Attached</option>
+                    {projects.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Form Name</label>
+                  <label className="text-sm font-semibold text-gray-700">Nombre del formulario</label>
                   <input
                     type="text"
                     required
@@ -295,7 +295,7 @@ export default function FormsPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Internal Description (Optional)</label>
+                  <label className="text-sm font-semibold text-gray-700">Descripción interna (Opcional)</label>
                   <textarea
                     rows={3}
                     maxLength={200}
@@ -306,14 +306,14 @@ export default function FormsPage() {
                 </div>
               </form>
             </div>
-            
+
             <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="submit"
@@ -321,7 +321,7 @@ export default function FormsPage() {
                 disabled={isSubmitting}
                 className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
               >
-                {isSubmitting ? "Creating..." : "Create Form"}
+                {isSubmitting ? "Creando..." : "Crear formulario"}
               </button>
             </div>
           </div>

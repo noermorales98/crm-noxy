@@ -62,7 +62,7 @@ export function KanbanBoard() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading pipeline...</div>;
+    return <div className="p-8 text-center text-gray-500">Cargando pipeline...</div>;
   }
 
   if (!pipeline) {
@@ -85,13 +85,13 @@ export function KanbanBoard() {
                 <ArrowDownUp size={14} className="text-gray-400" />
               </div>
             </div>
-            
+
             {/* Cards Container */}
             <Droppable droppableId={stage.id}>
               {(provided, snapshot) => (
-                <div 
+                <div
                   className={`flex flex-col gap-4 overflow-y-auto pr-1 flex-1 min-h-[150px] transition-colors rounded-xl ${snapshot.isDraggingOver ? 'bg-gray-100/50' : ''}`}
-                  ref={provided.innerRef} 
+                  ref={provided.innerRef}
                   {...provided.droppableProps}
                 >
                   {stage.deals?.map((deal: any, index: number) => (
@@ -123,10 +123,10 @@ export function KanbanBoard() {
 
 function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
   const isDark = false; // Note: We can expand this logic later if we want high-value deals to be dark
-  
+
   return (
     <div className={`p-5 rounded-2xl shadow-sm border transition-shadow cursor-grab active:cursor-grabbing flex flex-col gap-4 ${isDark ? 'bg-[#222222] text-white border-transparent' : 'bg-white text-gray-900 border-gray-100'} ${isDragging ? 'shadow-lg ring-2 ring-black/5' : 'hover:shadow-md'}`}>
-      
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <h4 className="font-bold text-base leading-snug">{deal.title}</h4>
@@ -139,7 +139,7 @@ function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
       <p className={`text-sm leading-relaxed font-semibold ${isDark ? 'text-gray-300' : 'text-green-600'}`}>
         ${deal.value?.toLocaleString() || 0}
       </p>
-      
+
       {(deal.company || deal.contact) && (
         <div className="flex flex-col gap-1 text-xs text-gray-500">
           {deal.company && <span>🏢 {deal.company.name}</span>}

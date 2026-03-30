@@ -62,7 +62,7 @@ export default function SettingsPage() {
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Settings / Integrations</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Configuración / Integraciones</h1>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-2xl flex flex-col gap-8">
@@ -125,13 +125,13 @@ export default function SettingsPage() {
               {success && <p className="text-sm text-green-600 font-medium">Settings saved successfully!</p>}
 
               <div className="pt-2">
-                 <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
-                  >
-                    {loading ? "Guardando..." : "Guardar configuración"}
-                  </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Guardando..." : "Guardar configuración"}
+                </button>
               </div>
             </form>
           </div>

@@ -19,7 +19,7 @@ type Campaign = {
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subject, setSubject] = useState("");
@@ -43,7 +43,7 @@ export default function CampaignsPage() {
         setCompanies(data);
       }
     } catch (e) {
-       console.error(e);
+      console.error(e);
     }
   };
 
@@ -104,7 +104,7 @@ export default function CampaignsPage() {
         alert(data.error || "Failed to schedule campaign");
         return;
       }
-      
+
       const result = await res.json();
       alert(`Success! ${result.totalScheduled} emails have been scheduled for dispatch.`);
       fetchCampaigns(); // refresh list to see SENDING status
@@ -118,22 +118,22 @@ export default function CampaignsPage() {
     try {
       const res = await fetch("/api/cron/process-emails");
       const data = await res.json();
-      
+
       if (res.ok) {
         if (data.message === "No pending emails to process") {
-           alert("Queue is empty. No pending emails to process.");
+          alert("Queue is empty. No pending emails to process.");
         } else {
-           alert("Queue processing triggered successfully! Check campaigns status.");
+          alert("Queue processing triggered successfully! Check campaigns status.");
         }
         fetchCampaigns();
       } else {
         alert(data.error || "Failed to process queue.");
       }
     } catch (error) {
-       console.error(error);
-       alert("Error contacting the cron dispatcher.");
+      console.error(error);
+      alert("Error contacting the cron dispatcher.");
     } finally {
-       setIsProcessingQueue(false);
+      setIsProcessingQueue(false);
     }
   };
 
@@ -142,7 +142,7 @@ export default function CampaignsPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        
+
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
@@ -156,14 +156,14 @@ export default function CampaignsPage() {
                 className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
               >
                 <RefreshCw size={16} className={isProcessingQueue ? "animate-spin" : ""} />
-                {isProcessingQueue ? "Processing..." : "Process Queue"}
+                {isProcessingQueue ? "Procesando..." : "Procesar cola"}
               </button>
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
               >
                 <Plus size={18} />
-                New Campaign
+                Nueva campaña
               </button>
             </div>
           </div>
@@ -177,11 +177,11 @@ export default function CampaignsPage() {
               <Mail className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No campaigns yet</h3>
               <p className="text-gray-500 text-sm mb-4">Start by creating your first email newsletter draft.</p>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
                 className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-colors"
-               >
-                 <Plus size={16} /> Create Draft
+              >
+                <Plus size={16} /> Create Draft
               </button>
             </div>
           ) : (
@@ -189,12 +189,12 @@ export default function CampaignsPage() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Company</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Recipients</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Asunto</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Empresa</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Destinatarios</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Creado</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
@@ -205,17 +205,17 @@ export default function CampaignsPage() {
                       <td className="px-6 py-4">
                         {camp.status === "DRAFT" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                             <Clock size={12} /> Draft
+                            <Clock size={12} /> Draft
                           </span>
                         )}
                         {camp.status === "SENDING" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                             <Send size={12} /> Sending...
+                            <Send size={12} /> Sending...
                           </span>
                         )}
                         {camp.status === "COMPLETED" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                             <CheckCircle2 size={12} /> Completed
+                            <CheckCircle2 size={12} /> Completed
                           </span>
                         )}
                       </td>
@@ -223,19 +223,19 @@ export default function CampaignsPage() {
                         {camp._count.logs > 0 ? camp._count.logs : "—"}
                       </td>
                       <td className="px-6 py-4 text-gray-500">
-                         {new Date(camp.createdAt).toLocaleDateString()}
+                        {new Date(camp.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right">
-                         {camp.status === "DRAFT" ? (
-                           <button 
-                             onClick={() => handleSendCampaign(camp.id)}
-                             className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                           >
-                             Send Now
-                           </button>
-                         ) : (
-                           <span className="text-gray-400 text-xs">Locked</span>
-                         )}
+                        {camp.status === "DRAFT" ? (
+                          <button
+                            onClick={() => handleSendCampaign(camp.id)}
+                            className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                          >
+                            Send Now
+                          </button>
+                        ) : (
+                          <span className="text-gray-400 text-xs">Locked</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -257,37 +257,37 @@ export default function CampaignsPage() {
                 <XCircle size={24} />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto">
               <form id="createCampaignForm" onSubmit={handleCreateDraft} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-gray-700">Company (Sender Identity)</label>
                   <select
-                     required
-                     value={companyId}
-                     onChange={(e) => setCompanyId(e.target.value)}
-                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
+                    required
+                    value={companyId}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
                   >
-                     <option value="" disabled>Select a Company</option>
-                     {companies.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                     ))}
+                    <option value="" disabled>Select a Company</option>
+                    {companies.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
                   </select>
                   <p className="text-xs text-gray-500">The campaign will be sent to this company's contacts using its specific SMTP credentials.</p>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-gray-700">Subject Line</label>
+                  <label className="text-sm font-semibold text-gray-700">Asunto</label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Exciting News from our Team!"
+                    placeholder="e.g. Noticias emocionantes de nuestro equipo!"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
                   />
                 </div>
-                
+
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-gray-700">Email Body (HTML Supported)</label>
                   <textarea
@@ -300,11 +300,11 @@ export default function CampaignsPage() {
                   ></textarea>
                   <p className="text-xs text-gray-400">You can use raw HTML here to format your newsletter.</p>
                 </div>
-                
+
                 {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
               </form>
             </div>
-            
+
             <div className="p-6 border-t border-gray-50 flex justify-end gap-3 shrink-0 bg-gray-50/50">
               <button
                 type="button"

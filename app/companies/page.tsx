@@ -125,11 +125,11 @@ export default function CompaniesPage() {
       });
 
       if (res.ok) {
-         setShowSmtpModal(false);
-         alert("SMTP Settings Saved Successfully");
+        setShowSmtpModal(false);
+        alert("SMTP Settings Saved Successfully");
       } else {
-         const data = await res.json();
-         alert(`Error saving SMTP settings: ${data.error}`);
+        const data = await res.json();
+        alert(`Error saving SMTP settings: ${data.error}`);
       }
     } catch (error) {
       console.error(error);
@@ -140,10 +140,10 @@ export default function CompaniesPage() {
 
   const handleSmtpTest = async () => {
     if (!testEmail) {
-       alert("Please enter an email address to send the test to.");
-       return;
+      alert("Please enter an email address to send the test to.");
+      return;
     }
-    
+
     setIsTestingSmtp(true);
     try {
       const res = await fetch(`/api/companies/${currentSmtpCompany.id}/smtp/test`, {
@@ -154,9 +154,9 @@ export default function CompaniesPage() {
 
       const data = await res.json();
       if (res.ok) {
-         alert("Test Email Sent Successfully! Check your inbox.");
+        alert("Test Email Sent Successfully! Check your inbox.");
       } else {
-         alert(`Error testing SMTP: ${data.error}`);
+        alert(`Error testing SMTP: ${data.error}`);
       }
     } catch (error) {
       console.error(error);
@@ -173,27 +173,27 @@ export default function CompaniesPage() {
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Companies</h1>
-            <button 
+            <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
+            <button
               onClick={openAddModal}
               className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
             >
-              Add Company
+              Agregar Empresa
             </button>
           </div>
 
           {loading ? (
-             <div className="text-gray-500">Loading companies...</div>
+            <div className="text-gray-500">Cargando empresas...</div>
           ) : (
             <div className="bg-white border text-sm border-gray-100 rounded-xl overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-[#fcfbf9] border-b text-gray-500 border-gray-100 uppercase tracking-wider text-xs">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Name</th>
-                    <th className="px-6 py-4 font-semibold">Industry</th>
+                    <th className="px-6 py-4 font-semibold">Nombre</th>
+                    <th className="px-6 py-4 font-semibold">Industria</th>
                     <th className="px-6 py-4 font-semibold">Website</th>
-                    <th className="px-6 py-4 font-semibold">Contacts</th>
-                    <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                    <th className="px-6 py-4 font-semibold">Contactos</th>
+                    <th className="px-6 py-4 font-semibold text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -208,13 +208,13 @@ export default function CompaniesPage() {
                       <td className="px-6 py-4 text-blue-600 hover:underline">{c.website ? <a href={c.website.startsWith('http') ? c.website : `https://${c.website}`} target="_blank">{c.website}</a> : "-"}</td>
                       <td className="px-6 py-4 text-gray-600">{c._count?.contacts || 0}</td>
                       <td className="px-6 py-4 text-right space-x-4">
-                        <button 
+                        <button
                           onClick={() => openSmtpModal(c)}
                           className="text-orange-600 hover:text-orange-800 text-sm font-medium"
                         >
                           SMTP
                         </button>
-                        <button 
+                        <button
                           onClick={() => openEditModal(c)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
@@ -235,31 +235,31 @@ export default function CompaniesPage() {
                 <h2 className="text-xl font-bold mb-4">{editingId ? 'Edit company' : 'Add new company'}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
-                    <input 
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la empresa *</label>
+                    <input
                       required
-                      type="text" 
+                      type="text"
                       value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={formData.website}
-                      onChange={e => setFormData({...formData, website: e.target.value})}
+                      onChange={e => setFormData({ ...formData, website: e.target.value })}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                       placeholder="acme.com"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={formData.industry}
-                      onChange={e => setFormData({...formData, industry: e.target.value})}
+                      onChange={e => setFormData({ ...formData, industry: e.target.value })}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                     />
                   </div>
@@ -280,84 +280,84 @@ export default function CompaniesPage() {
                 <p className="text-gray-500 text-xs mb-4">Emails sent from this `{currentSmtpCompany?.name}` workspace will be transmitted out via these credentials.</p>
                 <form onSubmit={handleSmtpSubmit} className="flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
-                     <div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
-                      <input 
+                      <input
                         required
-                        type="text" 
+                        type="text"
                         value={smtpData.smtpHost}
-                        onChange={e => setSmtpData({...smtpData, smtpHost: e.target.value})}
+                        onChange={e => setSmtpData({ ...smtpData, smtpHost: e.target.value })}
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                         placeholder="smtp.gmail.com"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                      <input 
+                      <input
                         required
-                        type="number" 
+                        type="number"
                         value={smtpData.smtpPort}
-                        onChange={e => setSmtpData({...smtpData, smtpPort: e.target.value})}
+                        onChange={e => setSmtpData({ ...smtpData, smtpPort: e.target.value })}
                         className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                         placeholder="465"
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">SMTP User (Email Auth)</label>
-                    <input 
+                    <input
                       required
-                      type="text" 
+                      type="text"
                       value={smtpData.smtpUser}
-                      onChange={e => setSmtpData({...smtpData, smtpUser: e.target.value})}
+                      onChange={e => setSmtpData({ ...smtpData, smtpUser: e.target.value })}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                       placeholder="hello@acme.com"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       value={smtpData.smtpPass}
-                      onChange={e => setSmtpData({...smtpData, smtpPass: e.target.value})}
+                      onChange={e => setSmtpData({ ...smtpData, smtpPass: e.target.value })}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
                       placeholder="*********"
                     />
                     <p className="text-[10px] text-gray-400 mt-1">Leave blank if you do not want to overwrite the current password.</p>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 mt-2">
-                     <input 
-                       id="smtpSecure"
-                       type="checkbox" 
-                       checked={smtpData.smtpSecure}
-                       onChange={e => setSmtpData({...smtpData, smtpSecure: e.target.checked})}
-                       className="rounded border-gray-300"
-                     />
-                     <label htmlFor="smtpSecure" className="text-sm font-medium text-gray-700">Use Secure Connection (SSL/TLS)</label>
+                    <input
+                      id="smtpSecure"
+                      type="checkbox"
+                      checked={smtpData.smtpSecure}
+                      onChange={e => setSmtpData({ ...smtpData, smtpSecure: e.target.checked })}
+                      className="rounded border-gray-300"
+                    />
+                    <label htmlFor="smtpSecure" className="text-sm font-medium text-gray-700">Use Secure Connection (SSL/TLS)</label>
                   </div>
-                  
+
                   <div className="mt-4 pt-4 border-t border-gray-50 bg-gray-50/50 -mx-6 px-6 py-4 flex flex-col gap-3">
-                     <p className="text-sm font-semibold text-gray-700">Test Connection</p>
-                     <div className="flex gap-2">
-                        <input 
-                           type="email"
-                           value={testEmail}
-                           onChange={e => setTestEmail(e.target.value)}
-                           className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
-                           placeholder="Enter an email to send a test message"
-                        />
-                        <button 
-                           type="button" 
-                           onClick={handleSmtpTest} 
-                           disabled={isTestingSmtp}
-                           className="px-4 py-2 text-sm text-black border border-gray-200 bg-white hover:bg-gray-50 rounded-lg font-medium disabled:opacity-50 whitespace-nowrap"
-                        >
-                           {isTestingSmtp ? 'Testing...' : 'Test Connection'}
-                        </button>
-                     </div>
+                    <p className="text-sm font-semibold text-gray-700">Test Connection</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={testEmail}
+                        onChange={e => setTestEmail(e.target.value)}
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-black"
+                        placeholder="Enter an email to send a test message"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSmtpTest}
+                        disabled={isTestingSmtp}
+                        className="px-4 py-2 text-sm text-black border border-gray-200 bg-white hover:bg-gray-50 rounded-lg font-medium disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {isTestingSmtp ? 'Testing...' : 'Test Connection'}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-50">
