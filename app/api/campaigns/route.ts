@@ -25,6 +25,12 @@ export async function GET(req: Request) {
         company: {
           select: { name: true }
         },
+        project: {
+          select: { name: true }
+        },
+        targetForm: {
+          select: { name: true }
+        },
         _count: {
           select: { logs: true }
         }
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { subject, body: htmlBody, companyId } = body;
+    const { subject, body: htmlBody, companyId, projectId, targetFormId } = body;
 
     if (!subject || !htmlBody || !companyId) {
       return NextResponse.json({ error: "Subject, body, and company are required" }, { status: 400 });
@@ -72,6 +78,8 @@ export async function POST(req: Request) {
         status: "DRAFT",
         organizationId: currentOrganizationId,
         companyId: companyId,
+        projectId: projectId || null,
+        targetFormId: targetFormId || null,
       },
     });
 

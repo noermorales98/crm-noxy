@@ -15,6 +15,8 @@ type Campaign = {
   createdAt: string;
   companyId: string;
   company: { name: string };
+  project?: { name: string };
+  targetForm?: { name: string };
   _count: { logs: number };
 };
 
@@ -55,6 +57,14 @@ export default function CampaignsPage() {
   const [htmlBody, setHtmlBody] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [companies, setCompanies] = useState<any[]>([]);
+  
+  // Advanced Targeting
+  const [targetType, setTargetType] = useState<"ALL" | "PROJECT" | "FORM">("ALL");
+  const [projectId, setProjectId] = useState("");
+  const [targetFormId, setTargetFormId] = useState("");
+  const [projects, setProjects] = useState<any[]>([]);
+  const [forms, setForms] = useState<any[]>([]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -62,6 +72,8 @@ export default function CampaignsPage() {
   useEffect(() => {
     fetchCampaigns();
     fetchCompanies();
+    fetchProjects();
+    fetchForms();
   }, []);
 
   const fetchCompanies = async () => {
@@ -74,6 +86,20 @@ export default function CampaignsPage() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const res = await fetch("/api/projects");
+      if (res.ok) setProjects(await res.json());
+    } catch (e) {}
+  };
+
+  const fetchForms = async () => {
+    try {
+      const res = await fetch("/api/forms");
+      if (res.ok) setForms(await res.json());
+    } catch (e) {}
   };
 
   const fetchCampaigns = async () => {
@@ -99,7 +125,13 @@ export default function CampaignsPage() {
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, body: htmlBody, companyId }),
+        body: JSON.stringify({ 
+          subject, 
+          body: htmlBody, 
+          companyId,
+          projectId: targetType === "PROJECT" ? projectId : null,
+          targetFormId: targetType === "FORM" ? targetFormId : null
+        }),
       });
 
       if (!res.ok) {
@@ -109,6 +141,9 @@ export default function CampaignsPage() {
 
       setSubject("");
       setHtmlBody("");
+      setTargetType("ALL");
+      setProjectId("");
+      setTargetFormId("");
       setIsModalOpen(false);
       fetchCampaigns(); // refresh list
     } catch (err: any) {
@@ -234,7 +269,16 @@ export default function CampaignsPage() {
                   {campaigns.map((camp) => (
                     <tr key={camp.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{camp.subject}</td>
-                      <td className="px-6 py-4 text-gray-600">{camp.company?.name || "Unknown"}</td>
+                      <td className="px-6 py-4 text-gray-600">
+                        <div className="font-semibold text-gray-900 border-b border-gray-100 pb-1 mb-1">{camp.company?.name || "Unknown"}</div>
+                        {camp.project ? (
+                          <div className="text-[11px] text-blue-600 font-medium tracking-wide">💼 PROYECTO: {camp.project.name}</div>
+                        ) : camp.targetForm ? (
+                          <div className="text-[11px] text-purple-600 font-medium tracking-wide">📝 FORMULARIO: {camp.targetForm.name}</div>
+                        ) : (
+                          <div className="text-[11px] text-gray-400 font-medium tracking-wide">🏢 TODA LA EMPRESA</div>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         {camp.status === "DRAFT" && (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
@@ -315,8 +359,76 @@ export default function CampaignsPage() {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500">The campaign will be sent to this company's contacts using its specific SMTP credentials.</p>
+                  <p className="text-xs text-gray-500">The campaign will map to this company's external settings (SMTP).</p>
                 </div>
+
+                {companyId && (
+                  <div className="flex flex-col gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50/50">
+                    <label className="text-sm font-semibold text-gray-900">Destinatarios:</label>
+                    <div className="flex flex-col gap-3">
+                      
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="targetType" 
+                          checked={targetType === "ALL"} 
+                          onChange={() => setTargetType("ALL")}
+                          className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
+                        />
+                        <span className="text-sm font-medium text-gray-700">🏢 Toda la Empresa (Todos los contactos)</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="targetType" 
+                          checked={targetType === "PROJECT"} 
+                          onChange={() => setTargetType("PROJECT")}
+                          className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
+                        />
+                        <span className="text-sm font-medium text-gray-700">💼 Un Proyecto Específico</span>
+                      </label>
+                      {targetType === "PROJECT" && (
+                         <select
+                           required
+                           value={projectId}
+                           onChange={(e) => setProjectId(e.target.value)}
+                           className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
+                         >
+                           <option value="" disabled>Seleccionar Proyecto</option>
+                           {projects.filter(p => p.organizationId === companies.find(c => c.id === companyId)?.organizationId).map(p => (
+                             <option key={p.id} value={p.id}>{p.name}</option>
+                           ))}
+                         </select>
+                      )}
+
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="targetType" 
+                          checked={targetType === "FORM"} 
+                          onChange={() => setTargetType("FORM")}
+                          className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
+                        />
+                        <span className="text-sm font-medium text-gray-700">📝 Un Formulario Específico</span>
+                      </label>
+                      {targetType === "FORM" && (
+                         <select
+                           required
+                           value={targetFormId}
+                           onChange={(e) => setTargetFormId(e.target.value)}
+                           className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
+                         >
+                           <option value="" disabled>Seleccionar Formulario</option>
+                           {forms.filter(f => f.companyId === companyId).map(f => (
+                             <option key={f.id} value={f.id}>{f.name}</option>
+                           ))}
+                         </select>
+                      )}
+                      
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-semibold text-gray-700">Asunto</label>

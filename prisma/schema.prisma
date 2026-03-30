@@ -298,6 +298,9 @@ model EmailCampaign {
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  targetFormId String?
+  targetForm   Form?   @relation("FormTargetCampaigns", fields: [targetFormId], references: [id], onDelete: SetNull)
+
   formsAsWelcome Form[] @relation("WelcomeEmail")
 
   logs EmailLog[]
@@ -305,6 +308,7 @@ model EmailCampaign {
   @@index([organizationId])
   @@index([companyId])
   @@index([projectId])
+  @@index([targetFormId])
 }
 
 enum EmailLogStatus {
@@ -361,9 +365,10 @@ model Form {
   appointmentTypeId String?
   appointmentType   AppointmentType? @relation("FormAppointmentType", fields: [appointmentTypeId], references: [id], onDelete: SetNull)
 
-  fields   FormField[]
-  tasks    Task[]
-  contacts Contact[]   @relation("FormContacts")
+  fields            FormField[]
+  tasks             Task[]
+  contacts          Contact[]       @relation("FormContacts")
+  targetedCampaigns EmailCampaign[] @relation("FormTargetCampaigns")
 
   @@index([organizationId])
   @@index([companyId])

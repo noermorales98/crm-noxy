@@ -34,12 +34,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Campaign is already processing or sent" }, { status: 400 });
     }
 
-    // Fetch all contacts with emails for this specific COMPANY
+    // Build target criteria
+    let contactWhere: any = {
+      companyId: campaign.companyId,
+      email: { not: null, notIn: [""] },
+    };
+
+    if (campaign.targetFormId) {
+      contactWhere.sourceFormId = campaign.targetFormId;
+    } else if (campaign.projectId) {
+      contactWhere.projectId = campaign.projectId;
+    }
+
+    // Fetch matching contacts for this scope
     const contacts = await prisma.contact.findMany({
-      where: {
-        companyId: campaign.companyId,
-        email: { not: null, notIn: [""] },
-      },
+      where: contactWhere,
       select: { id: true }
     });
 
