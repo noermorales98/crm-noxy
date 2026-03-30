@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Globe, ChevronDown, Search } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -45,6 +46,7 @@ function getUtcOffset(tz: string): string {
 }
 
 export default function SchedulePage() {
+  const { addToast } = useToast();
   const { slug } = useParams() as { slug: string };
   const [appointmentType, setAppointmentType] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -156,10 +158,10 @@ export default function SchedulePage() {
         setStep("success");
       } else {
         const d = await res.json();
-        alert(d.error || "Error al agendar");
+        addToast(d.error || "Error al agendar", "error");
       }
     } catch {
-      alert("Error de conexión.");
+      addToast("Error de conexión.", "error");
     } finally {
       setIsBooking(false);
     }

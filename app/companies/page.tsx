@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import Header from "@/src/components/Header";
 import Sidebar from "@/src/components/Sidebar";
+import { useToast } from "@/src/context/ToastContext";
 
 export default function CompaniesPage() {
+  const { addToast } = useToast();
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -84,7 +86,7 @@ export default function CompaniesPage() {
         setFormData({ name: "", website: "", industry: "" });
       } else {
         const errorData = await res.json();
-        alert(`Error ${isEditing ? 'updating' : 'creating'} company: ${errorData.error}`);
+        addToast(`Error ${isEditing ? 'updating' : 'creating'} company: ${errorData.error}`, "error");
         console.error("API Error Response:", errorData);
       }
     } catch (error) {
@@ -126,10 +128,10 @@ export default function CompaniesPage() {
 
       if (res.ok) {
         setShowSmtpModal(false);
-        alert("SMTP Settings Saved Successfully");
+        addToast("SMTP Settings Saved Successfully", "success");
       } else {
         const data = await res.json();
-        alert(`Error saving SMTP settings: ${data.error}`);
+        addToast(`Error saving SMTP settings: ${data.error}`, "error");
       }
     } catch (error) {
       console.error(error);
@@ -140,7 +142,7 @@ export default function CompaniesPage() {
 
   const handleSmtpTest = async () => {
     if (!testEmail) {
-      alert("Please enter an email address to send the test to.");
+      addToast("Please enter an email address to send the test to.", "warning");
       return;
     }
 
@@ -154,13 +156,13 @@ export default function CompaniesPage() {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Test Email Sent Successfully! Check your inbox.");
+        addToast("Test Email Sent Successfully! Check your inbox.", "success");
       } else {
-        alert(`Error testing SMTP: ${data.error}`);
+        addToast(`Error testing SMTP: ${data.error}`, "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Failed to connect to the test endpoint.");
+      addToast("Failed to connect to the test endpoint.", "error");
     } finally {
       setIsTestingSmtp(false);
     }

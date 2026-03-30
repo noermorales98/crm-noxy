@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { Calendar, Plus, Trash2, Edit, Clock, Link as LinkIcon, XCircle } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 import Link from "next/link";
 
 export default function AppointmentTypesPage() {
+  const { addToast, showConfirm } = useToast();
   const [types, setTypes] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,19 +60,24 @@ export default function AppointmentTypesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scheduleId) { alert("Debes crear una disponibilidad primero."); return; }
+    if (!scheduleId) { addToast("Debes crear una disponibilidad primero.", "warning"); return; }
     setIsSubmitting(true);
     const body = { name, description, duration, color, location, slug, scheduleId, bufferAfter, maxAdvanceDays };
     const url = editingType ? `/api/appointment-types/${editingType.id}` : "/api/appointment-types";
     const method = editingType ? "PUT" : "POST";
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.ok) { setIsModalOpen(false); fetchAll(); }
-    else { const d = await res.json(); alert(d.error || "Error"); }
+    else { const d = await res.json(); addToast(d.error || "Error", "error"); }
     setIsSubmitting(false);
   };
 
   const handleDelete = async (id: string, typeName: string) => {
-    if (!confirm(`¿Eliminar '${typeName}'?`)) return;
+    const ok = await showConfirm(`¿Eliminar el tipo de cita '${typeName}'?`, {
+      title: "Eliminar tipo de cita",
+      confirmLabel: "Eliminar",
+      isDanger: true,
+    });
+    if (!ok) return;
     await fetch(`/api/appointment-types/${id}`, { method: "DELETE" });
     fetchAll();
   };
@@ -78,7 +85,7 @@ export default function AppointmentTypesPage() {
   const copyLink = (typeSlug: string) => {
     const url = `${window.location.origin}/schedule/${typeSlug}`;
     navigator.clipboard.writeText(url);
-    alert("Link copiado al portapapeles");
+    addToast("Link copiado al portapapeles", "success");
   };
 
   const autoSlug = (n: string) =>

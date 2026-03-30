@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 
 type Campaign = {
   id: string;
@@ -17,6 +18,7 @@ type Campaign = {
 };
 
 export default function CampaignsPage() {
+  const { addToast, showConfirm } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -90,7 +92,11 @@ export default function CampaignsPage() {
   };
 
   const handleSendCampaign = async (campaignId: string) => {
-    if (!confirm("Are you sure you want to send this campaign to all your contacts?")) return;
+    const ok = await showConfirm("¿Enviar esta campaña a todos tus contactos?", {
+      title: "Enviar campaña",
+      confirmLabel: "Enviar",
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch("/api/campaigns/send", {
@@ -101,15 +107,15 @@ export default function CampaignsPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Failed to schedule campaign");
+        addToast(data.error || "Failed to schedule campaign", "error");
         return;
       }
 
       const result = await res.json();
-      alert(`Success! ${result.totalScheduled} emails have been scheduled for dispatch.`);
+      addToast(`Success! ${result.totalScheduled} emails have been scheduled for dispatch.`, "success");
       fetchCampaigns(); // refresh list to see SENDING status
     } catch (error) {
-      alert("An unexpected error occurred.");
+      addToast("An unexpected error occurred.", "error");
     }
   };
 
@@ -121,17 +127,17 @@ export default function CampaignsPage() {
 
       if (res.ok) {
         if (data.message === "No pending emails to process") {
-          alert("Queue is empty. No pending emails to process.");
+          addToast("Queue is empty. No pending emails to process.", "info");
         } else {
-          alert("Queue processing triggered successfully! Check campaigns status.");
+          addToast("Queue processing triggered successfully! Check campaigns status.", "success");
         }
         fetchCampaigns();
       } else {
-        alert(data.error || "Failed to process queue.");
+        addToast(data.error || "Failed to process queue.", "error");
       }
     } catch (error) {
       console.error(error);
-      alert("Error contacting the cron dispatcher.");
+      addToast("Error contacting the cron dispatcher.", "error");
     } finally {
       setIsProcessingQueue(false);
     }

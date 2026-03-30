@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 
@@ -23,6 +24,7 @@ const FIELD_TYPES = [
 ];
 
 export default function FormBuilderPage() {
+  const { addToast } = useToast();
   const { id } = useParams() as { id: string };
   const router = useRouter();
 
@@ -93,7 +95,7 @@ export default function FormBuilderPage() {
         setAppointmentTypeId(data.appointmentTypeId || "");
         setFields(data.fields || []);
       } else {
-        alert("Form not found");
+        addToast("Form not found", "error");
         router.push("/forms");
       }
     } catch (e) {
@@ -126,14 +128,14 @@ export default function FormBuilderPage() {
       });
 
       if (res.ok) {
-        alert("Form saved successfully.");
+        addToast("Form saved successfully.", "success");
         fetchForm(); // Reload to get actual DB IDs if new fields were added
       } else {
         const err = await res.json();
-        alert(err.error || "Failed to save form.");
+        addToast(err.error || "Failed to save form.", "error");
       }
     } catch (e) {
-      alert("An expected error occurred.");
+      addToast("An unexpected error occurred.", "error");
     } finally {
       setIsSaving(false);
     }

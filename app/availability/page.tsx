@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { Clock, Plus, Trash2, XCircle } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 
 const DAYS = [
   { id: 0, label: "Domingo" },
@@ -58,6 +59,7 @@ type SlotState = {
 };
 
 export default function AvailabilityPage() {
+  const { addToast, showConfirm } = useToast();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -109,7 +111,7 @@ export default function AvailabilityPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!timezone) { alert("Selecciona una zona horaria válida."); return; }
+    if (!timezone) { addToast("Selecciona una zona horaria válida.", "warning"); return; }
     setIsSubmitting(true);
     const body = { name, timezone, slots: slots.filter(s => s.isAvailable) };
     const url = editingSchedule ? `/api/availability/${editingSchedule.id}` : "/api/availability";
@@ -119,16 +121,21 @@ export default function AvailabilityPage() {
       const text = await res.text();
       const d = text ? JSON.parse(text) : {};
       if (res.ok) { setIsModalOpen(false); fetchSchedules(); }
-      else { alert(d.error || `Error ${res.status}`); }
+      else { addToast(d.error || `Error ${res.status}`, "error"); }
     } catch (err) {
-      alert("Error de conexión. Intenta de nuevo.");
+      addToast("Error de conexión. Intenta de nuevo.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, scheduleName: string) => {
-    if (!confirm(`¿Eliminar '${scheduleName}'?`)) return;
+    const ok = await showConfirm(`¿Eliminar el horario '${scheduleName}'?`, {
+      title: "Eliminar horario",
+      confirmLabel: "Eliminar",
+      isDanger: true,
+    });
+    if (!ok) return;
     await fetch(`/api/availability/${id}`, { method: "DELETE" });
     fetchSchedules();
   };

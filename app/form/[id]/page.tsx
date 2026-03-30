@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, ChevronDown, Search } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -33,6 +34,7 @@ const TIMEZONE_LIST = [
 ];
 
 export default function PublicFormPage() {
+  const { addToast } = useToast();
   const { id } = useParams() as { id: string };
   const [formConfig, setFormConfig] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -163,7 +165,7 @@ export default function PublicFormPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formConfig?.appointmentType && !selectedSlot) {
-      alert("Por favor selecciona una fecha y hora para tu cita.");
+      addToast("Por favor selecciona una fecha y hora para tu cita.", "warning");
       return;
     }
     setIsSubmitting(true);

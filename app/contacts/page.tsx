@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import Header from "@/src/components/Header";
 import Sidebar from "@/src/components/Sidebar";
+import { useToast } from "@/src/context/ToastContext";
 
 export default function ContactsPage() {
+  const { addToast } = useToast();
   const [contacts, setContacts] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function ContactsPage() {
         setFormData({ firstName: "", lastName: "", email: "", phone: "", companyId: "" });
       } else {
         const errorData = await res.json();
-        alert(`Error ${isEditing ? 'updating' : 'creating'} contact: ${errorData.error}`);
+        addToast(`Error ${isEditing ? 'updating' : 'creating'} contact: ${errorData.error}`, "error");
         console.error("API Error Response:", errorData);
       }
     } catch (error) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { FormInput, Plus, Trash2, Edit, Code, Link as LinkIcon, Activity, XCircle } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
 import Link from "next/link";
 
 type Form = {
@@ -19,6 +20,7 @@ type Form = {
 };
 
 export default function FormsPage() {
+  const { addToast, showConfirm } = useToast();
   const [forms, setForms] = useState<Form[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,33 +97,38 @@ export default function FormsPage() {
         fetchForms();
       } else {
         const err = await res.json();
-        alert(err.error || "Error al crear el formulario");
+        addToast(err.error || "Error al crear el formulario", "error");
       }
     } catch (e) {
-      alert("Error inesperado.");
+      addToast("Error inesperado.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string, formName: string) => {
-    if (!confirm(`Are you sure you want to permanently delete '${formName}'? This will disable any live embeds.`)) return;
+    const ok = await showConfirm(`¿Eliminar permanentemente '${formName}'? Esto deshabilitará cualquier embed activo.`, {
+      title: "Eliminar formulario",
+      confirmLabel: "Eliminar",
+      isDanger: true,
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`/api/forms/${id}`, { method: "DELETE" });
       if (res.ok) {
         fetchForms();
       } else {
-        alert("Failed to delete form.");
+        addToast("Failed to delete form.", "error");
       }
     } catch (e) {
-      alert("Unexpected error.");
+      addToast("Unexpected error.", "error");
     }
   };
 
   const copyToClipboard = (text: string, title: string) => {
     navigator.clipboard.writeText(text);
-    alert(`${title} copied to clipboard!`);
+    addToast(`${title} copied to clipboard!`, "success");
   };
 
   return (
