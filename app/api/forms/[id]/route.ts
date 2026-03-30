@@ -62,7 +62,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     }
 
     const body = await req.json();
-    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, fields } = body;
+    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, fields } = body;
 
     // Use a transaction to safely update the form and recreate its fields
     const updatedForm = await prisma.$transaction(async (tx) => {
@@ -76,7 +76,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                successAction,
                successMessage,
                redirectUrl,
-               welcomeEmailId: welcomeEmailId || null
+               welcomeEmailId: welcomeEmailId || null,
+               appointmentTypeId: appointmentTypeId || null
             }
         });
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut, Mail, AppWindow } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut, Mail, AppWindow, CalendarCheck, Clock, CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { PROJECTS } from "@/src/lib/mockData";
 import { useSession, signOut } from "next-auth/react";
@@ -42,6 +42,14 @@ export default function Sidebar() {
           <NavItem href="/campaigns" icon={<Mail size={20} />} label="Email Marketing" />
           <NavItem href="/forms" icon={<AppWindow size={20} />} label="Forms & Capture" />
           <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" />
+        </div>
+
+        {/* Calendario */}
+        <div className="px-4 py-2 flex flex-col gap-1">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 pt-2 pb-1">Calendario</p>
+          <NavItem href="/appointment-types" icon={<CalendarDays size={20} />} label="Tipos de Cita" />
+          <NavItem href="/availability" icon={<Clock size={20} />} label="Disponibilidad" />
+          <NavItem href="/appointments" icon={<CalendarCheck size={20} />} label="Citas Agendadas" />
         </div>
 
         {/* Projects */}

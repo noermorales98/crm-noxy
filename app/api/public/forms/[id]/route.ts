@@ -27,9 +27,22 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     const form = await prisma.form.findUnique({
       where: { id: formId },
       include: {
-         fields: {
-            orderBy: { order: "asc" }
-         }
+        fields: {
+          orderBy: { order: "asc" }
+        },
+        appointmentType: {
+          select: {
+            id: true,
+            name: true,
+            duration: true,
+            color: true,
+            description: true,
+            location: true,
+            maxAdvanceDays: true,
+            bufferAfter: true,
+            schedule: { include: { slots: true } }
+          }
+        }
       }
     });
 
@@ -57,7 +70,8 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
             placeholder: f.placeholder,
             isRequired: f.isRequired,
             options: f.options ? f.options.split(",").map(o => o.trim()) : null
-        }))
+        })),
+        appointmentType: form.appointmentType ? form.appointmentType : null
     };
 
     return corsResponse(safeForm);

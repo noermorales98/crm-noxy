@@ -10,7 +10,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { phone, callMeBotApiKey } = body;
+    const { phone, callMeBotApiKey, notificationEmail } = body;
 
     if (!session.user.id) {
        return NextResponse.json({ error: "User ID not found" }, { status: 401 });
@@ -21,16 +21,18 @@ export async function PATCH(req: Request) {
       update: {
         phone: phone || "",
         apiKey: callMeBotApiKey || "",
+        notificationEmail: notificationEmail || null,
       },
       create: {
         userId: session.user.id,
         phone: phone || "",
         apiKey: callMeBotApiKey || "",
+        notificationEmail: notificationEmail || null,
       }
     });
 
     return NextResponse.json(
-      { message: "Settings updated successfully", user: { phone: upsertedConfig.phone, callMeBotApiKey: upsertedConfig.apiKey } },
+      { message: "Settings updated successfully", user: { phone: upsertedConfig.phone, callMeBotApiKey: upsertedConfig.apiKey, notificationEmail: upsertedConfig.notificationEmail } },
       { status: 200 }
     );
   } catch (error: any) {
@@ -53,6 +55,7 @@ export async function GET(req: Request) {
      return NextResponse.json({
         phone: config?.phone || "",
         callMeBotApiKey: config?.apiKey || "",
+        notificationEmail: config?.notificationEmail || "",
      }, { status: 200 });
    } catch (error: any) {
      console.error("GET /api/settings error:", error);

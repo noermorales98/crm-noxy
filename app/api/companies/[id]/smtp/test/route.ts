@@ -17,10 +17,10 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       return NextResponse.json({ error: "No organization context" }, { status: 400 });
     }
 
-    // Verify company belongs to organization
+    // Fetch company + stored password from DB
     const company = await prisma.company.findUnique({
       where: { id },
-      select: { organizationId: true }
+      select: { organizationId: true, smtpPass: true }
     });
 
     if (!company || company.organizationId !== currentOrganizationId) {
@@ -28,13 +28,18 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     }
 
     const body = await req.json();
-    const { testEmail, smtpHost, smtpPort, smtpUser, smtpPass, smtpFromEmail, smtpSecure } = body;
+    const { testEmail, smtpHost, smtpPort, smtpUser, smtpFromEmail, smtpSecure } = body;
+    // Use the password from the request if provided, otherwise fall back to the stored one
+    const smtpPass = body.smtpPass || company.smtpPass || "";
 
     if (!testEmail || !smtpHost || !smtpPort || !smtpUser) {
         return NextResponse.json({ error: "Missing required SMTP parameters for testing" }, { status: 400 });
     }
 
-    // Attempt connection and sending a test mail without needing to save to DB first
+    if (!smtpPass) {
+        return NextResponse.json({ error: "No SMTP password found. Save the settings first and then test." }, { status: 400 });
+    }
+
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: parseInt(smtpPort, 10) || 465,

@@ -39,6 +39,8 @@ export default function FormBuilderPage() {
   const [welcomeEmailId, setWelcomeEmailId] = useState("");
 
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
+  const [appointmentTypeId, setAppointmentTypeId] = useState("");
 
   // Form Fields
   const [fields, setFields] = useState<any[]>([]);
@@ -49,6 +51,7 @@ export default function FormBuilderPage() {
   useEffect(() => {
     fetchForm();
     fetchCampaigns();
+    fetchAppointmentTypes();
   }, [id]);
 
   const fetchCampaigns = async () => {
@@ -57,6 +60,18 @@ export default function FormBuilderPage() {
        if (res.ok) {
          const data = await res.json();
          setCampaigns(data);
+       }
+     } catch (e) {
+       console.error(e);
+     }
+  };
+
+  const fetchAppointmentTypes = async () => {
+     try {
+       const res = await fetch("/api/appointment-types");
+       if (res.ok) {
+         const data = await res.json();
+         setAppointmentTypes(data);
        }
      } catch (e) {
        console.error(e);
@@ -75,6 +90,7 @@ export default function FormBuilderPage() {
         setSuccessMessage(data.successMessage || "");
         setRedirectUrl(data.redirectUrl || "");
         setWelcomeEmailId(data.welcomeEmailId || "");
+        setAppointmentTypeId(data.appointmentTypeId || "");
         setFields(data.fields || []);
       } else {
          alert("Form not found");
@@ -104,6 +120,7 @@ export default function FormBuilderPage() {
             successMessage,
             redirectUrl,
             welcomeEmailId,
+            appointmentTypeId,
             fields: orderedFields
          })
        });
@@ -259,9 +276,9 @@ export default function FormBuilderPage() {
                        <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">Auto-Welcome Email</h3>
                        <div className="flex flex-col gap-2">
                            <label className="text-sm font-semibold text-gray-700">Send an email automatically to new leads</label>
-                           <select 
-                             value={welcomeEmailId} 
-                             onChange={e => setWelcomeEmailId(e.target.value)} 
+                           <select
+                             value={welcomeEmailId}
+                             onChange={e => setWelcomeEmailId(e.target.value)}
                              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
                            >
                              <option value="">Do not send a welcome email</option>
@@ -270,6 +287,22 @@ export default function FormBuilderPage() {
                              ))}
                            </select>
                            <p className="text-xs text-gray-500 mt-1">Select an existing Campaign draft to act as a template.</p>
+                       </div>
+
+                       <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">Integración con Calendario</h3>
+                       <div className="flex flex-col gap-2">
+                           <label className="text-sm font-semibold text-gray-700">Tipo de cita (opcional)</label>
+                           <select
+                             value={appointmentTypeId}
+                             onChange={e => setAppointmentTypeId(e.target.value)}
+                             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
+                           >
+                             <option value="">Sin integración de calendario</option>
+                             {appointmentTypes.map(at => (
+                               <option key={at.id} value={at.id}>{at.name} ({at.duration} min)</option>
+                             ))}
+                           </select>
+                           <p className="text-xs text-gray-500">Al vincular, el formulario mostrará un calendario para agendar citas.</p>
                        </div>
                    </div>
                 )}

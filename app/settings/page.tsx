@@ -7,6 +7,7 @@ import Header from "@/src/components/Header";
 export default function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [callMeBotApiKey, setCallMeBotApiKey] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +21,7 @@ export default function SettingsPage() {
           if (data) {
             setPhone(data.phone || "");
             setCallMeBotApiKey(data.callMeBotApiKey || "");
+            setNotificationEmail(data.notificationEmail || "");
           }
         }
       } catch (err) {
@@ -39,7 +41,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, callMeBotApiKey }),
+        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail }),
       });
 
       if (!res.ok) {
@@ -63,11 +65,36 @@ export default function SettingsPage() {
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Settings / Integrations</h1>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-2xl">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">WhatsApp Notifications</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Receive automatic alerts via <a href="https://www.callmebot.com/" target="_blank" className="text-blue-600 hover:underline">CallMeBot</a> when major events happen in your CRM.
-            </p>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-2xl flex flex-col gap-8">
+
+            {/* Email Notifications */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Notificaciones por Email</h2>
+              <p className="text-sm text-gray-500 mb-5">
+                Recibe un correo cada vez que alguien llene un formulario. Usa el SMTP configurado en la empresa vinculada al formulario.
+              </p>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-700">Correo de notificación</label>
+                <input
+                  type="email"
+                  placeholder="tu@correo.com"
+                  value={notificationEmail}
+                  onChange={e => setNotificationEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
+                />
+                <p className="text-xs text-gray-400">Si lo dejas vacío, se usará el correo de tu cuenta. El SMTP debe estar configurado en la empresa del formulario.</p>
+              </div>
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {/* WhatsApp */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Notificaciones por WhatsApp</h2>
+              <p className="text-sm text-gray-500 mb-5">
+                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-blue-600 hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
+              </p>
+            </div>
 
             <form onSubmit={handleSave} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
@@ -103,7 +130,7 @@ export default function SettingsPage() {
                     disabled={loading}
                     className="px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
                   >
-                    {loading ? "Saving..." : "Save Settings"}
+                    {loading ? "Guardando..." : "Guardar configuración"}
                   </button>
               </div>
             </form>
