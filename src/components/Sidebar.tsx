@@ -35,13 +35,13 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
         {/* Main Nav */}
         <div className="px-4 py-2 flex flex-col gap-1">
-          <NavItem href="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
-          <NavItem href="/companies" icon={<Activity size={20} />} label="Companies" />
-          <NavItem href="/contacts" icon={<Users size={20} />} label="Contacts" />
-          <NavItem href="/tasks" icon={<CheckSquare size={20} />} label="Tasks" />
-          <NavItem href="/campaigns" icon={<Mail size={20} />} label="Email Marketing" />
-          <NavItem href="/forms" icon={<AppWindow size={20} />} label="Forms & Capture" />
-          <NavItem href="/settings" icon={<Settings size={20} />} label="Settings" />
+          <NavItem href="/" icon={<LayoutDashboard size={20} />} label="Inicio" />
+          <NavItem href="/companies" icon={<Activity size={20} />} label="Empresas" />
+          <NavItem href="/contacts" icon={<Users size={20} />} label="Contactos" />
+          <NavItem href="/tasks" icon={<CheckSquare size={20} />} label="Tareas" />
+          <NavItem href="/campaigns" icon={<Mail size={20} />} label="Campañas de Email" />
+          <NavItem href="/forms" icon={<AppWindow size={20} />} label="Formularios y Captación" />
+          <NavItem href="/settings" icon={<Settings size={20} />} label="Configuración" />
         </div>
 
         {/* Calendario */}
@@ -55,7 +55,7 @@ export default function Sidebar() {
         {/* Projects */}
         <div className="px-6 pt-6 pb-2">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Projects</h3>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Proyectos</h3>
             <Link href="/projects/create" className="text-gray-400 hover:text-gray-900 transition-colors">
               <Plus size={16} />
             </Link>
@@ -98,11 +98,11 @@ export default function Sidebar() {
               {session?.user?.name?.[0]?.toUpperCase() || "U"}
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900 leading-tight truncate max-w-[120px]">{session?.user?.name || "Loading..."}</span>
+              <span className="text-sm font-medium text-gray-900 leading-tight truncate max-w-[120px]">{session?.user?.name || "Cargando..."}</span>
               <span className="text-xs text-gray-400 truncate max-w-[120px]">{session?.user?.email || ""}</span>
             </div>
           </div>
-          <button onClick={() => signOut()} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Sign out">
+          <button onClick={() => signOut()} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Cerrar sesión">
             <LogOut size={18} />
           </button>
         </div>
