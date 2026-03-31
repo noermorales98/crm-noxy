@@ -17,7 +17,7 @@ interface ProjectAssetsManagerProps {
 
 export default function ProjectAssetsManager({ projectId }: ProjectAssetsManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"contacts"|"companies"|"forms"|"campaigns"|"tasks">("contacts");
+  const [activeTab, setActiveTab] = useState<"contacts" | "companies" | "forms" | "campaigns" | "tasks">("contacts");
   const { addToast } = useToast();
 
   const [loading, setLoading] = useState(false);
@@ -193,7 +193,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -219,9 +219,8 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                        activeTab === tab.id ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-gray-50"
-                      }`}
+                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors ${activeTab === tab.id ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:bg-gray-50"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <tab.icon size={18} className={activeTab === tab.id ? "text-gray-900" : "text-gray-400"} />

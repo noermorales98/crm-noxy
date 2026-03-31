@@ -30,7 +30,7 @@ export default function CreateProjectPage() {
     fetch("/api/companies")
       .then(res => res.json())
       .then(data => {
-         if (!data.error) setCompanies(data);
+        if (!data.error) setCompanies(data);
       })
       .catch(console.error);
   }, []);
@@ -57,7 +57,7 @@ export default function CreateProjectPage() {
       const project = await res.json();
       router.push(`/projects/${project.id}`); // Or just router.push("/projects")
       router.refresh();
-      
+
     } catch (err: any) {
       setError(err.message);
       setIsLoading(false);
@@ -69,106 +69,105 @@ export default function CreateProjectPage() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        
+
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="max-w-3xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
               <ArrowLeft size={16} />
-              Back to projects
+              Volver a proyectos
             </Link>
-      
-      <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Create New Project</h1>
-          <p className="text-gray-500 mt-1">Projects organize related contacts, companies, campaigns, and tasks into a single workspace.</p>
-        </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
-            {error}
-          </div>
-        )}
+            <div className="bg-white border border-gray-200 rounded-xl p-8">
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Crear nuevo proyecto</h1>
+                <p className="text-gray-500 mt-1">Los proyectos organizan contactos, empresas, campañas y tareas en un solo lugar.</p>
+              </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="name" className="text-sm font-semibold text-gray-900">Project Name <span className="text-red-500">*</span></label>
-            <input 
-              id="name"
-              type="text" 
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Black Friday 2026, Q3 Launch, Marketing Automation"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <label htmlFor="description" className="text-sm font-semibold text-gray-900">Description</label>
-            <textarea 
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is the goal of this project?"
-              rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors resize-y"
-            />
-          </div>
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
+                  {error}
+                </div>
+              )}
 
-          <div className="flex flex-col gap-2">
-             <label htmlFor="company" className="text-sm font-semibold text-gray-900">Associated Client (Optional)</label>
-             <select 
-               id="company"
-               value={companyId}
-               onChange={(e) => setCompanyId(e.target.value)}
-               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
-             >
-               <option value="">No associated client</option>
-               {companies.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-               ))}
-             </select>
-          </div>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="name" className="text-sm font-semibold text-gray-900">Nombre del proyecto <span className="text-red-500">*</span></label>
+                  <input
+                    id="name"
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Black Friday 2026, Q3 Launch, Marketing Automation"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
+                  />
+                </div>
 
-          <div className="flex flex-col gap-3">
-            <label className="text-sm font-semibold text-gray-900">Select an Icon</label>
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-              {availableIcons.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setIcon(item.id)}
-                  className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${
-                    icon === item.id 
-                      ? "border-gray-900 bg-gray-900 text-white shadow-md transform scale-105" 
-                      : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:bg-white"
-                  }`}
-                >
-                  <div className="mb-2">{item.icon}</div>
-                  <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
-                </button>
-              ))}
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="description" className="text-sm font-semibold text-gray-900">Descripción</label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="¿Cuál es el objetivo de este proyecto?"
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors resize-y"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="company" className="text-sm font-semibold text-gray-900">Cliente asociado (Opcional)</label>
+                  <select
+                    id="company"
+                    value={companyId}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
+                  >
+                    <option value="">No associated client</option>
+                    {companies.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <label className="text-sm font-semibold text-gray-900">Selecciona un icono</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
+                    {availableIcons.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setIcon(item.id)}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${icon === item.id
+                          ? "border-gray-900 bg-gray-900 text-white shadow-md transform scale-105"
+                          : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:bg-white"
+                          }`}
+                      >
+                        <div className="mb-2">{item.icon}</div>
+                        <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                  <Link
+                    href="/projects"
+                    className="px-5 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    Cancelar
+                  </Link>
+                  <button
+                    type="submit"
+                    disabled={isLoading || !name.trim()}
+                    className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading && <Loader2 size={18} className="animate-spin" />}
+                    {isLoading ? "Creando..." : "Crear proyecto"}
+                  </button>
+                </div>
+              </form>
             </div>
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
-            <Link 
-              href="/projects"
-              className="px-5 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-            >
-              Cancel
-            </Link>
-            <button 
-              type="submit" 
-              disabled={isLoading || !name.trim()}
-              className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading && <Loader2 size={18} className="animate-spin" />}
-              {isLoading ? "Creating..." : "Create Project"}
-            </button>
-          </div>
-        </form>
-      </div>
           </div>
         </main>
       </div>

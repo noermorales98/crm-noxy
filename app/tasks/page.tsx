@@ -144,7 +144,7 @@ export default function TasksPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setIsCategoriesModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors shadow-sm"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors "
               >
                 <FolderGit2 size={16} /> Categorías
               </button>
@@ -175,13 +175,13 @@ export default function TasksPage() {
           {loading ? (
             <div className="text-gray-500">Cargando tareas...</div>
           ) : tasks.filter(t => activeTab === "completed" ? t.isCompleted : !t.isCompleted).length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin tareas pendientes</h3>
               <p className="text-gray-500 text-sm">¡Todo listo! Disfruta tu día.</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <ul className="divide-y divide-gray-50">
                 {tasks.filter(t => activeTab === "completed" ? t.isCompleted : !t.isCompleted).map((task) => (
                   <li key={task.id} className="p-4 flex items-start gap-4 hover:bg-gray-50 transition-colors group">
@@ -232,16 +232,16 @@ export default function TasksPage() {
       {/* Modal for Creating Task */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden scale-in">
+          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden scale-in">
             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">New Task</h3>
+              <h3 className="text-lg font-bold text-gray-900">Nueva tarea</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <form onSubmit={handleCreateTask} className="p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-700">What needs to be done?</label>
+                <label className="text-sm font-semibold text-gray-700">¿Qué necesita ser hecho?</label>
                 <input
                   type="text"
                   value={title}
@@ -252,7 +252,7 @@ export default function TasksPage() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-700">Additional Details</label>
+                <label className="text-sm font-semibold text-gray-700">Detalles adicionales</label>
                 <textarea
                   rows={3}
                   value={description}
@@ -262,7 +262,7 @@ export default function TasksPage() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-gray-700">Category</label>
+                <label className="text-sm font-semibold text-gray-700">Categoría</label>
                 <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm">
                   <option value="">-- Sin categoría --</option>
                   {dropdownData.categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -271,7 +271,7 @@ export default function TasksPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-gray-700">Company</label>
+                  <label className="text-sm font-semibold text-gray-700">Empresa</label>
                   <select value={companyId} onChange={e => setCompanyId(e.target.value)} className="px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 text-sm">
                     <option value="">-- Ninguna --</option>
                     {dropdownData.companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}

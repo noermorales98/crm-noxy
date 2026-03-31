@@ -31,15 +31,15 @@ export default async function ProjectsPage() {
           <div className="max-w-7xl mx-auto w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Projects</h1>
-                <p className="text-gray-500 mt-1">Organize your campaigns, events, and larger initiatives.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Proyectos</h1>
+                <p className="text-gray-500 mt-1">Organiza tus campañas, eventos e iniciativas.</p>
               </div>
               <Link
                 href="/projects/create"
                 className="inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium"
               >
                 <Plus size={18} />
-                New Project
+                Nuevo proyecto
               </Link>
             </div>
 
@@ -48,7 +48,7 @@ export default async function ProjectsPage() {
                 const totalAssets = project._count.forms + project._count.campaigns + project._count.contacts + project._count.companies + project._count.tasks;
 
                 return (
-                  <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
+                  <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:scale-110 transition-transform">
                         {project.icon === "zap" && <Zap size={24} />}
@@ -80,7 +80,7 @@ export default async function ProjectsPage() {
 
               {projects.length === 0 && (
                 <div className="col-span-full bg-gray-50 rounded-3xl border border-dashed border-gray-300 p-12 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-gray-400 mb-4">
+                  <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-400 mb-4">
                     <Folder size={32} />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">No projects yet</h3>

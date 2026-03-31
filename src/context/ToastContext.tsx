@@ -88,16 +88,16 @@ export function useToast() {
 
 const ICONS: Record<ToastType, React.ReactNode> = {
   success: <CheckCircle2 size={18} className="shrink-0 text-green-500" />,
-  error:   <XCircle      size={18} className="shrink-0 text-red-500"   />,
+  error: <XCircle size={18} className="shrink-0 text-red-500" />,
   warning: <AlertTriangle size={18} className="shrink-0 text-amber-500" />,
-  info:    <Info         size={18} className="shrink-0 text-blue-500"  />,
+  info: <Info size={18} className="shrink-0 text-blue-500" />,
 };
 
 const BORDERS: Record<ToastType, string> = {
   success: "border-green-100",
-  error:   "border-red-100",
+  error: "border-red-100",
   warning: "border-amber-100",
-  info:    "border-blue-100",
+  info: "border-blue-100",
 };
 
 function ToastContainer({
@@ -153,7 +153,7 @@ function ConfirmDialog({
       onClick={onCancel}
     >
       <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
+        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
@@ -181,11 +181,10 @@ function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${
-              isDanger
+            className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${isDanger
                 ? "bg-red-600 hover:bg-red-700 text-white"
                 : "bg-gray-900 hover:bg-gray-800 text-white"
-            }`}
+              }`}
           >
             {confirmLabel ?? "Confirmar"}
           </button>

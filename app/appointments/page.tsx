@@ -79,7 +79,7 @@ export default function AppointmentsPage() {
               Citas Agendadas
             </h1>
             <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-              {["ALL","CONFIRMED","COMPLETED","CANCELLED"].map(s => (
+              {["ALL", "CONFIRMED", "COMPLETED", "CANCELLED"].map(s => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
@@ -96,7 +96,7 @@ export default function AppointmentsPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <CalendarCheck className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin citas</h3>
               <p className="text-gray-500 text-sm">Las citas agendadas aparecerán aquí.</p>
@@ -109,7 +109,7 @@ export default function AppointmentsPage() {
                 return (
                   <div
                     key={appt.id}
-                    className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between gap-4"
+                    className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex items-start justify-between gap-4"
                   >
                     <div className="flex items-start gap-4 flex-1 min-w-0">
                       <div

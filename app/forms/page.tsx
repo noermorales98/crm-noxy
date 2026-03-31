@@ -180,7 +180,7 @@ export default function FormsPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : forms.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <FormInput className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No forms yet</h3>
               <p className="text-gray-500 text-sm mb-4">Create your first custom form to capture leads from your website.</p>
@@ -280,7 +280,7 @@ export default function FormsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Create New Form</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
@@ -369,7 +369,7 @@ export default function FormsPage() {
       {/* View Contacts Modal */}
       {isContactsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Registrados</h3>

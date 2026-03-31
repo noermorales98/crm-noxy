@@ -75,11 +75,11 @@ export default function AvailabilityPage() {
   const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
   const [blockedType, setBlockedType] = useState<"ALL_DAY" | "HOURS">("HOURS");
   const [blockedTitle, setBlockedTitle] = useState("");
-  
+
   // For ALL_DAY
   const [allDayStart, setAllDayStart] = useState("");
   const [allDayEnd, setAllDayEnd] = useState("");
-  
+
   // For HOURS
   const [hoursDate, setHoursDate] = useState("");
   const [hoursStart, setHoursStart] = useState("09:00");
@@ -87,8 +87,8 @@ export default function AvailabilityPage() {
 
   const [isSubmittingBlocked, setIsSubmittingBlocked] = useState(false);
 
-  useEffect(() => { 
-    fetchSchedules(); 
+  useEffect(() => {
+    fetchSchedules();
     fetchBlockedTimes();
   }, []);
 
@@ -185,10 +185,10 @@ export default function AvailabilityPage() {
 
     if (blockedType === "ALL_DAY") {
       finalStart = `${allDayStart}T00:00:00`;
-      finalEnd   = `${allDayEnd}T23:59:59`;
+      finalEnd = `${allDayEnd}T23:59:59`;
     } else {
       finalStart = `${hoursDate}T${hoursStart}:00`;
-      finalEnd   = `${hoursDate}T${hoursEnd}:00`;
+      finalEnd = `${hoursDate}T${hoursEnd}:00`;
     }
 
     try {
@@ -243,7 +243,7 @@ export default function AvailabilityPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : schedules.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <Clock className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin horarios</h3>
               <p className="text-gray-500 text-sm mb-4">Define tus horarios de disponibilidad para recibir citas.</p>
@@ -257,7 +257,7 @@ export default function AvailabilityPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {schedules.map(schedule => (
-                <div key={schedule.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                <div key={schedule.id} className="bg-white border border-gray-200 rounded-xl p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">{schedule.name}</h3>
@@ -300,26 +300,26 @@ export default function AvailabilityPage() {
           <div className="mt-16 mb-8 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                <CalendarOff className="text-gray-400" size={24} /> 
+                <CalendarOff className="text-gray-400" size={24} />
                 Excepciones y Días Especiales
               </h2>
               <p className="text-sm text-gray-500 mt-1">Bloquea fechas u horas específicas donde no estarás disponible (Ej: Vacaciones)</p>
             </div>
             <button
               onClick={openBlockedModal}
-              className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
+              className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
             >
               <Plus size={18} /> Bloquear Fecha
             </button>
           </div>
 
           {!isLoading && blockedTimes.length === 0 ? (
-             <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm">
-               <CalendarOff className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-               <p className="text-gray-500 text-sm">No tienes ninguna excursión o vacación programada próximamente.</p>
-             </div>
+            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200 shadow-sm">
+              <CalendarOff className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No tienes ninguna excursión o vacación programada próximamente.</p>
+            </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-12">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-12">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -331,19 +331,19 @@ export default function AvailabilityPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
                   {blockedTimes.map(blocked => (
-                     <tr key={blocked.id} className="hover:bg-gray-50/50 transition-colors">
-                       <td className="px-6 py-4 font-medium text-gray-900">{blocked.title || "No especificado"}</td>
-                       <td className="px-6 py-4 text-gray-600">{new Date(blocked.start).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
-                       <td className="px-6 py-4 text-gray-600">{new Date(blocked.end).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
-                       <td className="px-6 py-4 text-right">
-                         <button
-                           onClick={() => handleDeleteBlocked(blocked.id)}
-                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                         >
-                           <Trash2 size={16} />
-                         </button>
-                       </td>
-                     </tr>
+                    <tr key={blocked.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">{blocked.title || "No especificado"}</td>
+                      <td className="px-6 py-4 text-gray-600">{new Date(blocked.start).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
+                      <td className="px-6 py-4 text-gray-600">{new Date(blocked.end).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDeleteBlocked(blocked.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -355,7 +355,7 @@ export default function AvailabilityPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">
                 {editingSchedule ? "Editar Horario" : "Nuevo Horario"}
@@ -451,7 +451,7 @@ export default function AvailabilityPage() {
       {/* BLOCKED TIME MODAL */}
       {isBlockedModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Bloquear Fecha / Hora</h3>
               <button onClick={() => setIsBlockedModalOpen(false)} className="text-gray-400 hover:text-gray-600">
@@ -469,7 +469,7 @@ export default function AvailabilityPage() {
                     placeholder="Ej: Consulta odontológica"
                   />
                 </div>
-                
+
                 <div className="flex gap-4 border-b border-gray-100 pb-2">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                     <input type="radio" checked={blockedType === "HOURS"} onChange={() => setBlockedType("HOURS")} className="text-gray-900 focus:ring-gray-900" />
@@ -488,14 +488,14 @@ export default function AvailabilityPage() {
                       <input type="date" required value={hoursDate} onChange={e => setHoursDate(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                       <div className="flex flex-col gap-1.5">
-                         <label className="text-sm font-semibold text-gray-700">De (Hora) *</label>
-                         <input type="time" required value={hoursStart} onChange={e => setHoursStart(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                       </div>
-                       <div className="flex flex-col gap-1.5">
-                         <label className="text-sm font-semibold text-gray-700">A (Hora) *</label>
-                         <input type="time" required value={hoursEnd} onChange={e => setHoursEnd(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                       </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-gray-700">De (Hora) *</label>
+                        <input type="time" required value={hoursStart} onChange={e => setHoursStart(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-gray-700">A (Hora) *</label>
+                        <input type="time" required value={hoursEnd} onChange={e => setHoursEnd(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -518,21 +518,21 @@ export default function AvailabilityPage() {
               </form>
             </div>
             <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
-               <button
-                 type="button"
-                 onClick={() => setIsBlockedModalOpen(false)}
-                 className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100"
-               >
-                 Cancelar
-               </button>
-               <button
-                 type="submit"
-                 form="blockedForm"
-                 disabled={isSubmittingBlocked}
-                 className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
-               >
-                 {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
-               </button>
+              <button
+                type="button"
+                onClick={() => setIsBlockedModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="blockedForm"
+                disabled={isSubmittingBlocked}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
+              >
+                {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
+              </button>
             </div>
           </div>
         </div>

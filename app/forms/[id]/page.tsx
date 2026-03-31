@@ -124,14 +124,14 @@ export default function FormBuilderPage() {
     try {
       const res = await fetch("/api/campaigns");
       if (res.ok) setCampaigns(await res.json());
-    } catch {}
+    } catch { }
   };
 
   const fetchAppointmentTypes = async () => {
     try {
       const res = await fetch("/api/appointment-types");
       if (res.ok) setAppointmentTypes(await res.json());
-    } catch {}
+    } catch { }
   };
 
   const fetchVariants = async () => {
@@ -139,7 +139,7 @@ export default function FormBuilderPage() {
     try {
       const res = await fetch(`/api/forms/${id}/variants`);
       if (res.ok) setVariants(await res.json());
-    } catch {}
+    } catch { }
     finally { setIsLoadingVariants(false); }
   };
 
@@ -222,7 +222,7 @@ export default function FormBuilderPage() {
         addToast("Formulario no encontrado", "error");
         router.push("/forms");
       }
-    } catch {}
+    } catch { }
     finally { setIsLoading(false); }
   };
 
@@ -515,7 +515,7 @@ export default function FormBuilderPage() {
                   <div className="mb-4">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Vista previa</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
                     <div>
                       <h2 className="text-base font-bold text-gray-900 leading-tight">{name || "Sin título"}</h2>
                       {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
@@ -575,7 +575,7 @@ export default function FormBuilderPage() {
                       <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
                     </div>
                   ) : variants.length === 0 ? (
-                    <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-10 text-center">
+                    <div className="bg-white border border-dashed border-gray-200 rounded-xl p-10 text-center">
                       <GitBranch size={28} className="mx-auto text-gray-300 mb-3" />
                       <p className="text-sm font-semibold text-gray-500">Sin variantes</p>
                       <p className="text-xs text-gray-400 mt-1">Crea tu primera variante para segmentar tus leads por oferta o fuente.</p>
@@ -586,7 +586,7 @@ export default function FormBuilderPage() {
                         const variantUrl = `${publicUrl}?v=${variant.id}`;
                         const isCopied = copiedVariantId === variant.id;
                         return (
-                          <div key={variant.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                          <div key={variant.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-4 flex items-start gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
@@ -663,7 +663,7 @@ export default function FormBuilderPage() {
                 <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
                   {/* General */}
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-50">
                       <h2 className="text-sm font-bold text-gray-900">General</h2>
                     </div>
@@ -702,7 +702,7 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* On Submit */}
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-50">
                       <h2 className="text-sm font-bold text-gray-900">Al enviar el formulario</h2>
                     </div>
@@ -748,7 +748,7 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* Email de bienvenida */}
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-50">
                       <h2 className="text-sm font-bold text-gray-900">Email de bienvenida</h2>
                       <p className="text-xs text-gray-400 mt-0.5">Envía un email automáticamente a nuevos leads</p>
@@ -769,7 +769,7 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* Calendario */}
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-50">
                       <h2 className="text-sm font-bold text-gray-900">Integración con Calendario</h2>
                       <p className="text-xs text-gray-400 mt-0.5">Muestra un selector de citas en el formulario público</p>
@@ -789,7 +789,7 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* Share */}
-                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-50">
                       <h2 className="text-sm font-bold text-gray-900">Compartir formulario</h2>
                     </div>
@@ -840,14 +840,14 @@ export default function FormBuilderPage() {
       {/* Variant Create/Edit Modal */}
       {isVariantModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-gray-900">{editingVariant ? "Editar variante" : "Nueva variante"}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">El link de esta variante tendrá un parámetro único que identifica el origen del lead.</p>
               </div>
               <button onClick={() => setIsVariantModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <div className="p-6 flex flex-col gap-4">

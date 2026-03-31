@@ -125,7 +125,7 @@ function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
   const isDark = false; // Note: We can expand this logic later if we want high-value deals to be dark
 
   return (
-    <div className={`p-5 rounded-2xl shadow-sm border transition-shadow cursor-grab active:cursor-grabbing flex flex-col gap-4 ${isDark ? 'bg-[#222222] text-white border-transparent' : 'bg-white text-gray-900 border-gray-100'} ${isDragging ? 'shadow-lg ring-2 ring-black/5' : 'hover:shadow-md'}`}>
+    <div className={`p-5 rounded-xl shadow-sm border transition-shadow cursor-grab active:cursor-grabbing flex flex-col gap-4 ${isDark ? 'bg-[#222222] text-white border-transparent' : 'bg-white text-gray-900 border-gray-100'} ${isDragging ? 'shadow-lg ring-2 ring-black/5' : 'hover:shadow-md'}`}>
 
       {/* Header */}
       <div className="flex items-start justify-between">

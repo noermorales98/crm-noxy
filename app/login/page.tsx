@@ -46,7 +46,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f4ef]">
-      <div className="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-md border border-gray-100">
         <div className="flex justify-center mb-6 text-gray-900">
           <LogIn size={40} />
         </div>

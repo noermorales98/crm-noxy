@@ -175,7 +175,7 @@ function ContactsContent() {
           {loading ? (
             <div className="text-gray-500">Cargando contactos...</div>
           ) : viewMode === "list" ? (
-            <div className="bg-white border text-sm border-gray-100 rounded-xl overflow-hidden">
+            <div className="bg-white border text-sm border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-[#fcfbf9] border-b text-gray-500 border-gray-100 uppercase tracking-wider text-xs">
                   <tr>
@@ -244,7 +244,7 @@ function ContactsContent() {
                 return Object.entries(grouped).map(([companyName, compContacts]) => {
                   const items = compContacts as any[];
                   return (
-                    <div key={companyName} className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                    <div key={companyName} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                       <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 font-bold text-gray-900 flex items-center justify-between">
                         {companyName}
                         <span className="text-xs font-semibold bg-gray-200 text-gray-700 px-2 py-1 rounded-full">{items.length}</span>

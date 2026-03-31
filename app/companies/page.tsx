@@ -218,7 +218,7 @@ export default function CompaniesPage() {
           {loading ? (
             <div className="text-gray-500">Cargando empresas...</div>
           ) : (
-            <div className="bg-white border text-sm border-gray-100 rounded-xl overflow-hidden">
+            <div className="bg-white border text-sm border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left">
                 <thead className="bg-[#fcfbf9] border-b text-gray-500 border-gray-100 uppercase tracking-wider text-xs">
                   <tr>
@@ -251,7 +251,7 @@ export default function CompaniesPage() {
                           onClick={() => openEditModal(c)}
                           className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                         >
-                          Edit
+                          Editar
                         </button>
                         <button
                           onClick={() => handleDelete(c)}
@@ -272,7 +272,7 @@ export default function CompaniesPage() {
           {showModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                <h2 className="text-xl font-bold mb-4">{editingId ? 'Edit company' : 'Add new company'}</h2>
+                <h2 className="text-xl font-bold mb-4">{editingId ? 'Editar empresa' : 'Agregar empresa'}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la empresa *</label>

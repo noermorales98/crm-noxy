@@ -50,7 +50,7 @@ export function DashboardShortcuts() {
             <Link
               key={shortcut.title}
               href={shortcut.href}
-              className="flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-300 transition-all duration-200 group relative overflow-hidden"
+              className="flex flex-col items-center justify-center p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 group relative overflow-hidden"
             >
               <div
                 className={`w-14 h-14 rounded-full flex items-center justify-center text-white mb-3 shadow-sm ${shortcut.color} group-hover:scale-110 transition-transform duration-300`}

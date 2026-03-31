@@ -65,7 +65,7 @@ export default function SettingsPage() {
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Configuración / Integraciones</h1>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-2xl flex flex-col gap-8">
+          <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl flex flex-col gap-8">
 
             {/* Email Notifications */}
             <div>

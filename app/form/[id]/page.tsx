@@ -220,7 +220,7 @@ export default function PublicFormPage() {
 
   if (errorMsg && !formConfig) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-red-100 max-w-md w-full text-center">
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-red-100 max-w-md w-full text-center">
         <div className="text-red-500 font-bold mb-2">Error</div>
         <p className="text-gray-600">{errorMsg}</p>
       </div>
@@ -229,7 +229,7 @@ export default function PublicFormPage() {
 
   if (submitSuccess) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
+      <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
         <CheckCircle2 size={48} className="text-green-500" />
         <p className="text-gray-900 font-medium text-lg whitespace-pre-wrap">{successActionMsg}</p>
       </div>
@@ -337,7 +337,7 @@ export default function PublicFormPage() {
             {/* ── Right Column: Calendar ── */}
             {apptType && (
               <div className="flex-1">
-                <div className="border border-gray-100 rounded-2xl overflow-hidden md:sticky md:top-8 bg-white shadow-xl shadow-gray-100/50">
+                <div className="border border-gray-100 rounded-xl overflow-hidden md:sticky md:top-8 bg-white shadow-xl shadow-gray-100/50">
                   {/* Calendar Header */}
                   <div className="bg-gray-900 px-6 py-5">
                     <div className="flex items-center gap-2 mb-1">
@@ -437,7 +437,7 @@ export default function PublicFormPage() {
 
                     {/* Selected slot confirmation */}
                     {selectedSlot && (
-                      <div className="mb-6 flex items-center gap-3 text-xs text-green-800 bg-green-50 px-4 py-3 rounded-2xl border border-green-100 font-bold animate-in bounce-in duration-500">
+                      <div className="mb-6 flex items-center gap-3 text-xs text-green-800 bg-green-50 px-4 py-3 rounded-xl border border-green-100 font-bold animate-in bounce-in duration-500">
                         <CheckCircle2 size={18} className="text-green-500" />
                         <span>
                           {selectedDate && `${selectedDate.getDate()} ${MONTHS[selectedDate.getMonth()]}`} · {formatSlot(selectedSlot)}
@@ -458,7 +458,7 @@ export default function PublicFormPage() {
                       </button>
 
                       {showTzPicker && (
-                        <div className="absolute bottom-9 left-0 z-50 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-2">
+                        <div className="absolute bottom-9 left-0 z-50 w-full bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-2">
                           <div className="p-3 border-b border-gray-100">
                             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
                               <Search size={14} className="text-gray-400 shrink-0" />
@@ -502,14 +502,14 @@ export default function PublicFormPage() {
           </div>
 
           {errorMsg && (
-            <p className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-5 py-4 rounded-2xl flex items-center gap-3">
+            <p className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-5 py-4 rounded-xl flex items-center gap-3">
               <XCircle size={18} />
               {errorMsg}
             </p>
           )}
 
           <div className="pt-6 border-t border-gray-100">
-            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto md:min-w-[200px] py-4 md:py-4.5 px-10 rounded-2xl font-black text-white bg-gray-900 hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200 disabled:opacity-50 text-lg uppercase tracking-wider">
+            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto md:min-w-[200px] py-4 md:py-4.5 px-10 rounded-xl font-black text-white bg-gray-900 hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200 disabled:opacity-50 text-lg uppercase tracking-wider">
               {isSubmitting ? "Enviando..." : "Enviar Formulario"}
             </button>
           </div>

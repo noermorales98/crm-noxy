@@ -57,7 +57,7 @@ export default function CampaignsPage() {
   const [htmlBody, setHtmlBody] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [companies, setCompanies] = useState<any[]>([]);
-  
+
   // Advanced Targeting
   const [targetType, setTargetType] = useState<"ALL" | "PROJECT" | "FORM">("ALL");
   const [projectId, setProjectId] = useState("");
@@ -92,14 +92,14 @@ export default function CampaignsPage() {
     try {
       const res = await fetch("/api/projects");
       if (res.ok) setProjects(await res.json());
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const fetchForms = async () => {
     try {
       const res = await fetch("/api/forms");
       if (res.ok) setForms(await res.json());
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const fetchCampaigns = async () => {
@@ -125,9 +125,9 @@ export default function CampaignsPage() {
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          subject, 
-          body: htmlBody, 
+        body: JSON.stringify({
+          subject,
+          body: htmlBody,
           companyId,
           projectId: targetType === "PROJECT" ? projectId : null,
           targetFormId: targetType === "FORM" ? targetFormId : null
@@ -221,7 +221,7 @@ export default function CampaignsPage() {
               <button
                 onClick={handleProcessQueue}
                 disabled={isProcessingQueue}
-                className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
+                className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
               >
                 <RefreshCw size={16} className={isProcessingQueue ? "animate-spin" : ""} />
                 {isProcessingQueue ? "Procesando..." : "Procesar cola"}
@@ -241,7 +241,7 @@ export default function CampaignsPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : campaigns.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <Mail className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No campaigns yet</h3>
               <p className="text-gray-500 text-sm mb-4">Start by creating your first email newsletter draft.</p>
@@ -253,7 +253,7 @@ export default function CampaignsPage() {
               </button>
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -336,9 +336,9 @@ export default function CampaignsPage() {
       {/* CREATE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
-              <h3 className="text-lg font-bold text-gray-900">Create Email Campaign</h3>
+              <h3 className="text-lg font-bold text-gray-900">Crear campaña de correo</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
                 <XCircle size={24} />
               </button>
@@ -347,14 +347,14 @@ export default function CampaignsPage() {
             <div className="p-6 overflow-y-auto">
               <form id="createCampaignForm" onSubmit={handleCreateDraft} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-gray-700">Company (Sender Identity)</label>
+                  <label className="text-sm font-semibold text-gray-700">Empresa (Identidad del remitente)</label>
                   <select
                     required
                     value={companyId}
                     onChange={(e) => setCompanyId(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
                   >
-                    <option value="" disabled>Select a Company</option>
+                    <option value="" disabled>Seleccionar empresa</option>
                     {companies.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
@@ -366,66 +366,66 @@ export default function CampaignsPage() {
                   <div className="flex flex-col gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50/50">
                     <label className="text-sm font-semibold text-gray-900">Destinatarios:</label>
                     <div className="flex flex-col gap-3">
-                      
+
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="targetType" 
-                          checked={targetType === "ALL"} 
+                        <input
+                          type="radio"
+                          name="targetType"
+                          checked={targetType === "ALL"}
                           onChange={() => setTargetType("ALL")}
                           className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
                         />
                         <span className="text-sm font-medium text-gray-700">🏢 Toda la Empresa (Todos los contactos)</span>
                       </label>
-                      
+
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="targetType" 
-                          checked={targetType === "PROJECT"} 
+                        <input
+                          type="radio"
+                          name="targetType"
+                          checked={targetType === "PROJECT"}
                           onChange={() => setTargetType("PROJECT")}
                           className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
                         />
                         <span className="text-sm font-medium text-gray-700">💼 Un Proyecto Específico</span>
                       </label>
                       {targetType === "PROJECT" && (
-                         <select
-                           required
-                           value={projectId}
-                           onChange={(e) => setProjectId(e.target.value)}
-                           className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
-                         >
-                           <option value="" disabled>Seleccionar Proyecto</option>
-                           {projects.filter(p => p.organizationId === companies.find(c => c.id === companyId)?.organizationId).map(p => (
-                             <option key={p.id} value={p.id}>{p.name}</option>
-                           ))}
-                         </select>
+                        <select
+                          required
+                          value={projectId}
+                          onChange={(e) => setProjectId(e.target.value)}
+                          className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
+                        >
+                          <option value="" disabled>Seleccionar Proyecto</option>
+                          {projects.filter(p => p.organizationId === companies.find(c => c.id === companyId)?.organizationId).map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
                       )}
 
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="targetType" 
-                          checked={targetType === "FORM"} 
+                        <input
+                          type="radio"
+                          name="targetType"
+                          checked={targetType === "FORM"}
                           onChange={() => setTargetType("FORM")}
                           className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
                         />
                         <span className="text-sm font-medium text-gray-700">📝 Un Formulario Específico</span>
                       </label>
                       {targetType === "FORM" && (
-                         <select
-                           required
-                           value={targetFormId}
-                           onChange={(e) => setTargetFormId(e.target.value)}
-                           className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
-                         >
-                           <option value="" disabled>Seleccionar Formulario</option>
-                           {forms.filter(f => f.companyId === companyId).map(f => (
-                             <option key={f.id} value={f.id}>{f.name}</option>
-                           ))}
-                         </select>
+                        <select
+                          required
+                          value={targetFormId}
+                          onChange={(e) => setTargetFormId(e.target.value)}
+                          className="w-full px-3 py-2 ml-6 rounded-lg border border-gray-200 bg-white text-sm w-[calc(100%-1.5rem)]"
+                        >
+                          <option value="" disabled>Seleccionar Formulario</option>
+                          {forms.filter(f => f.companyId === companyId).map(f => (
+                            <option key={f.id} value={f.id}>{f.name}</option>
+                          ))}
+                        </select>
                       )}
-                      
+
                     </div>
                   </div>
                 )}
@@ -443,16 +443,16 @@ export default function CampaignsPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-gray-700">Email Body (HTML Supported)</label>
+                  <label className="text-sm font-semibold text-gray-700">Cuerpo del correo (HTML soportado)</label>
                   <textarea
                     required
-                    placeholder="<p>Hello! We wanted to reach out...</p>"
+                    placeholder="<p>Hola! Queríamos contactarte...</p>"
                     rows={10}
                     value={htmlBody}
                     onChange={(e) => setHtmlBody(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm resize-y font-mono"
                   ></textarea>
-                  <p className="text-xs text-gray-400">You can use raw HTML here to format your newsletter.</p>
+                  <p className="text-xs text-gray-400">Puedes usar HTML sin procesar aquí para formatear tu boletín.</p>
                 </div>
 
                 {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
@@ -465,7 +465,7 @@ export default function CampaignsPage() {
                 onClick={() => setIsModalOpen(false)}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="submit"
@@ -473,7 +473,7 @@ export default function CampaignsPage() {
                 disabled={isSubmitting}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
-                {isSubmitting ? "Saving..." : "Save Draft"}
+                {isSubmitting ? "Guardando..." : "Guardar borrador"}
               </button>
             </div>
           </div>

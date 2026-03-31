@@ -4,19 +4,19 @@ import { X, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
-export default function TaskCategoriesModal({ 
-  isOpen, 
-  onClose, 
-  onCategoriesChange 
-}: { 
-  isOpen: boolean; 
+export default function TaskCategoriesModal({
+  isOpen,
+  onClose,
+  onCategoriesChange
+}: {
+  isOpen: boolean;
   onClose: () => void;
   onCategoriesChange: () => void;
 }) {
   const [categories, setCategories] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Create state
   const [name, setName] = useState("");
   const [color, setColor] = useState("#3B82F6");
@@ -114,14 +114,14 @@ export default function TaskCategoriesModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-bold text-gray-900">Categorías de Tareas</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1">
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto flex flex-col gap-6">
           {/* Create Form */}
           <form onSubmit={handleCreate} className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 flex flex-col gap-3">

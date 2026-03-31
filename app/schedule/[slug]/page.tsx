@@ -6,31 +6,31 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Globe
 import { useToast } from "@/src/context/ToastContext";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const TIMEZONE_LIST = [
-  { group: "México",          tz: "America/Mexico_City",              label: "Ciudad de México (UTC-6)" },
-  { group: "México",          tz: "America/Monterrey",                label: "Monterrey (UTC-6)" },
-  { group: "México",          tz: "America/Merida",                   label: "Mérida / Yucatán (UTC-6)" },
-  { group: "México",          tz: "America/Cancun",                   label: "Cancún (UTC-5, sin cambio horario)" },
-  { group: "México",          tz: "America/Hermosillo",               label: "Hermosillo / Sonora (UTC-7, sin cambio)" },
-  { group: "México",          tz: "America/Chihuahua",                label: "Chihuahua (UTC-6/-7)" },
-  { group: "México",          tz: "America/Mazatlan",                 label: "Mazatlán / La Paz (UTC-7)" },
-  { group: "México",          tz: "America/Tijuana",                  label: "Tijuana / Mexicali (UTC-8)" },
-  { group: "Estados Unidos",  tz: "America/New_York",                 label: "Nueva York / Miami (ET)" },
-  { group: "Estados Unidos",  tz: "America/Chicago",                  label: "Chicago / Houston (CT)" },
-  { group: "Estados Unidos",  tz: "America/Denver",                   label: "Denver / Phoenix (MT)" },
-  { group: "Estados Unidos",  tz: "America/Los_Angeles",              label: "Los Ángeles / Seattle (PT)" },
-  { group: "Estados Unidos",  tz: "America/Anchorage",                label: "Alaska" },
-  { group: "Estados Unidos",  tz: "Pacific/Honolulu",                 label: "Hawái" },
-  { group: "Latinoamérica",   tz: "America/Bogota",                   label: "Bogotá (UTC-5)" },
-  { group: "Latinoamérica",   tz: "America/Lima",                     label: "Lima (UTC-5)" },
-  { group: "Latinoamérica",   tz: "America/Santiago",                 label: "Santiago (UTC-3/-4)" },
-  { group: "Latinoamérica",   tz: "America/Argentina/Buenos_Aires",   label: "Buenos Aires (UTC-3)" },
-  { group: "Latinoamérica",   tz: "America/Sao_Paulo",                label: "São Paulo (UTC-3)" },
-  { group: "Europa",          tz: "Europe/Madrid",                    label: "Madrid (UTC+1/+2)" },
-  { group: "Europa",          tz: "Europe/London",                    label: "Londres (UTC+0/+1)" },
-  { group: "Europa",          tz: "Europe/Paris",                     label: "París / Berlín (UTC+1/+2)" },
+  { group: "México", tz: "America/Mexico_City", label: "Ciudad de México (UTC-6)" },
+  { group: "México", tz: "America/Monterrey", label: "Monterrey (UTC-6)" },
+  { group: "México", tz: "America/Merida", label: "Mérida / Yucatán (UTC-6)" },
+  { group: "México", tz: "America/Cancun", label: "Cancún (UTC-5, sin cambio horario)" },
+  { group: "México", tz: "America/Hermosillo", label: "Hermosillo / Sonora (UTC-7, sin cambio)" },
+  { group: "México", tz: "America/Chihuahua", label: "Chihuahua (UTC-6/-7)" },
+  { group: "México", tz: "America/Mazatlan", label: "Mazatlán / La Paz (UTC-7)" },
+  { group: "México", tz: "America/Tijuana", label: "Tijuana / Mexicali (UTC-8)" },
+  { group: "Estados Unidos", tz: "America/New_York", label: "Nueva York / Miami (ET)" },
+  { group: "Estados Unidos", tz: "America/Chicago", label: "Chicago / Houston (CT)" },
+  { group: "Estados Unidos", tz: "America/Denver", label: "Denver / Phoenix (MT)" },
+  { group: "Estados Unidos", tz: "America/Los_Angeles", label: "Los Ángeles / Seattle (PT)" },
+  { group: "Estados Unidos", tz: "America/Anchorage", label: "Alaska" },
+  { group: "Estados Unidos", tz: "Pacific/Honolulu", label: "Hawái" },
+  { group: "Latinoamérica", tz: "America/Bogota", label: "Bogotá (UTC-5)" },
+  { group: "Latinoamérica", tz: "America/Lima", label: "Lima (UTC-5)" },
+  { group: "Latinoamérica", tz: "America/Santiago", label: "Santiago (UTC-3/-4)" },
+  { group: "Latinoamérica", tz: "America/Argentina/Buenos_Aires", label: "Buenos Aires (UTC-3)" },
+  { group: "Latinoamérica", tz: "America/Sao_Paulo", label: "São Paulo (UTC-3)" },
+  { group: "Europa", tz: "Europe/Madrid", label: "Madrid (UTC+1/+2)" },
+  { group: "Europa", tz: "Europe/London", label: "Londres (UTC+0/+1)" },
+  { group: "Europa", tz: "Europe/Paris", label: "París / Berlín (UTC+1/+2)" },
 ];
 
 function getUtcOffset(tz: string): string {
@@ -78,7 +78,7 @@ export default function SchedulePage() {
     try {
       const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (detected) setTimezone(detected);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function SchedulePage() {
     setAvailableSlots([]);
     setSelectedSlot(null);
     // Send date as the local calendar date the user sees
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     try {
       const res = await fetch(`/api/public/appointment-types/${appointmentType.id}/slots?date=${dateStr}&tz=${encodeURIComponent(timezone)}`);
       const data = await res.json();
@@ -167,19 +167,19 @@ export default function SchedulePage() {
     }
   };
 
-  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
   const isDateAvailable = (date: Date) => {
     if (!appointmentType?.schedule?.slots) return false;
     const dayOfWeek = date.getDay();
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + (appointmentType.maxAdvanceDays || 30));
     return date >= today && date <= maxDate && appointmentType.schedule.slots.some((s: any) => s.dayOfWeek === dayOfWeek && s.isAvailable);
   };
 
-  const prevMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth()-1, 1));
-  const nextMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth()+1, 1));
+  const prevMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
 
   // Format slot in the user's selected timezone
   const formatSlot = (iso: string) => {
@@ -214,7 +214,7 @@ export default function SchedulePage() {
 
   if (error) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-red-100 max-w-md w-full text-center">
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-red-100 max-w-md w-full text-center">
         <p className="text-red-500 font-medium">{error}</p>
       </div>
     </div>
@@ -222,7 +222,7 @@ export default function SchedulePage() {
 
   if (step === "success") return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
+      <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
         <CheckCircle2 size={56} className="text-green-500" />
         <h2 className="text-2xl font-bold text-gray-900">¡Cita Confirmada!</h2>
         <p className="text-gray-600">
@@ -280,10 +280,10 @@ export default function SchedulePage() {
                         </h2>
                         <div className="flex gap-1">
                           <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                            <ChevronLeft size={18}/>
+                            <ChevronLeft size={18} />
                           </button>
                           <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                            <ChevronRight size={18}/>
+                            <ChevronRight size={18} />
                           </button>
                         </div>
                       </div>
@@ -296,7 +296,7 @@ export default function SchedulePage() {
                       <div className="grid grid-cols-7 gap-1">
                         {Array(firstDay).fill(null).map((_, i) => <div key={`e-${i}`} />)}
                         {Array(daysInMonth).fill(null).map((_, i) => {
-                          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i+1);
+                          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1);
                           const available = isDateAvailable(date);
                           const isSelected = selectedDate?.toDateString() === date.toDateString();
                           return (
@@ -310,7 +310,7 @@ export default function SchedulePage() {
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
                             >
-                              {i+1}
+                              {i + 1}
                             </button>
                           );
                         })}
@@ -357,7 +357,7 @@ export default function SchedulePage() {
                     </button>
 
                     {showTzPicker && (
-                      <div className="absolute bottom-8 left-0 z-50 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+                      <div className="absolute bottom-8 left-0 z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
                         {/* Search */}
                         <div className="p-3 border-b border-gray-100">
                           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">

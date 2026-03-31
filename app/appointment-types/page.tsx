@@ -119,7 +119,7 @@ export default function AppointmentTypesPage() {
           </div>
 
           {schedules.length === 0 && !isLoading && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6 text-center">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-center">
               <p className="text-amber-800 font-medium">Primero necesitas crear un horario de disponibilidad.</p>
               <Link
                 href="/availability"
@@ -135,7 +135,7 @@ export default function AppointmentTypesPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : types.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin tipos de cita</h3>
               <p className="text-gray-500 text-sm mb-4">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>
@@ -149,7 +149,7 @@ export default function AppointmentTypesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {types.map(type => (
-                <div key={type.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                <div key={type.id} className="bg-white border border-gray-200 rounded-xl p-6 transition-shadow flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }}></div>
@@ -206,7 +206,7 @@ export default function AppointmentTypesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">
                 {editingType ? "Editar Tipo de Cita" : "Nuevo Tipo de Cita"}
@@ -244,7 +244,7 @@ export default function AppointmentTypesPage() {
                       onChange={e => setDuration(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
                     >
-                      {[15,20,30,45,60,90,120].map(d => <option key={d} value={d}>{d} min</option>)}
+                      {[15, 20, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} min</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col gap-1.5">

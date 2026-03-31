@@ -20,7 +20,7 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Próximas Citas Widget */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 flex flex-col h-full overflow-hidden">
         <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
@@ -61,8 +61,8 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
       </div>
 
       {/* Tareas Pendientes Widget */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
-         <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+      <div className="bg-white rounded-xl border border-gray-200 flex flex-col h-full overflow-hidden">
+        <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-orange-100 p-2 rounded-lg text-orange-600">
               <CheckSquare size={20} />
@@ -94,7 +94,7 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
               ))}
             </ul>
           ) : (
-             <div className="h-48 flex flex-col items-center justify-center text-gray-400 p-6 text-center">
+            <div className="h-48 flex flex-col items-center justify-center text-gray-400 p-6 text-center">
               <CheckSquare size={40} className="mb-2 opacity-50 text-gray-300" />
               <p>No tienes tareas pendientes, ¡buen trabajo!</p>
             </div>
@@ -103,7 +103,7 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
       </div>
 
       {/* Últimos Leads Widget */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 flex flex-col h-full overflow-hidden">
         <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="bg-green-100 p-2 rounded-lg text-green-600">
@@ -115,7 +115,7 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
             Ver todo
           </Link>
         </div>
-         <div className="p-0 flex-1 overflow-auto">
+        <div className="p-0 flex-1 overflow-auto">
           {contacts.length > 0 ? (
             <ul className="divide-y divide-gray-100">
               {contacts.map((contact) => (
