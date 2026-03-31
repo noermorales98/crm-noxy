@@ -8,8 +8,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Noxy CRM",
-  description: "A modern CRM dashboard interface",
+  title: "Noxy CRM - Gestión de Clientes",
+  description: "Gestión de Clientes",
   icons: {
     icon: "/favicon.webp",
     apple: "/favicon.webp",
