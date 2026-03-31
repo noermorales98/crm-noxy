@@ -138,7 +138,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
 
               {/* Forms */}
               <DashboardCard
-                title="Lead Forms"
+                title="Formularios"
                 icon={<AppWindow className="text-green-500" size={20} />}
                 count={project._count.forms}
                 link={`/forms?projectId=${project.id}`}
@@ -150,7 +150,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                     {project.forms.map((f: any) => (
                       <li key={f.id} className="py-3 flex justify-between items-center">
                         <span className="text-sm font-medium text-gray-900">{f.name}</span>
-                        <span className="text-xs text-gray-500">{f.isActive ? 'Active' : 'Offline'}</span>
+                        <span className="text-xs text-gray-500">{f.isActive ? 'Activo' : 'Inactivo'}</span>
                       </li>
                     ))}
                   </ul>

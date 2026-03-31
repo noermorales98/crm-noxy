@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw, Trash2 } from "lucide-react";
+import { Mail, Plus, Send, Clock, CheckCircle2, XCircle, RefreshCw, Trash2, Eye, Code2 } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
 type Campaign = {
   id: string;
   subject: string;
+  body: string;
   status: "DRAFT" | "SENDING" | "COMPLETED";
   sentAt: string | null;
   createdAt: string;
@@ -65,6 +66,8 @@ export default function CampaignsPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
 
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewCampaign, setPreviewCampaign] = useState<Campaign | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -144,6 +147,7 @@ export default function CampaignsPage() {
       setTargetType("ALL");
       setProjectId("");
       setTargetFormId("");
+      setIsPreviewMode(false);
       setIsModalOpen(false);
       fetchCampaigns(); // refresh list
     } catch (err: any) {
@@ -309,11 +313,18 @@ export default function CampaignsPage() {
                               onClick={() => handleSendCampaign(camp.id)}
                               className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                             >
-                              Send Now
+                              Enviar
                             </button>
                           ) : (
                             <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">Locked</span>
                           )}
+                          <button
+                            onClick={() => setPreviewCampaign(camp)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Previsualizar correo"
+                          >
+                            <Eye size={16} />
+                          </button>
                           <button
                             onClick={() => handleDelete(camp)}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -333,13 +344,67 @@ export default function CampaignsPage() {
         </main>
       </div>
 
+      {/* PREVIEW MODAL */}
+      {previewCampaign && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-gray-100 flex items-start justify-between shrink-0">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <Eye size={16} className="text-gray-400" />
+                  Previsualización del correo
+                </h3>
+                <p className="text-sm text-gray-500">
+                  <span className="font-medium text-gray-700">Asunto:</span> {previewCampaign.subject}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {previewCampaign.company?.name}
+                  {previewCampaign.project ? ` · 💼 ${previewCampaign.project.name}` : previewCampaign.targetForm ? ` · 📝 ${previewCampaign.targetForm.name}` : " · 🏢 Toda la empresa"}
+                </p>
+              </div>
+              <button onClick={() => setPreviewCampaign(null)} className="text-gray-400 hover:text-gray-600 p-1 shrink-0">
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-hidden p-4">
+              <div className="w-full h-full rounded-xl border border-gray-200 overflow-hidden bg-white" style={{ minHeight: "420px" }}>
+                {previewCampaign.body?.trim() ? (
+                  <iframe
+                    srcDoc={previewCampaign.body}
+                    sandbox="allow-same-origin"
+                    className="w-full border-0"
+                    style={{ height: "420px" }}
+                    title="Previsualización del correo"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400 gap-2">
+                    <Eye size={32} className="opacity-30" />
+                    <span className="text-sm">Esta campaña no tiene cuerpo HTML</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 flex justify-end shrink-0 bg-gray-50/50">
+              <button
+                onClick={() => setPreviewCampaign(null)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* CREATE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Crear campaña de correo</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+              <button onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="text-gray-400 hover:text-gray-600 p-1">
                 <XCircle size={24} />
               </button>
             </div>
@@ -443,15 +508,55 @@ export default function CampaignsPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-gray-700">Cuerpo del correo (HTML soportado)</label>
-                  <textarea
-                    required
-                    placeholder="<p>Hola! Queríamos contactarte...</p>"
-                    rows={10}
-                    value={htmlBody}
-                    onChange={(e) => setHtmlBody(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm resize-y font-mono"
-                  ></textarea>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-gray-700">Cuerpo del correo (HTML soportado)</label>
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => setIsPreviewMode(false)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${!isPreviewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        <Code2 size={13} />
+                        Código
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPreviewMode(true)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${isPreviewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+                      >
+                        <Eye size={13} />
+                        Previsualizar
+                      </button>
+                    </div>
+                  </div>
+
+                  {!isPreviewMode ? (
+                    <textarea
+                      required
+                      placeholder="<p>Hola! Queríamos contactarte...</p>"
+                      rows={10}
+                      value={htmlBody}
+                      onChange={(e) => setHtmlBody(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm resize-y font-mono"
+                    />
+                  ) : (
+                    <div className="w-full rounded-xl border border-gray-200 overflow-hidden bg-white" style={{ minHeight: "260px" }}>
+                      {htmlBody.trim() ? (
+                        <iframe
+                          srcDoc={htmlBody}
+                          sandbox="allow-same-origin"
+                          className="w-full border-0"
+                          style={{ minHeight: "260px", height: "260px" }}
+                          title="Previsualización del correo"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400 gap-2">
+                          <Eye size={28} className="opacity-40" />
+                          <span className="text-sm">Escribe HTML en el editor para previsualizar</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <p className="text-xs text-gray-400">Puedes usar HTML sin procesar aquí para formatear tu boletín.</p>
                 </div>
 
@@ -462,7 +567,7 @@ export default function CampaignsPage() {
             <div className="p-6 border-t border-gray-50 flex justify-end gap-3 shrink-0 bg-gray-50/50">
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
               >
                 Cancelar

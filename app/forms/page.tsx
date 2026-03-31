@@ -164,7 +164,7 @@ export default function FormsPage() {
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <FormInput className="text-gray-400" size={28} />
-              Lead Forms
+              Formularios
             </h1>
             <button
               onClick={() => setIsModalOpen(true)}
@@ -209,7 +209,7 @@ export default function FormsPage() {
                       </div>
                       {form.isActive ? (
                         <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md">
-                          <Activity size={10} /> Active
+                          <Activity size={10} /> Activo
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
