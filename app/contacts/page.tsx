@@ -1,13 +1,16 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/src/components/Header";
 import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { Trash2, Edit } from "lucide-react";
 
-export default function ContactsPage() {
+function ContactsContent() {
   const { addToast } = useToast();
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get("projectId");
   const [contacts, setContacts] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +27,8 @@ export default function ContactsPage() {
 
   const fetchContacts = async () => {
     try {
-      const res = await fetch("/api/contacts");
+      const url = projectId ? `/api/contacts?projectId=${projectId}` : "/api/contacts";
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setContacts(data);
@@ -140,7 +144,10 @@ export default function ContactsPage() {
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+              {projectId && <p className="text-sm text-gray-500 mt-1">Filtrado por proyecto actual</p>}
+            </div>
             <div className="flex items-center gap-3">
               <div className="flex bg-gray-100 p-1 rounded-lg">
                 <button
@@ -352,5 +359,13 @@ export default function ContactsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ContactsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading initial data...</div>}>
+      <ContactsContent />
+    </Suspense>
   );
 }

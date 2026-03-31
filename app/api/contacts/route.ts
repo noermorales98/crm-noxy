@@ -15,9 +15,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "No organization context" }, { status: 400 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const projectId = searchParams.get("projectId");
+
     const contacts = await prisma.contact.findMany({
       where: {
         organizationId: currentOrganizationId,
+        ...(projectId ? { projectId } : {}),
       },
       orderBy: {
         createdAt: "desc",

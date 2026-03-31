@@ -3,12 +3,16 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { CalendarCheck, Clock, User, Mail, Phone, CheckCircle2, XCircle } from "lucide-react";
+import { CalendarCheck, Clock, User, Mail, Phone, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
 
   useEffect(() => { fetchAppointments(); }, []);
 
@@ -26,6 +30,29 @@ export default function AppointmentsPage() {
       body: JSON.stringify({ status })
     });
     fetchAppointments();
+  };
+
+  const handleDelete = async (id: string) => {
+    const isConfirmed = await confirm({
+      title: "Eliminar Cita",
+      description: "¿Estás seguro de que quieres eliminar esta cita? Esta acción la borrará del sistema y liberará el horario de forma permanente.",
+      confirmText: "Eliminar",
+      cancelText: "Cancelar",
+      variant: "danger"
+    });
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        addToast("Cita eliminada y horario liberado exitosamente", "success");
+        fetchAppointments();
+      } else {
+        addToast("Error al eliminar", "error");
+      }
+    } catch {
+      addToast("Error de red", "error");
+    }
   };
 
   const filtered = filter === "ALL" ? appointments : appointments.filter(a => a.status === filter);
@@ -131,6 +158,12 @@ export default function AppointmentsPage() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => handleDelete(appt.id)}
+                        className="flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-50 hover:bg-red-50 hover:text-red-600 px-3 py-1.5 rounded-lg transition-colors mt-auto"
+                      >
+                        <Trash2 size={13} /> Eliminar
+                      </button>
                     </div>
                   </div>
                 );

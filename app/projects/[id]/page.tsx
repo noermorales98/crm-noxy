@@ -99,7 +99,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 title="Contacts"
                 icon={<Users className="text-blue-500" size={20} />}
                 count={project._count.contacts}
-                link="/contacts"
+                link={`/contacts?projectId=${project.id}`}
               >
                 {project.contacts.length === 0 ? (
                   <EmptyState text="No contacts linked to this project" />
@@ -120,7 +120,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 title="Empresas"
                 icon={<Building className="text-purple-500" size={20} />}
                 count={project._count.companies}
-                link="/companies"
+                link={`/companies?projectId=${project.id}`}
               >
                 {project.companies.length === 0 ? (
                   <EmptyState text="No companies linked to this project" />
@@ -141,7 +141,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 title="Lead Forms"
                 icon={<AppWindow className="text-green-500" size={20} />}
                 count={project._count.forms}
-                link="/forms"
+                link={`/forms?projectId=${project.id}`}
               >
                 {project.forms.length === 0 ? (
                   <EmptyState text="No forms linked to this project" />
@@ -162,7 +162,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 title="Campaigns"
                 icon={<Mail className="text-orange-500" size={20} />}
                 count={project._count.campaigns}
-                link="/campaigns"
+                link={`/campaigns?projectId=${project.id}`}
               >
                 {project.campaigns.length === 0 ? (
                   <EmptyState text="No campaigns linked to this project" />
@@ -183,7 +183,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 title="Tasks"
                 icon={<CheckSquare className="text-red-500" size={20} />}
                 count={project._count.tasks}
-                link="/tasks"
+                link={`/tasks?projectId=${project.id}`}
               >
                 {project.tasks.length === 0 ? (
                   <EmptyState text="No tasks linked to this project" />
