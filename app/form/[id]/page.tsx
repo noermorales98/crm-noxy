@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, ChevronDown, Search } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, ChevronDown, Search, XCircle } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
