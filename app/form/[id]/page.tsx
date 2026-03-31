@@ -237,263 +237,284 @@ export default function PublicFormPage() {
 
   return (
     <div className="min-h-screen bg-transparent md:py-10">
-      <div className="md:bg-white max-w-xl mx-auto md:rounded-3xl md:shadow-sm md:border md:border-gray-100 p-4 pt-10 md:p-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">{formConfig.name}</h1>
-        {formConfig.description && (
-          <p className="text-gray-600 mb-8 whitespace-pre-wrap">{formConfig.description}</p>
-        )}
+      <div className={`${apptType ? "max-w-xl md:max-w-5xl" : "max-w-xl"} md:bg-white mx-auto md:rounded-3xl md:shadow-sm md:border md:border-gray-100 p-4 pt-10 md:p-10 transition-all duration-500`}>
+        <header className="mb-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2 leading-tight tracking-tight">{formConfig.name}</h1>
+          {formConfig.description && (
+            <p className="text-gray-600 whitespace-pre-wrap text-lg">{formConfig.description}</p>
+          )}
+        </header>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {formConfig.fields.map((field: any) => (
-            <div key={field.id} className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-800">
-                {field.label} {field.isRequired && <span className="text-red-500">*</span>}
-              </label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <div className={`flex flex-col ${apptType ? "md:flex-row" : ""} gap-10`}>
+            {/* ── Left Column: Form Fields ── */}
+            <div className="flex-1 flex flex-col gap-6">
+              {formConfig.fields.map((field: any) => (
+                <div key={field.id} className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-1">
+                    {field.label} {field.isRequired && <span className="text-red-500">*</span>}
+                  </label>
 
-              {field.type === "TEXT" && (
-                <input type="text" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-              )}
-              {field.type === "PREDEFINED_NAME" && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input type="text" required={field.isRequired} placeholder="First Name" value={formData[`${field.name}_first`]} onChange={e => handleInputChange(`${field.name}_first`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-                  <input type="text" required={field.isRequired} placeholder="Last Name" value={formData[`${field.name}_last`]} onChange={e => handleInputChange(`${field.name}_last`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-                </div>
-              )}
-              {field.type === "EMAIL" && (
-                <input type="email" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-              )}
-              {field.type === "PHONE" && (
-                <input type="tel" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-              )}
-              {field.type === "PHONE_LADA" && (
-                <div className="flex gap-2">
-                  <select required={field.isRequired} value={formData[`${field.name}_code`]} onChange={e => handleInputChange(`${field.name}_code`, e.target.value, field.type)} className="w-[100px] px-2 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors">
-                    <option value="+52">+52 (MX)</option>
-                    <option value="+1">+1 (US/CA)</option>
-                    <option value="+34">+34 (ES)</option>
-                    <option value="+54">+54 (AR)</option>
-                    <option value="+57">+57 (CO)</option>
-                    <option value="+56">+56 (CL)</option>
-                    <option value="+51">+51 (PE)</option>
-                  </select>
-                  <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Phone Number"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-                </div>
-              )}
-              {field.type === "NUMBER" && (
-                <input type="number" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-              )}
-              {field.type === "DATE" && (
-                <input type="date" required={field.isRequired} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors" />
-              )}
-              {field.type === "TEXTAREA" && (
-                <textarea required={field.isRequired} placeholder={field.placeholder || ""} rows={3} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors resize-y"></textarea>
-              )}
-              {field.type === "SELECT" && (
-                <select required={field.isRequired} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-colors">
-                  <option value="" disabled>Select an option</option>
-                  {field.options?.map((opt: string, i: number) => <option key={i} value={opt}>{opt}</option>)}
-                </select>
-              )}
-              {field.type === "RADIO" && (
-                <div className="flex flex-col gap-2 mt-1">
-                  {field.options?.map((opt: string, i: number) => (
-                    <label key={i} className="flex items-center gap-3 cursor-pointer text-gray-700">
-                      <input type="radio" required={field.isRequired} name={field.name} value={opt} checked={formData[field.name] === opt} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-4 h-4 text-black focus:ring-black" />
-                      <span>{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-              {field.type === "CHECKBOX" && (
-                <div className="flex flex-col gap-2 mt-1">
-                  {field.options?.map((opt: string, i: number) => (
-                    <label key={i} className="flex items-center gap-3 cursor-pointer text-gray-700">
-                      <input type="checkbox" value={opt} checked={formData[field.name]?.includes(opt)} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-4 h-4 rounded text-black focus:ring-black border-gray-300" />
-                      <span>{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {/* ── Calendar widget (shown when appointment type is linked) ── */}
-          {apptType && (
-            <div className="border border-gray-200 rounded-2xl overflow-hidden">
-              {/* Header */}
-              <div className="bg-gray-50 px-5 py-4 border-b border-gray-100">
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar size={16} className="text-gray-500" />
-                  <h3 className="font-semibold text-gray-800 text-sm">Selecciona fecha y hora</h3>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <Clock size={12} />
-                  <span>{apptType.name} · {apptType.duration} min</span>
-                </div>
-              </div>
-
-              <div className="p-5 bg-white">
-                {/* Mini calendar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-bold text-gray-900">
-                      {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-                    </span>
-                    <div className="flex gap-1">
-                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
-                        <ChevronLeft size={16} />
-                      </button>
-                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
-                        <ChevronRight size={16} />
-                      </button>
+                  {field.type === "TEXT" && (
+                    <input type="text" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                  )}
+                  {field.type === "PREDEFINED_NAME" && (
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input type="text" required={field.isRequired} placeholder="Nombres" value={formData[`${field.name}_first`]} onChange={e => handleInputChange(`${field.name}_first`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                      <input type="text" required={field.isRequired} placeholder="Apellidos" value={formData[`${field.name}_last`]} onChange={e => handleInputChange(`${field.name}_last`, e.target.value, field.type)} className="w-full sm:w-1/2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
                     </div>
-                  </div>
-                  <div className="grid grid-cols-7 gap-0.5 mb-1">
-                    {DAYS_SHORT.map(d => (
-                      <div key={d} className="text-center text-[10px] font-semibold text-gray-400 py-1">{d}</div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-7 gap-0.5">
-                    {Array(firstDay).fill(null).map((_, i) => <div key={`e-${i}`} />)}
-                    {Array(daysInMonth).fill(null).map((_, i) => {
-                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1);
-                      const available = isDateAvailable(date);
-                      const isSelected = selectedDate?.toDateString() === date.toDateString();
-                      return (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => available && handleDateSelect(date)}
-                          disabled={!available}
-                          className={`aspect-square rounded-full text-xs font-medium transition-colors
-                            ${isSelected ? "bg-gray-900 text-white" : ""}
-                            ${available && !isSelected ? "hover:bg-gray-100 text-gray-900" : ""}
-                            ${!available ? "text-gray-300 cursor-default" : ""}
-                          `}
-                        >
-                          {i + 1}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Time slots */}
-                {selectedDate && (
-                  <div className="mb-4">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">
-                      {DAYS_SHORT[selectedDate.getDay()]}, {selectedDate.getDate()} de {MONTHS[selectedDate.getMonth()]}
-                    </p>
-                    {loadingSlots ? (
-                      <div className="flex justify-center py-4">
-                        <div className="w-5 h-5 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
-                      </div>
-                    ) : availableSlots.length === 0 ? (
-                      <p className="text-xs text-gray-400">No hay horarios disponibles para este día.</p>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-2">
-                        {availableSlots.map(slot => (
-                          <button
-                            key={slot}
-                            type="button"
-                            onClick={() => setSelectedSlot(slot)}
-                            className={`py-2 px-2 rounded-xl border text-xs font-medium transition-colors
-                              ${selectedSlot === slot
-                                ? "bg-gray-900 text-white border-gray-900"
-                                : "border-gray-200 hover:border-gray-900 text-gray-700"
-                              }`}
-                          >
-                            {formatSlot(slot)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Selected slot confirmation */}
-                {selectedSlot && (
-                  <div className="mb-4 flex items-center gap-2 text-xs text-green-700 bg-green-50 px-3 py-2 rounded-xl">
-                    <Calendar size={13} />
-                    <span>
-                      Cita: {selectedDate && `${selectedDate.getDate()} de ${MONTHS[selectedDate.getMonth()]}`} a las {formatSlot(selectedSlot)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Timezone selector */}
-                <div className="relative border-t border-gray-100 pt-3" ref={tzPickerRef}>
-                  <button
-                    type="button"
-                    onClick={() => { setShowTzPicker(p => !p); setTzSearch(""); }}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 transition-colors group"
-                  >
-                    <Globe size={13} className="shrink-0" />
-                    <span className="truncate max-w-[260px]">{tzLabel}</span>
-                    <ChevronDown size={12} className={`shrink-0 transition-transform ${showTzPicker ? "rotate-180" : ""}`} />
-                  </button>
-
-                  {showTzPicker && (
-                    <div className="absolute bottom-7 left-0 z-50 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-                      {/* Search */}
-                      <div className="p-3 border-b border-gray-100">
-                        <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                          <Search size={13} className="text-gray-400 shrink-0" />
-                          <input
-                            autoFocus
-                            type="text"
-                            placeholder="Buscar zona horaria..."
-                            value={tzSearch}
-                            onChange={e => setTzSearch(e.target.value)}
-                            className="flex-1 bg-transparent text-xs outline-none text-gray-700 placeholder-gray-400"
-                          />
-                        </div>
-                      </div>
-                      {/* List */}
-                      <div className="max-h-56 overflow-y-auto">
-                        {tzGroups.map(group => (
-                          <div key={group}>
-                            <p className="px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{group}</p>
-                            {filteredTz.filter(t => t.group === group).map(t => (
-                              <button
-                                key={t.tz}
-                                type="button"
-                                onClick={() => { setTimezone(t.tz); setShowTzPicker(false); }}
-                                className={`w-full text-left px-4 py-2 text-xs hover:bg-gray-50 transition-colors flex items-center justify-between
-                                  ${timezone === t.tz ? "text-gray-900 font-semibold" : "text-gray-600"}
-                                `}
-                              >
-                                <span>{t.label}</span>
-                                {timezone === t.tz && <div className="w-1.5 h-1.5 rounded-full bg-gray-900 shrink-0" />}
-                              </button>
-                            ))}
+                  )}
+                  {field.type === "EMAIL" && (
+                    <input type="email" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                  )}
+                  {field.type === "PHONE" && (
+                    <input type="tel" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                  )}
+                  {field.type === "PHONE_LADA" && (
+                    <div className="flex gap-2">
+                      <select required={field.isRequired} value={formData[`${field.name}_code`]} onChange={e => handleInputChange(`${field.name}_code`, e.target.value, field.type)} className="w-[110px] px-2 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]">
+                        <option value="+52">+52 MX</option>
+                        <option value="+1">+1 US</option>
+                        <option value="+34">+34 ES</option>
+                        <option value="+54">+54 AR</option>
+                        <option value="+57">+57 CO</option>
+                        <option value="+56">+56 CL</option>
+                        <option value="+51">+51 PE</option>
+                      </select>
+                      <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Número de teléfono"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="flex-1 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                    </div>
+                  )}
+                  {field.type === "NUMBER" && (
+                    <input type="number" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                  )}
+                  {field.type === "DATE" && (
+                    <input type="date" required={field.isRequired} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px]" />
+                  )}
+                  {field.type === "TEXTAREA" && (
+                    <textarea required={field.isRequired} placeholder={field.placeholder || ""} rows={3} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px] resize-y"></textarea>
+                  )}
+                  {field.type === "SELECT" && (
+                    <select required={field.isRequired} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 transition-all text-[15px] bg-white">
+                      <option value="" disabled>Selecciona una opción</option>
+                      {field.options?.map((opt: string, i: number) => <option key={i} value={opt}>{opt}</option>)}
+                    </select>
+                  )}
+                  {field.type === "RADIO" && (
+                    <div className="flex flex-col gap-3 mt-1 px-1">
+                      {field.options?.map((opt: string, i: number) => (
+                        <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                          <div className="relative flex items-center justify-center">
+                            <input type="radio" required={field.isRequired} name={field.name} value={opt} checked={formData[field.name] === opt} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:border-black transition-all" />
+                            {formData[field.name] === opt && <div className="absolute w-2.5 h-2.5 bg-black rounded-full" />}
                           </div>
-                        ))}
-                        {filteredTz.length === 0 && (
-                          <p className="px-4 py-5 text-xs text-gray-400 text-center">Sin resultados</p>
-                        )}
-                      </div>
+                          <span className="text-[15px] text-gray-700 font-medium group-hover:text-black transition-colors">{opt}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {field.type === "CHECKBOX" && (
+                    <div className="flex flex-col gap-3 mt-1 px-1">
+                      {field.options?.map((opt: string, i: number) => (
+                        <label key={i} className="flex items-center gap-3 cursor-pointer group">
+                          <div className="relative flex items-center justify-center">
+                            <input type="checkbox" value={opt} checked={formData[field.name]?.includes(opt)} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-black checked:bg-black transition-all" />
+                            {formData[field.name]?.includes(opt) && <CheckCircle2 size={14} className="absolute text-white" />}
+                          </div>
+                          <span className="text-[15px] text-gray-700 font-medium group-hover:text-black transition-colors">{opt}</span>
+                        </label>
+                      ))}
                     </div>
                   )}
                 </div>
-              </div>
+              ))}
             </div>
-          )}
+
+            {/* ── Right Column: Calendar ── */}
+            {apptType && (
+              <div className="flex-1">
+                <div className="border border-gray-100 rounded-2xl overflow-hidden md:sticky md:top-8 bg-white shadow-xl shadow-gray-100/50">
+                  {/* Calendar Header */}
+                  <div className="bg-gray-900 px-6 py-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar size={18} className="text-white/70" />
+                      <h3 className="font-bold text-white text-[15px]">Agendar cita</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 text-xs text-white/50 font-medium px-2 py-0.5 bg-white/10 rounded-full">
+                        <Clock size={12} />
+                        <span>{apptType.duration} min</span>
+                      </div>
+                      <span className="text-xs text-white/40 italic">{apptType.name}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    {/* Mini calendar */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-bold text-gray-900 uppercase tracking-widest text-[11px]">
+                          {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                        </span>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-900 transition-colors">
+                            <ChevronLeft size={18} />
+                          </button>
+                          <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-900 transition-colors">
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {DAYS_SHORT.map(d => (
+                          <div key={d} className="text-center text-[11px] font-bold text-gray-400 py-1 uppercase">{d}</div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {Array(firstDay).fill(null).map((_, i) => <div key={`e-${i}`} />)}
+                        {Array(daysInMonth).fill(null).map((_, i) => {
+                          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1);
+                          const available = isDateAvailable(date);
+                          const isSelected = selectedDate?.toDateString() === date.toDateString();
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => available && handleDateSelect(date)}
+                              disabled={!available}
+                              className={`aspect-square rounded-xl text-sm font-bold transition-all relative flex items-center justify-center
+                                ${isSelected ? "bg-gray-900 text-white scale-110 shadow-lg" : ""}
+                                ${available && !isSelected ? "hover:bg-gray-100 text-gray-900" : ""}
+                                ${!available ? "text-gray-300 cursor-default" : ""}
+                              `}
+                            >
+                              {i + 1}
+                              {available && !isSelected && <div className="absolute bottom-1 w-1 h-1 bg-green-500 rounded-full" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Time slots */}
+                    {selectedDate && (
+                      <div className="mb-6 animate-in slide-in-from-top-2 duration-300">
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                          Horarios para {selectedDate.getDate()} de {MONTHS[selectedDate.getMonth()]}
+                        </p>
+                        {loadingSlots ? (
+                          <div className="flex justify-center py-6">
+                            <div className="w-6 h-6 border-4 border-gray-100 border-t-gray-900 rounded-full animate-spin"></div>
+                          </div>
+                        ) : availableSlots.length === 0 ? (
+                          <div className="bg-gray-50 rounded-xl p-4 text-center">
+                            <p className="text-xs text-gray-500 font-medium">No hay horarios disponibles.</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                            {availableSlots.map(slot => (
+                              <button
+                                key={slot}
+                                type="button"
+                                onClick={() => setSelectedSlot(slot)}
+                                className={`py-3 px-2 rounded-xl border-2 text-[13px] font-bold transition-all
+                                  ${selectedSlot === slot
+                                    ? "bg-gray-900 text-white border-gray-900 scale-105 shadow-md"
+                                    : "border-gray-50 hover:border-gray-900 text-gray-700 bg-gray-50/50"
+                                  }`}
+                              >
+                                {formatSlot(slot)}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Selected slot confirmation */}
+                    {selectedSlot && (
+                      <div className="mb-6 flex items-center gap-3 text-xs text-green-800 bg-green-50 px-4 py-3 rounded-2xl border border-green-100 font-bold animate-in bounce-in duration-500">
+                        <CheckCircle2 size={18} className="text-green-500" />
+                        <span>
+                          {selectedDate && `${selectedDate.getDate()} ${MONTHS[selectedDate.getMonth()]}`} · {formatSlot(selectedSlot)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Timezone selector */}
+                    <div className="relative border-t border-gray-100 pt-4" ref={tzPickerRef}>
+                      <button
+                        type="button"
+                        onClick={() => { setShowTzPicker(p => !p); setTzSearch(""); }}
+                        className="flex items-center gap-2 text-[11px] font-bold text-gray-400 hover:text-gray-900 transition-colors group uppercase tracking-widest w-full text-left"
+                      >
+                        <Globe size={14} className="shrink-0" />
+                        <span className="truncate flex-1">{tzLabel}</span>
+                        <ChevronDown size={14} className={`shrink-0 transition-transform duration-300 ${showTzPicker ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {showTzPicker && (
+                        <div className="absolute bottom-9 left-0 z-50 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-2">
+                          <div className="p-3 border-b border-gray-100">
+                            <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
+                              <Search size={14} className="text-gray-400 shrink-0" />
+                              <input
+                                autoFocus
+                                type="text"
+                                placeholder="Buscar zona horaria..."
+                                value={tzSearch}
+                                onChange={e => setTzSearch(e.target.value)}
+                                className="flex-1 bg-transparent text-xs outline-none text-gray-700 font-medium placeholder-gray-400"
+                              />
+                            </div>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            {tzGroups.map(group => (
+                              <div key={group}>
+                                <p className="px-4 pt-4 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-gray-400">{group}</p>
+                                {filteredTz.filter(t => t.group === group).map(t => (
+                                  <button
+                                    key={t.tz}
+                                    type="button"
+                                    onClick={() => { setTimezone(t.tz); setShowTzPicker(false); }}
+                                    className={`w-full text-left px-5 py-3 text-xs hover:bg-gray-50 transition-colors flex items-center justify-between
+                                      ${timezone === t.tz ? "text-gray-900 bg-gray-50/50" : "text-gray-600"}
+                                    `}
+                                  >
+                                    <span className={timezone === t.tz ? "font-bold" : "font-medium"}>{t.label}</span>
+                                    {timezone === t.tz && <div className="w-2 h-2 rounded-full bg-black shadow-sm" />}
+                                  </button>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
           {errorMsg && (
-            <p className="text-sm text-red-500 bg-red-50 px-4 py-3 rounded-xl">{errorMsg}</p>
+            <p className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-5 py-4 rounded-2xl flex items-center gap-3">
+              <XCircle size={18} />
+              {errorMsg}
+            </p>
           )}
 
-          <div className="pt-4 mt-2 border-t border-gray-100 pb-2">
-            <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-50 text-lg">
-              {isSubmitting ? "Enviando..." : "Enviar"}
+          <div className="pt-6 border-t border-gray-100">
+            <button type="submit" disabled={isSubmitting} className="w-full md:w-auto md:min-w-[200px] py-4 md:py-4.5 px-10 rounded-2xl font-black text-white bg-gray-900 hover:bg-black hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200 disabled:opacity-50 text-lg uppercase tracking-wider">
+              {isSubmitting ? "Enviando..." : "Enviar Formulario"}
             </button>
           </div>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Powered by Noxy CRM</p>
-        </div>
+        <footer className="mt-12 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
+            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Powered by Noxy CRM</span>
+          </div>
+        </footer>
       </div>
     </div>
   );

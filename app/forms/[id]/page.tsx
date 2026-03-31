@@ -4,24 +4,80 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate } from "lucide-react";
+import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate, Copy, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 
 const FIELD_TYPES = [
-  { value: "TEXT", label: "Short Text" },
-  { value: "PREDEFINED_NAME", label: "Full Name (First & Last)" },
-  { value: "TEXTAREA", label: "Long Text (Paragraph)" },
-  { value: "EMAIL", label: "Email Address" },
-  { value: "PHONE", label: "Phone Number" },
-  { value: "PHONE_LADA", label: "Phone Number with Lada" },
-  { value: "NUMBER", label: "Number" },
-  { value: "DATE", label: "Date Picker" },
-  { value: "SELECT", label: "Dropdown Select" },
-  { value: "CHECKBOX", label: "Multiple Checkboxes" },
-  { value: "RADIO", label: "Radio Buttons" }
+  { value: "TEXT", label: "Texto Corto" },
+  { value: "PREDEFINED_NAME", label: "Nombre Completo (Nombre y Apellido)" },
+  { value: "TEXTAREA", label: "Texto Largo (Párrafo)" },
+  { value: "EMAIL", label: "Correo Electrónico" },
+  { value: "PHONE", label: "Teléfono" },
+  { value: "PHONE_LADA", label: "Teléfono con Lada" },
+  { value: "NUMBER", label: "Número" },
+  { value: "DATE", label: "Fecha" },
+  { value: "SELECT", label: "Lista Desplegable" },
+  { value: "CHECKBOX", label: "Casillas de Verificación" },
+  { value: "RADIO", label: "Botones de Opción" },
 ];
+
+function FieldPreview({ field }: { field: any }) {
+  const base = "w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-400 pointer-events-none";
+  const opts = field.options ? field.options.split(",").map((o: string) => o.trim()).filter(Boolean) : [];
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-semibold text-gray-700">
+        {field.label || "Sin etiqueta"} {field.isRequired && <span className="text-red-400">*</span>}
+      </label>
+      {(field.type === "TEXT" || field.type === "EMAIL" || field.type === "PHONE" || field.type === "NUMBER" || field.type === "DATE") && (
+        <div className={base}>{field.placeholder || "—"}</div>
+      )}
+      {field.type === "PREDEFINED_NAME" && (
+        <div className="flex gap-2">
+          <div className={`${base} flex-1`}>Nombre</div>
+          <div className={`${base} flex-1`}>Apellido</div>
+        </div>
+      )}
+      {field.type === "PHONE_LADA" && (
+        <div className="flex gap-2">
+          <div className="w-20 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-gray-400 pointer-events-none">+52</div>
+          <div className={`${base} flex-1`}>{field.placeholder || "—"}</div>
+        </div>
+      )}
+      {field.type === "TEXTAREA" && (
+        <div className={`${base} h-14`}>{field.placeholder || "—"}</div>
+      )}
+      {field.type === "SELECT" && (
+        <div className={base}>
+          {opts[0] || "Selecciona una opción"}
+        </div>
+      )}
+      {field.type === "RADIO" && (
+        <div className="flex flex-col gap-1">
+          {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
+            <label key={i} className="flex items-center gap-2 text-xs text-gray-500 pointer-events-none">
+              <div className="w-3 h-3 rounded-full border border-gray-300 shrink-0" />
+              {opt}
+            </label>
+          ))}
+        </div>
+      )}
+      {field.type === "CHECKBOX" && (
+        <div className="flex flex-col gap-1">
+          {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
+            <label key={i} className="flex items-center gap-2 text-xs text-gray-500 pointer-events-none">
+              <div className="w-3 h-3 rounded border border-gray-300 shrink-0" />
+              {opt}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function FormBuilderPage() {
   const { addToast } = useToast();
@@ -30,8 +86,8 @@ export default function FormBuilderPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Form Metadata
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
@@ -39,16 +95,13 @@ export default function FormBuilderPage() {
   const [successMessage, setSuccessMessage] = useState("Thank you for your submission!");
   const [redirectUrl, setRedirectUrl] = useState("");
   const [welcomeEmailId, setWelcomeEmailId] = useState("");
-
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
   const [appointmentTypeId, setAppointmentTypeId] = useState("");
-
-  // Form Fields
   const [fields, setFields] = useState<any[]>([]);
-
-  // UI State
   const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS">("BUILDER");
+
+  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/form/${id}` : `/form/${id}`;
 
   useEffect(() => {
     fetchForm();
@@ -59,25 +112,15 @@ export default function FormBuilderPage() {
   const fetchCampaigns = async () => {
     try {
       const res = await fetch("/api/campaigns");
-      if (res.ok) {
-        const data = await res.json();
-        setCampaigns(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      if (res.ok) setCampaigns(await res.json());
+    } catch {}
   };
 
   const fetchAppointmentTypes = async () => {
     try {
       const res = await fetch("/api/appointment-types");
-      if (res.ok) {
-        const data = await res.json();
-        setAppointmentTypes(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+      if (res.ok) setAppointmentTypes(await res.json());
+    } catch {}
   };
 
   const fetchForm = async () => {
@@ -95,87 +138,80 @@ export default function FormBuilderPage() {
         setAppointmentTypeId(data.appointmentTypeId || "");
         setFields(data.fields || []);
       } else {
-        addToast("Form not found", "error");
+        addToast("Formulario no encontrado", "error");
         router.push("/forms");
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
-    }
+    } catch {}
+    finally { setIsLoading(false); }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Update the order property of fields based on array position before saving
     const orderedFields = fields.map((f, i) => ({ ...f, order: i }));
-
     try {
       const res = await fetch(`/api/forms/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          description,
-          isActive,
-          successAction,
-          successMessage,
-          redirectUrl,
-          welcomeEmailId,
-          appointmentTypeId,
-          fields: orderedFields
-        })
+        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, fields: orderedFields })
       });
-
       if (res.ok) {
-        addToast("Form saved successfully.", "success");
-        fetchForm(); // Reload to get actual DB IDs if new fields were added
+        addToast("Formulario guardado", "success");
+        fetchForm();
       } else {
         const err = await res.json();
-        addToast(err.error || "Failed to save form.", "error");
+        addToast(err.error || "Error al guardar", "error");
       }
-    } catch (e) {
-      addToast("An unexpected error occurred.", "error");
+    } catch {
+      addToast("Error inesperado", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(publicUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const addField = () => {
-    const newField = {
-      id: `temp-${Date.now()}`, // Temporary ID for drag and drop
+    setFields(prev => [...prev, {
+      id: `temp-${Date.now()}`,
       type: "TEXT",
-      label: "New Field",
+      label: "Nuevo campo",
       name: `field_${Date.now()}`,
       placeholder: "",
       isRequired: false,
       options: "",
       order: fields.length
-    };
-    setFields([...fields, newField]);
+    }]);
   };
 
   const removeField = (index: number) => {
-    const newFields = [...fields];
-    newFields.splice(index, 1);
-    setFields(newFields);
+    setFields(prev => prev.filter((_, i) => i !== index));
   };
 
   const updateField = (index: number, key: string, value: any) => {
-    const newFields = [...fields];
-    newFields[index] = { ...newFields[index], [key]: value };
-    setFields(newFields);
+    setFields(prev => prev.map((f, i) => i === index ? { ...f, [key]: value } : f));
   };
 
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
     const items = Array.from(fields);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
     setFields(items);
   };
 
-  if (isLoading) return <div className="p-20 text-center">Cargando constructor...</div>;
+  if (isLoading) return (
+    <div className="flex h-screen bg-background font-sans">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">Cargando formulario...</div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex h-screen bg-background font-sans">
@@ -183,220 +219,413 @@ export default function FormBuilderPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
 
-        <main className="flex-1 flex flex-col overflow-hidden bg-white/50">
-          {/* Topbar Builder Navigation */}
-          <div className="border-b border-gray-100 bg-white px-8 py-4 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-4">
-              <Link href="/forms" className="p-2 text-gray-400 hover:bg-gray-50 rounded-lg transition-colors">
-                <ArrowLeft size={20} />
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">{name || "Untitled Form"}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                  <p className="text-xs text-gray-500 font-medium">{isActive ? 'Live' : 'Draft'}</p>
-                </div>
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Bar */}
+          <div className="border-b border-gray-100 bg-white px-6 py-3 flex items-center gap-4 shrink-0">
+            <Link href="/forms" className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg">
+              <ArrowLeft size={18} />
+            </Link>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm font-bold text-gray-900 truncate">{name || "Sin título"}</h1>
+                <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`} />
+                  {isActive ? "Activo" : "Borrador"}
+                </span>
               </div>
+              <p className="text-xs text-gray-400 truncate">{publicUrl}</p>
             </div>
 
-            <div className="flex bg-gray-100 p-1 rounded-xl">
+            {/* Tabs */}
+            <div className="flex bg-gray-100 p-1 rounded-xl shrink-0">
               <button
                 onClick={() => setActiveTab("BUILDER")}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'BUILDER' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "BUILDER" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <LayoutTemplate size={16} className="inline mr-2" />
-                Builder
+                <LayoutTemplate size={14} />
+                Constructor
               </button>
               <button
                 onClick={() => setActiveTab("SETTINGS")}
-                className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === 'SETTINGS' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <Settings2 size={16} className="inline mr-2" />
-                Settings
+                <Settings2 size={14} />
+                Configuración
               </button>
             </div>
 
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm disabled:opacity-50"
-            >
-              <Save size={16} />
-              {isSaving ? "Saving..." : "Save Changes"}
-            </button>
+            {/* Actions */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleCopyLink}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}
+              >
+                {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                {copied ? "¡Copiado!" : "Copiar link"}
+              </button>
+              <Link
+                href={`/form/${id}`}
+                target="_blank"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+              >
+                <ExternalLink size={14} />
+                Ver
+              </Link>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-50"
+              >
+                <Save size={14} />
+                {isSaving ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8 relative">
-            <div className="max-w-3xl mx-auto z-10 relative">
+          {/* Body */}
+          <div className="flex-1 overflow-hidden">
 
-              {activeTab === "SETTINGS" && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col gap-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-2">Form Settings</h2>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-700">Nombre del formulario</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" />
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-700">Descripción interna</label>
-                    <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm resize-none"></textarea>
-                  </div>
-
-                  <div className="flex items-center gap-3 py-4 border-y border-gray-50">
-                    <input type="checkbox" id="isActive" checked={isActive} onChange={e => setIsActive(e.target.checked)} className="w-5 h-5 rounded text-gray-900 focus:ring-gray-900 border-gray-300" />
-                    <label htmlFor="isActive" className="text-sm font-medium text-gray-900">Form is Active (Can receive public submissions)</label>
-                  </div>
-
-                  <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">On Submission Success</h3>
-
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 text-sm text-gray-700">
-                      <input type="radio" value="MESSAGE" checked={successAction === "MESSAGE"} onChange={e => setSuccessAction(e.target.value)} className="text-gray-900 focus:ring-gray-900" />
-                      Show Success Message
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-gray-700">
-                      <input type="radio" value="REDIRECT" checked={successAction === "REDIRECT"} onChange={e => setSuccessAction(e.target.value)} className="text-gray-900 focus:ring-gray-900" />
-                      Redirect to URL
-                    </label>
-                  </div>
-
-                  {successAction === "MESSAGE" && (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Success Message</label>
-                      <textarea value={successMessage} onChange={e => setSuccessMessage(e.target.value)} rows={2} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm resize-none"></textarea>
+            {/* BUILDER TAB — two columns */}
+            {activeTab === "BUILDER" && (
+              <div className="flex h-full">
+                {/* Left: Field List */}
+                <div className="flex-1 overflow-y-auto p-6 border-r border-gray-100">
+                  <div className="max-w-xl mx-auto flex flex-col gap-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <h2 className="text-sm font-bold text-gray-700">Campos del formulario</h2>
+                      <span className="text-xs text-gray-400">{fields.length} campo{fields.length !== 1 ? "s" : ""}</span>
                     </div>
-                  )}
 
-                  {successAction === "REDIRECT" && (
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Redirect URL</label>
-                      <input type="url" placeholder="https://..." value={redirectUrl} onChange={e => setRedirectUrl(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" />
-                    </div>
-                  )}
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <Droppable droppableId="form-fields">
+                        {(provided: any) => (
+                          <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-col gap-2">
+                            {fields.map((field, index) => (
+                              <Draggable key={field.id} draggableId={field.id} index={index}>
+                                {(provided: any, snapshot: any) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={`bg-white rounded-xl border ${snapshot.isDragging ? "border-gray-400 shadow-lg" : "border-gray-200"}`}
+                                  >
+                                    {/* Field Header */}
+                                    <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+                                      <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-600 cursor-grab">
+                                        <GripVertical size={16} />
+                                      </div>
+                                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Campo {index + 1}</span>
+                                      <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+                                        {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
+                                      </span>
+                                      <button onClick={() => removeField(index)} className="ml-auto text-gray-300 hover:text-red-500 p-1">
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
 
-                  <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">Auto-Welcome Email</h3>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-700">Send an email automatically to new leads</label>
-                    <select
-                      value={welcomeEmailId}
-                      onChange={e => setWelcomeEmailId(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
+                                    {/* Field Body */}
+                                    <div className="p-4 grid grid-cols-2 gap-3">
+                                      <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Tipo</label>
+                                        <select
+                                          value={field.type}
+                                          onChange={e => updateField(index, "type", e.target.value)}
+                                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-xs focus:outline-none focus:border-gray-400"
+                                        >
+                                          {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                                        </select>
+                                      </div>
+
+                                      <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Etiqueta / Pregunta</label>
+                                        <input
+                                          type="text"
+                                          value={field.label}
+                                          onChange={e => updateField(index, "label", e.target.value)}
+                                          placeholder="¿Cuál es tu nombre?"
+                                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-xs focus:outline-none focus:border-gray-400"
+                                        />
+                                      </div>
+
+                                      <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Nombre interno</label>
+                                        <input
+                                          type="text"
+                                          value={field.name}
+                                          onChange={e => updateField(index, "name", e.target.value)}
+                                          placeholder="nombre_campo"
+                                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-xs font-mono focus:outline-none focus:border-gray-400"
+                                        />
+                                      </div>
+
+                                      <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Placeholder</label>
+                                        <input
+                                          type="text"
+                                          value={field.placeholder || ""}
+                                          onChange={e => updateField(index, "placeholder", e.target.value)}
+                                          placeholder="Escribe aquí..."
+                                          className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-xs focus:outline-none focus:border-gray-400"
+                                        />
+                                      </div>
+
+                                      {(field.type === "SELECT" || field.type === "RADIO" || field.type === "CHECKBOX") && (
+                                        <div className="flex flex-col gap-1 col-span-2">
+                                          <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Opciones (separadas por coma)</label>
+                                          <textarea
+                                            rows={2}
+                                            value={field.options || ""}
+                                            onChange={e => updateField(index, "options", e.target.value)}
+                                            placeholder="Opción 1, Opción 2, Opción 3"
+                                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-xs resize-none focus:outline-none focus:border-gray-400"
+                                          />
+                                        </div>
+                                      )}
+
+                                      <div className="col-span-2 flex items-center gap-2">
+                                        <input
+                                          type="checkbox"
+                                          id={`req-${field.id}`}
+                                          checked={field.isRequired}
+                                          onChange={e => updateField(index, "isRequired", e.target.checked)}
+                                          className="w-3.5 h-3.5 rounded border-gray-300"
+                                        />
+                                        <label htmlFor={`req-${field.id}`} className="text-xs text-gray-600 font-medium">Campo obligatorio</label>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+
+                    <button
+                      onClick={addField}
+                      className="w-full py-4 border-2 border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:text-gray-700 text-sm font-semibold"
                     >
-                      <option value="">Do not send a welcome email</option>
-                      {campaigns.map(c => (
-                        <option key={c.id} value={c.id}>{c.subject}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-1">Select an existing Campaign draft to act as a template.</p>
-                  </div>
+                      <Plus size={16} />
+                      Agregar campo
+                    </button>
 
-                  <h3 className="text-md font-bold text-gray-900 mt-4 border-b border-gray-100 pb-2">Integración con Calendario</h3>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-semibold text-gray-700">Tipo de cita (opcional)</label>
-                    <select
-                      value={appointmentTypeId}
-                      onChange={e => setAppointmentTypeId(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm"
-                    >
-                      <option value="">Sin integración de calendario</option>
-                      {appointmentTypes.map(at => (
-                        <option key={at.id} value={at.id}>{at.name} ({at.duration} min)</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500">Al vincular, el formulario mostrará un calendario para agendar citas.</p>
+                    {fields.length === 0 && (
+                      <p className="text-center text-xs text-gray-400 py-4">
+                        El formulario no tiene campos. Agrega uno para comenzar.
+                      </p>
+                    )}
                   </div>
                 </div>
-              )}
 
-              {activeTab === "BUILDER" && (
-                <div className="flex flex-col gap-6">
-                  <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="form-fields">
-                      {(provided: any) => (
-                        <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-col gap-4">
-                          {fields.map((field, index) => (
-                            <Draggable key={field.id} draggableId={field.id} index={index}>
-                              {(provided: any, snapshot: any) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  className={`bg-white rounded-2xl border ${snapshot.isDragging ? 'border-gray-400 shadow-xl scale-[1.02]' : 'border-gray-200 shadow-sm'} transition-all`}
-                                >
-                                  <div className="flex items-center gap-4 bg-gray-50/50 p-3 px-4 border-b border-gray-100 rounded-t-2xl">
-                                    <div {...provided.dragHandleProps} className="text-gray-400 hover:text-gray-700 cursor-grab">
-                                      <GripVertical size={20} />
-                                    </div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Field {index + 1}</span>
+                {/* Right: Live Preview */}
+                <div className="w-80 xl:w-96 shrink-0 overflow-y-auto bg-gray-50 p-6">
+                  <div className="mb-4">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Vista previa</span>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
+                    <div>
+                      <h2 className="text-base font-bold text-gray-900 leading-tight">{name || "Sin título"}</h2>
+                      {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+                    </div>
 
-                                    <button onClick={() => removeField(index)} className="ml-auto text-gray-400 hover:text-red-600 transition-colors p-1">
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
+                    {fields.length === 0 ? (
+                      <p className="text-xs text-gray-300 text-center py-6">Sin campos</p>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        {fields.map((field, i) => (
+                          <FieldPreview key={field.id || i} field={field} />
+                        ))}
+                      </div>
+                    )}
 
-                                  <div className="p-6 grid grid-cols-2 gap-5">
-                                    <div className="flex flex-col gap-1.5 col-span-2 md:col-span-1">
-                                      <label className="text-xs font-semibold text-gray-600">Field Type</label>
-                                      <select value={field.type} onChange={(e) => updateField(index, "type", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm">
-                                        {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                                      </select>
-                                    </div>
+                    <div className="pt-2 border-t border-gray-50">
+                      <div className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-xs font-bold text-center">
+                        Enviar
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                                    <div className="flex flex-col gap-1.5 col-span-2 md:col-span-1">
-                                      <label className="text-xs font-semibold text-gray-600">Question / Label</label>
-                                      <input type="text" value={field.label} onChange={(e) => updateField(index, "label", e.target.value)} placeholder="e.g. What is your name?" className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm" />
-                                    </div>
+            {/* SETTINGS TAB */}
+            {activeTab === "SETTINGS" && (
+              <div className="overflow-y-auto h-full p-6">
+                <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
-                                    <div className="flex flex-col gap-1.5 col-span-2 md:col-span-1">
-                                      <label className="text-xs font-semibold text-gray-600">Internal System Name</label>
-                                      <input type="text" value={field.name} onChange={(e) => updateField(index, "name", e.target.value)} placeholder="e.g. first_name" className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-mono" />
-                                    </div>
+                  {/* General */}
+                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50">
+                      <h2 className="text-sm font-bold text-gray-900">General</h2>
+                    </div>
+                    <div className="p-6 flex flex-col gap-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Nombre del formulario</label>
+                        <input
+                          type="text"
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-400"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Descripción interna</label>
+                        <textarea
+                          value={description}
+                          onChange={e => setDescription(e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm resize-none focus:outline-none focus:border-gray-400"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-800">Formulario activo</p>
+                          <p className="text-xs text-gray-500">Permite recibir envíos públicos</p>
+                        </div>
+                        <button
+                          onClick={() => setIsActive(v => !v)}
+                          className={`relative w-10 h-6 rounded-full shrink-0 ${isActive ? "bg-gray-900" : "bg-gray-200"}`}
+                        >
+                          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm ${isActive ? "left-5" : "left-1"}`} />
+                        </button>
+                      </div>
+                    </div>
+                  </section>
 
-                                    <div className="flex flex-col gap-1.5 col-span-2 md:col-span-1">
-                                      <label className="text-xs font-semibold text-gray-600">Placeholder Text</label>
-                                      <input type="text" value={field.placeholder || ""} onChange={(e) => updateField(index, "placeholder", e.target.value)} placeholder="e.g. John Doe" className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm" />
-                                    </div>
-
-                                    {(field.type === "SELECT" || field.type === "RADIO" || field.type === "CHECKBOX") && (
-                                      <div className="flex flex-col gap-1.5 col-span-2">
-                                        <label className="text-xs font-semibold text-gray-600">Options (Comma separated)</label>
-                                        <textarea rows={2} value={field.options || ""} onChange={(e) => updateField(index, "options", e.target.value)} placeholder="Option 1, Option 2, Option 3" className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm resize-none"></textarea>
-                                      </div>
-                                    )}
-
-                                    <div className="flex items-center gap-2 col-span-2 mt-2">
-                                      <input type="checkbox" id={`req-${field.id}`} checked={field.isRequired} onChange={(e) => updateField(index, "isRequired", e.target.checked)} className="w-4 h-4 rounded text-gray-900 focus:ring-gray-900 border-gray-300" />
-                                      <label htmlFor={`req-${field.id}`} className="text-sm font-medium text-gray-800">Make this field Required</label>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
-                          {provided.placeholder}
+                  {/* On Submit */}
+                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50">
+                      <h2 className="text-sm font-bold text-gray-900">Al enviar el formulario</h2>
+                    </div>
+                    <div className="p-6 flex flex-col gap-4">
+                      <div className="flex gap-3">
+                        {[
+                          { value: "MESSAGE", label: "Mostrar mensaje" },
+                          { value: "REDIRECT", label: "Redirigir a URL" },
+                        ].map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setSuccessAction(opt.value)}
+                            className={`flex-1 py-2.5 rounded-xl border text-xs font-semibold ${successAction === opt.value ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {successAction === "MESSAGE" && (
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Mensaje de éxito</label>
+                          <textarea
+                            value={successMessage}
+                            onChange={e => setSuccessMessage(e.target.value)}
+                            rows={2}
+                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm resize-none focus:outline-none focus:border-gray-400"
+                          />
                         </div>
                       )}
-                    </Droppable>
-                  </DragDropContext>
-
-                  <button
-                    onClick={addField}
-                    className="w-full py-6 border-2 border-dashed border-gray-200 hover:border-gray-800 hover:bg-gray-50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all text-gray-500 hover:text-gray-900 group"
-                  >
-                    <div className="p-3 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-colors">
-                      <Plus size={24} />
+                      {successAction === "REDIRECT" && (
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">URL de redirección</label>
+                          <input
+                            type="url"
+                            placeholder="https://..."
+                            value={redirectUrl}
+                            onChange={e => setRedirectUrl(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-400"
+                          />
+                        </div>
+                      )}
                     </div>
-                    <span className="font-semibold">Add New Form Field</span>
-                  </button>
+                  </section>
 
-                  {fields.length === 0 && (
-                    <div className="text-center py-10">
-                      <p className="text-gray-500 text-sm">Your form is completely empty.</p>
+                  {/* Email de bienvenida */}
+                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50">
+                      <h2 className="text-sm font-bold text-gray-900">Email de bienvenida</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">Envía un email automáticamente a nuevos leads</p>
                     </div>
-                  )}
+                    <div className="p-6">
+                      <select
+                        value={welcomeEmailId}
+                        onChange={e => setWelcomeEmailId(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-400"
+                      >
+                        <option value="">No enviar email de bienvenida</option>
+                        {campaigns.map(c => (
+                          <option key={c.id} value={c.id}>{c.subject}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-400 mt-2">Selecciona un borrador de campaña como plantilla.</p>
+                    </div>
+                  </section>
+
+                  {/* Calendario */}
+                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50">
+                      <h2 className="text-sm font-bold text-gray-900">Integración con Calendario</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">Muestra un selector de citas en el formulario público</p>
+                    </div>
+                    <div className="p-6">
+                      <select
+                        value={appointmentTypeId}
+                        onChange={e => setAppointmentTypeId(e.target.value)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-400"
+                      >
+                        <option value="">Sin integración de calendario</option>
+                        {appointmentTypes.map(at => (
+                          <option key={at.id} value={at.id}>{at.name} · {at.duration} min</option>
+                        ))}
+                      </select>
+                    </div>
+                  </section>
+
+                  {/* Share */}
+                  <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-50">
+                      <h2 className="text-sm font-bold text-gray-900">Compartir formulario</h2>
+                    </div>
+                    <div className="p-6 flex flex-col gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Link público</label>
+                        <div className="flex gap-2 mt-1.5">
+                          <input readOnly value={publicUrl} className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-600 font-mono focus:outline-none" />
+                          <button
+                            onClick={handleCopyLink}
+                            className={`px-3 py-2.5 rounded-xl border text-xs font-semibold shrink-0 ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                          >
+                            {copied ? "¡Copiado!" : "Copiar"}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Código iframe</label>
+                        <div className="mt-1.5 relative">
+                          <textarea
+                            readOnly
+                            rows={3}
+                            value={`<iframe src="${publicUrl}" width="100%" height="600" frameborder="0" style="border:none;border-radius:16px;"></iframe>`}
+                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-xs text-gray-600 font-mono resize-none focus:outline-none"
+                          />
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(`<iframe src="${publicUrl}" width="100%" height="600" frameborder="0" style="border:none;border-radius:16px;"></iframe>`);
+                              addToast("Iframe copiado", "success");
+                            }}
+                            className="absolute top-2 right-2 px-2 py-1 bg-white border border-gray-200 rounded-lg text-[10px] font-semibold text-gray-500 hover:bg-gray-50"
+                          >
+                            Copiar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
           </div>
         </main>
       </div>
