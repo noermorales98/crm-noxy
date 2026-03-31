@@ -5,6 +5,7 @@ import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { Clock, Plus, Trash2, XCircle, CalendarOff } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
+import { useHeader } from "@/src/context/HeaderContext";
 
 const DAYS = [
   { id: 0, label: "Domingo" },
@@ -60,6 +61,7 @@ type SlotState = {
 
 export default function AvailabilityPage() {
   const { addToast, showConfirm } = useToast();
+  const { setConfig, resetState } = useHeader();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,6 +88,15 @@ export default function AvailabilityPage() {
   const [hoursEnd, setHoursEnd] = useState("18:00");
 
   const [isSubmittingBlocked, setIsSubmittingBlocked] = useState(false);
+
+  useEffect(() => {
+    resetState();
+    setConfig({
+      searchPlaceholder: "Buscar horario...",
+      addButton: { label: "Nuevo horario", onClick: openCreate },
+    });
+    return () => setConfig({});
+  }, []);
 
   useEffect(() => {
     fetchSchedules();
@@ -225,17 +236,11 @@ export default function AvailabilityPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
-          <div className="flex items-center justify-between mb-8">
+          <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <Clock className="text-gray-400" size={28} />
               Horarios de Disponibilidad
             </h1>
-            <button
-              onClick={openCreate}
-              className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
-            >
-              <Plus size={18} /> Nuevo Horario
-            </button>
           </div>
 
           {isLoading ? (

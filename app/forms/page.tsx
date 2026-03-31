@@ -191,8 +191,8 @@ export default function FormsPage() {
                       <div>
                         <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
                         <div className="text-xs text-gray-500 font-medium mt-1 flex flex-col gap-0.5">
-                          <span>Company: {form.company?.name || "Unknown Company"}</span>
-                          {form.project && <span className="text-blue-600">Project: {form.project.name}</span>}
+                          <span>Empresa: {form.company?.name || "Unknown Company"}</span>
+                          {form.project && <span className="text-blue-600">Proyecto: {form.project.name}</span>}
                         </div>
                       </div>
                       {form.isActive ? (
@@ -203,7 +203,7 @@ export default function FormsPage() {
                     </div>
                     <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-2">{form.description || "Sin descripción."}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-4 pb-4 border-b border-gray-50">
-                      <span>{form._count.fields} Fields</span>
+                      <span>{form._count.fields} Campos</span>
                       <span className="font-semibold text-gray-700">{form._count.contacts || 0} Registrados</span>
                       <span>{new Date(form.createdAt).toLocaleDateString()}</span>
                     </div>

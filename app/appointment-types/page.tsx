@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { Calendar, Plus, Trash2, Edit, Clock, Link as LinkIcon, XCircle } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
+import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
 
 export default function AppointmentTypesPage() {
   const { addToast, showConfirm } = useToast();
+  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
   const [types, setTypes] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +27,20 @@ export default function AppointmentTypesPage() {
   const [bufferAfter, setBufferAfter] = useState("0");
   const [maxAdvanceDays, setMaxAdvanceDays] = useState("30");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    resetState();
+    setConfig({
+      searchPlaceholder: "Buscar tipo de cita...",
+      sortOptions: [
+        { label: "Nombre", value: "name" },
+        { label: "Duración", value: "duration" },
+        { label: "Citas", value: "appointments" },
+      ],
+      addButton: { label: "Nuevo tipo", onClick: openCreate },
+    });
+    return () => setConfig({});
+  }, [schedules]);
 
   useEffect(() => {
     fetchAll();
@@ -91,6 +107,27 @@ export default function AppointmentTypesPage() {
   const autoSlug = (n: string) =>
     setSlug(n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
 
+  const displayed = useMemo(() => {
+    let result = [...types];
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(t => t.name?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q));
+    }
+    if (sortField) {
+      result = [...result].sort((a, b) => {
+        let aVal: any, bVal: any;
+        if (sortField === "name") { aVal = a.name?.toLowerCase() || ""; bVal = b.name?.toLowerCase() || ""; }
+        else if (sortField === "duration") { aVal = a.duration || 0; bVal = b.duration || 0; }
+        else if (sortField === "appointments") { aVal = a._count?.appointments || 0; bVal = b._count?.appointments || 0; }
+        else { aVal = ""; bVal = ""; }
+        if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [types, searchQuery, sortField, sortOrder]);
+
   return (
     <div className="flex h-screen bg-background font-sans">
       <Sidebar />
@@ -102,20 +139,9 @@ export default function AppointmentTypesPage() {
               <Calendar className="text-gray-400" size={28} />
               Tipos de Cita
             </h1>
-            <div className="flex gap-3">
-              <Link
-                href="/availability"
-                className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-              >
-                Gestionar Disponibilidad
-              </Link>
-              <button
-                onClick={openCreate}
-                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm"
-              >
-                <Plus size={18} /> Nuevo Tipo
-              </button>
-            </div>
+            <Link href="/availability" className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+              Gestionar Disponibilidad
+            </Link>
           </div>
 
           {schedules.length === 0 && !isLoading && (
@@ -134,21 +160,15 @@ export default function AppointmentTypesPage() {
             <div className="flex items-center justify-center py-20">
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
-          ) : types.length === 0 ? (
+          ) : displayed.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
               <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">Sin tipos de cita</h3>
-              <p className="text-gray-500 text-sm mb-4">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>
-              <button
-                onClick={openCreate}
-                className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-colors"
-              >
-                <Plus size={16} /> Crear Tipo de Cita
-              </button>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tipos de cita." : "Sin tipos de cita"}</h3>
+              {!searchQuery && <p className="text-gray-500 text-sm">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {types.map(type => (
+              {displayed.map(type => (
                 <div key={type.id} className="bg-white border border-gray-200 rounded-xl p-6 transition-shadow flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">

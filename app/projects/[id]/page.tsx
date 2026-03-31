@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import ProjectAssetsManager from "@/src/components/ProjectAssetsManager";
+import { HeaderConfigSetter } from "@/src/components/HeaderConfigSetter";
 
 export default async function ProjectDetailsPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -55,12 +56,16 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
+        <HeaderConfigSetter
+          addButtonLabel="Nuevo proyecto"
+          addButtonHref="/projects/create"
+        />
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="max-w-7xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
               <ArrowLeft size={16} />
-              Back to projects
+              Regresar a proyectos
             </Link>
 
             {/* Project Header */}
