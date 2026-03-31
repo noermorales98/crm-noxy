@@ -1,9 +1,9 @@
 "use client";
 import Link from 'next/link';
-import { LayoutDashboard, CheckSquare, Activity, Users, Settings, Zap, TrendingUp, GitBranch, Megaphone, Plus, LogOut, Mail, AppWindow, CalendarCheck, Clock, CalendarDays } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Activity, Users, Zap, TrendingUp, GitBranch, Megaphone, Plus, Mail, AppWindow, CalendarCheck, Clock, CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { PROJECTS } from "@/src/lib/mockData";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -41,7 +41,6 @@ export default function Sidebar() {
           <NavItem href="/tasks" icon={<CheckSquare size={20} />} label="Tareas" />
           <NavItem href="/campaigns" icon={<Mail size={20} />} label="Campañas de Email" />
           <NavItem href="/forms" icon={<AppWindow size={20} />} label="Formularios y Captación" />
-          <NavItem href="/settings" icon={<Settings size={20} />} label="Configuración" />
         </div>
 
         {/* Calendario */}
@@ -88,24 +87,6 @@ export default function Sidebar() {
           </div>
         </div>
 
-      </div>
-
-      {/* Current User Logged In (Fixed Bottom) */}
-      <div className="p-4 border-t border-gray-100 shrink-0 bg-white">
-        <div className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-xl cursor-pointer">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-[#2d2d2d] flex items-center justify-center text-white font-semibold text-sm">
-              {session?.user?.name?.[0]?.toUpperCase() || "U"}
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900 leading-tight truncate max-w-[120px]">{session?.user?.name || "Cargando..."}</span>
-              <span className="text-xs text-gray-400 truncate max-w-[120px]">{session?.user?.email || ""}</span>
-            </div>
-          </div>
-          <button onClick={() => signOut()} className="text-gray-400 hover:text-red-500 transition-colors p-1" title="Cerrar sesión">
-            <LogOut size={18} />
-          </button>
-        </div>
       </div>
     </aside>
   );
