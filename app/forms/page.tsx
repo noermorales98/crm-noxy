@@ -395,17 +395,25 @@ export default function FormsPage() {
                 <ul className="divide-y divide-gray-100">
                   {formContacts.map((contact, idx) => {
                     const extraFieldsBody = contact.tasks?.[0]?.description;
+                    const variantName = contact.sourceVariant?.name;
                     return (
                       <li key={contact.id || idx} className="p-5 hover:bg-white transition-colors group">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <p className="text-[15px] font-bold text-gray-900">{contact.firstName} {contact.lastName || ""}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-[15px] font-bold text-gray-900">{contact.firstName} {contact.lastName || ""}</p>
+                              {variantName && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                                  🏷️ {variantName}
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
                                {contact.email && <span>📧 {contact.email}</span>}
                                {contact.phone && <span>📞 {contact.phone}</span>}
                             </div>
                           </div>
-                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded shrink-0 ml-2">
                             {new Date(contact.createdAt).toLocaleDateString()}
                           </span>
                         </div>

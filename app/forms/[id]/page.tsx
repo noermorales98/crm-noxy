@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate, Copy, ExternalLink, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate, Copy, ExternalLink, CheckCircle2, GitBranch, Link2, Pencil, ToggleLeft, ToggleRight, Users } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
@@ -99,7 +99,17 @@ export default function FormBuilderPage() {
   const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
   const [appointmentTypeId, setAppointmentTypeId] = useState("");
   const [fields, setFields] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS">("BUILDER");
+  const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS">("BUILDER");
+
+  // Variants state
+  const [variants, setVariants] = useState<any[]>([]);
+  const [isLoadingVariants, setIsLoadingVariants] = useState(false);
+  const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const [editingVariant, setEditingVariant] = useState<any>(null);
+  const [variantName, setVariantName] = useState("");
+  const [variantDescription, setVariantDescription] = useState("");
+  const [isSavingVariant, setIsSavingVariant] = useState(false);
+  const [copiedVariantId, setCopiedVariantId] = useState<string | null>(null);
 
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/form/${id}` : `/form/${id}`;
 
@@ -107,6 +117,7 @@ export default function FormBuilderPage() {
     fetchForm();
     fetchCampaigns();
     fetchAppointmentTypes();
+    fetchVariants();
   }, [id]);
 
   const fetchCampaigns = async () => {
@@ -121,6 +132,76 @@ export default function FormBuilderPage() {
       const res = await fetch("/api/appointment-types");
       if (res.ok) setAppointmentTypes(await res.json());
     } catch {}
+  };
+
+  const fetchVariants = async () => {
+    setIsLoadingVariants(true);
+    try {
+      const res = await fetch(`/api/forms/${id}/variants`);
+      if (res.ok) setVariants(await res.json());
+    } catch {}
+    finally { setIsLoadingVariants(false); }
+  };
+
+  const openNewVariantModal = () => {
+    setEditingVariant(null);
+    setVariantName("");
+    setVariantDescription("");
+    setIsVariantModalOpen(true);
+  };
+
+  const openEditVariantModal = (variant: any) => {
+    setEditingVariant(variant);
+    setVariantName(variant.name);
+    setVariantDescription(variant.description || "");
+    setIsVariantModalOpen(true);
+  };
+
+  const handleSaveVariant = async () => {
+    if (!variantName.trim()) return;
+    setIsSavingVariant(true);
+    try {
+      if (editingVariant) {
+        const res = await fetch(`/api/forms/${id}/variants/${editingVariant.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: variantName, description: variantDescription })
+        });
+        if (res.ok) { addToast("Variante actualizada", "success"); fetchVariants(); setIsVariantModalOpen(false); }
+        else { addToast("Error al actualizar", "error"); }
+      } else {
+        const res = await fetch(`/api/forms/${id}/variants`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: variantName, description: variantDescription })
+        });
+        if (res.ok) { addToast("Variante creada", "success"); fetchVariants(); setIsVariantModalOpen(false); }
+        else { addToast("Error al crear variante", "error"); }
+      }
+    } catch { addToast("Error inesperado", "error"); }
+    finally { setIsSavingVariant(false); }
+  };
+
+  const handleDeleteVariant = async (variant: any) => {
+    const res = await fetch(`/api/forms/${id}/variants/${variant.id}`, { method: "DELETE" });
+    if (res.ok) { addToast("Variante eliminada", "success"); fetchVariants(); }
+    else { addToast("Error al eliminar", "error"); }
+  };
+
+  const handleToggleVariant = async (variant: any) => {
+    const res = await fetch(`/api/forms/${id}/variants/${variant.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isActive: !variant.isActive })
+    });
+    if (res.ok) fetchVariants();
+  };
+
+  const copyVariantLink = (variantId: string) => {
+    const url = `${publicUrl}?v=${variantId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedVariantId(variantId);
+    setTimeout(() => setCopiedVariantId(null), 2000);
   };
 
   const fetchForm = async () => {
@@ -252,6 +333,16 @@ export default function FormBuilderPage() {
               >
                 <Settings2 size={14} />
                 Configuración
+              </button>
+              <button
+                onClick={() => setActiveTab("VARIANTS")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <GitBranch size={14} />
+                Variantes
+                {variants.length > 0 && (
+                  <span className="bg-gray-200 text-gray-700 rounded-full px-1.5 py-0 text-[10px] font-bold">{variants.length}</span>
+                )}
               </button>
             </div>
 
@@ -450,6 +541,122 @@ export default function FormBuilderPage() {
               </div>
             )}
 
+            {/* VARIANTS TAB */}
+            {activeTab === "VARIANTS" && (
+              <div className="overflow-y-auto h-full p-6">
+                <div className="max-w-2xl mx-auto flex flex-col gap-6">
+
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-sm font-bold text-gray-900">Variantes del formulario</h2>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Cada variante genera un link único. Cuando alguien se registre a través de un link de variante, podrás ver de cuál vino en el perfil del lead.
+                      </p>
+                    </div>
+                    <button
+                      onClick={openNewVariantModal}
+                      className="shrink-0 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-xl text-xs font-semibold"
+                    >
+                      <Plus size={14} />
+                      Nueva variante
+                    </button>
+                  </div>
+
+                  {/* How it works */}
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-amber-800">
+                    <p className="font-bold mb-1">¿Cómo funciona?</p>
+                    <p>Crea una variante por cada oferta, precio o fuente de tráfico. Comparte el link único de cada variante. Cuando un lead se registre, verás exactamente en qué variante se registró — ideal para saber si un lead viene del plan de $8,000 MXN o del de $15,000 MXN.</p>
+                  </div>
+
+                  {/* Variants List */}
+                  {isLoadingVariants ? (
+                    <div className="flex justify-center py-8">
+                      <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                    </div>
+                  ) : variants.length === 0 ? (
+                    <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-10 text-center">
+                      <GitBranch size={28} className="mx-auto text-gray-300 mb-3" />
+                      <p className="text-sm font-semibold text-gray-500">Sin variantes</p>
+                      <p className="text-xs text-gray-400 mt-1">Crea tu primera variante para segmentar tus leads por oferta o fuente.</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {variants.map((variant) => {
+                        const variantUrl = `${publicUrl}?v=${variant.id}`;
+                        const isCopied = copiedVariantId === variant.id;
+                        return (
+                          <div key={variant.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                            <div className="p-4 flex items-start gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-bold text-gray-900">{variant.name}</span>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${variant.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                                    {variant.isActive ? "Activa" : "Inactiva"}
+                                  </span>
+                                  <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                                    <Users size={9} className="inline mr-1" />
+                                    {variant._count?.contacts ?? 0} leads
+                                  </span>
+                                </div>
+                                {variant.description && (
+                                  <p className="text-xs text-gray-500 mt-0.5">{variant.description}</p>
+                                )}
+                                <div className="flex items-center gap-1.5 mt-2">
+                                  <code className="text-[10px] text-gray-400 font-mono bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg truncate max-w-xs">
+                                    {variantUrl}
+                                  </code>
+                                  <button
+                                    onClick={() => copyVariantLink(variant.id)}
+                                    className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold ${isCopied ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                                  >
+                                    {isCopied ? <CheckCircle2 size={11} /> : <Copy size={11} />}
+                                    {isCopied ? "¡Copiado!" : "Copiar"}
+                                  </button>
+                                  <a
+                                    href={variantUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-200 text-[10px] font-semibold text-gray-500 hover:bg-gray-50"
+                                  >
+                                    <ExternalLink size={11} />
+                                    Ver
+                                  </a>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => handleToggleVariant(variant)}
+                                  className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50"
+                                  title={variant.isActive ? "Desactivar" : "Activar"}
+                                >
+                                  {variant.isActive ? <ToggleRight size={18} className="text-green-600" /> : <ToggleLeft size={18} />}
+                                </button>
+                                <button
+                                  onClick={() => openEditVariantModal(variant)}
+                                  className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50"
+                                  title="Editar"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteVariant(variant)}
+                                  className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                                  title="Eliminar"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* SETTINGS TAB */}
             {activeTab === "SETTINGS" && (
               <div className="overflow-y-auto h-full p-6">
@@ -629,6 +836,58 @@ export default function FormBuilderPage() {
           </div>
         </main>
       </div>
+
+      {/* Variant Create/Edit Modal */}
+      {isVariantModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">{editingVariant ? "Editar variante" : "Nueva variante"}</h3>
+                <p className="text-xs text-gray-400 mt-0.5">El link de esta variante tendrá un parámetro único que identifica el origen del lead.</p>
+              </div>
+              <button onClick={() => setIsVariantModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="p-6 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Nombre de la variante <span className="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={variantName}
+                  onChange={e => setVariantName(e.target.value)}
+                  placeholder="Ej: Paquete Básico $8,000 MXN"
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-400"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Descripción interna (opcional)</label>
+                <textarea
+                  rows={2}
+                  value={variantDescription}
+                  onChange={e => setVariantDescription(e.target.value)}
+                  placeholder="Notas internas sobre esta variante..."
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm resize-none focus:outline-none focus:border-gray-400"
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
+              <button onClick={() => setIsVariantModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100">
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveVariant}
+                disabled={isSavingVariant || !variantName.trim()}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
+              >
+                {isSavingVariant ? "Guardando..." : editingVariant ? "Guardar cambios" : "Crear variante"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

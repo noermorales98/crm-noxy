@@ -166,10 +166,29 @@ model Contact {
   sourceFormId String?
   sourceForm   Form?   @relation("FormContacts", fields: [sourceFormId], references: [id], onDelete: SetNull)
 
+  sourceVariantId String?
+  sourceVariant   FormVariant? @relation("VariantContacts", fields: [sourceVariantId], references: [id], onDelete: SetNull)
+
   @@index([organizationId])
   @@index([companyId])
   @@index([projectId])
   @@index([sourceFormId])
+  @@index([sourceVariantId])
+}
+
+model FormVariant {
+  id          String   @id @default(cuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  name        String
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contacts Contact[] @relation("VariantContacts")
+
+  @@index([formId])
 }
 
 model Pipeline {
@@ -370,6 +389,7 @@ model Form {
   tasks             Task[]
   contacts          Contact[]       @relation("FormContacts")
   targetedCampaigns EmailCampaign[] @relation("FormTargetCampaigns")
+  variants          FormVariant[]
 
   @@index([organizationId])
   @@index([companyId])

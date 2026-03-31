@@ -51,6 +51,16 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     // Parse the submission data directly from the dynamic fields
     const submissionData = await req.json();
 
+    // Resolve variant if provided
+    let variant: { id: string; name: string } | null = null;
+    const submittedVariantId = submissionData["__variant_id"];
+    if (submittedVariantId) {
+      variant = await prisma.formVariant.findFirst({
+        where: { id: submittedVariantId, formId, isActive: true },
+        select: { id: true, name: true }
+      });
+    }
+
     // 1. We need to map standard fields like Name, Email, Phone if they exist in the form.
     // Different users might name their fields differently (e.g. "email" vs "correo").
     // We will attempt a best-guess mapping based on the `type` property of the `FormField`.
@@ -118,8 +128,9 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         phone,
         organizationId: form.organizationId,
         companyId: form.companyId,
-        source: `Form: ${form.name}`,
-        sourceFormId: form.id
+        source: variant ? `${form.name} › ${variant.name}` : `Form: ${form.name}`,
+        sourceFormId: form.id,
+        sourceVariantId: variant?.id ?? null
       }
     });
 
@@ -168,10 +179,12 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     });
 
     if (owner) {
+      const variantLine = variant ? `Variante: ${variant.name}` : null;
+
       await prisma.task.create({
         data: {
-          title: `Nuevo lead en ${form.name}`,
-          description: noteBody,
+          title: `Nuevo lead en ${form.name}${variant ? ` › ${variant.name}` : ""}`,
+          description: [variantLine, noteBody].filter(Boolean).join("\n"),
           isCompleted: false,
           organizationId: form.organizationId,
           contactId: newContact.id,
@@ -203,18 +216,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           await transporter.sendMail({
             from: `"Noxy CRM" <${company.smtpFromEmail || company.smtpUser}>`,
             to: destEmail,
-            subject: `🔔 Nuevo lead en "${form.name}"`,
+            subject: `🔔 Nuevo lead en "${form.name}"${variant ? ` › ${variant.name}` : ""}`,
             html: `
                       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a">
                         <div style="background:#111;padding:20px 28px;border-radius:12px 12px 0 0">
                           <h2 style="color:#fff;margin:0;font-size:18px">🔔 Nuevo lead recibido</h2>
                           <p style="color:#aaa;margin:4px 0 0;font-size:13px">Formulario: <strong style="color:#fff">${form.name}</strong></p>
+                          ${variant ? `<p style="color:#fbbf24;margin:2px 0 0;font-size:12px">Variante: <strong style="color:#fde68a">${variant.name}</strong></p>` : ""}
                         </div>
                         <div style="border:1px solid #e5e7eb;border-top:none;padding:24px 28px;border-radius:0 0 12px 12px">
                           <table style="width:100%;border-collapse:collapse;font-size:14px">
                             <tr><td style="padding:6px 0;color:#6b7280;width:110px">Nombre</td><td style="padding:6px 0;font-weight:600">${fullName}</td></tr>
                             ${email ? `<tr><td style="padding:6px 0;color:#6b7280">Email</td><td style="padding:6px 0">${email}</td></tr>` : ""}
                             ${phone ? `<tr><td style="padding:6px 0;color:#6b7280">Teléfono</td><td style="padding:6px 0">${phone}</td></tr>` : ""}
+                            ${variant ? `<tr><td style="padding:6px 0;color:#6b7280">Variante</td><td style="padding:6px 0;color:#d97706;font-weight:600">${variant.name}</td></tr>` : ""}
                             ${appointmentSlotForNotif ? `<tr><td style="padding:6px 0;color:#6b7280">Cita</td><td style="padding:6px 0;color:#059669;font-weight:600">${new Date(appointmentSlotForNotif).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td></tr>` : ""}
                           </table>
                           ${fieldsHtml ? `<div style="margin-top:16px;padding:14px;background:#f9fafb;border-radius:8px"><p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase">Campos adicionales</p><ul style="margin:0;padding-left:16px;font-size:13px;color:#374151">${fieldsHtml}</ul></div>` : ""}
@@ -231,10 +246,11 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       // 3b. Notificación por WhatsApp vía CallMeBot
       if (owner.user?.callMeBot?.phone && owner.user?.callMeBot?.apiKey) {
         const waMsg = [
-          `🔔 *Nuevo lead - ${form.name}*`,
+          `🔔 *Nuevo lead - ${form.name}${variant ? ` › ${variant.name}` : ""}*`,
           `👤 ${fullName}`,
           email ? `📧 ${email}` : null,
           phone ? `📞 ${phone}` : null,
+          variant ? `🏷️ Variante: ${variant.name}` : null,
           appointmentLine || null,
           customNotes.length > 0 ? `📋 ${customNotes.join(" | ")}` : null,
         ].filter(Boolean).join("\n");

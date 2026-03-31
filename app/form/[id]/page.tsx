@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, ChevronDown, Search, XCircle } from "lucide-react";
 import { useToast } from "@/src/context/ToastContext";
 
@@ -36,6 +36,8 @@ const TIMEZONE_LIST = [
 export default function PublicFormPage() {
   const { addToast } = useToast();
   const { id } = useParams() as { id: string };
+  const searchParams = useSearchParams();
+  const variantId = searchParams.get("v");
   const [formConfig, setFormConfig] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,6 +176,9 @@ export default function PublicFormPage() {
     if (selectedSlot) {
       payload["__appointment_slot"] = selectedSlot;
       payload["__timezone"] = timezone;
+    }
+    if (variantId) {
+      payload["__variant_id"] = variantId;
     }
     try {
       const res = await fetch(`/api/public/forms/${id}/submit`, {

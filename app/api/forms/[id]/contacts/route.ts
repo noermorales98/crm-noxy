@@ -31,8 +31,9 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
         createdAt: "desc"
       },
       include: {
+        sourceVariant: { select: { id: true, name: true } },
         tasks: {
-          take: 1, // Only get the auto-generated task for the form submission to read extra fields
+          take: 1,
           orderBy: { createdAt: "desc" },
           where: { formId: formId }
         }
