@@ -6,31 +6,31 @@ import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, Chevro
 import { useToast } from "@/src/context/ToastContext";
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const TIMEZONE_LIST = [
-  { group: "México",          tz: "America/Mexico_City",              label: "Ciudad de México (UTC-6)" },
-  { group: "México",          tz: "America/Monterrey",                label: "Monterrey (UTC-6)" },
-  { group: "México",          tz: "America/Merida",                   label: "Mérida / Yucatán (UTC-6)" },
-  { group: "México",          tz: "America/Cancun",                   label: "Cancún (UTC-5, sin cambio horario)" },
-  { group: "México",          tz: "America/Hermosillo",               label: "Hermosillo / Sonora (UTC-7, sin cambio)" },
-  { group: "México",          tz: "America/Chihuahua",                label: "Chihuahua (UTC-6/-7)" },
-  { group: "México",          tz: "America/Mazatlan",                 label: "Mazatlán / La Paz (UTC-7)" },
-  { group: "México",          tz: "America/Tijuana",                  label: "Tijuana / Mexicali (UTC-8)" },
-  { group: "Estados Unidos",  tz: "America/New_York",                 label: "Nueva York / Miami (ET)" },
-  { group: "Estados Unidos",  tz: "America/Chicago",                  label: "Chicago / Houston (CT)" },
-  { group: "Estados Unidos",  tz: "America/Denver",                   label: "Denver / Phoenix (MT)" },
-  { group: "Estados Unidos",  tz: "America/Los_Angeles",              label: "Los Ángeles / Seattle (PT)" },
-  { group: "Estados Unidos",  tz: "America/Anchorage",                label: "Alaska" },
-  { group: "Estados Unidos",  tz: "Pacific/Honolulu",                 label: "Hawái" },
-  { group: "Latinoamérica",   tz: "America/Bogota",                   label: "Bogotá (UTC-5)" },
-  { group: "Latinoamérica",   tz: "America/Lima",                     label: "Lima (UTC-5)" },
-  { group: "Latinoamérica",   tz: "America/Santiago",                 label: "Santiago (UTC-3/-4)" },
-  { group: "Latinoamérica",   tz: "America/Argentina/Buenos_Aires",   label: "Buenos Aires (UTC-3)" },
-  { group: "Latinoamérica",   tz: "America/Sao_Paulo",                label: "São Paulo (UTC-3)" },
-  { group: "Europa",          tz: "Europe/Madrid",                    label: "Madrid (UTC+1/+2)" },
-  { group: "Europa",          tz: "Europe/London",                    label: "Londres (UTC+0/+1)" },
-  { group: "Europa",          tz: "Europe/Paris",                     label: "París / Berlín (UTC+1/+2)" },
+  { group: "México", tz: "America/Mexico_City", label: "Ciudad de México (UTC-6)" },
+  { group: "México", tz: "America/Monterrey", label: "Monterrey (UTC-6)" },
+  { group: "México", tz: "America/Merida", label: "Mérida / Yucatán (UTC-6)" },
+  { group: "México", tz: "America/Cancun", label: "Cancún (UTC-5, sin cambio horario)" },
+  { group: "México", tz: "America/Hermosillo", label: "Hermosillo / Sonora (UTC-7, sin cambio)" },
+  { group: "México", tz: "America/Chihuahua", label: "Chihuahua (UTC-6/-7)" },
+  { group: "México", tz: "America/Mazatlan", label: "Mazatlán / La Paz (UTC-7)" },
+  { group: "México", tz: "America/Tijuana", label: "Tijuana / Mexicali (UTC-8)" },
+  { group: "Estados Unidos", tz: "America/New_York", label: "Nueva York / Miami (ET)" },
+  { group: "Estados Unidos", tz: "America/Chicago", label: "Chicago / Houston (CT)" },
+  { group: "Estados Unidos", tz: "America/Denver", label: "Denver / Phoenix (MT)" },
+  { group: "Estados Unidos", tz: "America/Los_Angeles", label: "Los Ángeles / Seattle (PT)" },
+  { group: "Estados Unidos", tz: "America/Anchorage", label: "Alaska" },
+  { group: "Estados Unidos", tz: "Pacific/Honolulu", label: "Hawái" },
+  { group: "Latinoamérica", tz: "America/Bogota", label: "Bogotá (UTC-5)" },
+  { group: "Latinoamérica", tz: "America/Lima", label: "Lima (UTC-5)" },
+  { group: "Latinoamérica", tz: "America/Santiago", label: "Santiago (UTC-3/-4)" },
+  { group: "Latinoamérica", tz: "America/Argentina/Buenos_Aires", label: "Buenos Aires (UTC-3)" },
+  { group: "Latinoamérica", tz: "America/Sao_Paulo", label: "São Paulo (UTC-3)" },
+  { group: "Europa", tz: "Europe/Madrid", label: "Madrid (UTC+1/+2)" },
+  { group: "Europa", tz: "Europe/London", label: "Londres (UTC+0/+1)" },
+  { group: "Europa", tz: "Europe/Paris", label: "París / Berlín (UTC+1/+2)" },
 ];
 
 export default function PublicFormPage() {
@@ -63,7 +63,7 @@ export default function PublicFormPage() {
     try {
       const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
       if (detected) setTimezone(detected);
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -114,7 +114,7 @@ export default function PublicFormPage() {
     setLoadingSlots(true);
     setAvailableSlots([]);
     setSelectedSlot(null);
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     try {
       const res = await fetch(`/api/public/appointment-types/${apptType.id}/slots?date=${dateStr}&tz=${encodeURIComponent(timezone)}`);
       const data = await res.json();
@@ -135,12 +135,12 @@ export default function PublicFormPage() {
     const apptType = formConfig?.appointmentType;
     if (!apptType?.schedule?.slots) return false;
     const dayOfWeek = date.getDay();
-    const today = new Date(); today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + (apptType.maxAdvanceDays || 30));
     return date >= today && date <= maxDate && apptType.schedule.slots.some((s: any) => s.dayOfWeek === dayOfWeek && s.isAvailable);
   };
 
-  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
+  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
   const formatSlot = (iso: string) => {
@@ -236,8 +236,8 @@ export default function PublicFormPage() {
   const firstDay = getFirstDayOfMonth(currentMonth);
 
   return (
-    <div className="min-h-screen bg-transparent p-4 md:py-10">
-      <div className="bg-white max-w-xl mx-auto rounded-3xl shadow-sm border border-gray-100 p-8 md:p-10">
+    <div className="min-h-screen bg-transparent md:py-10">
+      <div className="md:bg-white max-w-xl mx-auto md:rounded-3xl md:shadow-sm md:border md:border-gray-100 p-4 pt-10 md:p-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">{formConfig.name}</h1>
         {formConfig.description && (
           <p className="text-gray-600 mb-8 whitespace-pre-wrap">{formConfig.description}</p>
@@ -332,7 +332,7 @@ export default function PublicFormPage() {
                 </div>
               </div>
 
-              <div className="p-5">
+              <div className="p-5 bg-white">
                 {/* Mini calendar */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -340,10 +340,10 @@ export default function PublicFormPage() {
                       {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                     </span>
                     <div className="flex gap-1">
-                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth()-1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
+                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
                         <ChevronLeft size={16} />
                       </button>
-                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth()+1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
+                      <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="p-1 rounded-lg hover:bg-gray-100 text-gray-500">
                         <ChevronRight size={16} />
                       </button>
                     </div>
@@ -356,7 +356,7 @@ export default function PublicFormPage() {
                   <div className="grid grid-cols-7 gap-0.5">
                     {Array(firstDay).fill(null).map((_, i) => <div key={`e-${i}`} />)}
                     {Array(daysInMonth).fill(null).map((_, i) => {
-                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i+1);
+                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1);
                       const available = isDateAvailable(date);
                       const isSelected = selectedDate?.toDateString() === date.toDateString();
                       return (
@@ -371,7 +371,7 @@ export default function PublicFormPage() {
                             ${!available ? "text-gray-300 cursor-default" : ""}
                           `}
                         >
-                          {i+1}
+                          {i + 1}
                         </button>
                       );
                     })}
