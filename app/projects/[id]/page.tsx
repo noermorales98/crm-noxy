@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Folder, Zap, TrendingUp, GitBranch, Megaphone, L
 import { notFound } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
+import ProjectAssetsManager from "@/src/components/ProjectAssetsManager";
 
 export default async function ProjectDetailsPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -77,7 +78,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                   {project.clientCompany && (
                     <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full w-fit mb-3 border border-blue-100">
                       <Building size={14} />
-                      Client: {project.clientCompany.name}
+                      Negocio: {project.clientCompany.name}
                     </div>
                   )}
                   <p className="text-gray-500 max-w-2xl">{project.description || "Sin descripción."}</p>
@@ -85,7 +86,8 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               </div>
               <div className="flex flex-col items-end gap-1 bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100 shrink-0">
                 <div className="text-2xl font-bold text-gray-900">{totalAssets}</div>
-                <div className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Assets</div>
+                <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Total Assets</div>
+                <ProjectAssetsManager projectId={project.id} initialCounts={project._count} />
               </div>
             </div>
 

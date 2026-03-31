@@ -24,10 +24,10 @@ export async function GET(req: Request) {
       },
       include: {
         company: {
-          select: {
-            id: true,
-            name: true,
-          },
+          select: { id: true, name: true },
+        },
+        sourceForm: {
+          select: { id: true, name: true },
         },
       },
     });

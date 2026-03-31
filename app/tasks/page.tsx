@@ -11,6 +11,7 @@ import TaskCategoriesModal from "@/src/components/TaskCategoriesModal";
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
 
   // Form states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -138,7 +139,7 @@ export default function TasksPage() {
         <Header />
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks & To-Dos</h1>
             <div className="flex gap-3">
               <button
@@ -156,9 +157,24 @@ export default function TasksPage() {
             </div>
           </div>
 
+          <div className="flex border-b border-gray-100 mb-6 font-medium">
+            <button
+              onClick={() => setActiveTab("pending")}
+              className={`px-4 py-3 border-b-2 text-sm transition-colors ${activeTab === "pending" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+            >
+              Pendientes
+            </button>
+            <button
+              onClick={() => setActiveTab("completed")}
+              className={`px-4 py-3 border-b-2 text-sm transition-colors ${activeTab === "completed" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+            >
+              Completadas
+            </button>
+          </div>
+
           {loading ? (
             <div className="text-gray-500">Cargando tareas...</div>
-          ) : tasks.length === 0 ? (
+          ) : tasks.filter(t => activeTab === "completed" ? t.isCompleted : !t.isCompleted).length === 0 ? (
             <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
               <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin tareas pendientes</h3>
@@ -167,7 +183,7 @@ export default function TasksPage() {
           ) : (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <ul className="divide-y divide-gray-50">
-                {tasks.map((task) => (
+                {tasks.filter(t => activeTab === "completed" ? t.isCompleted : !t.isCompleted).map((task) => (
                   <li key={task.id} className="p-4 flex items-start gap-4 hover:bg-gray-50 transition-colors group">
                     <button
                       onClick={() => toggleTask(task.id, task.isCompleted)}
