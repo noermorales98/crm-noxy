@@ -20,7 +20,7 @@ export default function TasksPage() {
   const [companyId, setCompanyId] = useState("");
   const [formId, setFormId] = useState("");
   const [appointmentId, setAppointmentId] = useState("");
-  
+
   const [saving, setSaving] = useState(false);
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
   const [dropdownData, setDropdownData] = useState({ categories: [], companies: [], forms: [], appointments: [] });
@@ -67,7 +67,7 @@ export default function TasksPage() {
         fetch("/api/appointments").then(res => res.json())
       ]);
       setDropdownData({ categories: cats, companies: comps, forms: frms, appointments: appts });
-    } catch(e) { console.error(e) }
+    } catch (e) { console.error(e) }
   };
 
   const fetchTasks = async () => {
@@ -106,12 +106,12 @@ export default function TasksPage() {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          title, description, 
-          categoryId: categoryId || null, 
+        body: JSON.stringify({
+          title, description,
+          categoryId: categoryId || null,
           companyId: companyId || null,
           formId: formId || null,
-          appointmentId: appointmentId || null 
+          appointmentId: appointmentId || null
         })
       });
       if (res.ok) {
@@ -287,9 +287,9 @@ export default function TasksPage() {
         </div>
       )}
 
-      <TaskCategoriesModal 
-        isOpen={isCategoriesModalOpen} 
-        onClose={() => setIsCategoriesModalOpen(false)} 
+      <TaskCategoriesModal
+        isOpen={isCategoriesModalOpen}
+        onClose={() => setIsCategoriesModalOpen(false)}
         onCategoriesChange={fetchDropdownData}
       />
 

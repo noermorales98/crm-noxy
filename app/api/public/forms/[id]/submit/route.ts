@@ -33,6 +33,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       include: {
         fields: true,
         company: true,
+        welcomeEmail: true,
         appointmentType: {
           include: { schedule: { include: { slots: true } } }
         }
@@ -247,15 +248,50 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     }
 
     // 4. Trigger Welcome Email if configured
-    if (form.welcomeEmailId && email) {
-      // Enqueue the email to be sent by creating a PENDING log
-      await prisma.emailLog.create({
+    if (form.welcomeEmail && email) {
+      // Enqueue the email log
+      const log = await prisma.emailLog.create({
         data: {
-          campaignId: form.welcomeEmailId,
+          campaignId: form.welcomeEmail.id,
           contactId: newContact.id,
           status: "PENDING"
         }
       });
+      
+      // Attempt to send immediately since it's just 1 email
+      const company = (form as any).company;
+      if (company?.smtpHost && company?.smtpUser && company?.smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: company.smtpHost,
+            port: company.smtpPort || 465,
+            secure: company.smtpSecure ?? true,
+            auth: { user: company.smtpUser, pass: company.smtpPass },
+          });
+
+          await transporter.sendMail({
+            from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,
+            to: email,
+            subject: form.welcomeEmail.subject,
+            html: form.welcomeEmail.body,
+          });
+
+          await prisma.emailLog.update({
+            where: { id: log.id },
+            data: { status: "SENT", sentAt: new Date() }
+          });
+        } catch (err: any) {
+          await prisma.emailLog.update({
+            where: { id: log.id },
+            data: { status: "FAILED", errorReason: err.message || "Failed to deliver welcome email" }
+          });
+        }
+      } else {
+        await prisma.emailLog.update({
+          where: { id: log.id },
+          data: { status: "FAILED", errorReason: "Company SMTP credentials not configured." }
+        });
+      }
     }
 
     return corsResponse({

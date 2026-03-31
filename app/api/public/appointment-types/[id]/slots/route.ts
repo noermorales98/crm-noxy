@@ -96,6 +96,15 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     }
   });
 
+  // Fetch blocked times inside the window
+  const blockedTimes = await prisma.blockedTime.findMany({
+    where: {
+      organizationId: appointmentType.organizationId,
+      start: { lte: searchEnd },
+      end: { gte: searchStart }
+    }
+  });
+
   const duration  = appointmentType.duration * 60000;  // ms
   const buffer    = appointmentType.bufferAfter * 60000; // ms
   const now       = new Date();
@@ -109,13 +118,19 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     const slotEnd   = new Date(cursor + duration);
 
     if (slotStart > now) {
-      const overlaps = existingAppointments.some(appt => {
+      const overlapsAppt = existingAppointments.some(appt => {
         const aStart = new Date(appt.startTime).getTime();
         const aEnd   = new Date(appt.endTime).getTime();
         return cursor < aEnd && (cursor + duration) > aStart;
       });
 
-      if (!overlaps) {
+      const overlapsBlocked = blockedTimes.some((block: any) => {
+        const bStart = new Date(block.start).getTime();
+        const bEnd   = new Date(block.end).getTime();
+        return cursor < bEnd && (cursor + duration) > bStart;
+      });
+
+      if (!overlapsAppt && !overlapsBlocked) {
         slots.push(slotStart.toISOString());
       }
     }
