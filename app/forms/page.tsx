@@ -198,7 +198,7 @@ export default function FormsPage() {
                 const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
 
                 return (
-                  <div key={form.id} className="bg-white border text-left border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden group">
+                  <div key={form.id} className="bg-white border text-left border-gray-200 rounded-xl p-6 flex flex-col transition-shadow relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
@@ -379,18 +379,18 @@ export default function FormsPage() {
                 <XCircle size={24} />
               </button>
             </div>
-            
+
             <div className="p-0 overflow-y-auto bg-gray-50/30 flex-1">
               {isLoadingContacts ? (
-                 <div className="flex items-center justify-center py-20">
-                   <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
-                 </div>
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+                </div>
               ) : formContacts.length === 0 ? (
-                 <div className="text-center py-16">
-                    <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                    <h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3>
-                    <p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p>
-                 </div>
+                <div className="text-center py-16">
+                  <Users className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                  <h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3>
+                  <p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p>
+                </div>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {formContacts.map((contact, idx) => {
@@ -409,8 +409,8 @@ export default function FormsPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
-                               {contact.email && <span>📧 {contact.email}</span>}
-                               {contact.phone && <span>📞 {contact.phone}</span>}
+                              {contact.email && <span>📧 {contact.email}</span>}
+                              {contact.phone && <span>📞 {contact.phone}</span>}
                             </div>
                           </div>
                           <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded shrink-0 ml-2">
@@ -419,7 +419,7 @@ export default function FormsPage() {
                         </div>
                         {extraFieldsBody && extraFieldsBody !== "No additional fields provided." && (
                           <div className="mt-3 text-xs bg-gray-50 border border-gray-100 p-3 rounded-xl text-gray-600 whitespace-pre-line group-hover:bg-gray-100">
-                             {extraFieldsBody}
+                            {extraFieldsBody}
                           </div>
                         )}
                       </li>
