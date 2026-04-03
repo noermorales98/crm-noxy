@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { LayoutDashboard, CheckSquare, Activity, Users, Zap, TrendingUp, GitBranch, Megaphone, Plus, Mail, AppWindow, CalendarCheck, Clock, CalendarDays } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Activity, Users, Zap, TrendingUp, GitBranch, Megaphone, Plus, Mail, AppWindow, CalendarCheck, Clock, CalendarDays, Inbox } from "lucide-react";
 import Image from "next/image";
 import { PROJECTS } from "@/src/lib/mockData";
 import { useSession } from "next-auth/react";
@@ -40,6 +40,7 @@ export default function Sidebar() {
           <NavItem href="/contacts" icon={<Users size={20} />} label="Contactos" />
           <NavItem href="/tasks" icon={<CheckSquare size={20} />} label="Tareas" />
           <NavItem href="/campaigns" icon={<Mail size={20} />} label="Campañas de Email" />
+          <NavItem href="/emails" icon={<Inbox size={20} />} label="Correos" />
           <NavItem href="/forms" icon={<AppWindow size={20} />} label="Formularios y Captación" />
         </div>
 

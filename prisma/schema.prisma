@@ -42,6 +42,7 @@ model Organization {
   members               OrganizationMember[]
   companies             Company[]
   contacts              Contact[]
+  emails                Email[]
   pipelines             Pipeline[]
   deals                 Deal[]
   tasks                 Task[]
@@ -121,6 +122,14 @@ model Company {
   smtpFromEmail String?
   smtpSecure    Boolean? @default(true)
 
+  // Custom IMAP settings for receiving emails
+  imapHost      String?
+  imapPort      Int?
+  imapUser      String?
+  imapPass      String?
+  imapSecure    Boolean? @default(true)
+  imapLastUid   Int?     @default(0)
+
   contacts       Contact[]
   deals          Deal[]
   campaigns      EmailCampaign[]
@@ -133,6 +142,8 @@ model Company {
 
   // Projects that belong to this client company
   clientProjects Project[] @relation("ProjectClientCompany")
+
+  emails Email[]
 
   @@index([organizationId])
   @@index([projectId])
@@ -523,4 +534,38 @@ model TaskCategory {
 
   @@index([organizationId])
   @@index([companyId])
+}
+
+enum EmailType {
+  RECEIVED
+  SENT
+}
+
+model Email {
+  id          String    @id @default(cuid())
+  messageId   String?   @db.VarChar(500) // Message-ID header for deduplication
+  uid         Int?      // IMAP UID for incremental sync
+  subject     String    @db.Text
+  fromAddress String
+  fromName    String?
+  toAddress   String    @db.Text
+  ccAddress   String?   @db.Text
+  bodyText    String?   @db.LongText
+  bodyHtml    String?   @db.LongText
+  type        EmailType @default(RECEIVED)
+  isRead      Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  receivedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([organizationId])
+  @@index([type])
+  @@index([isArchived])
 }
