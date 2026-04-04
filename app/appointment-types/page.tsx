@@ -130,11 +130,11 @@ export default function AppointmentTypesPage() {
   }, [types, searchQuery, sortField, sortOrder]);
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
@@ -162,7 +162,7 @@ export default function AppointmentTypesPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
               <HugeiconsIcon icon={Calendar01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tipos de cita." : "Sin tipos de cita"}</h3>
               {!searchQuery && <p className="text-gray-500 text-sm">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>}
@@ -170,7 +170,7 @@ export default function AppointmentTypesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayed.map(type => (
-                <div key={type.id} className="bg-white border border-gray-200 rounded-xl p-6 transition-shadow flex flex-col">
+                <div key={type.id} className="bg-white border border-gray-100 rounded-2xl p-6 transition-shadow flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }}></div>
@@ -227,7 +227,7 @@ export default function AppointmentTypesPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">
                 {editingType ? "Editar Tipo de Cita" : "Nuevo Tipo de Cita"}

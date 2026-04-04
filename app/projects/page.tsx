@@ -68,11 +68,11 @@ export default function ProjectsPage() {
   }, [projects, searchQuery, sortField, sortOrder]);
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="max-w-7xl mx-auto w-full">
             <div className="mb-8">
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">Proyectos</h1>
@@ -88,7 +88,7 @@ export default function ProjectsPage() {
                 {displayed.map(project => {
                   const totalAssets = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
                   return (
-                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
+                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:scale-110 transition-transform">
                           {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}

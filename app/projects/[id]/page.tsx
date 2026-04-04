@@ -53,7 +53,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
   const totalAssets = project._count.forms + project._count.campaigns + project._count.contacts + project._count.companies + project._count.tasks;
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
@@ -62,7 +62,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
           addButtonHref="/projects/create"
         />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="max-w-7xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
               <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
@@ -70,7 +70,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
             </Link>
 
             {/* Project Header */}
-            <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
               <div className="flex items-start gap-5">
                 <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 shrink-0">
                   {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={32} />}
@@ -216,7 +216,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
 
 function DashboardCard({ title, icon, count, children, link }: { title: string, icon: React.ReactNode, count: number, children: React.ReactNode, link: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col h-full">
+    <div className="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col h-full">
       <div className="flex flex-col mb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">

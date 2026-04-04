@@ -146,7 +146,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="flex bg-background h-screen overflow-hidden">
+    <div className="flex bg-[#f5f4ef] h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header />
@@ -160,7 +160,7 @@ export default function CompaniesPage() {
           ) : (
             <div className="bg-white border text-sm border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left">
-                <thead className="bg-[#fcfbf9] border-b text-gray-500 border-gray-100 uppercase tracking-wider text-xs">
+                <thead className="bg-gray-50/60 border-b text-gray-500 border-gray-100 uppercase tracking-widest text-[10px]">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Nombre</th>
                     <th className="px-6 py-4 font-semibold">Industria</th>
@@ -194,8 +194,8 @@ export default function CompaniesPage() {
 
           {/* Modal */}
           {showModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
                 <h2 className="text-xl font-bold mb-4">{editingId ? 'Editar empresa' : 'Agregar empresa'}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                   <div>
@@ -221,8 +221,8 @@ export default function CompaniesPage() {
 
           {/* SMTP Modal */}
           {showSmtpModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
                 <h2 className="text-xl font-bold mb-1">Company SMTP Variables</h2>
                 <p className="text-gray-500 text-xs mb-4">Emails sent from this `{currentSmtpCompany?.name}` workspace will be transmitted out via these credentials.</p>
                 <form onSubmit={handleSmtpSubmit} className="flex flex-col gap-4">

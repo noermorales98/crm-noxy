@@ -175,11 +175,11 @@ export default function CampaignsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <HugeiconsIcon icon={Mail01Icon} size={28} color="#9ca3af" />
@@ -194,13 +194,13 @@ export default function CampaignsPage() {
           {isLoading ? (
             <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
               <HugeiconsIcon icon={Mail01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery || activeFilters.status ? "No se encontraron campañas." : "No campaigns yet"}</h3>
               {!searchQuery && !activeFilters.status && <p className="text-gray-500 text-sm mb-4">Start by creating your first email newsletter draft.</p>}
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -252,7 +252,7 @@ export default function CampaignsPage() {
       {/* PREVIEW MODAL */}
       {previewCampaign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-gray-100 flex items-start justify-between shrink-0">
               <div className="flex flex-col gap-1">
                 <h3 className="text-base font-bold text-gray-900 flex items-center gap-2"><HugeiconsIcon icon={ViewIcon} size={16} color="#9ca3af" />Previsualización del correo</h3>
@@ -280,7 +280,7 @@ export default function CampaignsPage() {
       {/* CREATE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-gray-900">Crear campaña de correo</h3>
               <button onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>

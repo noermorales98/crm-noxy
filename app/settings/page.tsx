@@ -56,16 +56,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Configuración / Integraciones</h1>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-8 max-w-2xl flex flex-col gap-8">
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-2xl flex flex-col gap-8">
 
             {/* Email Notifications */}
             <div>

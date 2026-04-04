@@ -161,11 +161,11 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
@@ -229,7 +229,7 @@ export default function FormsPage() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Crear formulario</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
@@ -270,7 +270,7 @@ export default function FormsPage() {
 
       {isContactsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Registrados</h3>

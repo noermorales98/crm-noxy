@@ -119,7 +119,7 @@ export default function ProfilePage() {
   const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm text-gray-900 placeholder-gray-400";
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
@@ -140,7 +140,7 @@ export default function ProfilePage() {
               <div className="flex flex-col gap-6">
 
                 {/* Avatar Card */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6 flex items-center gap-5">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 flex items-center gap-5">
                   <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-white">
                       {name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || "U"}
@@ -163,7 +163,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Personal Info */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
                       <HugeiconsIcon icon={User02Icon} size={18} color="#2563eb" />
@@ -217,7 +217,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Change Password */}
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
                       <HugeiconsIcon icon={LockIcon} size={18} color="#d97706" />

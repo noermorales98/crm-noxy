@@ -66,19 +66,19 @@ export default function CreateProjectPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="max-w-3xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
               <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
               Volver a proyectos
             </Link>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-8">
+            <div className="bg-white border border-gray-100 rounded-2xl p-8">
               <div className="mb-8">
                 <h1 className="text-2xl font-bold tracking-tight text-gray-900">Crear nuevo proyecto</h1>
                 <p className="text-gray-500 mt-1">Los proyectos organizan contactos, empresas, campañas y tareas en un solo lugar.</p>

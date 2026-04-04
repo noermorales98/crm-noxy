@@ -135,7 +135,7 @@ function ContactsContent() {
   };
 
   return (
-    <div className="flex bg-background h-screen overflow-hidden">
+    <div className="flex bg-[#f5f4ef] h-screen overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <Header />
@@ -156,7 +156,7 @@ function ContactsContent() {
           ) : viewMode === "list" ? (
             <div className="bg-white border text-sm border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left">
-                <thead className="bg-[#fcfbf9] border-b text-gray-500 border-gray-100 uppercase tracking-wider text-xs">
+                <thead className="bg-gray-50/60 border-b text-gray-500 border-gray-100 uppercase tracking-widest text-[10px]">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Nombre</th>
                     <th className="px-6 py-4 font-semibold">Email</th>
@@ -205,7 +205,7 @@ function ContactsContent() {
                 return Object.entries(grouped).map(([companyName, compContacts]) => {
                   const items = compContacts as any[];
                   return (
-                    <div key={companyName} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div key={companyName} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
                       <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 font-bold text-gray-900 flex items-center justify-between">
                         {companyName}
                         <span className="text-xs font-semibold bg-gray-200 text-gray-700 px-2 py-1 rounded-full">{items.length}</span>
@@ -238,8 +238,8 @@ function ContactsContent() {
           )}
 
           {showModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
                 <h2 className="text-xl font-bold mb-4">{editingId ? 'Editar contacto' : 'Agregar contacto'}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                   <div className="flex gap-4">

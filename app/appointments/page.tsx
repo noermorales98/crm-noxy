@@ -69,11 +69,11 @@ export default function AppointmentsPage() {
     ({ CONFIRMED: "Confirmada", COMPLETED: "Completada", CANCELLED: "Cancelada" }[status] || status);
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
               <HugeiconsIcon icon={CalendarCheckIn01Icon} size={28} color="#9ca3af" />
@@ -97,7 +97,7 @@ export default function AppointmentsPage() {
               <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
               <HugeiconsIcon icon={CalendarCheckIn01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin citas</h3>
               <p className="text-gray-500 text-sm">Las citas agendadas aparecerán aquí.</p>

@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f4ef]">
-      <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-md border border-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
         <div className="flex justify-center mb-6 text-gray-900">
           <HugeiconsIcon icon={Building04Icon} size={40} />
         </div>
@@ -59,7 +59,7 @@ export default function RegisterPage() {
         <p className="text-sm text-gray-500 text-center mb-8">Setup your agency and start managing clients</p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 border border-red-100 font-medium">
+          <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-4 border border-red-100 font-medium">
             {error}
           </div>
         )}
@@ -71,7 +71,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
               placeholder="John Doe"
             />
           </div>
@@ -81,7 +81,7 @@ export default function RegisterPage() {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
               placeholder="john@agency.com"
             />
           </div>
@@ -91,7 +91,7 @@ export default function RegisterPage() {
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
               placeholder="••••••••"
             />
           </div>
@@ -101,7 +101,7 @@ export default function RegisterPage() {
               type="text"
               value={formData.organizationName}
               onChange={(e) => setFormData({ ...formData, organizationName: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
               placeholder="Acme Marketing Inc."
             />
           </div>
@@ -109,7 +109,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#2d2d2d] text-white font-medium py-2.5 rounded-lg mt-2 hover:bg-black transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-[#2d2d2d] text-white font-medium py-2.5 rounded-xl mt-2 hover:bg-black transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? "Creating..." : "Create Workspace"}
           </button>

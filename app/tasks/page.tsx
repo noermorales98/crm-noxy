@@ -131,11 +131,11 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background font-sans">
+    <div className="flex h-screen bg-[#f5f4ef] font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Tasks & To-Dos</h1>
             <button
@@ -154,13 +154,13 @@ export default function TasksPage() {
           {loading ? (
             <div className="text-gray-500">Cargando tareas...</div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
               <HugeiconsIcon icon={Clock01Icon} size={48} color="#d1d5db" className="mx-auto mb-3" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tareas." : "Sin tareas pendientes"}</h3>
               {!searchQuery && <p className="text-gray-500 text-sm">¡Todo listo! Disfruta tu día.</p>}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
               <ul className="divide-y divide-gray-50">
                 {displayed.map((task) => (
                   <li key={task.id} className="p-4 flex items-start gap-4 hover:bg-gray-50 transition-colors group">
