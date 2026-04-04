@@ -74,9 +74,12 @@ export default function ProjectsPage() {
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
           <div className="max-w-7xl mx-auto w-full">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Proyectos</h1>
-              <p className="text-gray-500 mt-1">Organiza tus campañas, eventos e iniciativas.</p>
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Proyectos</h1>
+                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{projects.length}</span>}
+              </div>
+              <p className="text-sm text-gray-500">Organiza tus campañas, formularios y contactos por iniciativa o cliente.</p>
             </div>
 
             {isLoading ? (
@@ -88,9 +91,9 @@ export default function ProjectsPage() {
                 {displayed.map(project => {
                   const totalAssets = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
                   return (
-                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
+                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:bg-gray-900 group-hover:text-white transition-all">
                           {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}
                           {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={24} />}
                           {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={24} />}

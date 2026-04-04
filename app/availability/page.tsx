@@ -237,11 +237,9 @@ export default function AvailabilityPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <HugeiconsIcon icon={Clock01Icon} size={28} color="#9ca3af" />
-              Horarios de Disponibilidad
-            </h1>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">Disponibilidad</h1>
+            <p className="text-sm text-gray-500">Configura tus horarios de atención y bloquea días no disponibles.</p>
           </div>
 
           {isLoading ? (

@@ -166,20 +166,23 @@ export default function FormsPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
-              Formularios
-            </h1>
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-gray-900">Formularios</h1>
+              {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{forms.length}</span>}
+            </div>
+            <p className="text-sm text-gray-500">Crea formularios embebibles para capturar leads desde tu sitio web.</p>
           </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <HugeiconsIcon icon={File02Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery || activeFilters.status ? "No se encontraron formularios." : "No forms yet"}</h3>
-              {!searchQuery && !activeFilters.status && <p className="text-gray-500 text-sm">Create your first custom form to capture leads from your website.</p>}
+            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">{searchQuery || activeFilters.status ? "Sin resultados" : "No hay formularios"}</h3>
+              <p className="text-sm text-gray-500">{searchQuery || activeFilters.status ? "Prueba con otros filtros o busca un término diferente." : "Crea tu primer formulario para capturar leads."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -187,7 +190,7 @@ export default function FormsPage() {
                 const formUrl = typeof window !== 'undefined' ? `${window.location.origin}/form/${form.id}` : '';
                 const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
                 return (
-                  <div key={form.id} className="bg-white border text-left border-gray-200 rounded-xl p-6 flex flex-col transition-shadow relative overflow-hidden group">
+                  <div key={form.id} className="bg-white border text-left border-gray-100 rounded-2xl p-6 flex flex-col transition-all hover:shadow-md hover:border-gray-200 relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>

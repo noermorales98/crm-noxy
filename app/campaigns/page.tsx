@@ -180,13 +180,16 @@ export default function CampaignsPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <HugeiconsIcon icon={Mail01Icon} size={28} color="#9ca3af" />
-              Email Marketing
-            </h1>
-            <button onClick={handleProcessQueue} disabled={isProcessingQueue} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors disabled:opacity-50">
-              <HugeiconsIcon icon={Refresh01Icon} size={16} className={isProcessingQueue ? "animate-spin" : ""} />
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-gray-900">Email Marketing</h1>
+                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{campaigns.length}</span>}
+              </div>
+              <p className="text-sm text-gray-500">Crea y gestiona campañas de correo para tus contactos.</p>
+            </div>
+            <button onClick={handleProcessQueue} disabled={isProcessingQueue} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+              <HugeiconsIcon icon={Refresh01Icon} size={15} className={isProcessingQueue ? "animate-spin" : ""} />
               {isProcessingQueue ? "Procesando..." : "Procesar cola"}
             </button>
           </div>
@@ -203,41 +206,41 @@ export default function CampaignsPage() {
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Asunto</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Empresa</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Destinatarios</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Creado</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Acciones</th>
+                  <tr className="border-b border-gray-100 bg-gray-50/60">
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Asunto</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Empresa / Destino</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Estado</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Enviados</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Creado</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
                   {displayed.map((camp) => (
-                    <tr key={camp.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{camp.subject}</td>
-                      <td className="px-6 py-4 text-gray-600">
-                        <div className="font-semibold text-gray-900 border-b border-gray-100 pb-1 mb-1">{camp.company?.name || "Unknown"}</div>
-                        {camp.project ? <div className="text-[11px] text-blue-600 font-medium">💼 PROYECTO: {camp.project.name}</div>
-                          : camp.targetForm ? <div className="text-[11px] text-purple-600 font-medium">📝 FORMULARIO: {camp.targetForm.name}</div>
-                          : <div className="text-[11px] text-gray-400 font-medium">🏢 TODA LA EMPRESA</div>}
+                    <tr key={camp.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-6 py-4 font-semibold text-gray-900 max-w-[220px] truncate">{camp.subject}</td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-semibold text-gray-900">{camp.company?.name || "—"}</div>
+                        {camp.project ? <div className="text-[11px] text-blue-600 font-medium mt-0.5">💼 {camp.project.name}</div>
+                          : camp.targetForm ? <div className="text-[11px] text-purple-600 font-medium mt-0.5">📝 {camp.targetForm.name}</div>
+                          : <div className="text-[11px] text-gray-400 mt-0.5">Toda la empresa</div>}
                       </td>
                       <td className="px-6 py-4">
-                        {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"><HugeiconsIcon icon={Clock01Icon} size={12} /> Draft</span>}
-                        {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700"><HugeiconsIcon icon={SentIcon} size={12} /> Sending...</span>}
-                        {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} /> Completed</span>}
+                        {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
+                        {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
+                        {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> Completada</span>}
                       </td>
-                      <td className="px-6 py-4 text-gray-500">{camp._count.logs > 0 ? camp._count.logs : "—"}</td>
-                      <td className="px-6 py-4 text-gray-500">{new Date(camp.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500 font-medium">{camp._count.logs > 0 ? camp._count.logs.toLocaleString() : "—"}</td>
+                      <td className="px-6 py-4 text-sm text-gray-400">{new Date(camp.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           {camp.status === "DRAFT" ? (
-                            <button onClick={() => handleSendCampaign(camp.id)} className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">Enviar</button>
+                            <button onClick={() => handleSendCampaign(camp.id)} className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">Enviar</button>
                           ) : (
-                            <span className="text-gray-400 text-xs font-medium bg-gray-100 px-2 py-1 rounded">Locked</span>
+                            <span className="text-gray-400 text-[11px] font-semibold bg-gray-100 px-2 py-1 rounded-lg">Bloqueado</span>
                           )}
-                          <button onClick={() => setPreviewCampaign(camp)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Previsualizar correo"><HugeiconsIcon icon={ViewIcon} size={16} /></button>
-                          <button onClick={() => handleDelete(camp)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar campaña"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
+                          <button onClick={() => setPreviewCampaign(camp)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Previsualizar"><HugeiconsIcon icon={ViewIcon} size={15} /></button>
+                          <button onClick={() => handleDelete(camp)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><HugeiconsIcon icon={Delete01Icon} size={15} /></button>
                         </div>
                       </td>
                     </tr>

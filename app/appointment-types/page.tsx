@@ -135,13 +135,16 @@ export default function AppointmentTypesPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
-              Tipos de Cita
-            </h1>
-            <Link href="/availability" className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
-              Gestionar Disponibilidad
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-gray-900">Tipos de cita</h1>
+                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{types.length}</span>}
+              </div>
+              <p className="text-sm text-gray-500">Define los tipos de reunión que tus clientes pueden agendar.</p>
+            </div>
+            <Link href="/availability" className="flex items-center gap-2 border border-gray-100 bg-white hover:bg-gray-50 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+              Gestionar disponibilidad
             </Link>
           </div>
 
@@ -163,9 +166,11 @@ export default function AppointmentTypesPage() {
             </div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <HugeiconsIcon icon={Calendar01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tipos de cita." : "Sin tipos de cita"}</h3>
-              {!searchQuery && <p className="text-gray-500 text-sm">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>}
+              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">{searchQuery ? "Sin resultados" : "Sin tipos de cita"}</h3>
+              <p className="text-sm text-gray-500">{searchQuery ? "Prueba con otro término de búsqueda." : "Crea tu primer tipo de cita para que tus clientes puedan agendar."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

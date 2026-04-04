@@ -90,9 +90,9 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                   <p className="text-gray-500 max-w-2xl">{project.description || "Sin descripción."}</p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1 bg-gray-50 px-6 py-4 rounded-xl border border-gray-100 shrink-0">
-                <div className="text-2xl font-bold text-gray-900">{totalAssets}</div>
-                <div className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Total Assets</div>
+              <div className="flex flex-col items-end gap-1 bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100 shrink-0">
+                <div className="text-3xl font-bold text-gray-900">{totalAssets}</div>
+                <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Assets conectados</div>
                 <ProjectAssetsManager projectId={project.id} initialCounts={project._count} />
               </div>
             </div>
@@ -102,13 +102,13 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
 
               {/* Contacts */}
               <DashboardCard
-                title="Contacts"
+                title="Contactos"
                 icon={<HugeiconsIcon icon={UserMultipleIcon} size={20} color="#3b82f6" />}
                 count={project._count.contacts}
                 link={`/contacts?projectId=${project.id}`}
               >
                 {project.contacts.length === 0 ? (
-                  <EmptyState text="No contacts linked to this project" />
+                  <EmptyState text="Sin contactos vinculados" />
                 ) : (
                   <ul className="divide-y divide-gray-50">
                     {project.contacts.map((c: any) => (
@@ -129,7 +129,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 link={`/companies?projectId=${project.id}`}
               >
                 {project.companies.length === 0 ? (
-                  <EmptyState text="No companies linked to this project" />
+                  <EmptyState text="Sin empresas vinculadas" />
                 ) : (
                   <ul className="divide-y divide-gray-50">
                     {project.companies.map((c: any) => (
@@ -150,7 +150,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
                 link={`/forms?projectId=${project.id}`}
               >
                 {project.forms.length === 0 ? (
-                  <EmptyState text="No forms linked to this project" />
+                  <EmptyState text="Sin formularios vinculados" />
                 ) : (
                   <ul className="divide-y divide-gray-50">
                     {project.forms.map((f: any) => (
@@ -165,19 +165,19 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
 
               {/* Email Campaigns */}
               <DashboardCard
-                title="Campaigns"
+                title="Campañas"
                 icon={<HugeiconsIcon icon={Mail01Icon} size={20} color="#f97316" />}
                 count={project._count.campaigns}
                 link={`/campaigns?projectId=${project.id}`}
               >
                 {project.campaigns.length === 0 ? (
-                  <EmptyState text="No campaigns linked to this project" />
+                  <EmptyState text="Sin campañas vinculadas" />
                 ) : (
                   <ul className="divide-y divide-gray-50">
                     {project.campaigns.map((c: any) => (
                       <li key={c.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-900">{c.subject}</span>
-                        <span className="text-xs text-gray-500">{c.status}</span>
+                        <span className="text-sm font-medium text-gray-900 truncate max-w-[160px]">{c.subject}</span>
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${c.status === "COMPLETED" ? "bg-green-50 text-green-700" : c.status === "SENDING" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"}`}>{c.status}</span>
                       </li>
                     ))}
                   </ul>
@@ -186,19 +186,19 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
 
               {/* Tasks */}
               <DashboardCard
-                title="Tasks"
+                title="Tareas"
                 icon={<HugeiconsIcon icon={CheckmarkSquare01Icon} size={20} color="#ef4444" />}
                 count={project._count.tasks}
                 link={`/tasks?projectId=${project.id}`}
               >
                 {project.tasks.length === 0 ? (
-                  <EmptyState text="No tasks linked to this project" />
+                  <EmptyState text="Sin tareas vinculadas" />
                 ) : (
                   <ul className="divide-y divide-gray-50">
                     {project.tasks.map((t: any) => (
                       <li key={t.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-gray-900">{t.title}</span>
-                        <span className="text-xs text-gray-500">{t.isCompleted ? 'Done' : 'Pending'}</span>
+                        <span className="text-sm font-medium text-gray-900 truncate max-w-[160px]">{t.title}</span>
+                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{t.isCompleted ? "Hecha" : "Pendiente"}</span>
                       </li>
                     ))}
                   </ul>
@@ -230,8 +230,8 @@ function DashboardCard({ title, icon, count, children, link }: { title: string, 
         {children}
       </div>
       <div className="pt-4 border-t border-gray-50 mt-4">
-        <Link href={link} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center justify-between group">
-          View all {title.toLowerCase()}
+        <Link href={link} className="text-sm font-semibold text-gray-600 hover:text-gray-900 flex items-center justify-between group">
+          Ver todos
           <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>

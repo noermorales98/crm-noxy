@@ -415,7 +415,7 @@ export default function EmailsPage() {
 
           {/* Company accounts */}
           <div className="flex-1 overflow-y-auto px-3 pb-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 pb-2">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 pb-2">
               Cuentas
             </p>
 
