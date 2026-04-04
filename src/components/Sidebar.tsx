@@ -22,6 +22,7 @@ import {
   Analytics01Icon,
   Megaphone01Icon,
   GitBranchIcon,
+  BarChartIcon,
 } from "@hugeicons/core-free-icons";
 
 export default function Sidebar() {
@@ -57,6 +58,7 @@ export default function Sidebar() {
           <NavItem href="/companies" icon={Building04Icon} label="Empresas" />
           <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" />
           <NavItem href="/tasks" icon={Task01Icon} label="Tareas" />
+          <NavItem href="/pipeline" icon={BarChartIcon} label="Pipeline" />
           <NavItem href="/campaigns" icon={Mail01Icon} label="Campañas de Email" />
           <NavItem href="/emails" icon={InboxIcon} label="Correos" />
           <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />

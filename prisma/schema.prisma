@@ -17,6 +17,7 @@ model User {
   organizations OrganizationMember[]
   tasks         Task[]
   callMeBot     CallMeBot?
+  activityLogs  ActivityLog[]
 }
 
 model CallMeBot {
@@ -45,6 +46,9 @@ model Organization {
   emails                Email[]
   pipelines             Pipeline[]
   deals                 Deal[]
+  activityLogs          ActivityLog[]
+  proposals             Proposal[]
+  payments              Payment[]
   tasks                 Task[]
   campaigns             EmailCampaign[]
   forms                 Form[]
@@ -212,14 +216,60 @@ model Pipeline {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   stages Stage[]
+  deals  Deal[]
 
   @@index([organizationId])
+}
+
+enum LeadSource {
+  WHATSAPP
+  REFERIDO
+  LINKEDIN
+  VISITA
+  EMAIL_FRIO
+  FORMULARIO
+  INSTAGRAM
+  OTRO
+}
+
+enum ActivityType {
+  LLAMADA
+  WHATSAPP
+  VISITA
+  EMAIL
+  NOTA
+  PROPUESTA_ENVIADA
+  REUNION
+  OTRO
+}
+
+enum ProposalStatus {
+  BORRADOR
+  ENVIADA
+  ACEPTADA
+  RECHAZADA
+}
+
+enum PaymentType {
+  ANTICIPO
+  SALDO
+  COMPLETO
+  MENSUALIDAD
+}
+
+enum PaymentStatus {
+  PENDIENTE
+  RECIBIDO
+  CANCELADO
 }
 
 model Stage {
   id        String   @id @default(cuid())
   name      String
   order     Int
+  color     String   @default("#6B7280")
+  isWon     Boolean  @default(false)
+  isLost    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -232,11 +282,17 @@ model Stage {
 }
 
 model Deal {
-  id        String   @id @default(cuid())
-  title     String
-  value     Float?   @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String      @id @default(cuid())
+  title       String
+  value       Float?      @default(0)
+  currency    String      @default("USD")
+  source      LeadSource?
+  followUpAt  DateTime?
+  lostReason  String?
+  probability Int         @default(50)
+  notes       String?     @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -244,18 +300,103 @@ model Deal {
   stageId String
   stage   Stage  @relation(fields: [stageId], references: [id], onDelete: Cascade)
 
+  pipelineId String?
+  pipeline   Pipeline? @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
   contactId String?
   contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
-  tasks Task[]
+  tasks       Task[]
+  activities  ActivityLog[]
+  proposals   Proposal[]
+  payments    Payment[]
 
   @@index([organizationId])
   @@index([stageId])
+  @@index([pipelineId])
   @@index([companyId])
   @@index([contactId])
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String       @db.Text
+  createdAt   DateTime     @default(now())
+
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([dealId])
+  @@index([organizationId])
+  @@index([createdById])
+}
+
+model Proposal {
+  id         String         @id @default(cuid())
+  title      String
+  status     ProposalStatus @default(BORRADOR)
+  notes      String?        @db.Text
+  validUntil DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  items ProposalItem[]
+
+  @@index([dealId])
+  @@index([organizationId])
+}
+
+model ProposalItem {
+  id          String @id @default(cuid())
+  description String
+  quantity    Float  @default(1)
+  unitPrice   Float
+  order       Int    @default(0)
+
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+}
+
+model Payment {
+  id                   String        @id @default(cuid())
+  amount               Float
+  currency             String        @default("USD")
+  type                 PaymentType
+  status               PaymentStatus @default(PENDIENTE)
+  method               String?
+  notes                String?       @db.Text
+  dueDate              DateTime?
+  receivedAt           DateTime?
+  stripePaymentLinkId  String?
+  stripePaymentLinkUrl String?
+  createdAt            DateTime      @default(now())
+
+  dealId String
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([dealId])
+  @@index([organizationId])
 }
 
 model Task {
