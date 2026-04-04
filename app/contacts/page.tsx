@@ -6,7 +6,8 @@ import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
-import { Trash2, Edit } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 
 function ContactsContent() {
   const { addToast } = useToast();
@@ -182,8 +183,8 @@ function ContactsContent() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <button onClick={() => openEditModal(c)} className="text-gray-400 hover:text-blue-600 transition-colors" title="Editar contacto"><Edit size={16} /></button>
-                          <button onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 transition-colors" title="Eliminar contacto"><Trash2 size={16} /></button>
+                          <button onClick={() => openEditModal(c)} className="text-gray-400 hover:text-blue-600 transition-colors" title="Editar contacto"><HugeiconsIcon icon={PencilEdit01Icon} size={16} /></button>
+                          <button onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 transition-colors" title="Eliminar contacto"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -221,8 +222,8 @@ function ContactsContent() {
                               <td className="px-6 py-4 text-gray-600">{c.phone || "-"}</td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-3">
-                                  <button onClick={() => openEditModal(c)} className="text-gray-400 hover:text-blue-600 transition-colors"><Edit size={16} /></button>
-                                  <button onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+                                  <button onClick={() => openEditModal(c)} className="text-gray-400 hover:text-blue-600 transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={16} /></button>
+                                  <button onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 transition-colors"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
                                 </div>
                               </td>
                             </tr>

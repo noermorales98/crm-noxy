@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { Calendar, Plus, Trash2, Edit, Clock, Link as LinkIcon, XCircle } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
@@ -136,7 +137,7 @@ export default function AppointmentTypesPage() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <Calendar className="text-gray-400" size={28} />
+              <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
               Tipos de Cita
             </h1>
             <Link href="/availability" className="flex items-center gap-2 border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors">
@@ -162,7 +163,7 @@ export default function AppointmentTypesPage() {
             </div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <Calendar className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <HugeiconsIcon icon={Calendar01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tipos de cita." : "Sin tipos de cita"}</h3>
               {!searchQuery && <p className="text-gray-500 text-sm">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>}
             </div>
@@ -188,7 +189,7 @@ export default function AppointmentTypesPage() {
                   )}
 
                   <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
-                    <Clock size={14} />
+                    <HugeiconsIcon icon={Clock01Icon} size={14} />
                     <span>{type.duration} min</span>
                     <span className="mx-2 text-gray-200">·</span>
                     <span>{type._count?.appointments || 0} citas</span>
@@ -200,20 +201,20 @@ export default function AppointmentTypesPage() {
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="Copiar link"
                     >
-                      <LinkIcon size={16} />
+                      <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                     </button>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDelete(type.id, type.name)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <HugeiconsIcon icon={Delete01Icon} size={16} />
                       </button>
                       <button
                         onClick={() => openEdit(type)}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                       >
-                        <Edit size={14} /> Editar
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Editar
                       </button>
                     </div>
                   </div>
@@ -232,7 +233,7 @@ export default function AppointmentTypesPage() {
                 {editingType ? "Editar Tipo de Cita" : "Nuevo Tipo de Cita"}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <XCircle size={20} />
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">

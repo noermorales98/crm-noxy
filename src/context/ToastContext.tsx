@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, ReactNode } from "react";
-import { CheckCircle2, XCircle, AlertTriangle, Info, X, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon, Cancel01Icon, Alert01Icon, InformationCircleIcon, Delete01Icon } from "@hugeicons/core-free-icons";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,10 +88,10 @@ export function useToast() {
 // ── Toast Container ───────────────────────────────────────────────────────────
 
 const ICONS: Record<ToastType, React.ReactNode> = {
-  success: <CheckCircle2 size={18} className="shrink-0 text-green-500" />,
-  error: <XCircle size={18} className="shrink-0 text-red-500" />,
-  warning: <AlertTriangle size={18} className="shrink-0 text-amber-500" />,
-  info: <Info size={18} className="shrink-0 text-blue-500" />,
+  success: <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} color="#22c55e" className="shrink-0" />,
+  error: <HugeiconsIcon icon={Cancel01Icon} size={18} color="#ef4444" className="shrink-0" />,
+  warning: <HugeiconsIcon icon={Alert01Icon} size={18} color="#f59e0b" className="shrink-0" />,
+  info: <HugeiconsIcon icon={InformationCircleIcon} size={18} color="#3b82f6" className="shrink-0" />,
 };
 
 const BORDERS: Record<ToastType, string> = {
@@ -122,7 +123,7 @@ function ToastContainer({
             onClick={() => onRemove(toast.id)}
             className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 mt-0.5"
           >
-            <X size={15} />
+            <HugeiconsIcon icon={Cancel01Icon} size={15} />
           </button>
         </div>
       ))}
@@ -159,11 +160,11 @@ function ConfirmDialog({
         <div className="flex items-start gap-3">
           {isDanger ? (
             <div className="p-2 bg-red-50 rounded-xl shrink-0">
-              <Trash2 size={18} className="text-red-500" />
+              <HugeiconsIcon icon={Delete01Icon} size={18} color="#ef4444" />
             </div>
           ) : (
             <div className="p-2 bg-amber-50 rounded-xl shrink-0">
-              <AlertTriangle size={18} className="text-amber-500" />
+              <HugeiconsIcon icon={Alert01Icon} size={18} color="#f59e0b" />
             </div>
           )}
           <div className="flex flex-col gap-1">

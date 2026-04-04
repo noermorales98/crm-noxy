@@ -5,7 +5,8 @@ import { useSession, signOut } from "next-auth/react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { useToast } from "@/src/context/ToastContext";
-import { User, Mail, Lock, Eye, EyeOff, ShieldCheck, LogOut, CheckCircle2, AlertTriangle } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { User02Icon, Mail01Icon, LockIcon, ViewIcon, ViewOffIcon, ShieldUserIcon, Logout01Icon, CheckmarkCircle01Icon, Alert01Icon } from "@hugeicons/core-free-icons";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -156,7 +157,7 @@ export default function ProfilePage() {
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-colors shrink-0"
                   >
-                    <LogOut size={16} />
+                    <HugeiconsIcon icon={Logout01Icon} size={16} />
                     Cerrar sesión
                   </button>
                 </div>
@@ -165,7 +166,7 @@ export default function ProfilePage() {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
-                      <User size={18} className="text-blue-600" />
+                      <HugeiconsIcon icon={User02Icon} size={18} color="#2563eb" />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-gray-900">Información Personal</h2>
@@ -186,7 +187,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                        <Mail size={14} className="text-gray-400" /> Correo electrónico
+                        <HugeiconsIcon icon={Mail01Icon} size={14} color="#9ca3af" /> Correo electrónico
                       </label>
                       <input
                         type="email"
@@ -198,7 +199,7 @@ export default function ProfilePage() {
                       />
                       {email !== originalEmail && (
                         <p className="text-xs text-amber-600 flex items-center gap-1">
-                          <AlertTriangle size={12} />
+                          <HugeiconsIcon icon={Alert01Icon} size={12} />
                           Cambiar el correo afectará tu próximo inicio de sesión.
                         </p>
                       )}
@@ -219,7 +220,7 @@ export default function ProfilePage() {
                 <div className="bg-white rounded-xl border border-gray-200 p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
-                      <Lock size={18} className="text-amber-600" />
+                      <HugeiconsIcon icon={LockIcon} size={18} color="#d97706" />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-gray-900">Cambiar Contraseña</h2>
@@ -241,7 +242,7 @@ export default function ProfilePage() {
                           className={inputCls + " pr-11"}
                         />
                         <button type="button" onClick={() => setShowCurrent(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
-                          {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showCurrent ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
                     </div>
@@ -259,7 +260,7 @@ export default function ProfilePage() {
                           className={inputCls + " pr-11"}
                         />
                         <button type="button" onClick={() => setShowNew(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
-                          {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showNew ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
                       {/* Strength bar */}
@@ -286,17 +287,17 @@ export default function ProfilePage() {
                           className={inputCls + " pr-11"}
                         />
                         <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
-                          {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showConfirm ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
                       {confirmPassword && newPassword !== confirmPassword && (
                         <p className="text-xs text-red-500 flex items-center gap-1">
-                          <AlertTriangle size={12} /> Las contraseñas no coinciden.
+                          <HugeiconsIcon icon={Alert01Icon} size={12} /> Las contraseñas no coinciden.
                         </p>
                       )}
                       {confirmPassword && newPassword === confirmPassword && newPassword.length >= 8 && (
                         <p className="text-xs text-green-600 flex items-center gap-1">
-                          <CheckCircle2 size={12} /> ¡Las contraseñas coinciden!
+                          <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} /> ¡Las contraseñas coinciden!
                         </p>
                       )}
                     </div>
@@ -307,7 +308,7 @@ export default function ProfilePage() {
                         disabled={savingPassword}
                         className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
                       >
-                        <ShieldCheck size={16} />
+                        <HugeiconsIcon icon={ShieldUserIcon} size={16} />
                         {savingPassword ? "Actualizando..." : "Cambiar contraseña"}
                       </button>
                     </div>

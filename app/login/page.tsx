@@ -4,7 +4,8 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LoginIcon } from "@hugeicons/core-free-icons";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -48,7 +49,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#f5f4ef]">
       <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-md border border-gray-100">
         <div className="flex justify-center mb-6 text-gray-900">
-          <LogIn size={40} />
+          <HugeiconsIcon icon={LoginIcon} size={40} />
         </div>
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Bienvenido</h1>
         <p className="text-sm text-gray-500 text-center mb-8">Inicia sesión en tu CRM</p>

@@ -2,23 +2,24 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Sidebar from "@/src/components/Sidebar";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Inbox,
-  Send,
-  Archive,
-  RefreshCw,
-  Pencil,
-  Trash2,
+  InboxIcon,
+  SentIcon,
   ArchiveIcon,
-  Reply,
-  X,
-  Mail,
-  ChevronRight,
-  Settings,
-  Eye,
-  EyeOff,
-  Building2,
-} from "lucide-react";
+  Refresh01Icon,
+  PencilEdit01Icon,
+  Delete01Icon,
+  Archive01Icon,
+  MailReplyIcon,
+  Cancel01Icon,
+  Mail01Icon,
+  ArrowRight01Icon,
+  Settings01Icon,
+  ViewIcon,
+  ViewOffIcon,
+  Building04Icon,
+} from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
@@ -54,9 +55,9 @@ type EmailDetail = EmailSummary & {
 type Folder = "inbox" | "sent" | "archived";
 
 const FOLDERS: { key: Folder; label: string; icon: React.ReactNode }[] = [
-  { key: "inbox", label: "Entrada", icon: <Inbox size={15} /> },
-  { key: "sent", label: "Enviados", icon: <Send size={15} /> },
-  { key: "archived", label: "Archivados", icon: <Archive size={15} /> },
+  { key: "inbox", label: "Entrada", icon: <HugeiconsIcon icon={InboxIcon} size={15} /> },
+  { key: "sent", label: "Enviados", icon: <HugeiconsIcon icon={SentIcon} size={15} /> },
+  { key: "archived", label: "Archivados", icon: <HugeiconsIcon icon={Archive01Icon} size={15} /> },
 ];
 
 export default function EmailsPage() {
@@ -381,7 +382,7 @@ export default function EmailsPage() {
               }}
               className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
             >
-              <Pencil size={14} />
+              <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
               Redactar
             </button>
           </div>
@@ -427,7 +428,7 @@ export default function EmailsPage() {
                   : "text-gray-600 hover:bg-gray-50"
               }`}
             >
-              <Building2 size={15} />
+              <HugeiconsIcon icon={Building04Icon} size={15} />
               <span className="truncate">Todas</span>
             </button>
 
@@ -443,9 +444,9 @@ export default function EmailsPage() {
                 >
                   <div className="shrink-0" title={company.imapHost ? "SMTP + IMAP configurados" : "Solo SMTP (no puede recibir correos)"}>
                     {company.imapHost ? (
-                      <Inbox size={14} className="text-green-500" />
+                      <HugeiconsIcon icon={InboxIcon} size={14} color="#22c55e" />
                     ) : (
-                      <Send size={14} className="text-amber-400" />
+                      <HugeiconsIcon icon={SentIcon} size={14} color="#fbbf24" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -460,7 +461,7 @@ export default function EmailsPage() {
                   className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-700 transition-all rounded-lg hover:bg-gray-100"
                   title="Configurar SMTP / IMAP"
                 >
-                  <Settings size={13} />
+                  <HugeiconsIcon icon={Settings01Icon} size={13} />
                 </button>
               </div>
             ))}
@@ -474,7 +475,7 @@ export default function EmailsPage() {
               className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 py-2 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               title="Obtener correos nuevos"
             >
-              <RefreshCw size={14} className={isSyncing ? "animate-spin" : ""} />
+              <HugeiconsIcon icon={Refresh01Icon} size={14} className={isSyncing ? "animate-spin" : ""} />
               {isSyncing ? "Sincronizando..." : "Sincronizar"}
             </button>
             <button
@@ -483,7 +484,7 @@ export default function EmailsPage() {
               className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 py-1.5 rounded-xl hover:bg-blue-50 transition-colors disabled:opacity-50"
               title="Descargar TODOS los correos históricos (puede tardar)"
             >
-              <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
+              <HugeiconsIcon icon={Refresh01Icon} size={12} className={isSyncing ? "animate-spin" : ""} />
               Descargar todo el historial
             </button>
           </div>
@@ -524,7 +525,7 @@ export default function EmailsPage() {
                   return (
                     <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-3">
                       <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center">
-                        <Inbox size={22} className="text-amber-400" />
+                        <HugeiconsIcon icon={InboxIcon} size={22} color="#fbbf24" />
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-gray-800">IMAP no configurado</p>
@@ -542,7 +543,7 @@ export default function EmailsPage() {
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-xs font-medium rounded-xl hover:bg-gray-800 transition-colors"
                       >
-                        <Settings size={13} />
+                        <HugeiconsIcon icon={Settings01Icon} size={13} />
                         Configurar IMAP
                       </button>
                       {!targetCompany && noImapCompanies.length > 1 && (
@@ -556,7 +557,7 @@ export default function EmailsPage() {
 
                 return (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2 px-4 text-center">
-                    <Mail size={32} className="opacity-30" />
+                    <HugeiconsIcon icon={Mail01Icon} size={32} className="opacity-30" />
                     <p className="text-sm">No hay correos en esta carpeta</p>
                     {folder === "inbox" && (
                       <button
@@ -564,7 +565,7 @@ export default function EmailsPage() {
                         disabled={isSyncing}
                         className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1 mt-1"
                       >
-                        <RefreshCw size={11} className={isSyncing ? "animate-spin" : ""} />
+                        <HugeiconsIcon icon={Refresh01Icon} size={11} className={isSyncing ? "animate-spin" : ""} />
                         Sincronizar ahora
                       </button>
                     )}
@@ -667,7 +668,7 @@ export default function EmailsPage() {
                         onClick={() => openReply(selectedEmail)}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                       >
-                        <Reply size={13} />
+                        <HugeiconsIcon icon={MailReplyIcon} size={13} />
                         Responder
                       </button>
                     )}
@@ -676,7 +677,7 @@ export default function EmailsPage() {
                       className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                       title={selectedEmail.isRead ? "Marcar como no leído" : "Marcar como leído"}
                     >
-                      {selectedEmail.isRead ? <EyeOff size={15} /> : <Eye size={15} />}
+                      {selectedEmail.isRead ? <HugeiconsIcon icon={ViewOffIcon} size={15} /> : <HugeiconsIcon icon={ViewIcon} size={15} />}
                     </button>
                     {!selectedEmail.isArchived && (
                       <button
@@ -684,7 +685,7 @@ export default function EmailsPage() {
                         className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Archivar"
                       >
-                        <ArchiveIcon size={15} />
+                        <HugeiconsIcon icon={ArchiveIcon} size={15} />
                       </button>
                     )}
                     <button
@@ -692,13 +693,13 @@ export default function EmailsPage() {
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Eliminar"
                     >
-                      <Trash2 size={15} />
+                      <HugeiconsIcon icon={Delete01Icon} size={15} />
                     </button>
                     <button
                       onClick={() => setSelectedEmail(null)}
                       className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      <X size={15} />
+                      <HugeiconsIcon icon={Cancel01Icon} size={15} />
                     </button>
                   </div>
                 </div>
@@ -721,7 +722,7 @@ export default function EmailsPage() {
                     </pre>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
-                      <Mail size={32} className="opacity-30" />
+                      <HugeiconsIcon icon={Mail01Icon} size={32} className="opacity-30" />
                       <p className="text-sm">Este correo no tiene contenido</p>
                     </div>
                   )}
@@ -730,7 +731,7 @@ export default function EmailsPage() {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 text-gray-400 gap-3">
-              <Mail size={48} className="opacity-20" />
+              <HugeiconsIcon icon={Mail01Icon} size={48} className="opacity-20" />
               <p className="text-base font-medium text-gray-500">Selecciona un correo</p>
               <p className="text-sm text-gray-400">para ver su contenido aquí</p>
             </div>
@@ -745,14 +746,14 @@ export default function EmailsPage() {
             {/* Header */}
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Pencil size={15} className="text-gray-400" />
+                <HugeiconsIcon icon={PencilEdit01Icon} size={15} color="#9ca3af" />
                 Nuevo correo
               </h3>
               <button
                 onClick={() => setIsComposing(false)}
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <X size={16} />
+                <HugeiconsIcon icon={Cancel01Icon} size={16} />
               </button>
             </div>
 
@@ -839,7 +840,7 @@ export default function EmailsPage() {
                   disabled={isSending}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
                 >
-                  <Send size={14} />
+                  <HugeiconsIcon icon={SentIcon} size={14} />
                   {isSending ? "Enviando..." : "Enviar"}
                 </button>
               </div>
@@ -865,7 +866,7 @@ export default function EmailsPage() {
                 onClick={() => setShowImapModal(false)}
                 className="text-gray-400 hover:text-gray-600 p-1"
               >
-                <X size={20} />
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
 
@@ -873,7 +874,7 @@ export default function EmailsPage() {
               {/* SMTP Section */}
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Send size={14} className="text-blue-500" />
+                  <HugeiconsIcon icon={SentIcon} size={14} color="#3b82f6" />
                   Configuración de envío (SMTP)
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
@@ -945,7 +946,7 @@ export default function EmailsPage() {
               {/* IMAP Section */}
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Inbox size={14} className="text-green-500" />
+                  <HugeiconsIcon icon={InboxIcon} size={14} color="#22c55e" />
                   Configuración de recepción (IMAP)
                 </h4>
                 <div className="grid grid-cols-2 gap-3">

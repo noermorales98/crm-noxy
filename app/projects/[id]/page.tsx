@@ -1,7 +1,8 @@
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Folder, Zap, TrendingUp, GitBranch, Megaphone, LayoutDashboard, Calendar, Users, Activity, AppWindow, CheckSquare, Building, Mail } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, ArrowRight01Icon, FolderIcon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon, DashboardSquare02Icon, Calendar01Icon, UserMultipleIcon, Activity01Icon, BrowserIcon, CheckmarkSquare01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { notFound } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
@@ -64,7 +65,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="max-w-7xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
-              <ArrowLeft size={16} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
               Regresar a proyectos
             </Link>
 
@@ -72,17 +73,17 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
             <div className="bg-white border border-gray-200 rounded-xl p-8 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
               <div className="flex items-start gap-5">
                 <div className="w-16 h-16 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 shrink-0">
-                  {project.icon === "zap" && <Zap size={32} />}
-                  {project.icon === "trending-up" && <TrendingUp size={32} />}
-                  {project.icon === "git-branch" && <GitBranch size={32} />}
-                  {project.icon === "megaphone" && <Megaphone size={32} />}
-                  {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <Folder size={32} />}
+                  {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={32} />}
+                  {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={32} />}
+                  {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={32} />}
+                  {project.icon === "megaphone" && <HugeiconsIcon icon={Megaphone01Icon} size={32} />}
+                  {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <HugeiconsIcon icon={FolderIcon} size={32} />}
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">{project.name}</h1>
                   {project.clientCompany && (
                     <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full w-fit mb-3 border border-blue-100">
-                      <Building size={14} />
+                      <HugeiconsIcon icon={Building04Icon} size={14} />
                       Negocio: {project.clientCompany.name}
                     </div>
                   )}
@@ -102,7 +103,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               {/* Contacts */}
               <DashboardCard
                 title="Contacts"
-                icon={<Users className="text-blue-500" size={20} />}
+                icon={<HugeiconsIcon icon={UserMultipleIcon} size={20} color="#3b82f6" />}
                 count={project._count.contacts}
                 link={`/contacts?projectId=${project.id}`}
               >
@@ -123,7 +124,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               {/* Companies */}
               <DashboardCard
                 title="Empresas"
-                icon={<Building className="text-purple-500" size={20} />}
+                icon={<HugeiconsIcon icon={Building04Icon} size={20} color="#a855f7" />}
                 count={project._count.companies}
                 link={`/companies?projectId=${project.id}`}
               >
@@ -144,7 +145,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               {/* Forms */}
               <DashboardCard
                 title="Formularios"
-                icon={<AppWindow className="text-green-500" size={20} />}
+                icon={<HugeiconsIcon icon={BrowserIcon} size={20} color="#22c55e" />}
                 count={project._count.forms}
                 link={`/forms?projectId=${project.id}`}
               >
@@ -165,7 +166,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               {/* Email Campaigns */}
               <DashboardCard
                 title="Campaigns"
-                icon={<Mail className="text-orange-500" size={20} />}
+                icon={<HugeiconsIcon icon={Mail01Icon} size={20} color="#f97316" />}
                 count={project._count.campaigns}
                 link={`/campaigns?projectId=${project.id}`}
               >
@@ -186,7 +187,7 @@ export default async function ProjectDetailsPage(props: { params: Promise<{ id: 
               {/* Tasks */}
               <DashboardCard
                 title="Tasks"
-                icon={<CheckSquare className="text-red-500" size={20} />}
+                icon={<HugeiconsIcon icon={CheckmarkSquare01Icon} size={20} color="#ef4444" />}
                 count={project._count.tasks}
                 link={`/tasks?projectId=${project.id}`}
               >
@@ -231,7 +232,7 @@ function DashboardCard({ title, icon, count, children, link }: { title: string, 
       <div className="pt-4 border-t border-gray-50 mt-4">
         <Link href={link} className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center justify-between group">
           View all {title.toLowerCase()}
-          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
     </div>
@@ -242,7 +243,7 @@ function EmptyState({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-6 text-center h-full">
       <div className="text-gray-300 mb-2">
-        <Folder size={24} />
+        <HugeiconsIcon icon={FolderIcon} size={24} />
       </div>
       <p className="text-sm text-gray-500">{text}</p>
     </div>

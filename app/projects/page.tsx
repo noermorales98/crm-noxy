@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { Plus, Folder, ArrowRight, Activity, Zap, TrendingUp, GitBranch, Megaphone } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, FolderIcon, ArrowRight01Icon, Activity01Icon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon } from "@hugeicons/core-free-icons";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import DeleteProjectButton from "@/src/components/DeleteProjectButton";
@@ -90,11 +91,11 @@ export default function ProjectsPage() {
                     <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
                         <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:scale-110 transition-transform">
-                          {project.icon === "zap" && <Zap size={24} />}
-                          {project.icon === "trending-up" && <TrendingUp size={24} />}
-                          {project.icon === "git-branch" && <GitBranch size={24} />}
-                          {project.icon === "megaphone" && <Megaphone size={24} />}
-                          {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <Folder size={24} />}
+                          {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}
+                          {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={24} />}
+                          {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={24} />}
+                          {project.icon === "megaphone" && <HugeiconsIcon icon={Megaphone01Icon} size={24} />}
+                          {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <HugeiconsIcon icon={FolderIcon} size={24} />}
                         </div>
                         <DeleteProjectButton projectId={project.id} projectName={project.name} />
                       </div>
@@ -102,11 +103,11 @@ export default function ProjectsPage() {
                       <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-1">{project.description || "Sin descripción."}</p>
                       <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
                         <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <Activity size={16} />
+                          <HugeiconsIcon icon={Activity01Icon} size={16} />
                           <span>{totalAssets} assets connected</span>
                         </div>
                         <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors">
-                          <ArrowRight size={16} />
+                          <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                         </div>
                       </div>
                     </Link>
@@ -116,14 +117,14 @@ export default function ProjectsPage() {
                 {displayed.length === 0 && (
                   <div className="col-span-full bg-gray-50 rounded-3xl border border-dashed border-gray-300 p-12 flex flex-col items-center justify-center text-center">
                     <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-400 mb-4">
-                      <Folder size={32} />
+                      <HugeiconsIcon icon={FolderIcon} size={32} />
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{searchQuery ? "No se encontraron proyectos." : "No projects yet"}</h3>
                     {!searchQuery && (
                       <>
                         <p className="text-gray-500 max-w-sm mb-6">Group your forms, campaigns, contacts, and companies together by creating your first project.</p>
                         <Link href="/projects/create" className="inline-flex items-center justify-center gap-2 bg-white text-gray-900 border border-gray-200 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors font-medium shadow-sm">
-                          <Plus size={18} /> Create your first project
+                          <HugeiconsIcon icon={Add01Icon} size={18} /> Create your first project
                         </Link>
                       </>
                     )}

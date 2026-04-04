@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { Clock, Plus, Trash2, XCircle, CalendarOff } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Clock01Icon, Add01Icon, Delete01Icon, Cancel01Icon, CalendarOffIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 
@@ -238,7 +239,7 @@ export default function AvailabilityPage() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <Clock className="text-gray-400" size={28} />
+              <HugeiconsIcon icon={Clock01Icon} size={28} color="#9ca3af" />
               Horarios de Disponibilidad
             </h1>
           </div>
@@ -249,14 +250,14 @@ export default function AvailabilityPage() {
             </div>
           ) : schedules.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <Clock className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <HugeiconsIcon icon={Clock01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin horarios</h3>
               <p className="text-gray-500 text-sm mb-4">Define tus horarios de disponibilidad para recibir citas.</p>
               <button
                 onClick={openCreate}
                 className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl transition-colors"
               >
-                <Plus size={16} /> Crear Horario
+                <HugeiconsIcon icon={Add01Icon} size={16} /> Crear Horario
               </button>
             </div>
           ) : (
@@ -273,7 +274,7 @@ export default function AvailabilityPage() {
                         onClick={() => handleDelete(schedule.id, schedule.name)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <HugeiconsIcon icon={Delete01Icon} size={16} />
                       </button>
                       <button
                         onClick={() => openEdit(schedule)}
@@ -305,7 +306,7 @@ export default function AvailabilityPage() {
           <div className="mt-16 mb-8 flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-                <CalendarOff className="text-gray-400" size={24} />
+                <HugeiconsIcon icon={CalendarOffIcon} size={24} color="#9ca3af" />
                 Excepciones y Días Especiales
               </h2>
               <p className="text-sm text-gray-500 mt-1">Bloquea fechas u horas específicas donde no estarás disponible (Ej: Vacaciones)</p>
@@ -314,13 +315,13 @@ export default function AvailabilityPage() {
               onClick={openBlockedModal}
               className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
             >
-              <Plus size={18} /> Bloquear Fecha
+              <HugeiconsIcon icon={Add01Icon} size={18} /> Bloquear Fecha
             </button>
           </div>
 
           {!isLoading && blockedTimes.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200 shadow-sm">
-              <CalendarOff className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+              <HugeiconsIcon icon={CalendarOffIcon} size={40} color="#d1d5db" className="mx-auto mb-3" />
               <p className="text-gray-500 text-sm">No tienes ninguna excursión o vacación programada próximamente.</p>
             </div>
           ) : (
@@ -345,7 +346,7 @@ export default function AvailabilityPage() {
                           onClick={() => handleDeleteBlocked(blocked.id)}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                          <Trash2 size={16} />
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
                         </button>
                       </td>
                     </tr>
@@ -366,7 +367,7 @@ export default function AvailabilityPage() {
                 {editingSchedule ? "Editar Horario" : "Nuevo Horario"}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <XCircle size={20} />
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
@@ -460,7 +461,7 @@ export default function AvailabilityPage() {
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Bloquear Fecha / Hora</h3>
               <button onClick={() => setIsBlockedModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                <XCircle size={20} />
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">

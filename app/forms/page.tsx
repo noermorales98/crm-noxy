@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { FormInput, Trash2, Code, Link as LinkIcon, Activity, XCircle, Users, Edit } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { File02Icon, Delete01Icon, CodeIcon, LinkSquare01Icon, Activity01Icon, Cancel01Icon, UserMultipleIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
@@ -167,7 +168,7 @@ export default function FormsPage() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <FormInput className="text-gray-400" size={28} />
+              <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
               Formularios
             </h1>
           </div>
@@ -176,7 +177,7 @@ export default function FormsPage() {
             <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <FormInput className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <HugeiconsIcon icon={File02Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery || activeFilters.status ? "No se encontraron formularios." : "No forms yet"}</h3>
               {!searchQuery && !activeFilters.status && <p className="text-gray-500 text-sm">Create your first custom form to capture leads from your website.</p>}
             </div>
@@ -196,7 +197,7 @@ export default function FormsPage() {
                         </div>
                       </div>
                       {form.isActive ? (
-                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md"><Activity size={10} /> Activo</span>
+                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md"><HugeiconsIcon icon={Activity01Icon} size={10} /> Activo</span>
                       ) : (
                         <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Offline</span>
                       )}
@@ -209,13 +210,13 @@ export default function FormsPage() {
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-auto">
                       <div className="flex gap-2">
-                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Copy Public Link"><LinkIcon size={16} /></button>
-                        <button onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")} className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Copy Iframe Code"><Code size={16} /></button>
+                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Copy Public Link"><HugeiconsIcon icon={LinkSquare01Icon} size={16} /></button>
+                        <button onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")} className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Copy Iframe Code"><HugeiconsIcon icon={CodeIcon} size={16} /></button>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => handleDelete(form.id, form.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Form"><Trash2 size={16} /></button>
-                        <button onClick={() => handleViewContacts(form)} title="Ver Registrados" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"><Users size={14} /> Registrados</button>
-                        <Link href={`/forms/${form.id}`} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"><Edit size={14} /> Builder</Link>
+                        <button onClick={() => handleDelete(form.id, form.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Form"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
+                        <button onClick={() => handleViewContacts(form)} title="Ver Registrados" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"><HugeiconsIcon icon={UserMultipleIcon} size={14} /> Registrados</button>
+                        <Link href={`/forms/${form.id}`} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Builder</Link>
                       </div>
                     </div>
                   </div>
@@ -231,7 +232,7 @@ export default function FormsPage() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Crear formulario</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><XCircle size={20} /></button>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
             </div>
             <div className="p-6">
               <form id="createForm" onSubmit={handleCreateForm} className="flex flex-col gap-4">
@@ -275,13 +276,13 @@ export default function FormsPage() {
                 <h3 className="text-lg font-bold text-gray-900">Registrados</h3>
                 <p className="text-sm text-gray-500">Últimos registros en {selectedFormForContacts?.name}</p>
               </div>
-              <button onClick={() => setIsContactsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><XCircle size={24} /></button>
+              <button onClick={() => setIsContactsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
             </div>
             <div className="p-0 overflow-y-auto bg-gray-50/30 flex-1">
               {isLoadingContacts ? (
                 <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
               ) : formContacts.length === 0 ? (
-                <div className="text-center py-16"><Users className="mx-auto h-12 w-12 text-gray-300 mb-3" /><h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3><p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p></div>
+                <div className="text-center py-16"><HugeiconsIcon icon={UserMultipleIcon} size={48} color="#d1d5db" className="mx-auto mb-3" /><h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3><p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p></div>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {formContacts.map((contact, idx) => {

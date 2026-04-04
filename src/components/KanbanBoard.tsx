@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MoreVertical, Calendar, MessageSquare, Paperclip, ArrowDownUp } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { MoreVerticalIcon, Calendar01Icon, ConversationIcon, AttachmentIcon, ArrowUpDownIcon } from "@hugeicons/core-free-icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 export function KanbanBoard() {
@@ -82,7 +83,7 @@ export function KanbanBoard() {
               <h3 className="font-semibold text-lg text-gray-900">{stage.name}</h3>
               <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-white shadow-sm border border-gray-100/50">
                 <span className="text-sm font-semibold text-gray-700">{stage.deals?.length || 0}</span>
-                <ArrowDownUp size={14} className="text-gray-400" />
+                <HugeiconsIcon icon={ArrowUpDownIcon} size={14} color="#9ca3af" />
               </div>
             </div>
 
@@ -131,7 +132,7 @@ function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
       <div className="flex items-start justify-between">
         <h4 className="font-bold text-base leading-snug">{deal.title}</h4>
         <button className={`${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-900'} -mt-1 -mr-2 p-1`}>
-          <MoreVertical size={16} />
+          <HugeiconsIcon icon={MoreVerticalIcon} size={16} />
         </button>
       </div>
 
@@ -151,7 +152,7 @@ function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
       <div className={`flex items-center justify-between mt-auto pt-2 ${isDark ? '' : 'border-t border-gray-50'}`}>
         {/* Date Badge */}
         <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium border ${isDark ? 'bg-[#333333] border-gray-600 text-gray-300' : 'bg-white border-gray-200 text-gray-600'}`}>
-          <Calendar size={12} />
+          <HugeiconsIcon icon={Calendar01Icon} size={12} />
           {new Date(deal.createdAt).toLocaleDateString()}
         </div>
       </div>

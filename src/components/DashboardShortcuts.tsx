@@ -1,70 +1,101 @@
 import Link from "next/link";
-import { UserPlus, CalendarDays, CheckSquare, Megaphone, FolderKanban } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  UserMultipleIcon,
+  CalendarCheckIn01Icon,
+  Task01Icon,
+  Mail01Icon,
+  FolderKanbanIcon,
+} from "@hugeicons/core-free-icons";
 
-export function DashboardShortcuts() {
-  const shortcuts = [
+interface ShortcutMetric {
+  title: string;
+  value: number;
+  href: string;
+  icon: any;
+  description: string;
+  color: string;
+}
+
+interface DashboardShortcutsProps {
+  contactsCount?: number;
+  appointmentsCount?: number;
+  tasksCount?: number;
+  campaignsCount?: number;
+  projectsCount?: number;
+}
+
+export function DashboardShortcuts({
+  contactsCount = 0,
+  appointmentsCount = 0,
+  tasksCount = 0,
+  campaignsCount = 0,
+  projectsCount = 0,
+}: DashboardShortcutsProps) {
+  const metrics: ShortcutMetric[] = [
     {
-      title: "Nuevo Lead",
-      description: "Agrega y administra nuevos clientes",
-      icon: UserPlus,
+      title: "Contactos",
+      value: contactsCount,
       href: "/contacts",
-      color: "bg-blue-500",
+      icon: UserMultipleIcon,
+      description: "Leads registrados",
+      color: "#3b82f6",
     },
     {
-      title: "Ver Citas",
-      description: "Gestiona las reuniones de tu agenda",
-      icon: CalendarDays,
+      title: "Citas",
+      value: appointmentsCount,
       href: "/appointments",
-      color: "bg-purple-500",
+      icon: CalendarCheckIn01Icon,
+      description: "Próximas citas",
+      color: "#8b5cf6",
     },
     {
-      title: "Mis Tareas",
-      description: "Revisa y marca tareas pendientes",
-      icon: CheckSquare,
+      title: "Tareas",
+      value: tasksCount,
       href: "/tasks",
-      color: "bg-orange-500",
-    },
-    {
-      title: "Nuevo Proyecto",
-      description: "Inicia y colabora en nuevos proyectos",
-      icon: FolderKanban,
-      href: "/projects",
-      color: "bg-emerald-500",
+      icon: Task01Icon,
+      description: "Pendientes",
+      color: "#f97316",
     },
     {
       title: "Campañas",
-      description: "Envía emails y promociones",
-      icon: Megaphone,
+      value: campaignsCount,
       href: "/campaigns",
-      color: "bg-pink-500",
+      icon: Mail01Icon,
+      description: "Activas",
+      color: "#ec4899",
+    },
+    {
+      title: "Proyectos",
+      value: projectsCount,
+      href: "/projects",
+      icon: FolderKanbanIcon,
+      description: "En progreso",
+      color: "#10b981",
     },
   ];
 
   return (
-    <section>
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Accesos Directos</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {shortcuts.map((shortcut) => {
-          const Icon = shortcut.icon;
-          return (
-            <Link
-              key={shortcut.title}
-              href={shortcut.href}
-              className="flex flex-col items-center justify-center p-6 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-200 group relative overflow-hidden"
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {metrics.map((metric) => (
+        <Link
+          key={metric.title}
+          href={metric.href}
+          className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-sm transition-all duration-200 group"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{metric.title}</span>
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${metric.color}15` }}
             >
-              <div
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-white mb-3 shadow-sm ${shortcut.color} group-hover:scale-110 transition-transform duration-300`}
-              >
-                <Icon size={24} strokeWidth={2.5} />
-              </div>
-              <h3 className="text-gray-900 font-semibold mb-1 text-center">{shortcut.title}</h3>
-              <p className="text-xs text-gray-500 text-center leading-tight">
-                {shortcut.description}
-              </p>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
+              <HugeiconsIcon icon={metric.icon} size={15} color={metric.color} />
+            </div>
+          </div>
+          <p className="text-2xl font-bold text-gray-900 tabular-nums">{metric.value}</p>
+          <p className="text-xs text-gray-400 mt-1">{metric.description}</p>
+        </Link>
+      ))}
+    </div>
   );
 }

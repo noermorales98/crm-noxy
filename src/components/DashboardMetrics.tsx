@@ -1,4 +1,5 @@
-import { ArrowRight } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
 
 export default function DashboardMetrics() {
   return (
@@ -58,7 +59,7 @@ export default function DashboardMetrics() {
           <div className="text-sm font-medium text-gray-500">Tasks<br/>in progress</div>
         </div>
         <div className="mt-4 pb-2 text-gray-400 group-hover:text-gray-900 transition-colors">
-            <ArrowRight size={20} />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={20} />
         </div>
       </div>
 
@@ -69,7 +70,7 @@ export default function DashboardMetrics() {
           <div className="text-sm font-medium text-gray-500">Prepayments<br/>from customers</div>
         </div>
         <div className="mt-4 pb-2 text-gray-400 group-hover:text-gray-900 transition-colors">
-            <ArrowRight size={20} />
+            <HugeiconsIcon icon={ArrowRight01Icon} size={20} />
         </div>
       </div>
 

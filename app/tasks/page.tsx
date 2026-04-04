@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { Check, Clock, Trash2, FolderGit2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Tick01Icon, Clock01Icon, Delete01Icon, FolderGitIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
@@ -141,7 +142,7 @@ export default function TasksPage() {
               onClick={() => setIsCategoriesModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-xl transition-colors"
             >
-              <FolderGit2 size={16} /> Categorías
+              <HugeiconsIcon icon={FolderGitIcon} size={16} /> Categorías
             </button>
           </div>
 
@@ -154,7 +155,7 @@ export default function TasksPage() {
             <div className="text-gray-500">Cargando tareas...</div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-              <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <HugeiconsIcon icon={Clock01Icon} size={48} color="#d1d5db" className="mx-auto mb-3" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">{searchQuery ? "No se encontraron tareas." : "Sin tareas pendientes"}</h3>
               {!searchQuery && <p className="text-gray-500 text-sm">¡Todo listo! Disfruta tu día.</p>}
             </div>
@@ -167,7 +168,7 @@ export default function TasksPage() {
                       onClick={() => toggleTask(task.id, task.isCompleted)}
                       className={`mt-0.5 shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-colors ${task.isCompleted ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 bg-white group-hover:border-gray-400'}`}
                     >
-                      {task.isCompleted && <Check size={14} strokeWidth={3} />}
+                      {task.isCompleted && <HugeiconsIcon icon={Tick01Icon} size={14} />}
                     </button>
                     <div className="flex-1 flex flex-col gap-1">
                       <span className={`text-sm font-medium ${task.isCompleted ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{task.title}</span>
@@ -186,7 +187,7 @@ export default function TasksPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="shrink-0 text-xs font-semibold text-gray-400 px-2 py-1 bg-gray-50 rounded">{new Date(task.createdAt).toLocaleDateString()}</div>
-                      <button onClick={() => handleDelete(task)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar tarea"><Trash2 size={16} /></button>
+                      <button onClick={() => handleDelete(task)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar tarea"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
                     </div>
                   </li>
                 ))}

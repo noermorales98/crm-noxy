@@ -1,7 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useRef } from "react";
-import { AlertTriangle, Info, ShieldAlert } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Alert01Icon, InformationCircleIcon, ShieldUserIcon } from "@hugeicons/core-free-icons";
 
 type ConfirmOptions = {
   title: string;
@@ -52,9 +53,9 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                   options.variant === "warning" ? "bg-amber-100 text-amber-600" :
                     "bg-blue-100 text-blue-600"
                 }`}>
-                {options.variant === "danger" && <ShieldAlert size={24} />}
-                {options.variant === "warning" && <AlertTriangle size={24} />}
-                {(!options.variant || options.variant === "info") && <Info size={24} />}
+                {options.variant === "danger" && <HugeiconsIcon icon={ShieldUserIcon} size={24} />}
+                {options.variant === "warning" && <HugeiconsIcon icon={Alert01Icon} size={24} />}
+                {(!options.variant || options.variant === "info") && <HugeiconsIcon icon={InformationCircleIcon} size={24} />}
               </div>
               <div className="mt-1">
                 <h3 className="text-xl font-bold text-gray-900 leading-tight">

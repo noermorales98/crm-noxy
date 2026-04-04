@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { CalendarCheck, Clock, User, Mail, Phone, CheckCircle2, XCircle, Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CalendarCheckIn01Icon, Clock01Icon, User02Icon, Mail01Icon, CallIcon, CheckmarkCircle01Icon, Cancel01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
@@ -75,7 +76,7 @@ export default function AppointmentsPage() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-              <CalendarCheck className="text-gray-400" size={28} />
+              <HugeiconsIcon icon={CalendarCheckIn01Icon} size={28} color="#9ca3af" />
               Citas Agendadas
             </h1>
             <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
@@ -97,7 +98,7 @@ export default function AppointmentsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-              <CalendarCheck className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <HugeiconsIcon icon={CalendarCheckIn01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">Sin citas</h3>
               <p className="text-gray-500 text-sm">Las citas agendadas aparecerán aquí.</p>
             </div>
@@ -124,16 +125,16 @@ export default function AppointmentsPage() {
                           </span>
                         </div>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
-                          <Clock size={14} />
+                          <HugeiconsIcon icon={Clock01Icon} size={14} />
                           <span>
                             {start.toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} · {start.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })} – {end.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                          <div className="flex items-center gap-1"><User size={13} />{appt.guestName}</div>
-                          <div className="flex items-center gap-1"><Mail size={13} />{appt.guestEmail}</div>
+                          <div className="flex items-center gap-1"><HugeiconsIcon icon={User02Icon} size={13} />{appt.guestName}</div>
+                          <div className="flex items-center gap-1"><HugeiconsIcon icon={Mail01Icon} size={13} />{appt.guestEmail}</div>
                           {appt.guestPhone && (
-                            <div className="flex items-center gap-1"><Phone size={13} />{appt.guestPhone}</div>
+                            <div className="flex items-center gap-1"><HugeiconsIcon icon={CallIcon} size={13} />{appt.guestPhone}</div>
                           )}
                         </div>
                         {appt.notes && (
@@ -148,13 +149,13 @@ export default function AppointmentsPage() {
                             onClick={() => updateStatus(appt.id, "COMPLETED")}
                             className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors"
                           >
-                            <CheckCircle2 size={13} /> Completar
+                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={13} /> Completar
                           </button>
                           <button
                             onClick={() => updateStatus(appt.id, "CANCELLED")}
                             className="flex items-center gap-1 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
                           >
-                            <XCircle size={13} /> Cancelar
+                            <HugeiconsIcon icon={Cancel01Icon} size={13} /> Cancelar
                           </button>
                         </>
                       )}
@@ -162,7 +163,7 @@ export default function AppointmentsPage() {
                         onClick={() => handleDelete(appt.id)}
                         className="flex items-center gap-1 text-xs font-medium text-gray-500 bg-gray-50 hover:bg-red-50 hover:text-red-600 px-3 py-1.5 rounded-lg transition-colors mt-auto"
                       >
-                        <Trash2 size={13} /> Eliminar
+                        <HugeiconsIcon icon={Delete01Icon} size={13} /> Eliminar
                       </button>
                     </div>
                   </div>

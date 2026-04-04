@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { CheckCircle2, ChevronLeft, ChevronRight, Clock, Calendar, Globe, ChevronDown, Search, XCircle } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon, ArrowLeft01Icon, ArrowRight01Icon, Clock01Icon, Calendar01Icon, GlobeIcon, ArrowDown01Icon, Search01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -230,7 +231,7 @@ export default function PublicFormPage() {
   if (submitSuccess) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
-        <CheckCircle2 size={48} className="text-green-500" />
+        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={48} color="#22c55e" />
         <p className="text-gray-900 font-medium text-lg whitespace-pre-wrap">{successActionMsg}</p>
       </div>
     </div>
@@ -323,7 +324,7 @@ export default function PublicFormPage() {
                         <label key={i} className="flex items-center gap-3 cursor-pointer group">
                           <div className="relative flex items-center justify-center">
                             <input type="checkbox" value={opt} checked={formData[field.name]?.includes(opt)} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-gray-300 rounded-md checked:border-black checked:bg-black transition-all" />
-                            {formData[field.name]?.includes(opt) && <CheckCircle2 size={14} className="absolute text-white" />}
+                            {formData[field.name]?.includes(opt) && <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="white" className="absolute" />}
                           </div>
                           <span className="text-[15px] text-gray-700 font-medium group-hover:text-black transition-colors">{opt}</span>
                         </label>
@@ -341,12 +342,12 @@ export default function PublicFormPage() {
                   {/* Calendar Header */}
                   <div className="bg-gray-900 px-6 py-5">
                     <div className="flex items-center gap-2 mb-1">
-                      <Calendar size={18} className="text-white/70" />
+                      <HugeiconsIcon icon={Calendar01Icon} size={18} color="rgba(255,255,255,0.7)" />
                       <h3 className="font-bold text-white text-[15px]">Agendar cita</h3>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1.5 text-xs text-white/50 font-medium px-2 py-0.5 bg-white/10 rounded-full">
-                        <Clock size={12} />
+                        <HugeiconsIcon icon={Clock01Icon} size={12} />
                         <span>{apptType.duration} min</span>
                       </div>
                       <span className="text-xs text-white/40 italic">{apptType.name}</span>
@@ -362,10 +363,10 @@ export default function PublicFormPage() {
                         </span>
                         <div className="flex gap-2">
                           <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-900 transition-colors">
-                            <ChevronLeft size={18} />
+                            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                           </button>
                           <button type="button" onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-900 transition-colors">
-                            <ChevronRight size={18} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
                           </button>
                         </div>
                       </div>
@@ -438,7 +439,7 @@ export default function PublicFormPage() {
                     {/* Selected slot confirmation */}
                     {selectedSlot && (
                       <div className="mb-6 flex items-center gap-3 text-xs text-green-800 bg-green-50 px-4 py-3 rounded-xl border border-green-100 font-bold animate-in bounce-in duration-500">
-                        <CheckCircle2 size={18} className="text-green-500" />
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} color="#22c55e" />
                         <span>
                           {selectedDate && `${selectedDate.getDate()} ${MONTHS[selectedDate.getMonth()]}`} · {formatSlot(selectedSlot)}
                         </span>
@@ -452,16 +453,16 @@ export default function PublicFormPage() {
                         onClick={() => { setShowTzPicker(p => !p); setTzSearch(""); }}
                         className="flex items-center gap-2 text-[11px] font-bold text-gray-400 hover:text-gray-900 transition-colors group uppercase tracking-widest w-full text-left"
                       >
-                        <Globe size={14} className="shrink-0" />
+                        <HugeiconsIcon icon={GlobeIcon} size={14} className="shrink-0" />
                         <span className="truncate flex-1">{tzLabel}</span>
-                        <ChevronDown size={14} className={`shrink-0 transition-transform duration-300 ${showTzPicker ? "rotate-180" : ""}`} />
+                        <HugeiconsIcon icon={ArrowDown01Icon} size={14} className={`shrink-0 transition-transform duration-300 ${showTzPicker ? "rotate-180" : ""}`} />
                       </button>
 
                       {showTzPicker && (
                         <div className="absolute bottom-9 left-0 z-50 w-full bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-bottom-2">
                           <div className="p-3 border-b border-gray-100">
                             <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2.5">
-                              <Search size={14} className="text-gray-400 shrink-0" />
+                              <HugeiconsIcon icon={Search01Icon} size={14} color="#9ca3af" className="shrink-0" />
                               <input
                                 autoFocus
                                 type="text"
@@ -503,7 +504,7 @@ export default function PublicFormPage() {
 
           {errorMsg && (
             <p className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 px-5 py-4 rounded-xl flex items-center gap-3">
-              <XCircle size={18} />
+              <HugeiconsIcon icon={Cancel01Icon} size={18} />
               {errorMsg}
             </p>
           )}

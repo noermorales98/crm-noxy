@@ -2,18 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Folder, Target, Star, Zap, TrendingUp, GitBranch, Megaphone, ArrowLeft, Loader2, LayoutDashboard } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FolderIcon, Target01Icon, FavouriteIcon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon, ArrowLeft01Icon, Loading01Icon, DashboardSquare02Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 
 const availableIcons = [
-  { id: "folder", icon: <Folder size={20} />, label: "Folder" },
-  { id: "layout-dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
-  { id: "zap", icon: <Zap size={20} />, label: "Zap" },
-  { id: "trending-up", icon: <TrendingUp size={20} />, label: "Trending" },
-  { id: "git-branch", icon: <GitBranch size={20} />, label: "Branch" },
-  { id: "megaphone", icon: <Megaphone size={20} />, label: "Campaign" }
+  { id: "folder", icon: <HugeiconsIcon icon={FolderIcon} size={20} />, label: "Folder" },
+  { id: "layout-dashboard", icon: <HugeiconsIcon icon={DashboardSquare02Icon} size={20} />, label: "Dashboard" },
+  { id: "zap", icon: <HugeiconsIcon icon={ZapIcon} size={20} />, label: "Zap" },
+  { id: "trending-up", icon: <HugeiconsIcon icon={AnalyticsUpIcon} size={20} />, label: "Trending" },
+  { id: "git-branch", icon: <HugeiconsIcon icon={GitBranchIcon} size={20} />, label: "Branch" },
+  { id: "megaphone", icon: <HugeiconsIcon icon={Megaphone01Icon} size={20} />, label: "Campaign" }
 ];
 
 export default function CreateProjectPage() {
@@ -73,7 +74,7 @@ export default function CreateProjectPage() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto px-8 py-6">
           <div className="max-w-3xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
-              <ArrowLeft size={16} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
               Volver a proyectos
             </Link>
 
@@ -162,7 +163,7 @@ export default function CreateProjectPage() {
                     disabled={isLoading || !name.trim()}
                     className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading && <Loader2 size={18} className="animate-spin" />}
+                    {isLoading && <HugeiconsIcon icon={Loading01Icon} size={18} className="animate-spin" />}
                     {isLoading ? "Creando..." : "Crear proyecto"}
                   </button>
                 </div>

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Building04Icon } from "@hugeicons/core-free-icons";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -52,7 +53,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#f5f4ef]">
       <div className="bg-white p-8 rounded-xl shadow-sm w-full max-w-md border border-gray-100">
         <div className="flex justify-center mb-6 text-gray-900">
-          <Building2 size={40} />
+          <HugeiconsIcon icon={Building04Icon} size={40} />
         </div>
         <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Create Workspace</h1>
         <p className="text-sm text-gray-500 text-center mb-8">Setup your agency and start managing clients</p>

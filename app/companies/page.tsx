@@ -5,7 +5,8 @@ import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
-import { Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete01Icon } from "@hugeicons/core-free-icons";
 
 export default function CompaniesPage() {
   const { addToast } = useToast();
@@ -181,7 +182,7 @@ export default function CompaniesPage() {
                         <button onClick={() => openSmtpModal(c)} className="text-orange-600 hover:text-orange-800 text-sm font-medium">SMTP</button>
                         <button onClick={() => openEditModal(c)} className="text-blue-600 hover:text-blue-800 text-sm font-medium">Editar</button>
                         <button onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 text-sm font-medium transition-colors" title="Eliminar empresa">
-                          <Trash2 size={16} className="inline-block" />
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
                         </button>
                       </td>
                     </tr>

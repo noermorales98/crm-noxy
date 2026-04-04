@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import { ArrowLeft, Save, Plus, GripVertical, Trash2, Settings2, LayoutTemplate, Copy, ExternalLink, CheckCircle2, GitBranch, Link2, Pencil, ToggleLeft, ToggleRight, Users } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowLeft01Icon, SaveIcon, Add01Icon, HandGripIcon, Delete01Icon, Settings02Icon, Layout01Icon, Copy01Icon, LinkSquare02Icon, CheckmarkCircle01Icon, GitBranchIcon, LinkSquare01Icon, PencilEdit01Icon, ToggleOffIcon, ToggleOnIcon, UserMultipleIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
@@ -304,7 +305,7 @@ export default function FormBuilderPage() {
           {/* Top Bar */}
           <div className="border-b border-gray-100 bg-white px-6 py-3 flex items-center gap-4 shrink-0">
             <Link href="/forms" className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg">
-              <ArrowLeft size={18} />
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
             </Link>
 
             <div className="flex-1 min-w-0">
@@ -324,21 +325,21 @@ export default function FormBuilderPage() {
                 onClick={() => setActiveTab("BUILDER")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "BUILDER" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <LayoutTemplate size={14} />
+                <HugeiconsIcon icon={Layout01Icon} size={14} />
                 Constructor
               </button>
               <button
                 onClick={() => setActiveTab("SETTINGS")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <Settings2 size={14} />
+                <HugeiconsIcon icon={Settings02Icon} size={14} />
                 Configuración
               </button>
               <button
                 onClick={() => setActiveTab("VARIANTS")}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <GitBranch size={14} />
+                <HugeiconsIcon icon={GitBranchIcon} size={14} />
                 Variantes
                 {variants.length > 0 && (
                   <span className="bg-gray-200 text-gray-700 rounded-full px-1.5 py-0 text-[10px] font-bold">{variants.length}</span>
@@ -352,7 +353,7 @@ export default function FormBuilderPage() {
                 onClick={handleCopyLink}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}
               >
-                {copied ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                {copied ? <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} /> : <HugeiconsIcon icon={Copy01Icon} size={14} />}
                 {copied ? "¡Copiado!" : "Copiar link"}
               </button>
               <Link
@@ -360,7 +361,7 @@ export default function FormBuilderPage() {
                 target="_blank"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
               >
-                <ExternalLink size={14} />
+                <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
                 Ver
               </Link>
               <button
@@ -368,7 +369,7 @@ export default function FormBuilderPage() {
                 disabled={isSaving}
                 className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-50"
               >
-                <Save size={14} />
+                <HugeiconsIcon icon={SaveIcon} size={14} />
                 {isSaving ? "Guardando..." : "Guardar"}
               </button>
             </div>
@@ -403,14 +404,14 @@ export default function FormBuilderPage() {
                                     {/* Field Header */}
                                     <div className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 bg-gray-50 rounded-t-xl">
                                       <div {...provided.dragHandleProps} className="text-gray-300 hover:text-gray-600 cursor-grab">
-                                        <GripVertical size={16} />
+                                        <HugeiconsIcon icon={HandGripIcon} size={16} />
                                       </div>
                                       <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Campo {index + 1}</span>
                                       <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-medium">
                                         {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
                                       </span>
                                       <button onClick={() => removeField(index)} className="ml-auto text-gray-300 hover:text-red-500 p-1">
-                                        <Trash2 size={14} />
+                                        <HugeiconsIcon icon={Delete01Icon} size={14} />
                                       </button>
                                     </div>
 
@@ -498,7 +499,7 @@ export default function FormBuilderPage() {
                       onClick={addField}
                       className="w-full py-4 border-2 border-dashed border-gray-200 hover:border-gray-400 hover:bg-gray-50 rounded-xl flex items-center justify-center gap-2 text-gray-400 hover:text-gray-700 text-sm font-semibold"
                     >
-                      <Plus size={16} />
+                      <HugeiconsIcon icon={Add01Icon} size={16} />
                       Agregar campo
                     </button>
 
@@ -558,7 +559,7 @@ export default function FormBuilderPage() {
                       onClick={openNewVariantModal}
                       className="shrink-0 flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-xl text-xs font-semibold"
                     >
-                      <Plus size={14} />
+                      <HugeiconsIcon icon={Add01Icon} size={14} />
                       Nueva variante
                     </button>
                   </div>
@@ -576,7 +577,7 @@ export default function FormBuilderPage() {
                     </div>
                   ) : variants.length === 0 ? (
                     <div className="bg-white border border-dashed border-gray-200 rounded-xl p-10 text-center">
-                      <GitBranch size={28} className="mx-auto text-gray-300 mb-3" />
+                      <HugeiconsIcon icon={GitBranchIcon} size={28} color="#d1d5db" className="mx-auto mb-3" />
                       <p className="text-sm font-semibold text-gray-500">Sin variantes</p>
                       <p className="text-xs text-gray-400 mt-1">Crea tu primera variante para segmentar tus leads por oferta o fuente.</p>
                     </div>
@@ -595,7 +596,7 @@ export default function FormBuilderPage() {
                                     {variant.isActive ? "Activa" : "Inactiva"}
                                   </span>
                                   <span className="text-[10px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
-                                    <Users size={9} className="inline mr-1" />
+                                    <HugeiconsIcon icon={UserMultipleIcon} size={9} className="inline mr-1" />
                                     {variant._count?.contacts ?? 0} leads
                                   </span>
                                 </div>
@@ -610,7 +611,7 @@ export default function FormBuilderPage() {
                                     onClick={() => copyVariantLink(variant.id)}
                                     className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold ${isCopied ? "border-green-200 bg-green-50 text-green-700" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
                                   >
-                                    {isCopied ? <CheckCircle2 size={11} /> : <Copy size={11} />}
+                                    {isCopied ? <HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> : <HugeiconsIcon icon={Copy01Icon} size={11} />}
                                     {isCopied ? "¡Copiado!" : "Copiar"}
                                   </button>
                                   <a
@@ -619,7 +620,7 @@ export default function FormBuilderPage() {
                                     rel="noopener noreferrer"
                                     className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border border-gray-200 text-[10px] font-semibold text-gray-500 hover:bg-gray-50"
                                   >
-                                    <ExternalLink size={11} />
+                                    <HugeiconsIcon icon={LinkSquare02Icon} size={11} />
                                     Ver
                                   </a>
                                 </div>
@@ -630,21 +631,21 @@ export default function FormBuilderPage() {
                                   className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50"
                                   title={variant.isActive ? "Desactivar" : "Activar"}
                                 >
-                                  {variant.isActive ? <ToggleRight size={18} className="text-green-600" /> : <ToggleLeft size={18} />}
+                                  {variant.isActive ? <HugeiconsIcon icon={ToggleOnIcon} size={18} color="#16a34a" /> : <HugeiconsIcon icon={ToggleOffIcon} size={18} />}
                                 </button>
                                 <button
                                   onClick={() => openEditVariantModal(variant)}
                                   className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-50"
                                   title="Editar"
                                 >
-                                  <Pencil size={14} />
+                                  <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteVariant(variant)}
                                   className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
                                   title="Eliminar"
                                 >
-                                  <Trash2 size={14} />
+                                  <HugeiconsIcon icon={Delete01Icon} size={14} />
                                 </button>
                               </div>
                             </div>

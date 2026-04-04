@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LinkIcon, X, CheckSquare, Users, Building, AppWindow, Mail, Filter } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { LinkSquare01Icon, Cancel01Icon, CheckmarkSquare01Icon, UserMultipleIcon, Building04Icon, BrowserIcon, Mail01Icon, FilterIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 
 interface ProjectAssetsManagerProps {
@@ -174,11 +175,11 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
   };
 
   const tabs = [
-    { id: "contacts", label: "Contactos", icon: Users, count: selectedContacts.size },
-    { id: "companies", label: "Empresas", icon: Building, count: selectedCompanies.size },
-    { id: "forms", label: "Formularios", icon: AppWindow, count: selectedForms.size },
-    { id: "campaigns", label: "Campañas", icon: Mail, count: selectedCampaigns.size },
-    { id: "tasks", label: "Tareas", icon: CheckSquare, count: selectedTasks.size },
+    { id: "contacts", label: "Contactos", icon: UserMultipleIcon, count: selectedContacts.size },
+    { id: "companies", label: "Empresas", icon: Building04Icon, count: selectedCompanies.size },
+    { id: "forms", label: "Formularios", icon: BrowserIcon, count: selectedForms.size },
+    { id: "campaigns", label: "Campañas", icon: Mail01Icon, count: selectedCampaigns.size },
+    { id: "tasks", label: "Tareas", icon: CheckmarkSquare01Icon, count: selectedTasks.size },
   ];
 
   return (
@@ -187,7 +188,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
         onClick={() => setIsOpen(true)}
         className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium shrink-0"
       >
-        <LinkIcon size={16} />
+        <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
         Administrar Vínculos
       </button>
 
@@ -198,7 +199,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <LinkIcon className="text-blue-600" size={20} />
+                  <HugeiconsIcon icon={LinkSquare01Icon} size={20} color="#2563eb" />
                   Vincular Recursos al Proyecto
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
@@ -206,7 +207,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                 </p>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                <X size={24} />
+                <HugeiconsIcon icon={Cancel01Icon} size={24} />
               </button>
             </div>
 
@@ -223,7 +224,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <tab.icon size={18} className={activeTab === tab.id ? "text-gray-900" : "text-gray-400"} />
+                        <HugeiconsIcon icon={tab.icon} size={18} color={activeTab === tab.id ? "#111827" : "#9ca3af"} />
                         {tab.label}
                       </div>
                       {tab.count > 0 && (
@@ -248,7 +249,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                     <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-col gap-3">
                       {activeTab === "contacts" && (
                         <div className="flex gap-3 items-center flex-wrap">
-                          <Filter size={16} className="text-gray-400 shrink-0" />
+                          <HugeiconsIcon icon={FilterIcon} size={16} color="#9ca3af" className="shrink-0" />
                           <select
                             value={contactCompanyFilter}
                             onChange={e => setContactCompanyFilter(e.target.value)}
@@ -269,7 +270,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                       )}
                       {activeTab === "tasks" && (
                         <div className="flex gap-3 items-center flex-wrap">
-                          <Filter size={16} className="text-gray-400 shrink-0" />
+                          <HugeiconsIcon icon={FilterIcon} size={16} color="#9ca3af" className="shrink-0" />
                           <select
                             value={taskCategoryFilter}
                             onChange={e => setTaskCategoryFilter(e.target.value)}

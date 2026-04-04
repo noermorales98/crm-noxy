@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Trash2, Plus } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Delete01Icon, Add01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
@@ -118,7 +119,7 @@ export default function TaskCategoriesModal({
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between shrink-0">
           <h3 className="text-lg font-bold text-gray-900">Categorías de Tareas</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1">
-            <X size={20} />
+            <HugeiconsIcon icon={Cancel01Icon} size={20} />
           </button>
         </div>
 
@@ -160,7 +161,7 @@ export default function TaskCategoriesModal({
               disabled={saving}
               className="flex items-center justify-center gap-2 w-full py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-50"
             >
-              <Plus size={16} /> Agregar
+              <HugeiconsIcon icon={Add01Icon} size={16} /> Agregar
             </button>
           </form>
 
@@ -189,7 +190,7 @@ export default function TaskCategoriesModal({
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Eliminar categoría"
                     >
-                      <Trash2 size={16} />
+                      <HugeiconsIcon icon={Delete01Icon} size={16} />
                     </button>
                   </li>
                 ))}

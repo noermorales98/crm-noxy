@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { CheckCircle2, ChevronLeft, ChevronRight, Clock, MapPin, Calendar, Globe, ChevronDown, Search } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon, ArrowLeft01Icon, ArrowRight01Icon, Clock01Icon, Location01Icon, Calendar01Icon, GlobeIcon, ArrowDown01Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 
 const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -223,7 +224,7 @@ export default function SchedulePage() {
   if (step === "success") return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
-        <CheckCircle2 size={56} className="text-green-500" />
+        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={56} color="#22c55e" />
         <h2 className="text-2xl font-bold text-gray-900">¡Cita Confirmada!</h2>
         <p className="text-gray-600">
           Tu cita ha sido agendada. Recibirás una confirmación en <strong>{guestEmail}</strong>.
@@ -232,7 +233,7 @@ export default function SchedulePage() {
           <p className="text-sm font-semibold text-gray-700">{appointmentType?.name}</p>
           <p className="text-sm text-gray-500">{selectedDate && formatDate(selectedDate)}</p>
           <p className="text-sm text-gray-500">{selectedSlot && formatSlot(selectedSlot)} · {appointmentType?.duration} min</p>
-          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><Globe size={11} /> {tzLabel}</p>
+          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><HugeiconsIcon icon={GlobeIcon} size={11} /> {tzLabel}</p>
         </div>
       </div>
     </div>
@@ -255,12 +256,12 @@ export default function SchedulePage() {
                 <p className="text-gray-500 text-sm mb-4">{appointmentType.description}</p>
               )}
               <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                <Clock size={16} />
+                <HugeiconsIcon icon={Clock01Icon} size={16} />
                 <span>{appointmentType?.duration} minutos</span>
               </div>
               {appointmentType?.location && (
                 <div className="flex items-center gap-2 text-gray-500 text-sm">
-                  <MapPin size={16} />
+                  <HugeiconsIcon icon={Location01Icon} size={16} />
                   <span>{appointmentType.location}</span>
                 </div>
               )}
@@ -280,10 +281,10 @@ export default function SchedulePage() {
                         </h2>
                         <div className="flex gap-1">
                           <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                            <ChevronLeft size={18} />
+                            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                           </button>
                           <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
-                            <ChevronRight size={18} />
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
                           </button>
                         </div>
                       </div>
@@ -351,9 +352,9 @@ export default function SchedulePage() {
                       onClick={() => { setShowTzPicker(p => !p); setTzSearch(""); }}
                       className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors group"
                     >
-                      <Globe size={15} className="text-gray-400 group-hover:text-gray-700" />
+                      <HugeiconsIcon icon={GlobeIcon} size={15} color="#9ca3af" />
                       <span>{tzLabel}</span>
-                      <ChevronDown size={14} className={`text-gray-400 transition-transform ${showTzPicker ? "rotate-180" : ""}`} />
+                      <HugeiconsIcon icon={ArrowDown01Icon} size={14} color="#9ca3af" className={`transition-transform ${showTzPicker ? "rotate-180" : ""}`} />
                     </button>
 
                     {showTzPicker && (
@@ -361,7 +362,7 @@ export default function SchedulePage() {
                         {/* Search */}
                         <div className="p-3 border-b border-gray-100">
                           <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                            <Search size={14} className="text-gray-400 shrink-0" />
+                            <HugeiconsIcon icon={Search01Icon} size={14} color="#9ca3af" className="shrink-0" />
                             <input
                               autoFocus
                               type="text"
@@ -408,16 +409,16 @@ export default function SchedulePage() {
                     onClick={() => setStep("calendar")}
                     className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
                   >
-                    <ChevronLeft size={16} /> Volver al calendario
+                    <HugeiconsIcon icon={ArrowLeft01Icon} size={16} /> Volver al calendario
                   </button>
                   <h2 className="text-lg font-bold text-gray-900 mb-1">Confirma tu cita</h2>
                   <div className="flex flex-col gap-1 mb-6">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar size={14} />
+                      <HugeiconsIcon icon={Calendar01Icon} size={14} />
                       <span>{selectedDate && formatDate(selectedDate)}{selectedSlot && ` · ${formatSlot(selectedSlot)}`}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-400">
-                      <Globe size={12} />
+                      <HugeiconsIcon icon={GlobeIcon} size={12} />
                       <span>{tzLabel}</span>
                     </div>
                   </div>

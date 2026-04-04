@@ -2,7 +2,8 @@
 
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useToast } from "@/src/context/ToastContext";
-import { Trash2 } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete01Icon } from "@hugeicons/core-free-icons";
 import { useRouter } from "next/navigation";
 
 export default function DeleteProjectButton({ projectId, projectName }: { projectId: string; projectName: string }) {
@@ -42,7 +43,7 @@ export default function DeleteProjectButton({ projectId, projectName }: { projec
       className="absolute top-4 right-4 p-2 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
       title="Eliminar proyecto"
     >
-      <Trash2 size={16} />
+      <HugeiconsIcon icon={Delete01Icon} size={16} />
     </button>
   );
 }
