@@ -20,7 +20,7 @@ export async function GET() {
             deals: {
               orderBy: { createdAt: "desc" },
               include: {
-                contact: { select: { id: true, firstName: true, lastName: true } },
+                contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
                 company: { select: { id: true, name: true } },
                 _count: { select: { activities: true } },
                 activities: {
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       },
       include: {
         stage: true,
-        contact: { select: { id: true, firstName: true, lastName: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
         company: { select: { id: true, name: true } },
         _count: { select: { activities: true } },
       },
@@ -99,7 +99,7 @@ export async function PATCH(req: Request) {
     if (!organizationId) return NextResponse.json({ error: "No organization context" }, { status: 400 });
 
     const body = await req.json();
-    const { id, stageId, followUpAt, lostReason, source, value, probability, notes, title, currency } = body;
+    const { id, stageId, followUpAt, lostReason, source, value, probability, notes, title, currency, contactId } = body;
 
     if (!id) return NextResponse.json({ error: "Deal id es requerido" }, { status: 400 });
 
@@ -115,6 +115,8 @@ export async function PATCH(req: Request) {
     if (notes !== undefined) updateData.notes = notes;
     if (lostReason !== undefined) updateData.lostReason = lostReason;
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
+    if (contactId !== undefined) updateData.contactId = contactId || null;
+    if (body.allowedBookingTypes !== undefined) updateData.allowedBookingTypes = body.allowedBookingTypes || null;
 
     if (stageId !== undefined && stageId !== existing.stageId) {
       const stage = await prisma.stage.findFirst({
@@ -143,7 +145,7 @@ export async function PATCH(req: Request) {
       data: updateData,
       include: {
         stage: true,
-        contact: { select: { id: true, firstName: true, lastName: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
         company: { select: { id: true, name: true } },
         _count: { select: { activities: true } },
       },

@@ -296,6 +296,8 @@ model Deal {
   lostReason  String?
   probability Int         @default(50)
   notes       String?     @db.Text
+  bookingToken String?    @unique @default(cuid())
+  allowedBookingTypes String? @db.Text
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -318,6 +320,7 @@ model Deal {
   activities  ActivityLog[]
   proposals   Proposal[]
   payments    Payment[]
+  appointments Appointment[]
 
   @@index([organizationId])
   @@index([stageId])
@@ -644,6 +647,8 @@ model Appointment {
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contactId         String?
   contact           Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  dealId            String?
+  deal              Deal?           @relation(fields: [dealId], references: [id], onDelete: SetNull)
   startTime         DateTime
   endTime           DateTime
   timezone          String          @default("America/Mexico_City")
@@ -660,6 +665,7 @@ model Appointment {
   @@index([appointmentTypeId])
   @@index([organizationId])
   @@index([contactId])
+  @@index([dealId])
 }
 
 model TaskCategory {

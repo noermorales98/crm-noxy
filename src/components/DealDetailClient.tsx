@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -24,11 +24,21 @@ import {
   UserGroup03Icon,
   MoreHorizontalIcon,
   Link01Icon,
+  Calendar02Icon,
 } from "@hugeicons/core-free-icons";
 import DownloadProposalButton from "./DownloadProposalButton";
 import DatePicker from "./DatePicker";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+const PHONE_CODES = [
+  { code: "+52", flag: "🇲🇽", label: "MX" },
+  { code: "+1",  flag: "🇺🇸", label: "US" },
+  { code: "+34", flag: "🇪🇸", label: "ES" },
+  { code: "+54", flag: "🇦🇷", label: "AR" },
+  { code: "+57", flag: "🇨🇴", label: "CO" },
+];
+
 
 const inputCls =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
@@ -191,8 +201,48 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   const [showDeleteDeal, setShowDeleteDeal] = useState(false);
   const [deletingDeal, setDeletingDeal] = useState(false);
 
+  // Contact section
+  const [contactSearch, setContactSearch] = useState("");
+  const [showContactSearch, setShowContactSearch] = useState(false);
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [allContacts, setAllContacts] = useState<any[]>([]);
+
   const stages = deal.stage?.pipeline?.stages || [];
   const isFollowUpOverdue = deal.followUpAt && new Date(deal.followUpAt) < new Date();
+
+  // Appointments
+  const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
+  const [dealAppointments, setDealAppointments] = useState<any[]>(deal.appointments || []);
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookingStep, setBookingStep] = useState<"type" | "date" | "slots" | "confirm">("type");
+  const [selectedApptType, setSelectedApptType] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState("");
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loadingApptTypes, setLoadingApptTypes] = useState(false);
+  const [bookingGuest, setBookingGuest] = useState({ name: "", email: "", phone: "", notes: "" });
+  const [savingBooking, setSavingBooking] = useState(false);
+  const [cancellingApptId, setCancellingApptId] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [selectedLinkTypes, setSelectedLinkTypes] = useState<string[]>(deal.allowedBookingTypes ? deal.allowedBookingTypes.split(",") : []);
+  const [savingLinkConfig, setSavingLinkConfig] = useState(false);
+
+  // Fetch appointment types immediately if there is a booking token
+  useEffect(() => {
+    if (deal.bookingToken && appointmentTypes.length === 0) {
+      fetchAppointmentTypes();
+    }
+  }, [deal.bookingToken]);
+
+  useEffect(() => {
+    // When deal or appointment types load, sync state
+    if (deal.allowedBookingTypes) {
+      setSelectedLinkTypes(deal.allowedBookingTypes.split(","));
+    } else if (appointmentTypes.length > 0 && selectedLinkTypes.length === 0) {
+      setSelectedLinkTypes(appointmentTypes.map((t) => t.id));
+    }
+  }, [deal.allowedBookingTypes, appointmentTypes]);
 
   // ─── API helpers ─────────────────────────────────────────────────────────
 
@@ -205,6 +255,149 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     if (res.ok) {
       const updated = await res.json();
       setDeal((prev: any) => ({ ...prev, ...updated }));
+    }
+  }
+
+  async function saveLinkConfig() {
+    if (!deal) return;
+    setSavingLinkConfig(true);
+    try {
+      const allowedBookingTypes = selectedLinkTypes.join(",");
+      await patchDeal({ allowedBookingTypes });
+    } catch {
+      alert("Error al guardar la configuración.");
+    } finally {
+      setSavingLinkConfig(false);
+    }
+  }
+
+  // ─── Contact search ─────────────────────────────────────────────────────
+
+  async function fetchContacts() {
+    setLoadingContacts(true);
+    try {
+      const res = await fetch("/api/contacts");
+      if (res.ok) setAllContacts(await res.json());
+    } finally {
+      setLoadingContacts(false);
+    }
+  }
+
+  async function linkContact(contactId: string) {
+    await patchDeal({ contactId });
+    const linked = allContacts.find((c) => c.id === contactId);
+    if (linked) setDeal((prev: any) => ({ ...prev, contact: linked }));
+    setShowContactSearch(false);
+    setContactSearch("");
+  }
+
+  async function unlinkContact() {
+    await patchDeal({ contactId: null });
+    setDeal((prev: any) => ({ ...prev, contact: null, contactId: null }));
+  }
+
+  // ─── Appointments ────────────────────────────────────────────────────────
+
+  async function fetchAppointmentTypes() {
+    setLoadingApptTypes(true);
+    try {
+      const res = await fetch("/api/appointment-types");
+      if (res.ok) setAppointmentTypes(await res.json());
+    } finally {
+      setLoadingApptTypes(false);
+    }
+  }
+
+  async function fetchSlots(apptTypeId: string, date: string) {
+    setLoadingSlots(true);
+    setAvailableSlots([]);
+    try {
+      const res = await fetch(
+        `/api/public/appointment-types/${apptTypeId}/slots?date=${date}&tz=America/Mexico_City`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableSlots(data.slots || []);
+      }
+    } finally {
+      setLoadingSlots(false);
+    }
+  }
+
+  function startBooking() {
+    setShowBooking(true);
+    setBookingStep("type");
+    setSelectedApptType(null);
+    setSelectedDate("");
+    setSelectedSlot("");
+    setAvailableSlots([]);
+    // Pre-fill guest from deal contact
+    setBookingGuest({
+      name: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim() : "",
+      email: deal.contact?.email || "",
+      phone: deal.contact?.phone || "",
+      notes: "",
+    });
+    if (appointmentTypes.length === 0) fetchAppointmentTypes();
+  }
+
+  function selectApptType(apptType: any) {
+    setSelectedApptType(apptType);
+    setBookingStep("date");
+  }
+
+  function selectDate(date: string) {
+    setSelectedDate(date);
+    setBookingStep("slots");
+    fetchSlots(selectedApptType.id, date);
+  }
+
+  function selectSlot(slot: string) {
+    setSelectedSlot(slot);
+    setBookingStep("confirm");
+  }
+
+  async function confirmBooking() {
+    if (!selectedApptType || !selectedSlot || !bookingGuest.name || !bookingGuest.email) return;
+    setSavingBooking(true);
+    try {
+      const res = await fetch(`/api/deals/${deal.id}/appointments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentTypeId: selectedApptType.id,
+          startTime: selectedSlot,
+          guestName: bookingGuest.name,
+          guestEmail: bookingGuest.email,
+          guestPhone: bookingGuest.phone || null,
+          notes: bookingGuest.notes || null,
+        }),
+      });
+      if (res.ok) {
+        const appt = await res.json();
+        setDealAppointments((prev) => [...prev, appt].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
+        setShowBooking(false);
+      }
+    } finally {
+      setSavingBooking(false);
+    }
+  }
+
+  async function cancelAppointment(apptId: string) {
+    setCancellingApptId(apptId);
+    try {
+      const res = await fetch(`/api/deals/${deal.id}/appointments`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appointmentId: apptId }),
+      });
+      if (res.ok) {
+        setDealAppointments((prev) =>
+          prev.map((a) => (a.id === apptId ? { ...a, status: "CANCELLED" } : a))
+        );
+      }
+    } finally {
+      setCancellingApptId(null);
     }
   }
 
@@ -609,20 +802,129 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <div className="flex flex-col gap-3.5">
 
               {/* Contact */}
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                  <HugeiconsIcon icon={User02Icon} size={13} color="#9ca3af" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Contacto</p>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Contacto</p>
                   {deal.contact ? (
-                    <p className="text-xs font-semibold text-gray-900 truncate">
-                      {deal.contact.firstName} {deal.contact.lastName || ""}
-                    </p>
+                    <button
+                      onClick={unlinkContact}
+                      className="text-[10px] font-semibold text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      Desvincular
+                    </button>
                   ) : (
-                    <p className="text-xs text-gray-400">—</p>
+                    <button
+                      onClick={() => { setShowContactSearch(true); if (allContacts.length === 0) fetchContacts(); }}
+                      className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+                    >
+                      <HugeiconsIcon icon={Add01Icon} size={10} />
+                      Vincular
+                    </button>
                   )}
                 </div>
+
+                {deal.contact ? (
+                  <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
+                        {deal.contact.firstName?.[0]?.toUpperCase() || "?"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {deal.contact.firstName} {deal.contact.lastName || ""}
+                        </p>
+                        {deal.company && (
+                          <p className="text-xs text-gray-500 truncate">{deal.company.name}</p>
+                        )}
+                      </div>
+                    </div>
+                    {deal.contact.phone && (
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <HugeiconsIcon icon={CallIcon} size={13} color="#9ca3af" />
+                        <a href={`tel:${deal.contact.phone}`} className="hover:underline text-xs">
+                          {deal.contact.phone}
+                        </a>
+                      </div>
+                    )}
+                    {deal.contact.email && (
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <HugeiconsIcon icon={Mail01Icon} size={13} color="#9ca3af" />
+                        <a href={`mailto:${deal.contact.email}`} className="hover:underline text-xs">
+                          {deal.contact.email}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    {showContactSearch ? (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          value={contactSearch}
+                          onChange={(e) => setContactSearch(e.target.value)}
+                          placeholder="Buscar contacto por nombre..."
+                          className={`${inputCls} text-xs`}
+                          autoFocus
+                        />
+                        <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
+                          {loadingContacts ? (
+                            <p className="text-xs text-gray-400 text-center py-2">Cargando...</p>
+                          ) : (
+                            allContacts
+                              .filter((c) =>
+                                !contactSearch ||
+                                `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) ||
+                                c.email?.toLowerCase().includes(contactSearch.toLowerCase())
+                              )
+                              .slice(0, 8)
+                              .map((c) => (
+                                <button
+                                  key={c.id}
+                                  onClick={() => linkContact(c.id)}
+                                  className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                    {c.firstName?.[0]?.toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-semibold text-gray-900 truncate">
+                                      {c.firstName} {c.lastName || ""}
+                                    </p>
+                                    {c.email && <p className="text-[10px] text-gray-400 truncate">{c.email}</p>}
+                                  </div>
+                                </button>
+                              ))
+                          )}
+                          {!loadingContacts && allContacts.filter((c) =>
+                            !contactSearch ||
+                            `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase())
+                          ).length === 0 && (
+                            <p className="text-xs text-gray-400 text-center py-2">Sin resultados.</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => { setShowContactSearch(false); setContactSearch(""); }}
+                          className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 mt-1 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <div className="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                          <HugeiconsIcon icon={User02Icon} size={14} color="#9ca3af" />
+                        </div>
+                        <p className="text-xs text-gray-400 mb-2">Sin contacto vinculado</p>
+                        <button
+                          onClick={() => { setShowContactSearch(true); if (allContacts.length === 0) fetchContacts(); }}
+                          className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
+                        >
+                          Buscar y vincular contacto
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Company */}
@@ -706,6 +1008,340 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 {savingNotes ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
+          </div>
+
+          {/* Booking link */}
+          {deal.bookingToken && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <HugeiconsIcon icon={Link01Icon} size={14} color="#9ca3af" />
+                <p className="text-sm font-bold text-gray-900">Link de agendamiento</p>
+              </div>
+              <p className="text-[11px] text-gray-400 mb-3">Envía este link al lead para que agende su cita automáticamente.</p>
+              
+              {appointmentTypes.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wide mb-2 mt-3">Configurar tipos de cita permitidos</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {appointmentTypes.map((t) => {
+                      const isSelected = selectedLinkTypes.includes(t.id);
+                      return (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedLinkTypes(selectedLinkTypes.filter(id => id !== t.id));
+                            } else {
+                              setSelectedLinkTypes([...selectedLinkTypes, t.id]);
+                            }
+                          }}
+                          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                            isSelected 
+                              ? "bg-gray-900 text-white border-gray-900" 
+                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {t.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    onClick={saveLinkConfig}
+                    disabled={savingLinkConfig || (deal.allowedBookingTypes === selectedLinkTypes.join(",") || (!deal.allowedBookingTypes && selectedLinkTypes.length === appointmentTypes.length))}
+                    className="w-full py-2 text-xs font-semibold bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                  >
+                    {savingLinkConfig ? "Guardando..." : "Guardar configuración"}
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={`${typeof window !== "undefined" ? window.location.origin : ""}/book/${deal.bookingToken}`}
+                  className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-600 truncate focus:outline-none"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  className={`px-3 py-2 text-xs font-semibold rounded-xl shrink-0 transition-all ${
+                    copiedLink
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-gray-900 text-white hover:bg-black"
+                  }`}
+                >
+                  {copiedLink ? "✓ Copiado" : "Copiar"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Appointments */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <HugeiconsIcon icon={Calendar02Icon} size={16} color="#9ca3af" />
+                <p className="text-sm font-bold text-gray-900">
+                  Citas
+                  {dealAppointments.filter((a: any) => a.status !== "CANCELLED").length > 0 && (
+                    <span className="ml-1.5 text-[11px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                      {dealAppointments.filter((a: any) => a.status !== "CANCELLED").length}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={startBooking}
+                className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 px-2 py-1.5 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                <HugeiconsIcon icon={Add01Icon} size={13} />
+                Agendar
+              </button>
+            </div>
+
+            {/* Booking flow */}
+            {showBooking && (
+              <div className="p-5 border-b border-gray-100">
+                {/* Step: select type */}
+                {bookingStep === "type" && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tipo de cita</p>
+                    {loadingApptTypes ? (
+                      <div className="flex justify-center py-4">
+                        <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                      </div>
+                    ) : appointmentTypes.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center py-3">No hay tipos de cita configurados. Créalos en Configuración → Calendario.</p>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        {appointmentTypes.map((t: any) => (
+                          <button
+                            key={t.id}
+                            onClick={() => selectApptType(t)}
+                            className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all"
+                          >
+                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3B82F6" }} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-gray-900">{t.name}</p>
+                              <p className="text-[10px] text-gray-400">{t.duration} min</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 mt-2 transition-colors">
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+
+                {/* Step: select date */}
+                {bookingStep === "date" && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                      <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name} · {selectedApptType?.duration} min</p>
+                    </div>
+                    <DatePicker
+                      label="Fecha de la cita"
+                      value={selectedDate}
+                      onChange={(d) => selectDate(d)}
+                      placeholder="Seleccionar fecha"
+                      align="right"
+                    />
+                    <div className="flex gap-2">
+                      <button onClick={() => setBookingStep("type")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+                        ← Cambiar tipo
+                      </button>
+                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: select slot */}
+                {bookingStep === "slots" && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                      <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name}</p>
+                      <span className="text-[10px] text-gray-400">·</span>
+                      <p className="text-xs text-gray-500">{new Date(selectedDate + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}</p>
+                    </div>
+                    {loadingSlots ? (
+                      <div className="flex justify-center py-4">
+                        <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                      </div>
+                    ) : availableSlots.length === 0 ? (
+                      <div className="text-center py-4">
+                        <p className="text-xs text-gray-400">No hay horarios disponibles para esta fecha.</p>
+                        <button onClick={() => setBookingStep("date")} className="text-xs font-semibold text-gray-500 hover:text-gray-900 mt-2 underline underline-offset-2 transition-colors">
+                          Elegir otra fecha
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto">
+                        {availableSlots.map((slot) => (
+                          <button
+                            key={slot}
+                            onClick={() => selectSlot(slot)}
+                            className="px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all"
+                          >
+                            {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <button onClick={() => setBookingStep("date")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+                        ← Cambiar fecha
+                      </button>
+                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: confirm */}
+                {bookingStep === "confirm" && (
+                  <div className="flex flex-col gap-3">
+                    {/* Summary */}
+                    <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                        <p className="text-xs font-bold text-gray-900">{selectedApptType?.name}</p>
+                      </div>
+                      <p className="text-xs text-gray-600 ml-[18px]">
+                        {new Date(selectedSlot).toLocaleDateString("es-MX", { weekday: "long", day: "2-digit", month: "long" })}
+                        {" · "}
+                        {new Date(selectedSlot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                        {" · "}{selectedApptType?.duration} min
+                      </p>
+                    </div>
+
+                    {/* Guest info */}
+                    <input
+                      value={bookingGuest.name}
+                      onChange={(e) => setBookingGuest((g) => ({ ...g, name: e.target.value }))}
+                      className={`${inputCls} text-xs`}
+                      placeholder="Nombre del invitado *"
+                    />
+                    <input
+                      type="email"
+                      value={bookingGuest.email}
+                      onChange={(e) => setBookingGuest((g) => ({ ...g, email: e.target.value }))}
+                      className={`${inputCls} text-xs`}
+                      placeholder="Email del invitado *"
+                    />
+                    <input
+                      value={bookingGuest.phone}
+                      onChange={(e) => setBookingGuest((g) => ({ ...g, phone: e.target.value }))}
+                      className={`${inputCls} text-xs`}
+                      placeholder="Teléfono (opcional)"
+                    />
+                    <textarea
+                      value={bookingGuest.notes}
+                      onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))}
+                      className={`${inputCls} text-xs resize-none`}
+                      rows={2}
+                      placeholder="Notas (opcional)"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setBookingStep("slots")}
+                        className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                      >
+                        ← Atrás
+                      </button>
+                      <button
+                        onClick={confirmBooking}
+                        disabled={savingBooking || !bookingGuest.name || !bookingGuest.email}
+                        className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl disabled:opacity-40 transition-colors"
+                      >
+                        {savingBooking ? "Reservando..." : "Confirmar cita"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Appointments list */}
+            {dealAppointments.length === 0 && !showBooking ? (
+              <div className="px-5 py-8 text-center">
+                <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <HugeiconsIcon icon={Calendar02Icon} size={18} color="#9ca3af" />
+                </div>
+                <p className="text-sm text-gray-400 mb-2">Sin citas agendadas.</p>
+                <button
+                  onClick={startBooking}
+                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
+                >
+                  Agendar primera cita
+                </button>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {dealAppointments.map((appt: any) => {
+                  const isCancelled = appt.status === "CANCELLED";
+                  const isPast = new Date(appt.endTime) < new Date();
+                  const isUpcoming = !isCancelled && !isPast;
+
+                  return (
+                    <div key={appt.id} className={`px-5 py-4 flex gap-3 group/appt ${isCancelled ? "opacity-50" : "hover:bg-gray-50/50"} transition-colors`}>
+                      <div
+                        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: (appt.appointmentType?.color || "#3B82F6") + "18" }}
+                      >
+                        <HugeiconsIcon icon={Calendar02Icon} size={14} color={appt.appointmentType?.color || "#3B82F6"} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[11px] font-bold text-gray-700">{appt.appointmentType?.name || "Cita"}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                            isCancelled
+                              ? "bg-red-50 text-red-500"
+                              : isPast
+                              ? "bg-gray-100 text-gray-500"
+                              : "bg-emerald-50 text-emerald-700"
+                          }`}>
+                            {isCancelled ? "Cancelada" : isPast ? "Pasada" : "Confirmada"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600">
+                          {new Date(appt.startTime).toLocaleDateString("es-MX", {
+                            weekday: "short", day: "2-digit", month: "short",
+                          })}
+                          {" · "}
+                          {new Date(appt.startTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                          {" — "}
+                          {new Date(appt.endTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5 truncate">
+                          {appt.guestName} · {appt.guestEmail}
+                        </p>
+                      </div>
+                      {isUpcoming && (
+                        <button
+                          onClick={() => cancelAppointment(appt.id)}
+                          disabled={cancellingApptId === appt.id}
+                          className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
+                          title="Cancelar cita"
+                        >
+                          <HugeiconsIcon icon={Cancel01Icon} size={13} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Proposals */}

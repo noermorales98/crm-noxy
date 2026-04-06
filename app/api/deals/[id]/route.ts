@@ -25,6 +25,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         },
         payments: { orderBy: { createdAt: "desc" } },
         tasks: { orderBy: { createdAt: "desc" }, include: { category: true } },
+        appointments: {
+          orderBy: { startTime: "asc" },
+          include: { appointmentType: { select: { id: true, name: true, duration: true, color: true } } },
+        },
       },
     });
 

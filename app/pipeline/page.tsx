@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import DatePicker from "@/src/components/DatePicker";
+import ClientDrawer from "@/src/components/ClientDrawer";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
@@ -124,8 +125,8 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
                 <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[9px] font-bold">
                   {deal.contact.firstName?.[0]?.toUpperCase() || "?"}
                 </div>
-                <span className="text-[11px] text-gray-500 truncate max-w-[80px]">
-                  {deal.contact.firstName}
+                <span className="text-[11px] text-gray-500 truncate max-w-[100px]">
+                  {deal.contact.firstName} {deal.contact.lastName || ""}
                 </span>
               </div>
             ) : (
@@ -562,9 +563,11 @@ function NewClientModal({
 function ClientCard({
   client,
   onMarkPaid,
+  onClick,
 }: {
   client: any;
   onMarkPaid: (clientId: string, paymentId: string) => void;
+  onClick: () => void;
 }) {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
@@ -586,7 +589,7 @@ function ClientCard({
   })();
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-md transition-all">
+    <div onClick={onClick} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-md transition-all cursor-pointer">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
@@ -649,7 +652,7 @@ function ClientCard({
 
         {isPending && client.isActive && (
           <button
-            onClick={() => onMarkPaid(client.id, currentPayment?.id)}
+            onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
             className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-900 text-white hover:bg-black transition-colors"
           >
             Marcar pagado
@@ -708,6 +711,7 @@ export default function PipelinePage() {
   const [showDealModal, setShowDealModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [defaultStageId, setDefaultStageId] = useState<string | undefined>();
+  const [selectedClient, setSelectedClient] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [selectedPipelineIdx, setSelectedPipelineIdx] = useState(0);
 
@@ -1114,6 +1118,7 @@ export default function PipelinePage() {
                       key={client.id}
                       client={client}
                       onMarkPaid={handleMarkPaid}
+                      onClick={() => setSelectedClient(client)}
                     />
                   ))}
                 </div>
@@ -1138,6 +1143,18 @@ export default function PipelinePage() {
         <NewClientModal
           onSuccess={(client) => { setShowClientModal(false); fetchClients(); }}
           onClose={() => setShowClientModal(false)}
+        />
+      )}
+
+      {/* Client drawer */}
+      {selectedClient && (
+        <ClientDrawer
+          client={selectedClient}
+          onClose={() => setSelectedClient(null)}
+          onUpdate={(updated) => {
+            setClients((prev) => prev.map((c) => c.id === updated.id ? { ...c, ...updated } : c));
+            setSelectedClient((prev: any) => prev?.id === updated.id ? { ...prev, ...updated } : prev);
+          }}
         />
       )}
     </div>

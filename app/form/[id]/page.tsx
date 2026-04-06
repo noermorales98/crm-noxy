@@ -518,7 +518,7 @@ export default function PublicFormPage() {
 
         <footer className="mt-12 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
-            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Powered by Noxy CRM</span>
+            <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Desarrollado por Noxy</span>
           </div>
         </footer>
       </div>

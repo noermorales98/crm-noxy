@@ -4,8 +4,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Cancel01Icon, Edit01Icon, CheckmarkCircle01Icon, Add01Icon, Delete02Icon,
   User02Icon, Call02Icon, Mail01Icon, DollarCircleIcon, CalendarCheckIn01Icon,
-  LockPasswordIcon, GlobalIcon, Instagram01Icon, Facebook01Icon, Linkedin01Icon,
-  EyeIcon, EyeOffIcon, Link01Icon, RefreshIcon, MoreHorizontalIcon,
+  LockPasswordIcon, GlobalIcon, InstagramIcon, Facebook01Icon, Linkedin01Icon,
+  EyeIcon, ViewOffIcon, Link01Icon, RefreshIcon, MoreHorizontalIcon,
   Building02Icon, CheckListIcon,
 } from "@hugeicons/core-free-icons";
 import DatePicker from "./DatePicker";
@@ -27,7 +27,7 @@ const PHONE_CODES = [
 ];
 
 const SOCIAL_PLATFORMS = [
-  { value: "instagram",  label: "Instagram",  icon: Instagram01Icon,  color: "text-pink-500" },
+  { value: "instagram",  label: "Instagram",  icon: InstagramIcon,  color: "text-pink-500" },
   { value: "facebook",   label: "Facebook",   icon: Facebook01Icon,   color: "text-blue-600" },
   { value: "linkedin",   label: "LinkedIn",   icon: Linkedin01Icon,   color: "text-blue-500" },
   { value: "tiktok",     label: "TikTok",     icon: GlobalIcon,       color: "text-gray-900" },
@@ -102,7 +102,7 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
             placeholder="Contraseña"
           />
           <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <HugeiconsIcon icon={show ? EyeOffIcon : EyeIcon} size={16} />
+            <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={16} />
           </button>
         </div>
         <input value={form.url} onChange={(e) => setForm(f => ({ ...f, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
@@ -129,7 +129,7 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
               {show ? entry.password : "•".repeat(Math.min(entry.password.length, 12))}
             </span>
             <button onClick={() => setShow(s => !s)} className="text-gray-400 hover:text-gray-600">
-              <HugeiconsIcon icon={show ? EyeOffIcon : EyeIcon} size={13} />
+              <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={13} />
             </button>
             <button
               onClick={() => navigator.clipboard.writeText(entry.password)}
@@ -754,7 +754,7 @@ export default function ClientDrawer({
                             placeholder="Contraseña"
                           />
                           <button type="button" onClick={() => setShowNewPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                            <HugeiconsIcon icon={showNewPass ? EyeOffIcon : EyeIcon} size={16} />
+                            <HugeiconsIcon icon={showNewPass ? ViewOffIcon : EyeIcon} size={16} />
                           </button>
                         </div>
                         <input value={newCred.url} onChange={e => setNewCred(c => ({ ...c, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
