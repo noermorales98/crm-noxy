@@ -288,13 +288,17 @@ export default function BookPage() {
                 <div className="flex flex-col gap-4">
                   <div className="mb-2">
                     {deal?.contact?.firstName ? (
-                      <>
-                        <h2 className="text-2xl font-bold text-gray-900">¡Hola {deal.contact.firstName}! 👋</h2>
-                        <p className="text-gray-500 mt-1 text-sm">Bienvenido, por favor selecciona el tipo de cita que deseas agendar.</p>
-                      </>
+                      <h2 className="text-2xl font-bold text-gray-900">¡Hola {deal.contact.firstName}! 👋</h2>
                     ) : (
-                      <h2 className="text-lg font-bold text-gray-900 mb-2">Selecciona el tipo de cita</h2>
+                      <h2 className="text-2xl font-bold text-gray-900">¡Bienvenido! 👋</h2>
                     )}
+                    <p className="text-gray-500 mt-1 text-sm">
+                      {deal?.title ? (
+                        <>Estás agendando una cita para: <strong className="text-gray-700">{deal.title}</strong>. Por favor selecciona el tipo de cita.</>
+                      ) : (
+                        "Por favor selecciona el tipo de cita que deseas agendar."
+                      )}
+                    </p>
                   </div>
                   {appointmentTypes.length === 0 ? (
                     <p className="text-gray-400 text-sm">No hay tipos de cita disponibles.</p>
