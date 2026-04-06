@@ -20,7 +20,7 @@ export const DEALS = [
     date: "18 Apr",
     comments: 2,
     attachments: 1,
-    status: "Contacted"
+    status: "Contactado"
   },
   {
     id: "2",
@@ -29,7 +29,7 @@ export const DEALS = [
     date: "21 Mar",
     comments: 1,
     attachments: 3,
-    status: "Contacted"
+    status: "Contactado"
   },
   {
     id: "3",
@@ -38,7 +38,7 @@ export const DEALS = [
     date: "No due date",
     comments: 4,
     attachments: 7,
-    status: "Contacted"
+    status: "Contactado"
   },
   {
     id: "4",
@@ -47,7 +47,7 @@ export const DEALS = [
     date: "09 Mar",
     comments: 4,
     attachments: 1,
-    status: "Negotiation"
+    status: "Negociación"
   },
   {
     id: "5",
@@ -56,7 +56,7 @@ export const DEALS = [
     date: "No due date",
     comments: 7,
     attachments: 2,
-    status: "Negotiation"
+    status: "Negociación"
   },
   {
     id: "6",
@@ -65,7 +65,7 @@ export const DEALS = [
     date: "23 Apr",
     comments: 2,
     attachments: 5,
-    status: "Negotiation"
+    status: "Negociación"
   },
   {
     id: "7",
@@ -74,7 +74,7 @@ export const DEALS = [
     date: "10 Mar",
     comments: 1,
     attachments: 3,
-    status: "Offer Sent"
+    status: "Propuesta"
   },
   {
     id: "8",
@@ -86,7 +86,7 @@ export const DEALS = [
     date: "16 Apr",
     comments: 1,
     attachments: 1,
-    status: "Offer Sent",
+    status: "Propuesta",
     isHighlighted: true
   },
   {
@@ -105,7 +105,7 @@ export const DEALS = [
     date: "24 Mar",
     comments: 2,
     attachments: 1,
-    status: "Deal Closed"
+    status: "Ganado"
   },
   {
     id: "11",
@@ -114,7 +114,7 @@ export const DEALS = [
     date: "05 Apr",
     comments: 1,
     attachments: 3,
-    status: "Deal Closed"
+    status: "Ganado"
   },
   {
     id: "12",
@@ -123,13 +123,13 @@ export const DEALS = [
     date: "30 Mar",
     comments: 4,
     attachments: 7,
-    status: "Deal Closed"
+    status: "Ganado"
   }
 ];
 
 export const COLUMNS = [
-  { id: "Contacted", title: "Contacted", count: 12 },
-  { id: "Negotiation", title: "Negotiation", count: 17 },
-  { id: "Offer Sent", title: "Offer Sent", count: 13 },
-  { id: "Deal Closed", title: "Deal Closed", count: 12 }
+  { id: "Contactado", title: "Contactado", count: 12 },
+  { id: "Negociación", title: "Negociación", count: 17 },
+  { id: "Propuesta", title: "Propuesta", count: 13 },
+  { id: "Ganado", title: "Ganado", count: 12 }
 ];

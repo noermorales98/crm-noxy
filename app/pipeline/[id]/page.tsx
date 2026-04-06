@@ -5,7 +5,8 @@ import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import DealDetailClient from "@/src/components/DealDetailClient";
 
-export default async function DealDetailPage({ params }: { params: { id: string } }) {
+export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user || !session.currentOrganizationId) {
     redirect("/login");
@@ -13,7 +14,7 @@ export default async function DealDetailPage({ params }: { params: { id: string 
   const organizationId = session.currentOrganizationId;
 
   const deal = await prisma.deal.findFirst({
-    where: { id: params.id, organizationId },
+    where: { id, organizationId },
     include: {
       stage: {
         include: {

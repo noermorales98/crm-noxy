@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
                     stages: {
                       create: [
                         { name: "Lead", order: 1 },
-                        { name: "Contacted", order: 2 },
-                        { name: "Proposal", order: 3 },
-                        { name: "Won", order: 4 },
+                        { name: "Contactado", order: 2 },
+                        { name: "Propuesta", order: 3 },
+                        { name: "Ganado", order: 4 },
                       ]
                     }
                   }

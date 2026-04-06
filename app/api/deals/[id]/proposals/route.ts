@@ -43,6 +43,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 }
 
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    const organizationId = (session as any).currentOrganizationId;
+    const { id: dealId } = await params;
+
+    const { proposalId } = await req.json();
+    if (!proposalId) return NextResponse.json({ error: "proposalId requerido" }, { status: 400 });
+
+    const proposal = await prisma.proposal.findFirst({ where: { id: proposalId, dealId, organizationId } });
+    if (!proposal) return NextResponse.json({ error: "Propuesta no encontrada" }, { status: 404 });
+
+    await prisma.proposal.delete({ where: { id: proposalId } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/deals/[id]/proposals error:", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
+}
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();

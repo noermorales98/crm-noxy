@@ -58,6 +58,9 @@ model Organization {
   appointmentTypes      AppointmentType[]
   appointments          Appointment[]
   taskCategories        TaskCategory[]
+  clients               Client[]
+  clientPayments        ClientPayment[]
+  clientVaultEntries    ClientVaultEntry[]
 }
 
 enum Role {
@@ -140,6 +143,7 @@ model Company {
   forms          Form[]
   taskCategories TaskCategory[]
   tasks          Task[]
+  clients        Client[]
 
   projectId String?
   project   Project? @relation("ProjectCompanies", fields: [projectId], references: [id], onDelete: SetNull)
@@ -172,6 +176,7 @@ model Contact {
   tasks        Task[]
   emailLogs    EmailLog[]
   appointments Appointment[]
+  clients      Client[]
 
   source String? // E.g., "Manual", "Form: Contact Us"
 
@@ -709,4 +714,82 @@ model Email {
   @@index([organizationId])
   @@index([type])
   @@index([isArchived])
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  monthlyFee   Float
+  currency     String   @default("USD")
+  startDate    DateTime
+  billingDay   Int      @default(1)
+  autoMarkPaid Boolean  @default(false)
+  notes        String?  @db.Text
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Datos de contacto directos
+  contactName  String?
+  phone        String?
+  phoneCode    String?  @default("+52")
+  email        String?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  payments     ClientPayment[]
+  vaultEntries ClientVaultEntry[]
+
+  @@index([organizationId])
+  @@index([companyId])
+  @@index([contactId])
+}
+
+model ClientVaultEntry {
+  id        String   @id @default(cuid())
+  type      String   @default("credential") // "credential" | "social" | "note"
+  label     String
+  username  String?
+  password  String?  @db.Text
+  url       String?  @db.Text
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId       String
+  client         Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([organizationId])
+}
+
+model ClientPayment {
+  id         String        @id @default(cuid())
+  amount     Float
+  currency   String        @default("USD")
+  status     PaymentStatus @default(PENDIENTE)
+  month      Int
+  year       Int
+  notes      String?       @db.Text
+  dueDate    DateTime?
+  receivedAt DateTime?
+  createdAt  DateTime      @default(now())
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([organizationId])
 }
