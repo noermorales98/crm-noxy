@@ -61,6 +61,7 @@ model Organization {
   clients               Client[]
   clientPayments        ClientPayment[]
   clientVaultEntries    ClientVaultEntry[]
+  notifications         Notification[]
 }
 
 enum Role {
@@ -798,4 +799,28 @@ model ClientPayment {
 
   @@index([clientId])
   @@index([organizationId])
+}
+
+enum NotificationType {
+  NEW_EMAIL
+  NEW_CONTACT
+  NEW_FORM_LEAD
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  body      String?          @db.Text
+  link      String?
+  isRead    Boolean          @default(false)
+  entityId  String?
+  createdAt DateTime         @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([isRead])
+  @@index([createdAt])
 }

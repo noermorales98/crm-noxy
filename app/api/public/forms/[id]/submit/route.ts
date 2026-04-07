@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
+import { createNotification } from "@/src/lib/notifications";
 
 // Handle preflight CORS for cross-origin iframes
 export async function OPTIONS() {
@@ -132,6 +133,20 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         sourceFormId: form.id,
         sourceVariantId: variant?.id ?? null
       }
+    });
+
+    // In-app notification for form lead
+    createNotification({
+      organizationId: form.organizationId,
+      type: "NEW_FORM_LEAD",
+      title: `Nuevo lead en ${form.name}${variant ? ` › ${variant.name}` : ""}`,
+      body: [
+        `${firstName}${lastName ? " " + lastName : ""}`,
+        email,
+        phone,
+      ].filter(Boolean).join(" · "),
+      link: "/contacts",
+      entityId: newContact.id,
     });
 
     // 2b. If form is linked to an appointment type and __appointment_slot was submitted, book the appointment

@@ -23,6 +23,12 @@ import {
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 
+function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
+  if (!address) return fallback;
+  if (address.includes("undefined") || address.includes("null")) return fallback;
+  return address;
+}
+
 type Company = {
   id: string;
   name: string;
@@ -236,6 +242,11 @@ export default function EmailsPage() {
 
     setIsSyncing(true);
     try {
+      // On full reset, first remove corrupted records so they get re-fetched correctly
+      if (reset) {
+        await fetch("/api/emails/fix-corrupted", { method: "DELETE" });
+      }
+
       const params = new URLSearchParams();
       if (reset) params.set("reset", "true");
       if (selectedCompanyId) params.set("companyId", selectedCompanyId);
@@ -293,7 +304,7 @@ export default function EmailsPage() {
 
   const openReply = (email: EmailDetail) => {
     setComposeData({
-      to: email.fromAddress,
+      to: sanitizeEmail(email.fromAddress, ""),
       cc: "",
       subject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       bodyHtml: `<br><br><hr><p><b>De:</b> ${email.fromName || email.fromAddress} &lt;${email.fromAddress}&gt;</p><p><b>Asunto:</b> ${email.subject}</p><div>${email.bodyHtml || email.bodyText || ""}</div>`,
@@ -605,8 +616,8 @@ export default function EmailsPage() {
                           }`}
                         >
                           {email.type === "SENT"
-                            ? `→ ${email.toAddress}`
-                            : email.fromName || email.fromAddress}
+                            ? `→ ${sanitizeEmail(email.toAddress)}`
+                            : email.fromName || sanitizeEmail(email.fromAddress)}
                         </span>
                         <span className="text-[10px] text-gray-400 shrink-0">
                           {new Date(email.receivedAt).toLocaleDateString("es-MX", {
@@ -646,12 +657,12 @@ export default function EmailsPage() {
                       <span>
                         <span className="text-gray-400 text-xs">De:</span>{" "}
                         {selectedEmail.fromName
-                          ? `${selectedEmail.fromName} <${selectedEmail.fromAddress}>`
-                          : selectedEmail.fromAddress}
+                          ? `${selectedEmail.fromName} <${sanitizeEmail(selectedEmail.fromAddress)}>`
+                          : sanitizeEmail(selectedEmail.fromAddress)}
                       </span>
                       <span>
                         <span className="text-gray-400 text-xs">Para:</span>{" "}
-                        {selectedEmail.toAddress}
+                        {sanitizeEmail(selectedEmail.toAddress)}
                       </span>
                       {selectedEmail.ccAddress && (
                         <span>

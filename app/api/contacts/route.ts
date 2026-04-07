@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { createNotification } from "@/src/lib/notifications";
 
 export async function GET(req: Request) {
   try {
@@ -84,6 +85,16 @@ export async function POST(req: Request) {
       include: {
         company: { select: { id: true, name: true } }
       }
+    });
+
+    // In-app notification
+    createNotification({
+      organizationId: currentOrganizationId,
+      type: "NEW_CONTACT",
+      title: `Nuevo contacto: ${firstName}${lastName ? " " + lastName : ""}`,
+      body: contact.company ? `Empresa: ${contact.company.name}` : undefined,
+      link: "/contacts",
+      entityId: contact.id,
     });
 
     // Fire & Forget WhatsApp Notification Trigger

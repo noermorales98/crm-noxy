@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { createNotification } from "@/src/lib/notifications";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -103,43 +104,68 @@ export async function GET(req: Request) {
             if (uid > newMaxUid) newMaxUid = uid;
 
             const envelope = msg.envelope as any;
-            const messageId: string | null = envelope.messageId || null;
-            const subject: string = envelope.subject || "(sin asunto)";
 
-            const fromAddr = envelope.from?.[0];
-            const fromAddress: string = fromAddr
-              ? `${fromAddr.mailbox}@${fromAddr.host}`
-              : "desconocido@desconocido";
-            const fromName: string | null = fromAddr?.name || null;
+            // Parse the full RFC822 source first — mailparser correctly handles
+            // encoded headers (From, To, Subject, Date) that the IMAP envelope
+            // may return with undefined mailbox/host fields.
+            let bodyHtml: string | null = null;
+            let bodyText: string | null = null;
+            let parsedFrom: { name?: string; address?: string } | null = null;
+            let parsedTo: { address?: string } | null = null;
+            let parsedSubject: string | null = null;
+            let parsedDate: Date | null = null;
+            let parsedMessageId: string | null = null;
 
-            const toAddr = envelope.to?.[0];
-            const toAddress: string = toAddr
-              ? `${toAddr.mailbox}@${toAddr.host}`
-              : company.imapUser!;
+            if (msg.source) {
+              try {
+                const parsed = await simpleParser(msg.source);
+                bodyHtml = parsed.html || null;
+                bodyText = parsed.text || null;
+                parsedFrom = parsed.from?.value?.[0] ?? null;
+                parsedTo = parsed.to
+                  ? (Array.isArray(parsed.to.value) ? parsed.to.value[0] : null)
+                  : null;
+                parsedSubject = parsed.subject || null;
+                parsedDate = parsed.date ?? null;
+                parsedMessageId = parsed.messageId || null;
+              } catch {
+                bodyText = msg.source.toString("utf-8").substring(0, 50000);
+              }
+            }
 
-            const receivedAt: Date = envelope.date ? new Date(envelope.date) : new Date();
+            // Prefer mailparser values; fall back to IMAP envelope
+            const messageId: string | null =
+              parsedMessageId || envelope.messageId || null;
+            const subject: string =
+              parsedSubject || envelope.subject || "(sin asunto)";
+            const receivedAt: Date =
+              parsedDate ?? (envelope.date ? new Date(envelope.date) : new Date());
 
-            // Dedup by messageId
+            // From address: mailparser first, then IMAP envelope
+            const envFrom = envelope.from?.[0] as any;
+            const fromAddress: string =
+              parsedFrom?.address ||
+              envFrom?.address ||
+              (envFrom?.mailbox && envFrom?.host ? `${envFrom.mailbox}@${envFrom.host}` : null) ||
+              "desconocido@desconocido";
+            const fromName: string | null =
+              parsedFrom?.name || envFrom?.name || null;
+
+            // To address: mailparser first, then IMAP envelope
+            const envTo = envelope.to?.[0] as any;
+            const toAddress: string =
+              parsedTo?.address ||
+              envTo?.address ||
+              (envTo?.mailbox && envTo?.host ? `${envTo.mailbox}@${envTo.host}` : null) ||
+              company.imapUser!;
+
+            // Dedup by messageId to avoid storing the same email twice
             if (messageId) {
               const existing = await prisma.email.findFirst({
                 where: { messageId, companyId: company.id },
                 select: { id: true },
               });
               if (existing) continue;
-            }
-
-            // Parse body with mailparser — handles Base64, quoted-printable, multipart, etc.
-            let bodyHtml: string | null = null;
-            let bodyText: string | null = null;
-            if (msg.source) {
-              try {
-                const parsed = await simpleParser(msg.source);
-                bodyHtml = parsed.html || null;
-                bodyText = parsed.text || null;
-              } catch (parseErr) {
-                // Fall back to raw text if parsing fails
-                bodyText = msg.source.toString("utf-8").substring(0, 50000);
-              }
             }
 
             await prisma.email.create({
@@ -158,6 +184,16 @@ export async function GET(req: Request) {
                 organizationId: company.organizationId,
                 receivedAt,
               },
+            });
+
+            // In-app notification for new email
+            createNotification({
+              organizationId: company.organizationId,
+              type: "NEW_EMAIL",
+              title: subject,
+              body: `De: ${fromName || fromAddress}`,
+              link: "/emails",
+              entityId: undefined,
             });
 
             totalFetched++;

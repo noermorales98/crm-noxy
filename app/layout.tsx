@@ -4,6 +4,7 @@ import AuthProvider from "@/src/components/AuthProvider";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { ConfirmProvider } from "@/src/context/ConfirmContext";
 import { HeaderProvider } from "@/src/context/HeaderContext";
+import { NotificationProvider } from "@/src/context/NotificationContext";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -29,7 +30,9 @@ export default function RootLayout({
           <ToastProvider>
             <ConfirmProvider>
               <HeaderProvider>
-                {children}
+                <NotificationProvider>
+                  {children}
+                </NotificationProvider>
               </HeaderProvider>
             </ConfirmProvider>
           </ToastProvider>

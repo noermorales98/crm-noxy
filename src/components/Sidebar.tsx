@@ -20,24 +20,28 @@ import {
   Add01Icon,
   ZapIcon,
   Analytics01Icon,
-  Megaphone01Icon,
   GitBranchIcon,
   BarChartIcon,
+  Megaphone01Icon,
 } from "@hugeicons/core-free-icons";
+import { useNotifications } from "@/src/context/NotificationContext";
 
 export default function Sidebar() {
   const { data: session } = useSession();
   const [projects, setProjects] = useState<any[]>([]);
+  const { notifications } = useNotifications();
+
+  // Count unread email notifications to show badge on "Correos"
+  const unreadEmailCount = notifications.filter(
+    (n) => n.type === "NEW_EMAIL" && !n.isRead
+  ).length;
 
   useEffect(() => {
-    if (session?.user) {
-      fetch("/api/projects?limit=5")
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setProjects(data);
-        })
-        .catch(err => console.error("Error fetching projects:", err));
-    }
+    if (!session?.user) return;
+    fetch("/api/projects?limit=5")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setProjects(data); })
+      .catch(err => console.error("Error fetching projects:", err));
   }, [session]);
 
   return (
@@ -60,7 +64,7 @@ export default function Sidebar() {
           <NavItem href="/tasks" icon={Task01Icon} label="Tareas" />
           <NavItem href="/pipeline" icon={BarChartIcon} label="Ventas" />
           <NavItem href="/campaigns" icon={Mail01Icon} label="Campañas de Email" />
-          <NavItem href="/emails" icon={InboxIcon} label="Correos" />
+          <NavItem href="/emails" icon={InboxIcon} label="Correos" badge={unreadEmailCount} />
           <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />
         </div>
 
@@ -119,21 +123,30 @@ export default function Sidebar() {
   );
 }
 
-function NavItem({ icon, label, href }: { icon: any; label: string; href: string }) {
+function NavItem({ icon, label, href, badge }: { icon: any; label: string; href: string; badge?: number }) {
   const pathname = usePathname();
   const isActive = pathname === href;
 
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all text-sm ${
+      className={`flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all text-sm ${
         isActive
           ? "bg-gray-900 text-white font-medium"
           : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
       }`}
     >
-      <HugeiconsIcon icon={icon} size={16} color={isActive ? "white" : "currentColor"} />
-      <span className="truncate">{label}</span>
+      <div className="flex items-center gap-2.5 min-w-0">
+        <HugeiconsIcon icon={icon} size={16} color={isActive ? "white" : "currentColor"} />
+        <span className="truncate">{label}</span>
+      </div>
+      {badge != null && badge > 0 && (
+        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+          isActive ? "bg-white/20 text-white" : "bg-blue-500 text-white"
+        }`}>
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 }

@@ -3,6 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
+import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Search01Icon,
@@ -15,25 +16,57 @@ import {
   ArrowUp01Icon,
   ArrowDown01Icon,
   Cancel01Icon,
+  Notification01Icon,
+  InboxIcon,
+  BrowserIcon,
+  CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
+
+// ── Icon map per notification type ───────────────────────────────────────────
+
+const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
+  NEW_EMAIL: InboxIcon,
+  NEW_CONTACT: UserMultipleIcon,
+  NEW_FORM_LEAD: BrowserIcon,
+};
+
+const TYPE_COLORS: Record<NotificationType, string> = {
+  NEW_EMAIL: "bg-blue-50 text-blue-600",
+  NEW_CONTACT: "bg-green-50 text-green-600",
+  NEW_FORM_LEAD: "bg-violet-50 text-violet-600",
+};
+
+function timeAgo(date: string): string {
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
+  if (diff < 60) return "ahora";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Header() {
   const { data: session } = useSession();
   const { config, searchQuery, setSearchQuery, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false);
       if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
       if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -73,7 +106,7 @@ export default function Header() {
         {hasSortOptions && (
           <div className="relative" ref={sortRef}>
             <button
-              onClick={() => { setSortOpen(!sortOpen); setFiltersOpen(false); }}
+              onClick={() => { setSortOpen(!sortOpen); setFiltersOpen(false); setNotifOpen(false); }}
               className={`flex items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-xl ${
                 sortField
                   ? "bg-gray-900 text-white"
@@ -124,7 +157,7 @@ export default function Header() {
         {hasFilterGroups && (
           <div className="relative" ref={filtersRef}>
             <button
-              onClick={() => { setFiltersOpen(!filtersOpen); setSortOpen(false); }}
+              onClick={() => { setFiltersOpen(!filtersOpen); setSortOpen(false); setNotifOpen(false); }}
               className={`flex items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-xl ${
                 activeFilterCount > 0
                   ? "bg-gray-900 text-white"
@@ -181,10 +214,63 @@ export default function Header() {
           </button>
         )}
 
+        {/* ── Notification Bell ── */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); setSortOpen(false); setFiltersOpen(false); }}
+            className="relative w-9 h-9 flex items-center justify-center rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-colors border border-gray-200"
+            title="Notificaciones"
+          >
+            <HugeiconsIcon icon={Notification01Icon} size={17} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <p className="text-sm font-bold text-gray-900">Notificaciones</p>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                  >
+                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={13} />
+                    Marcar todas
+                  </button>
+                )}
+              </div>
+
+              {/* List */}
+              <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                    <HugeiconsIcon icon={Notification01Icon} size={28} color="#d1d5db" />
+                    <p className="text-sm mt-2">Sin notificaciones</p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onRead={(id) => { markAsRead(id); }}
+                      onClose={() => setNotifOpen(false)}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* User Menu */}
         <div className="relative ml-1" ref={userMenuRef}>
           <button
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
             className="w-8 h-8 rounded-xl bg-gray-900 flex items-center justify-center text-white font-semibold text-xs hover:bg-black transition-colors"
             title={session?.user?.name || "Usuario"}
           >
@@ -229,4 +315,54 @@ export default function Header() {
 
     </header>
   );
+}
+
+// ── Notification item in dropdown ─────────────────────────────────────────────
+
+function NotificationItem({
+  notification,
+  onRead,
+  onClose,
+}: {
+  notification: AppNotification;
+  onRead: (id: string) => void;
+  onClose: () => void;
+}) {
+  const Icon = TYPE_ICONS[notification.type] ?? Notification01Icon;
+  const colorClass = TYPE_COLORS[notification.type] ?? "bg-gray-50 text-gray-500";
+
+  const handleClick = () => {
+    if (!notification.isRead) onRead(notification.id);
+    onClose();
+  };
+
+  const content = (
+    <div
+      className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer ${
+        !notification.isRead ? "bg-blue-50/40" : ""
+      }`}
+      onClick={handleClick}
+    >
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}>
+        <HugeiconsIcon icon={Icon} size={14} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`text-sm leading-tight ${!notification.isRead ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>
+          {notification.title}
+        </p>
+        {notification.body && (
+          <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{notification.body}</p>
+        )}
+        <p className="text-[10px] text-gray-300 mt-1">{timeAgo(notification.createdAt)}</p>
+      </div>
+      {!notification.isRead && (
+        <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-2" />
+      )}
+    </div>
+  );
+
+  if (notification.link) {
+    return <Link href={notification.link}>{content}</Link>;
+  }
+  return content;
 }
