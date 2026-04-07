@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { randomUUID } from "crypto";
+import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 
 function corsHeaders() {
   return {
@@ -115,9 +116,10 @@ export async function POST(
       },
     });
 
-    // Create task for owner
+    // Create task for owner and send notifications
     const owner = await prisma.organizationMember.findFirst({
       where: { organizationId: deal.organizationId, role: "OWNER" },
+      include: { user: { select: { callMeBot: true } } },
     });
     if (owner) {
       await prisma.task.create({
@@ -131,6 +133,25 @@ export async function POST(
           assignedToId: owner.userId,
         },
       });
+
+      // WhatsApp notification via CallMeBot
+      if (owner.user?.callMeBot?.phone && owner.user?.callMeBot?.apiKey) {
+        const waMsg = [
+          `📅 *Nueva cita agendada — ${apptType.name}*`,
+          `👤 ${guestName}`,
+          guestEmail ? `📧 ${guestEmail}` : null,
+          guestPhone ? `📞 ${guestPhone}` : null,
+          `🗓️ ${start.toLocaleString("es-MX", { dateStyle: "full", timeStyle: "short" })}`,
+          deal.title ? `📁 Deal: ${deal.title}` : null,
+          notes ? `📝 ${notes}` : null,
+        ].filter(Boolean).join("\n");
+
+        await sendWhatsAppNotification(
+          owner.user.callMeBot.phone,
+          owner.user.callMeBot.apiKey,
+          waMsg
+        ).catch(err => console.error("WhatsApp notification error:", err));
+      }
     }
 
     return NextResponse.json(
