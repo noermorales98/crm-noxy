@@ -42,6 +42,10 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
       },
       payments: { orderBy: { createdAt: "desc" } },
       tasks: { orderBy: { createdAt: "desc" }, take: 10 },
+      appointments: {
+        include: { appointmentType: { select: { id: true, name: true, duration: true, color: true } } },
+        orderBy: { startTime: "asc" },
+      },
     },
   });
 
