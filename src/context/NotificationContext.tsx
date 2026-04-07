@@ -46,7 +46,7 @@ interface NotificationContextValue {
 
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-const POLL_INTERVAL = 60_000; // 60 seconds
+const POLL_INTERVAL = 30_000; // 30 seconds
 
 const TYPE_ICONS: Record<NotificationType, any> = {
   NEW_EMAIL: InboxIcon,
@@ -61,15 +61,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Popups: list of notifications to show as floating toasts
   const [popups, setPopups] = useState<AppNotification[]>([]);
 
+  // Timestamp of the last successful poll — used as the `since` cursor
   const lastFetchAtRef = useRef<string | null>(null);
-  const isFirstFetch = useRef(true);
+  // True only during the very first load — we never show popups for the initial batch
+  const initialLoadDone = useRef(false);
 
   const fetchNotifications = useCallback(async (detectNew = false) => {
     if (!session?.user) return;
     try {
+      // For incremental polls use `?since=` so we only get truly new notifications
       const url = detectNew && lastFetchAtRef.current
         ? `/api/notifications?since=${encodeURIComponent(lastFetchAtRef.current)}`
         : "/api/notifications";
+
+      // Advance the cursor BEFORE the request so we don't use a stale timestamp
+      // even if the response takes a long time
+      const pollStart = new Date().toISOString();
 
       const res = await fetch(url);
       if (!res.ok) return;
@@ -77,30 +84,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
       const incoming: AppNotification[] = data.notifications ?? [];
 
-      if (detectNew && !isFirstFetch.current && incoming.length > 0) {
-        // These are truly new (arrived after lastFetchAt) — show popups
-        setPopups((prev) => [...prev, ...incoming].slice(-5)); // max 5 stacked
-      }
+      if (detectNew) {
+        // Always advance the cursor so next poll covers the gap correctly
+        lastFetchAtRef.current = pollStart;
 
-      if (detectNew && incoming.length > 0) {
-        // Update lastFetchAt to now so next incremental poll works
-        lastFetchAtRef.current = new Date().toISOString();
-        // Prepend new notifications to the list
-        setNotifications((prev) => {
-          const existingIds = new Set(prev.map((n) => n.id));
-          const fresh = incoming.filter((n) => !existingIds.has(n.id));
-          return [...fresh, ...prev].slice(0, 50);
-        });
-      } else if (!detectNew) {
-        // Full refresh
+        if (initialLoadDone.current && incoming.length > 0) {
+          // Show popup for each new notification (max 5 stacked)
+          setPopups((prev) => [...prev, ...incoming].slice(-5));
+          // Prepend them to the notification list
+          setNotifications((prev) => {
+            const existingIds = new Set(prev.map((n) => n.id));
+            const fresh = incoming.filter((n) => !existingIds.has(n.id));
+            return [...fresh, ...prev].slice(0, 50);
+          });
+        }
+      } else {
+        // Full refresh on initial load
         setNotifications(incoming);
-        lastFetchAtRef.current = new Date().toISOString();
+        lastFetchAtRef.current = pollStart;
+        initialLoadDone.current = true;
       }
 
       setUnreadCount(data.unreadCount ?? 0);
-      isFirstFetch.current = false;
     } catch {
-      // silently ignore
+      // silently ignore network errors
     }
   }, [session]);
 
@@ -110,7 +117,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     fetchNotifications(false);
   }, [session, fetchNotifications]);
 
-  // Subsequent incremental polls
+  // Incremental polls every 30 seconds
   useEffect(() => {
     if (!session?.user) return;
     const interval = setInterval(() => fetchNotifications(true), POLL_INTERVAL);
