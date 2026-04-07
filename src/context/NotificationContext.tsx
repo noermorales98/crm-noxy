@@ -39,6 +39,8 @@ interface NotificationContextValue {
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  deleteNotification: (id: string) => void;
+  clearAll: () => void;
   refresh: () => void;
 }
 
@@ -200,6 +202,26 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     await fetch("/api/notifications/read-all", { method: "PATCH" }).catch(() => {});
   }, []);
 
+  const deleteNotification = useCallback(async (id: string) => {
+    setNotifications((prev) => {
+      const target = prev.find((n) => n.id === id);
+      if (target && !target.isRead) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
+      return prev.filter((n) => n.id !== id);
+    });
+    await fetch(`/api/notifications/${id}`, { method: "DELETE" }).catch(() => {});
+  }, []);
+
+  const clearAll = useCallback(async () => {
+    const ids = notifications.map((n) => n.id);
+    setNotifications([]);
+    setUnreadCount(0);
+    await Promise.all(
+      ids.map((id) => fetch(`/api/notifications/${id}`, { method: "DELETE" }).catch(() => {}))
+    );
+  }, [notifications]);
+
   const dismissPopup = useCallback((id: string) => {
     setPopups((prev) => prev.filter((p) => p.id !== id));
   }, []);
@@ -211,6 +233,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         unreadCount,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
+        clearAll,
         refresh: () => fetchNotifications(false),
       }}
     >

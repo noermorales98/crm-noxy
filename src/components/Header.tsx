@@ -20,6 +20,7 @@ import {
   InboxIcon,
   BrowserIcon,
   CheckmarkCircle01Icon,
+  Delete01Icon,
 } from "@hugeicons/core-free-icons";
 
 // ── Icon map per notification type ───────────────────────────────────────────
@@ -49,7 +50,7 @@ function timeAgo(date: string): string {
 export default function Header() {
   const { data: session } = useSession();
   const { config, searchQuery, setSearchQuery, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -234,15 +235,26 @@ export default function Header() {
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-bold text-gray-900">Notificaciones</p>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
-                  >
-                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={13} />
-                    Marcar todas
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                    >
+                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={13} />
+                      Leer todas
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={clearAll}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors"
+                    >
+                      <HugeiconsIcon icon={Delete01Icon} size={13} />
+                      Borrar todas
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* List */}
@@ -258,6 +270,7 @@ export default function Header() {
                       key={n.id}
                       notification={n}
                       onRead={(id) => { markAsRead(id); }}
+                      onDelete={(id) => { deleteNotification(id); }}
                       onClose={() => setNotifOpen(false)}
                     />
                   ))
@@ -322,10 +335,12 @@ export default function Header() {
 function NotificationItem({
   notification,
   onRead,
+  onDelete,
   onClose,
 }: {
   notification: AppNotification;
   onRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onClose: () => void;
 }) {
   const Icon = TYPE_ICONS[notification.type] ?? Notification01Icon;
@@ -336,9 +351,15 @@ function NotificationItem({
     onClose();
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(notification.id);
+  };
+
   const content = (
     <div
-      className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer ${
+      className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50 cursor-pointer group relative ${
         !notification.isRead ? "bg-blue-50/40" : ""
       }`}
       onClick={handleClick}
@@ -355,9 +376,18 @@ function NotificationItem({
         )}
         <p className="text-[10px] text-gray-300 mt-1">{timeAgo(notification.createdAt)}</p>
       </div>
-      {!notification.isRead && (
-        <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-2" />
-      )}
+      <div className="flex items-center gap-1 shrink-0 mt-1">
+        {!notification.isRead && (
+          <span className="w-2 h-2 bg-blue-500 rounded-full" />
+        )}
+        <button
+          onClick={handleDelete}
+          className="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
+          title="Eliminar notificación"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} size={12} />
+        </button>
+      </div>
     </div>
   );
 
