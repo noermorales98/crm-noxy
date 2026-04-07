@@ -55,6 +55,7 @@ model Organization {
   projects              Project[]
   availabilitySchedules AvailabilitySchedule[]
   blockedTimes          BlockedTime[]
+  extendedAvailability  ExtendedAvailability[]
   appointmentTypes      AppointmentType[]
   appointments          Appointment[]
   taskCategories        TaskCategory[]
@@ -598,6 +599,20 @@ model BlockedTime {
   title          String?
   start          DateTime
   end            DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model ExtendedAvailability {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String?
+  date           DateTime
+  startTime      String       // "10:00"
+  endTime        String       // "14:00"
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 

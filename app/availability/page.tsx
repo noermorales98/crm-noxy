@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Clock01Icon, Add01Icon, Delete01Icon, Cancel01Icon, CalendarOffIcon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, Add01Icon, Delete01Icon, Cancel01Icon, CalendarOffIcon, CalendarCheckIn01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 
@@ -90,6 +90,15 @@ export default function AvailabilityPage() {
 
   const [isSubmittingBlocked, setIsSubmittingBlocked] = useState(false);
 
+  // Extended Availability State
+  const [extendedTimes, setExtendedTimes] = useState<any[]>([]);
+  const [isExtendedModalOpen, setIsExtendedModalOpen] = useState(false);
+  const [extendedTitle, setExtendedTitle] = useState("");
+  const [extendedDate, setExtendedDate] = useState("");
+  const [extendedStart, setExtendedStart] = useState("09:00");
+  const [extendedEnd, setExtendedEnd] = useState("14:00");
+  const [isSubmittingExtended, setIsSubmittingExtended] = useState(false);
+
   useEffect(() => {
     resetState();
     setConfig({
@@ -102,6 +111,7 @@ export default function AvailabilityPage() {
   useEffect(() => {
     fetchSchedules();
     fetchBlockedTimes();
+    fetchExtendedTimes();
   }, []);
 
   const fetchSchedules = async () => {
@@ -114,6 +124,11 @@ export default function AvailabilityPage() {
   const fetchBlockedTimes = async () => {
     const res = await fetch("/api/availability/blocked");
     if (res.ok) setBlockedTimes(await res.json());
+  };
+
+  const fetchExtendedTimes = async () => {
+    const res = await fetch("/api/availability/extended");
+    if (res.ok) setExtendedTimes(await res.json());
   };
 
   const defaultSlots = (): SlotState[] => DAYS.map(d => ({
@@ -224,6 +239,45 @@ export default function AvailabilityPage() {
     }
   };
 
+  const openExtendedModal = () => {
+    setExtendedTitle("");
+    setExtendedDate("");
+    setExtendedStart("09:00");
+    setExtendedEnd("14:00");
+    setIsExtendedModalOpen(true);
+  };
+
+  const handleCreateExtended = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingExtended(true);
+    try {
+      const res = await fetch("/api/availability/extended", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: extendedTitle, date: extendedDate, startTime: extendedStart, endTime: extendedEnd }),
+      });
+      if (res.ok) {
+        setIsExtendedModalOpen(false);
+        fetchExtendedTimes();
+        addToast("Horario extendido añadido", "success");
+      } else {
+        const d = await res.json();
+        addToast(d.error || "Error al crear", "error");
+      }
+    } catch (e) {
+      addToast("Error de conexión", "error");
+    } finally {
+      setIsSubmittingExtended(false);
+    }
+  };
+
+  const handleDeleteExtended = async (id: string) => {
+    const ok = await showConfirm("¿Eliminar este horario extendido?", { title: "Eliminar horario extendido", confirmLabel: "Eliminar", isDanger: true });
+    if (!ok) return;
+    await fetch(`/api/availability/extended/${id}`, { method: "DELETE" });
+    fetchExtendedTimes();
+  };
+
   const handleDeleteBlocked = async (id: string) => {
     const ok = await showConfirm(`¿Eliminar esta excepción del calendario?`, { title: "Eliminar excepción", confirmLabel: "Eliminar", isDanger: true });
     if (!ok) return;
@@ -299,6 +353,69 @@ export default function AvailabilityPage() {
               ))}
             </div>
           )}
+
+          {/* Extended Availability Section */}
+          <div className="mt-16 mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+                <HugeiconsIcon icon={CalendarCheckIn01Icon} size={24} color="#22c55e" />
+                Horarios Extendidos
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">Agrega disponibilidad adicional fuera de tu horario regular (Ej: Sábado especial)</p>
+            </div>
+            <button
+              onClick={openExtendedModal}
+              className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            >
+              <HugeiconsIcon icon={Add01Icon} size={18} /> Agregar Horario
+            </button>
+          </div>
+
+          {!isLoading && extendedTimes.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200 shadow-sm mb-12">
+              <HugeiconsIcon icon={CalendarCheckIn01Icon} size={40} color="#d1d5db" className="mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">No tienes horarios extendidos. Agrega uno para abrir disponibilidad fuera de tu horario regular.</p>
+            </div>
+          ) : extendedTimes.length > 0 ? (
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-12">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Motivo</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Horario</th>
+                    <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {extendedTimes.map(ext => (
+                    <tr key={ext.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
+                          <span className="font-medium text-gray-900">{ext.title || "Horario extendido"}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600">{new Date(ext.date).toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</td>
+                      <td className="px-6 py-4 text-gray-600">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-50 text-green-700 text-xs font-semibold">
+                          {ext.startTime} – {ext.endTime}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDeleteExtended(ext.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
 
           {/* Blocked Times Section */}
           <div className="mt-16 mb-8 flex items-center justify-between">
@@ -536,6 +653,85 @@ export default function AvailabilityPage() {
                 className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
               >
                 {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EXTENDED AVAILABILITY MODAL */}
+      {isExtendedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900">Agregar Horario Extendido</h3>
+              <button onClick={() => setIsExtendedModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="extendedForm" onSubmit={handleCreateExtended} className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-gray-700">Título / Motivo (Opcional)</label>
+                  <input
+                    value={extendedTitle}
+                    onChange={e => setExtendedTitle(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    placeholder="Ej: Sábado especial, Atención fin de año"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-gray-700">Fecha *</label>
+                  <input
+                    type="date"
+                    required
+                    value={extendedDate}
+                    onChange={e => setExtendedDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-gray-700">De (Hora) *</label>
+                    <input
+                      type="time"
+                      required
+                      value={extendedStart}
+                      onChange={e => setExtendedStart(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-semibold text-gray-700">A (Hora) *</label>
+                    <input
+                      type="time"
+                      required
+                      value={extendedEnd}
+                      onChange={e => setExtendedEnd(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Los leads podrán agendar citas en este horario adicional, fuera de tu horario regular.
+                </p>
+              </form>
+            </div>
+            <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={() => setIsExtendedModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                form="extendedForm"
+                disabled={isSubmittingExtended}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
+              >
+                {isSubmittingExtended ? "Guardando..." : "Agregar"}
               </button>
             </div>
           </div>

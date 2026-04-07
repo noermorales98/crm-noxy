@@ -76,17 +76,43 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
     s => s.dayOfWeek === dayOfWeek && s.isAvailable
   );
 
-  if (!dayAvailability) {
+  // Build list of availability windows for this date
+  // (regular schedule + any extended availability entries)
+  const windows: { startTime: string; endTime: string }[] = [];
+
+  if (dayAvailability) {
+    windows.push({ startTime: dayAvailability.startTime, endTime: dayAvailability.endTime });
+  }
+
+  // Check for extended availability entries for this specific date
+  // We use UTC to avoid timezone shifts when comparing with stored "date only" records
+  const dateStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+  const dateEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59));
+
+  const extendedEntries = await prisma.extendedAvailability.findMany({
+    where: {
+      organizationId: appointmentType.organizationId,
+      date: { gte: dateStart, lte: dateEnd },
+    },
+  });
+
+  for (const ext of extendedEntries) {
+    windows.push({ startTime: ext.startTime, endTime: ext.endTime });
+  }
+
+  if (windows.length === 0) {
     return NextResponse.json({ slots: [] }, { headers: corsHeaders() });
   }
 
-  // Convert availability window from schedule's timezone to UTC
-  const windowStart = localTimeToUTC(year, month, day, dayAvailability.startTime, scheduleTz);
-  const windowEnd   = localTimeToUTC(year, month, day, dayAvailability.endTime,   scheduleTz);
+  // Compute the overall search range for existing appointments / blocked times
+  const allWindowStarts = windows.map(w => localTimeToUTC(year, month, day, w.startTime, scheduleTz));
+  const allWindowEnds = windows.map(w => localTimeToUTC(year, month, day, w.endTime, scheduleTz));
+  const earliestStart = new Date(Math.min(...allWindowStarts.map(d => d.getTime())));
+  const latestEnd = new Date(Math.max(...allWindowEnds.map(d => d.getTime())));
 
   // Fetch existing appointments in a wider window (±1 day to account for tz shifts)
-  const searchStart = new Date(windowStart.getTime() - 86400000);
-  const searchEnd   = new Date(windowEnd.getTime()   + 86400000);
+  const searchStart = new Date(earliestStart.getTime() - 86400000);
+  const searchEnd   = new Date(latestEnd.getTime()   + 86400000);
 
   const existingAppointments = await prisma.appointment.findMany({
     where: {
@@ -110,33 +136,41 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
   const now       = new Date();
   const slots: string[] = [];
 
-  let cursor = windowStart.getTime();
-  const end  = windowEnd.getTime();
+  // Generate slots from each availability window
+  for (const window of windows) {
+    const windowStart = localTimeToUTC(year, month, day, window.startTime, scheduleTz);
+    const windowEnd   = localTimeToUTC(year, month, day, window.endTime,   scheduleTz);
 
-  while (cursor + duration <= end) {
-    const slotStart = new Date(cursor);
-    const slotEnd   = new Date(cursor + duration);
+    let cursor = windowStart.getTime();
+    const end  = windowEnd.getTime();
 
-    if (slotStart > now) {
-      const overlapsAppt = existingAppointments.some(appt => {
-        const aStart = new Date(appt.startTime).getTime();
-        const aEnd   = new Date(appt.endTime).getTime();
-        return cursor < aEnd && (cursor + duration) > aStart;
-      });
+    while (cursor + duration <= end) {
+      const slotStart = new Date(cursor);
 
-      const overlapsBlocked = blockedTimes.some((block: any) => {
-        const bStart = new Date(block.start).getTime();
-        const bEnd   = new Date(block.end).getTime();
-        return cursor < bEnd && (cursor + duration) > bStart;
-      });
+      if (slotStart > now) {
+        const overlapsAppt = existingAppointments.some(appt => {
+          const aStart = new Date(appt.startTime).getTime();
+          const aEnd   = new Date(appt.endTime).getTime();
+          return cursor < aEnd && (cursor + duration) > aStart;
+        });
 
-      if (!overlapsAppt && !overlapsBlocked) {
-        slots.push(slotStart.toISOString());
+        const overlapsBlocked = blockedTimes.some((block: any) => {
+          const bStart = new Date(block.start).getTime();
+          const bEnd   = new Date(block.end).getTime();
+          return cursor < bEnd && (cursor + duration) > bStart;
+        });
+
+        if (!overlapsAppt && !overlapsBlocked) {
+          slots.push(slotStart.toISOString());
+        }
       }
-    }
 
-    cursor += duration + buffer;
+      cursor += duration + buffer;
+    }
   }
 
-  return NextResponse.json({ slots }, { headers: corsHeaders() });
+  // Deduplicate and sort
+  const uniqueSlots = [...new Set(slots)].sort();
+
+  return NextResponse.json({ slots: uniqueSlots }, { headers: corsHeaders() });
 }

@@ -11,7 +11,12 @@ export async function GET() {
     where: { organizationId: session.currentOrganizationId },
     include: {
       schedule: true,
-      _count: { select: { appointments: true } }
+      _count: { 
+        select: { 
+          appointments: true,
+          forms: true 
+        } 
+      }
     },
     orderBy: { createdAt: "asc" }
   });

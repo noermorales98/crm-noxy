@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
@@ -31,6 +31,9 @@ export default function AppointmentTypesPage() {
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
       searchPlaceholder: "Buscar tipo de cita...",
       sortOptions: [
@@ -41,7 +44,7 @@ export default function AppointmentTypesPage() {
       addButton: { label: "Nuevo tipo", onClick: openCreate },
     });
     return () => setConfig({});
-  }, [schedules]);
+  }, [schedules.length]); // Re-run if schedules change but don't reset state
 
   useEffect(() => {
     fetchAll();
@@ -49,13 +52,19 @@ export default function AppointmentTypesPage() {
 
   const fetchAll = async () => {
     setIsLoading(true);
-    const [t, s] = await Promise.all([
-      fetch("/api/appointment-types"),
-      fetch("/api/availability")
-    ]);
-    if (t.ok) setTypes(await t.json());
-    if (s.ok) setSchedules(await s.json());
-    setIsLoading(false);
+    try {
+      const [t, s] = await Promise.all([
+        fetch("/api/appointment-types"),
+        fetch("/api/availability")
+      ]);
+      if (t.ok) setTypes(await t.json());
+      if (s.ok) setSchedules(await s.json());
+    } catch (error) {
+      console.error("Error fetching appointment types:", error);
+      addToast("Error al cargar datos", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const openCreate = () => {
@@ -198,6 +207,15 @@ export default function AppointmentTypesPage() {
                     <span>{type.duration} min</span>
                     <span className="mx-2 text-gray-200">·</span>
                     <span>{type._count?.appointments || 0} citas</span>
+                    {type._count?.forms > 0 && (
+                      <>
+                        <span className="mx-2 text-gray-200">·</span>
+                        <div className="flex items-center gap-1 text-blue-600 font-medium">
+                          <HugeiconsIcon icon={Note01Icon} size={14} />
+                          <span>Con Formulario</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between gap-2 mt-auto pt-4 border-t border-gray-50">
