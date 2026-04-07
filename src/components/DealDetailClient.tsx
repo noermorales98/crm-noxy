@@ -9,8 +9,6 @@ import {
   CheckmarkCircle01Icon,
   Cancel01Icon,
   Add01Icon,
-  User02Icon,
-  CalendarCheckIn01Icon,
   Message01Icon,
   FileAttachmentIcon,
   DollarCircleIcon,
@@ -30,15 +28,6 @@ import DownloadProposalButton from "./DownloadProposalButton";
 import DatePicker from "./DatePicker";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const PHONE_CODES = [
-  { code: "+52", flag: "🇲🇽", label: "MX" },
-  { code: "+1",  flag: "🇺🇸", label: "US" },
-  { code: "+34", flag: "🇪🇸", label: "ES" },
-  { code: "+54", flag: "🇦🇷", label: "AR" },
-  { code: "+57", flag: "🇨🇴", label: "CO" },
-];
-
 
 const inputCls =
   "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
@@ -228,6 +217,9 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   const [selectedLinkTypes, setSelectedLinkTypes] = useState<string[]>(deal.allowedBookingTypes ? deal.allowedBookingTypes.split(",") : []);
   const [savingLinkConfig, setSavingLinkConfig] = useState(false);
 
+  // Active tab
+  const [activeTab, setActiveTab] = useState<"actividad" | "propuestas" | "citas">("actividad");
+
   // Fetch appointment types immediately if there is a booking token
   useEffect(() => {
     if (deal.bookingToken && appointmentTypes.length === 0) {
@@ -254,7 +246,14 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     });
     if (res.ok) {
       const updated = await res.json();
-      setDeal((prev: any) => ({ ...prev, ...updated }));
+      setDeal((prev: any) => ({
+        ...prev,
+        ...updated,
+        // Preserve the nested pipeline.stages relation (not returned by PATCH)
+        stage: updated.stage
+          ? { ...updated.stage, pipeline: prev.stage?.pipeline }
+          : prev.stage,
+      }));
     }
   }
 
@@ -536,79 +535,145 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
   const currentStage = stages.find((s: any) => s.id === deal.stage?.id) || deal.stage;
 
+  // Initials avatar for the deal (from contact or deal title)
+  const avatarInitials = deal.contact
+    ? `${deal.contact.firstName?.[0] || ""}${deal.contact.lastName?.[0] || ""}`.toUpperCase() || "?"
+    : deal.title?.[0]?.toUpperCase() || "D";
+
+  const TAB_ITEMS = [
+    { key: "actividad", label: "Actividad", count: deal.activities.length },
+    { key: "propuestas", label: "Propuestas", count: deal.proposals.length },
+    { key: "citas", label: "Citas", count: dealAppointments.filter((a: any) => a.status !== "CANCELLED").length },
+  ] as const;
+
   return (
     <main className="flex-1 overflow-y-auto bg-[#f5f4ef]">
 
       {/* ── Header ── */}
-      <div className="bg-white border-b border-gray-100 px-6 py-4">
-        {/* Top bar */}
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-white border-b border-gray-100">
+        {/* Top bar: back + breadcrumb + actions */}
+        <div className="flex items-center gap-3 px-6 pt-4 pb-3">
           <button
             onClick={() => router.push("/pipeline")}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
+            className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </button>
-
-          {/* Breadcrumb */}
           <div className="flex items-center gap-1.5 text-xs text-gray-400 flex-1 min-w-0">
-            <span className="font-medium hover:text-gray-600 cursor-pointer" onClick={() => router.push("/pipeline")}>
-              Pipeline
-            </span>
+            <span className="hover:text-gray-600 cursor-pointer" onClick={() => router.push("/pipeline")}>Pipeline</span>
             <span>/</span>
-            <span className="font-medium text-gray-600 truncate">{deal.stage?.pipeline?.name}</span>
+            <span className="text-gray-500 truncate">{deal.stage?.pipeline?.name}</span>
           </div>
-
-          {/* Delete deal */}
-          <button
-            onClick={() => setShowDeleteDeal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
-          >
-            <HugeiconsIcon icon={Delete02Icon} size={14} />
-            Eliminar deal
-          </button>
+          {/* Action buttons: call + sms + whatsapp + email + delete */}
+          <div className="flex items-center gap-2">
+            {deal.contact?.phone && (() => {
+              const rawPhone = deal.contact.phone.replace(/[\s\-().]/g, "");
+              const waPhone = rawPhone.startsWith("+") ? rawPhone.slice(1) : rawPhone;
+              return (
+                <>
+                  <a
+                    href={`tel:${deal.contact.phone}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    title="Llamar"
+                  >
+                    <HugeiconsIcon icon={CallIcon} size={13} />
+                    Llamar
+                  </a>
+                  <a
+                    href={`sms:${deal.contact.phone}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    title="Enviar SMS"
+                  >
+                    <HugeiconsIcon icon={Message01Icon} size={13} />
+                    SMS
+                  </a>
+                  <a
+                    href={`https://wa.me/${waPhone}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#25D366] hover:bg-[#1ebe5d] rounded-xl transition-colors"
+                    title="Enviar WhatsApp"
+                  >
+                    <HugeiconsIcon icon={Message01Icon} size={13} />
+                    WhatsApp
+                  </a>
+                </>
+              );
+            })()}
+            {deal.contact?.email && (
+              <a
+                href={`mailto:${deal.contact.email}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                <HugeiconsIcon icon={Mail01Icon} size={13} />
+                Email
+              </a>
+            )}
+            <button
+              onClick={() => setShowDeleteDeal(true)}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+              title="Eliminar deal"
+            >
+              <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
+            </button>
+          </div>
         </div>
 
-        {/* Title row */}
-        <div className="flex items-start gap-3">
+        {/* Deal identity row */}
+        <div className="flex items-center gap-4 px-6 pb-4">
+          {/* Avatar */}
+          <div className="w-14 h-14 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center text-lg font-bold shrink-0 ring-2 ring-white shadow-sm">
+            {avatarInitials}
+          </div>
+
+          {/* Title + subtitle + badges */}
           <div className="flex-1 min-w-0">
+            {/* Title */}
             {editingTitle ? (
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-1.5">
                 <input
                   value={titleValue}
                   onChange={(e) => setTitleValue(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") { setEditingTitle(false); setTitleValue(deal.title); } }}
-                  className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-900 outline-none flex-1"
+                  className="text-xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-900 outline-none flex-1"
                   autoFocus
                 />
-                <button onClick={saveTitle} className="p-1.5 text-green-600 hover:bg-green-50 rounded-xl">
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={20} />
+                <button onClick={saveTitle} className="p-1 text-green-600 hover:bg-green-50 rounded-lg">
+                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} />
                 </button>
-                <button onClick={() => { setEditingTitle(false); setTitleValue(deal.title); }} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-xl">
-                  <HugeiconsIcon icon={Cancel01Icon} size={20} />
+                <button onClick={() => { setEditingTitle(false); setTitleValue(deal.title); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg">
+                  <HugeiconsIcon icon={Cancel01Icon} size={18} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-start gap-2 group mb-3">
-                <h1 className="text-2xl font-bold text-gray-900 leading-snug">{deal.title}</h1>
+              <div className="flex items-center gap-2 group mb-1">
+                <h1 className="text-xl font-bold text-gray-900 truncate">{deal.title}</h1>
                 <button
                   onClick={() => setEditingTitle(true)}
-                  className="mt-1 p-1 text-gray-300 opacity-0 group-hover:opacity-100 hover:text-gray-600 rounded-lg transition-all shrink-0"
+                  className="p-1 text-gray-300 opacity-0 group-hover:opacity-100 hover:text-gray-600 rounded-lg transition-all shrink-0"
                 >
-                  <HugeiconsIcon icon={Edit01Icon} size={15} />
+                  <HugeiconsIcon icon={Edit01Icon} size={13} />
                 </button>
               </div>
             )}
 
-            {/* Meta row */}
+            {/* Subtitle: contact name + email, creation date */}
+            <p className="text-xs text-gray-400 mb-2.5 truncate">
+              {deal.contact
+                ? `${deal.contact.firstName} ${deal.contact.lastName || ""} · ${deal.contact.email || ""}`
+                : `Creado ${fmtDate(deal.createdAt)}`}
+              {deal.source && ` · vía ${SOURCE_LABELS[deal.source] || deal.source}`}
+            </p>
+
+            {/* Badge row */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Value */}
+              {/* Value editable badge */}
               {editingValue ? (
-                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="text-xs font-bold text-gray-500 bg-transparent outline-none cursor-pointer"
+                    className="text-xs font-semibold text-gray-500 bg-transparent outline-none cursor-pointer"
                   >
                     <option value="USD">USD</option>
                     <option value="MXN">MXN</option>
@@ -619,395 +684,624 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") saveValue(); if (e.key === "Escape") setEditingValue(false); }}
-                    className="w-28 text-sm font-bold text-gray-900 bg-transparent outline-none"
-                    autoFocus
-                    min={0}
-                    step={0.01}
+                    className="w-24 text-sm font-bold text-gray-900 bg-transparent outline-none"
+                    autoFocus min={0} step={0.01}
                   />
-                  <button onClick={saveValue} className="text-green-600 hover:bg-green-50 rounded-lg p-0.5">
-                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
+                  <button onClick={saveValue} className="text-green-600 hover:bg-green-50 rounded p-0.5">
+                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
                   </button>
-                  <button onClick={() => setEditingValue(false)} className="text-gray-400 hover:bg-gray-100 rounded-lg p-0.5">
-                    <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                  <button onClick={() => setEditingValue(false)} className="text-gray-400 hover:bg-gray-100 rounded p-0.5">
+                    <HugeiconsIcon icon={Cancel01Icon} size={14} />
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => { setEditingValue(true); setValueInput(String(deal.value ?? "")); setTimeout(() => valueRef.current?.select(), 50); }}
-                  className="flex items-center gap-1 text-xl font-bold text-gray-900 hover:bg-gray-100 px-2 py-1 rounded-xl transition-colors group/val"
+                  className="flex items-center gap-1 text-sm font-bold text-gray-900 bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full transition-colors group/val"
                 >
+                  <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6b7280" />
                   {fmt(deal.value, deal.currency)}
-                  <HugeiconsIcon icon={Edit01Icon} size={13} color="#9ca3af" className="opacity-0 group-hover/val:opacity-100 transition-opacity" />
+                  <HugeiconsIcon icon={Edit01Icon} size={11} color="#9ca3af" className="opacity-0 group-hover/val:opacity-100 transition-opacity" />
                 </button>
               )}
 
-              {/* Stage pill */}
+              {/* Stage select */}
               <div className="relative">
                 <select
                   value={deal.stage?.id || ""}
                   onChange={(e) => changeStage(e.target.value)}
                   disabled={savingStage}
-                  className="appearance-none pl-3 pr-7 py-1.5 rounded-full text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50 bg-white transition-all"
+                  className="appearance-none pl-3 pr-6 py-1 rounded-full text-xs font-semibold border cursor-pointer focus:outline-none disabled:opacity-50 bg-white transition-all"
                   style={{ borderColor: currentStage?.color || "#e5e7eb", color: currentStage?.color || "#6b7280" }}
                 >
                   {stages.map((s: any) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
-                  <HugeiconsIcon icon={ChevronDown} size={11} color="#9ca3af" />
+                <div className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2">
+                  <HugeiconsIcon icon={ChevronDown} size={10} color="#9ca3af" />
                 </div>
               </div>
 
-              {deal.source && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-1 rounded-full">
-                  {SOURCE_LABELS[deal.source] || deal.source}
-                </span>
-              )}
+              {/* Probability badge */}
+              <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                {probability}% prob.
+              </span>
+
               {deal.stage?.isWon && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full border border-emerald-100">
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-100">
                   Ganado
                 </span>
               )}
               {deal.stage?.isLost && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 px-2 py-1 rounded-full border border-red-100">
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-100">
                   Perdido
                 </span>
               )}
-
-              <span className="text-xs text-gray-400 ml-1">
-                Creado {fmtDate(deal.createdAt)}
-              </span>
+              {isFollowUpOverdue && (
+                <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full border border-amber-100">
+                  Seguimiento vencido
+                </span>
+              )}
             </div>
           </div>
+        </div>
+
+        {/* ── Details strip ── */}
+        <div className="border-t border-gray-100 px-6 py-0 flex items-stretch overflow-x-auto divide-x divide-gray-100">
+
+          {/* Contacto */}
+          <div className="flex flex-col justify-center gap-0.5 pr-5 py-3 shrink-0 min-w-0 relative">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Contacto</p>
+            {deal.contact ? (
+              <div className="flex items-center gap-1.5 group/ct">
+                <div className="w-5 h-5 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+                  {deal.contact.firstName?.[0]?.toUpperCase()}
+                </div>
+                <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">
+                  {deal.contact.firstName} {deal.contact.lastName || ""}
+                </span>
+                <button
+                  onClick={unlinkContact}
+                  className="opacity-0 group-hover/ct:opacity-100 p-0.5 text-gray-300 hover:text-red-500 transition-all rounded"
+                  title="Desvincular"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={11} />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => { setShowContactSearch(!showContactSearch); if (allContacts.length === 0) fetchContacts(); }}
+                  className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={12} />
+                  Vincular
+                </button>
+                {showContactSearch && (
+                  <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-2xl shadow-xl z-20 p-3 flex flex-col gap-2">
+                    <input
+                      value={contactSearch}
+                      onChange={(e) => setContactSearch(e.target.value)}
+                      placeholder="Buscar contacto..."
+                      className={`${inputCls} text-xs`}
+                      autoFocus
+                    />
+                    <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
+                      {loadingContacts ? (
+                        <p className="text-xs text-gray-400 text-center py-2">Cargando...</p>
+                      ) : (
+                        allContacts
+                          .filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) || c.email?.toLowerCase().includes(contactSearch.toLowerCase()))
+                          .slice(0, 8)
+                          .map((c) => (
+                            <button key={c.id} onClick={() => linkContact(c.id)} className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-xl hover:bg-gray-100 transition-colors">
+                              <div className="w-6 h-6 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                                {c.firstName?.[0]?.toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-gray-900 truncate">{c.firstName} {c.lastName || ""}</p>
+                                {c.email && <p className="text-[10px] text-gray-400 truncate">{c.email}</p>}
+                              </div>
+                            </button>
+                          ))
+                      )}
+                      {!loadingContacts && allContacts.filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase())).length === 0 && (
+                        <p className="text-xs text-gray-400 text-center py-2">Sin resultados.</p>
+                      )}
+                    </div>
+                    <button onClick={() => { setShowContactSearch(false); setContactSearch(""); }} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors text-left">
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Teléfono */}
+          {deal.contact?.phone && (
+            <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Teléfono</p>
+              <a href={`tel:${deal.contact.phone}`} className="text-sm text-gray-700 hover:text-gray-900 hover:underline transition-colors truncate max-w-[140px]">
+                {deal.contact.phone}
+              </a>
+            </div>
+          )}
+
+          {/* Empresa */}
+          {deal.company && (
+            <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Empresa</p>
+              <div className="flex items-center gap-1.5">
+                <HugeiconsIcon icon={Building02Icon} size={12} color="#9ca3af" />
+                <span className="text-sm text-gray-700 truncate max-w-[120px]">{deal.company.name}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Etapa */}
+          <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Etapa</p>
+            <div className="relative">
+              <select
+                value={deal.stage?.id || ""}
+                onChange={(e) => changeStage(e.target.value)}
+                disabled={savingStage}
+                className="appearance-none pl-2 pr-5 py-0 rounded-lg text-sm font-semibold border-0 bg-transparent cursor-pointer focus:outline-none disabled:opacity-50"
+                style={{ color: currentStage?.color || "#374151" }}
+              >
+                {stages.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2">
+                <HugeiconsIcon icon={ChevronDown} size={10} color="#9ca3af" />
+              </div>
+            </div>
+          </div>
+
+          {/* Seguimiento */}
+          <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
+            <p className={`text-[10px] font-semibold uppercase tracking-wide ${isFollowUpOverdue ? "text-red-500" : "text-gray-400"}`}>
+              Seguimiento{isFollowUpOverdue && " · vencido"}
+            </p>
+            <DatePicker value={followUpAt} onChange={setFollowUpAt} placeholder="Sin fecha" compact align="left" />
+          </div>
+
+          {/* Probabilidad */}
+          <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0 w-36">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Probabilidad</p>
+              <span className="text-[10px] font-bold text-gray-700">{probability}%</span>
+            </div>
+            <input
+              type="range" min={0} max={100} step={5} value={probability}
+              onChange={(e) => setProbability(parseInt(e.target.value))}
+              className="w-full h-1 accent-gray-900 cursor-pointer mt-1"
+            />
+          </div>
+
+          {/* Origen */}
+          {deal.source && (
+            <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Origen</p>
+              <span className="text-sm text-gray-700">{SOURCE_LABELS[deal.source] || deal.source}</span>
+            </div>
+          )}
+
+          {/* Motivo pérdida */}
+          {deal.stage?.isLost && (
+            <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0 w-48">
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Motivo pérdida</p>
+              <input
+                value={lostReason}
+                onChange={(e) => setLostReason(e.target.value)}
+                placeholder="¿Por qué se perdió?"
+                className="text-sm text-gray-700 bg-transparent border-0 outline-none placeholder:text-gray-300 w-full"
+              />
+            </div>
+          )}
+
+          {/* Save button */}
+          <div className="flex items-center pl-5 py-3 ml-auto shrink-0">
+            <button
+              onClick={saveInfo}
+              disabled={savingNotes}
+              className="px-3 py-1.5 text-xs font-semibold bg-gray-900 text-white rounded-xl hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
+            >
+              {savingNotes ? "Guardando..." : "Guardar"}
+            </button>
+          </div>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex items-center gap-0 px-6 border-t border-gray-100">
+          {TAB_ITEMS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-400 hover:text-gray-700"
+              }`}
+            >
+              {tab.label}
+              {tab.count > 0 && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* ── Body ── */}
       <div className="flex gap-5 p-6 items-start max-w-6xl">
 
-        {/* ── LEFT: Activity ── */}
+        {/* ── LEFT: Tabbed content ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
 
-          {/* Add activity */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-sm font-bold text-gray-900 mb-3">Registrar actividad</p>
-
-            {/* Type tabs */}
-            <div className="flex gap-1.5 flex-wrap mb-3">
-              {ACTIVITY_TYPES.map((t) => (
-                <button
-                  key={t.value}
-                  onClick={() => setActivityType(t.value)}
-                  className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition-all ${
-                    activityType === t.value
-                      ? "bg-gray-900 text-white border-gray-900"
-                      : "text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
-                  }`}
-                >
-                  <HugeiconsIcon icon={t.icon} size={12} />
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-2">
-              <textarea
-                ref={activityRef}
-                value={activityDesc}
-                onChange={(e) => setActivityDesc(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addActivity(); }}
-                placeholder="Describe la actividad... (Ctrl+Enter para agregar)"
-                className={`${inputCls} resize-none flex-1`}
-                rows={2}
-              />
-              <button
-                onClick={addActivity}
-                disabled={savingActivity || !activityDesc.trim()}
-                className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
-              >
-                {savingActivity ? "..." : "Agregar"}
-              </button>
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Message01Icon} size={16} color="#9ca3af" />
-                <p className="text-sm font-bold text-gray-900">
-                  Actividad
-                  <span className="ml-1.5 text-[11px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                    {deal.activities.length}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {deal.activities.length === 0 ? (
-              <div className="px-5 py-10 text-center">
-                <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <HugeiconsIcon icon={Message01Icon} size={18} color="#9ca3af" />
-                </div>
-                <p className="text-sm text-gray-400">Sin actividad registrada aún.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {deal.activities.map((act: any) => {
-                  const aType = ACTIVITY_TYPES.find((t) => t.value === act.type);
-                  const colorCls = ACTIVITY_COLORS[act.type] || ACTIVITY_COLORS.OTRO;
-
-                  return (
-                    <div key={act.id} className="px-5 py-4 flex gap-3 group/act hover:bg-gray-50/50 transition-colors">
-                      {/* Icon */}
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${colorCls}`}>
-                        {aType && <HugeiconsIcon icon={aType.icon} size={14} />}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                            {aType?.label || act.type}
-                          </span>
-                          <span className="text-[11px] text-gray-400">
-                            {act.createdBy?.name || "Usuario"} · {timeAgo(act.createdAt)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-800 leading-relaxed">{act.description}</p>
-                      </div>
-
-                      {/* Delete button */}
-                      <button
-                        onClick={() => setConfirmDeleteActivity(act.id)}
-                        className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/act:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        title="Eliminar actividad"
-                      >
-                        <HugeiconsIcon icon={Delete02Icon} size={14} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── RIGHT: Info + Proposals ── */}
-        <div className="w-80 shrink-0 flex flex-col gap-4">
-
-          {/* Info card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-sm font-bold text-gray-900 mb-4">Información</p>
-            <div className="flex flex-col gap-3.5">
-
-              {/* Contact */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Contacto</p>
-                  {deal.contact ? (
+          {/* ── TAB: Actividad ── */}
+          {activeTab === "actividad" && (
+            <>
+              {/* Add activity */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <p className="text-sm font-bold text-gray-900 mb-3">Registrar actividad</p>
+                <div className="flex gap-1.5 flex-wrap mb-3">
+                  {ACTIVITY_TYPES.map((t) => (
                     <button
-                      onClick={unlinkContact}
-                      className="text-[10px] font-semibold text-gray-400 hover:text-red-500 transition-colors"
+                      key={t.value}
+                      onClick={() => setActivityType(t.value)}
+                      className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition-all ${
+                        activityType === t.value
+                          ? "bg-gray-900 text-white border-gray-900"
+                          : "text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
+                      }`}
                     >
-                      Desvincular
+                      <HugeiconsIcon icon={t.icon} size={12} />
+                      {t.label}
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => { setShowContactSearch(true); if (allContacts.length === 0) fetchContacts(); }}
-                      className="flex items-center gap-1 text-[10px] font-semibold text-gray-500 hover:text-gray-900 transition-colors"
-                    >
-                      <HugeiconsIcon icon={Add01Icon} size={10} />
-                      Vincular
-                    </button>
-                  )}
+                  ))}
                 </div>
+                <div className="flex gap-2">
+                  <textarea
+                    ref={activityRef}
+                    value={activityDesc}
+                    onChange={(e) => setActivityDesc(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addActivity(); }}
+                    placeholder="Describe la actividad... (Ctrl+Enter para agregar)"
+                    className={`${inputCls} resize-none flex-1`}
+                    rows={2}
+                  />
+                  <button
+                    onClick={addActivity}
+                    disabled={savingActivity || !activityDesc.trim()}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
+                  >
+                    {savingActivity ? "..." : "Agregar"}
+                  </button>
+                </div>
+              </div>
 
-                {deal.contact ? (
-                  <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-2.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
-                        {deal.contact.firstName?.[0]?.toUpperCase() || "?"}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">
-                          {deal.contact.firstName} {deal.contact.lastName || ""}
-                        </p>
-                        {deal.company && (
-                          <p className="text-xs text-gray-500 truncate">{deal.company.name}</p>
-                        )}
-                      </div>
+              {/* Timeline */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                  <HugeiconsIcon icon={Message01Icon} size={15} color="#9ca3af" />
+                  <p className="text-sm font-bold text-gray-900">Historial</p>
+                </div>
+                {deal.activities.length === 0 ? (
+                  <div className="px-5 py-12 text-center">
+                    <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                      <HugeiconsIcon icon={Message01Icon} size={18} color="#9ca3af" />
                     </div>
-                    {deal.contact.phone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <HugeiconsIcon icon={CallIcon} size={13} color="#9ca3af" />
-                        <a href={`tel:${deal.contact.phone}`} className="hover:underline text-xs">
-                          {deal.contact.phone}
-                        </a>
-                      </div>
-                    )}
-                    {deal.contact.email && (
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <HugeiconsIcon icon={Mail01Icon} size={13} color="#9ca3af" />
-                        <a href={`mailto:${deal.contact.email}`} className="hover:underline text-xs">
-                          {deal.contact.email}
-                        </a>
-                      </div>
-                    )}
+                    <p className="text-sm text-gray-400">Sin actividad registrada aún.</p>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 rounded-2xl p-4">
-                    {showContactSearch ? (
-                      <div className="flex flex-col gap-2">
-                        <input
-                          value={contactSearch}
-                          onChange={(e) => setContactSearch(e.target.value)}
-                          placeholder="Buscar contacto por nombre..."
-                          className={`${inputCls} text-xs`}
-                          autoFocus
-                        />
-                        <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
-                          {loadingContacts ? (
-                            <p className="text-xs text-gray-400 text-center py-2">Cargando...</p>
-                          ) : (
-                            allContacts
-                              .filter((c) =>
-                                !contactSearch ||
-                                `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) ||
-                                c.email?.toLowerCase().includes(contactSearch.toLowerCase())
-                              )
-                              .slice(0, 8)
-                              .map((c) => (
-                                <button
-                                  key={c.id}
-                                  onClick={() => linkContact(c.id)}
-                                  className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 transition-colors"
-                                >
-                                  <div className="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold shrink-0">
-                                    {c.firstName?.[0]?.toUpperCase()}
-                                  </div>
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-semibold text-gray-900 truncate">
-                                      {c.firstName} {c.lastName || ""}
-                                    </p>
-                                    {c.email && <p className="text-[10px] text-gray-400 truncate">{c.email}</p>}
-                                  </div>
-                                </button>
-                              ))
-                          )}
-                          {!loadingContacts && allContacts.filter((c) =>
-                            !contactSearch ||
-                            `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase())
-                          ).length === 0 && (
-                            <p className="text-xs text-gray-400 text-center py-2">Sin resultados.</p>
-                          )}
+                  <div className="divide-y divide-gray-50">
+                    {deal.activities.map((act: any) => {
+                      const aType = ACTIVITY_TYPES.find((t) => t.value === act.type);
+                      const colorCls = ACTIVITY_COLORS[act.type] || ACTIVITY_COLORS.OTRO;
+                      return (
+                        <div key={act.id} className="px-5 py-4 flex gap-3 group/act hover:bg-gray-50/50 transition-colors">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${colorCls}`}>
+                            {aType && <HugeiconsIcon icon={aType.icon} size={14} />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <span className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                                {aType?.label || act.type}
+                              </span>
+                              <span className="text-[11px] text-gray-400">
+                                {act.createdBy?.name || "Usuario"} · {timeAgo(act.createdAt)}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-800 leading-relaxed">{act.description}</p>
+                          </div>
+                          <button
+                            onClick={() => setConfirmDeleteActivity(act.id)}
+                            className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/act:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={14} />
+                          </button>
                         </div>
-                        <button
-                          onClick={() => { setShowContactSearch(false); setContactSearch(""); }}
-                          className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 mt-1 transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <div className="w-8 h-8 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-                          <HugeiconsIcon icon={User02Icon} size={14} color="#9ca3af" />
-                        </div>
-                        <p className="text-xs text-gray-400 mb-2">Sin contacto vinculado</p>
-                        <button
-                          onClick={() => { setShowContactSearch(true); if (allContacts.length === 0) fetchContacts(); }}
-                          className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
-                        >
-                          Buscar y vincular contacto
-                        </button>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
                 )}
               </div>
+            </>
+          )}
 
-              {/* Company */}
-              {deal.company && (
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                    <HugeiconsIcon icon={Building02Icon} size={13} color="#9ca3af" />
+          {/* ── TAB: Propuestas ── */}
+          {activeTab === "propuestas" && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HugeiconsIcon icon={FileAttachmentIcon} size={15} color="#9ca3af" />
+                  <p className="text-sm font-bold text-gray-900">Propuestas</p>
+                </div>
+                <button
+                  onClick={() => setShowProposalModal(true)}
+                  className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={13} />
+                  Nueva propuesta
+                </button>
+              </div>
+              {deal.proposals.length === 0 ? (
+                <div className="px-5 py-12 text-center">
+                  <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <HugeiconsIcon icon={FileAttachmentIcon} size={18} color="#9ca3af" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Empresa</p>
-                    <p className="text-xs font-semibold text-gray-900 truncate">{deal.company.name}</p>
-                  </div>
+                  <p className="text-sm text-gray-400 mb-2">Sin propuestas aún.</p>
+                  <button
+                    onClick={() => setShowProposalModal(true)}
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
+                  >
+                    Crear primera propuesta
+                  </button>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {deal.proposals.map((p: any) => {
+                    const { label, cls } = PROPOSAL_STATUS[p.status] || PROPOSAL_STATUS.BORRADOR;
+                    return (
+                      <div key={p.id} className="px-5 py-4 group/prop hover:bg-gray-50/50 transition-colors">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <p className="text-sm font-semibold text-gray-900 flex-1 leading-snug">{p.title}</p>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
+                            <button
+                              onClick={() => setConfirmDeleteProposal(p.id)}
+                              className="text-gray-300 opacity-0 group-hover/prop:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg p-0.5 transition-all"
+                            >
+                              <HugeiconsIcon icon={Delete02Icon} size={13} />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900 mb-1">{fmt(p.total, deal.currency)}</p>
+                        {p.createdAt && <p className="text-[10px] text-gray-400 mb-2.5">{fmtDate(p.createdAt)}</p>}
+                        <div className="flex gap-1.5 flex-wrap">
+                          <DownloadProposalButton proposal={p} dealTitle={deal.title} />
+                          {p.status === "BORRADOR" && (
+                            <button
+                              onClick={() => updateProposalStatus(p.id, "ENVIADA")}
+                              className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
+                            >
+                              Marcar enviada
+                            </button>
+                          )}
+                          {p.status === "ENVIADA" && (
+                            <>
+                              <button onClick={() => updateProposalStatus(p.id, "ACEPTADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
+                                Aceptada
+                              </button>
+                              <button onClick={() => updateProposalStatus(p.id, "RECHAZADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                                Rechazada
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── TAB: Citas ── */}
+          {activeTab === "citas" && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <HugeiconsIcon icon={Calendar02Icon} size={15} color="#9ca3af" />
+                  <p className="text-sm font-bold text-gray-900">Citas</p>
+                </div>
+                <button
+                  onClick={startBooking}
+                  className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={13} />
+                  Agendar cita
+                </button>
+              </div>
+
+              {/* Booking flow */}
+              {showBooking && (
+                <div className="p-5 border-b border-gray-100">
+                  {bookingStep === "type" && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tipo de cita</p>
+                      {loadingApptTypes ? (
+                        <div className="flex justify-center py-4">
+                          <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                        </div>
+                      ) : appointmentTypes.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-3">No hay tipos de cita configurados. Créalos en Configuración → Calendario.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          {appointmentTypes.map((t: any) => (
+                            <button
+                              key={t.id}
+                              onClick={() => selectApptType(t)}
+                              className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all"
+                            >
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3B82F6" }} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-semibold text-gray-900 truncate">{t.name}</p>
+                                <p className="text-[10px] text-gray-400">{t.duration} min</p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 mt-2 transition-colors">
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                  {bookingStep === "date" && (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                        <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name} · {selectedApptType?.duration} min</p>
+                      </div>
+                      <DatePicker label="Fecha de la cita" value={selectedDate} onChange={(d) => selectDate(d)} placeholder="Seleccionar fecha" align="right" />
+                      <div className="flex gap-2">
+                        <button onClick={() => setBookingStep("type")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">← Cambiar tipo</button>
+                        <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">Cancelar</button>
+                      </div>
+                    </div>
+                  )}
+                  {bookingStep === "slots" && (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                        <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name}</p>
+                        <span className="text-[10px] text-gray-400">·</span>
+                        <p className="text-xs text-gray-500">{new Date(selectedDate + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}</p>
+                      </div>
+                      {loadingSlots ? (
+                        <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" /></div>
+                      ) : availableSlots.length === 0 ? (
+                        <div className="text-center py-4">
+                          <p className="text-xs text-gray-400">No hay horarios disponibles para esta fecha.</p>
+                          <button onClick={() => setBookingStep("date")} className="text-xs font-semibold text-gray-500 hover:text-gray-900 mt-2 underline underline-offset-2 transition-colors">Elegir otra fecha</button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
+                          {availableSlots.map((slot) => (
+                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all">
+                              {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button onClick={() => setBookingStep("date")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">← Cambiar fecha</button>
+                        <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">Cancelar</button>
+                      </div>
+                    </div>
+                  )}
+                  {bookingStep === "confirm" && (
+                    <div className="flex flex-col gap-3">
+                      <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                          <p className="text-xs font-bold text-gray-900">{selectedApptType?.name}</p>
+                        </div>
+                        <p className="text-xs text-gray-600 ml-[18px]">
+                          {new Date(selectedSlot).toLocaleDateString("es-MX", { weekday: "long", day: "2-digit", month: "long" })}
+                          {" · "}{new Date(selectedSlot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                          {" · "}{selectedApptType?.duration} min
+                        </p>
+                      </div>
+                      <input value={bookingGuest.name} onChange={(e) => setBookingGuest((g) => ({ ...g, name: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Nombre del invitado *" />
+                      <input type="email" value={bookingGuest.email} onChange={(e) => setBookingGuest((g) => ({ ...g, email: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Email del invitado *" />
+                      <input value={bookingGuest.phone} onChange={(e) => setBookingGuest((g) => ({ ...g, phone: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Teléfono (opcional)" />
+                      <textarea value={bookingGuest.notes} onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))} className={`${inputCls} text-xs resize-none`} rows={2} placeholder="Notas (opcional)" />
+                      <div className="flex gap-2">
+                        <button onClick={() => setBookingStep("slots")} className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">← Atrás</button>
+                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl disabled:opacity-40 transition-colors">
+                          {savingBooking ? "Reservando..." : "Confirmar cita"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div className="border-t border-gray-50 pt-3 flex flex-col gap-3">
-                {/* Follow-up */}
-                <div>
-                  <p className={`text-[10px] font-semibold uppercase tracking-wide mb-1.5 ${isFollowUpOverdue ? "text-red-500" : "text-gray-400"}`}>
-                    Seguimiento {isFollowUpOverdue && "· VENCIDO"}
-                  </p>
-                  <DatePicker
-                    value={followUpAt}
-                    onChange={setFollowUpAt}
-                    placeholder="Sin fecha"
-                    compact
-                    align="right"
-                  />
-                </div>
-
-                {/* Probability */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Probabilidad</p>
-                    <span className="text-xs font-bold text-gray-900">{probability}%</span>
+              {dealAppointments.length === 0 && !showBooking ? (
+                <div className="px-5 py-12 text-center">
+                  <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <HugeiconsIcon icon={Calendar02Icon} size={18} color="#9ca3af" />
                   </div>
-                  <div className="relative">
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      step={5}
-                      value={probability}
-                      onChange={(e) => setProbability(parseInt(e.target.value))}
-                      className="w-full h-1.5 accent-gray-900 cursor-pointer"
-                    />
-                  </div>
+                  <p className="text-sm text-gray-400 mb-2">Sin citas agendadas.</p>
+                  <button onClick={startBooking} className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors">
+                    Agendar primera cita
+                  </button>
                 </div>
-
-                {/* Lost reason */}
-                {deal.stage?.isLost && (
-                  <div>
-                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Motivo de pérdida</p>
-                    <input
-                      value={lostReason}
-                      onChange={(e) => setLostReason(e.target.value)}
-                      placeholder="¿Por qué se perdió?"
-                      className={`${inputCls} text-xs`}
-                    />
-                  </div>
-                )}
-
-                {/* Notes */}
-                <div>
-                  <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Notas</p>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Agrega notas sobre este deal..."
-                    rows={3}
-                    className="w-full text-sm text-gray-700 bg-gray-50 rounded-xl border border-gray-200 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all"
-                  />
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {dealAppointments.map((appt: any) => {
+                    const isCancelled = appt.status === "CANCELLED";
+                    const isPast = new Date(appt.endTime) < new Date();
+                    const isUpcoming = !isCancelled && !isPast;
+                    return (
+                      <div key={appt.id} className={`px-5 py-4 flex gap-3 group/appt ${isCancelled ? "opacity-50" : "hover:bg-gray-50/50"} transition-colors`}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: (appt.appointmentType?.color || "#3B82F6") + "18" }}>
+                          <HugeiconsIcon icon={Calendar02Icon} size={14} color={appt.appointmentType?.color || "#3B82F6"} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[11px] font-bold text-gray-700">{appt.appointmentType?.name || "Cita"}</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isCancelled ? "bg-red-50 text-red-500" : isPast ? "bg-gray-100 text-gray-500" : "bg-emerald-50 text-emerald-700"}`}>
+                              {isCancelled ? "Cancelada" : isPast ? "Pasada" : "Confirmada"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {new Date(appt.startTime).toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}
+                            {" · "}{new Date(appt.startTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                            {" — "}{new Date(appt.endTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5 truncate">{appt.guestName} · {appt.guestEmail}</p>
+                        </div>
+                        {isUpcoming && (
+                          <button onClick={() => cancelAppointment(appt.id)} disabled={cancellingApptId === appt.id} className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
+                            <HugeiconsIcon icon={Cancel01Icon} size={13} />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-
-              <button
-                onClick={saveInfo}
-                disabled={savingNotes}
-                className="w-full py-2 text-xs font-semibold bg-gray-900 text-white rounded-xl hover:bg-black disabled:opacity-50 transition-colors"
-              >
-                {savingNotes ? "Guardando..." : "Guardar cambios"}
-              </button>
+              )}
             </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: Details sidebar ── */}
+        <div className="w-72 shrink-0 flex flex-col gap-4">
+
+          {/* Notes / AI summary card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <HugeiconsIcon icon={NoteIcon} size={14} color="#9ca3af" />
+              <p className="text-sm font-bold text-gray-900">Notas</p>
+            </div>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Agrega notas o un resumen sobre este deal..."
+              rows={4}
+              className="w-full text-sm text-gray-700 bg-gray-50 rounded-xl border border-gray-200 p-3 resize-none focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all"
+            />
           </div>
 
           {/* Booking link */}
@@ -1018,28 +1312,17 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 <p className="text-sm font-bold text-gray-900">Link de agendamiento</p>
               </div>
               <p className="text-[11px] text-gray-400 mb-3">Envía este link al lead para que agende su cita automáticamente.</p>
-              
               {appointmentTypes.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wide mb-2 mt-3">Configurar tipos de cita permitidos</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wide mb-2">Tipos de cita permitidos</p>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {appointmentTypes.map((t) => {
                       const isSelected = selectedLinkTypes.includes(t.id);
                       return (
                         <button
                           key={t.id}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedLinkTypes(selectedLinkTypes.filter(id => id !== t.id));
-                            } else {
-                              setSelectedLinkTypes([...selectedLinkTypes, t.id]);
-                            }
-                          }}
-                          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                            isSelected 
-                              ? "bg-gray-900 text-white border-gray-900" 
-                              : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                          }`}
+                          onClick={() => isSelected ? setSelectedLinkTypes(selectedLinkTypes.filter(id => id !== t.id)) : setSelectedLinkTypes([...selectedLinkTypes, t.id])}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isSelected ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
                         >
                           {t.name}
                         </button>
@@ -1049,13 +1332,12 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   <button
                     onClick={saveLinkConfig}
                     disabled={savingLinkConfig || (deal.allowedBookingTypes === selectedLinkTypes.join(",") || (!deal.allowedBookingTypes && selectedLinkTypes.length === appointmentTypes.length))}
-                    className="w-full py-2 text-xs font-semibold bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                    className="w-full py-1.5 text-xs font-semibold bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 disabled:opacity-50 transition-colors"
                   >
                     {savingLinkConfig ? "Guardando..." : "Guardar configuración"}
                   </button>
                 </div>
               )}
-
               <div className="flex gap-2">
                 <input
                   readOnly
@@ -1063,16 +1345,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-600 truncate focus:outline-none"
                 />
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`);
-                    setCopiedLink(true);
-                    setTimeout(() => setCopiedLink(false), 2000);
-                  }}
-                  className={`px-3 py-2 text-xs font-semibold rounded-xl shrink-0 transition-all ${
-                    copiedLink
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-gray-900 text-white hover:bg-black"
-                  }`}
+                  onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`); setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }}
+                  className={`px-3 py-2 text-xs font-semibold rounded-xl shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-900 text-white hover:bg-black"}`}
                 >
                   {copiedLink ? "✓ Copiado" : "Copiar"}
                 </button>
@@ -1080,352 +1354,14 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             </div>
           )}
 
-          {/* Appointments */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={Calendar02Icon} size={16} color="#9ca3af" />
-                <p className="text-sm font-bold text-gray-900">
-                  Citas
-                  {dealAppointments.filter((a: any) => a.status !== "CANCELLED").length > 0 && (
-                    <span className="ml-1.5 text-[11px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                      {dealAppointments.filter((a: any) => a.status !== "CANCELLED").length}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={startBooking}
-                className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 px-2 py-1.5 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <HugeiconsIcon icon={Add01Icon} size={13} />
-                Agendar
-              </button>
-            </div>
-
-            {/* Booking flow */}
-            {showBooking && (
-              <div className="p-5 border-b border-gray-100">
-                {/* Step: select type */}
-                {bookingStep === "type" && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Tipo de cita</p>
-                    {loadingApptTypes ? (
-                      <div className="flex justify-center py-4">
-                        <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
-                      </div>
-                    ) : appointmentTypes.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-3">No hay tipos de cita configurados. Créalos en Configuración → Calendario.</p>
-                    ) : (
-                      <div className="flex flex-col gap-1.5">
-                        {appointmentTypes.map((t: any) => (
-                          <button
-                            key={t.id}
-                            onClick={() => selectApptType(t)}
-                            className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-50 border border-gray-100 hover:border-gray-200 transition-all"
-                          >
-                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3B82F6" }} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-gray-900">{t.name}</p>
-                              <p className="text-[10px] text-gray-400">{t.duration} min</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 mt-2 transition-colors">
-                      Cancelar
-                    </button>
-                  </div>
-                )}
-
-                {/* Step: select date */}
-                {bookingStep === "date" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
-                      <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name} · {selectedApptType?.duration} min</p>
-                    </div>
-                    <DatePicker
-                      label="Fecha de la cita"
-                      value={selectedDate}
-                      onChange={(d) => selectDate(d)}
-                      placeholder="Seleccionar fecha"
-                      align="right"
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={() => setBookingStep("type")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">
-                        ← Cambiar tipo
-                      </button>
-                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step: select slot */}
-                {bookingStep === "slots" && (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
-                      <p className="text-xs font-semibold text-gray-900">{selectedApptType?.name}</p>
-                      <span className="text-[10px] text-gray-400">·</span>
-                      <p className="text-xs text-gray-500">{new Date(selectedDate + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}</p>
-                    </div>
-                    {loadingSlots ? (
-                      <div className="flex justify-center py-4">
-                        <div className="w-5 h-5 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
-                      </div>
-                    ) : availableSlots.length === 0 ? (
-                      <div className="text-center py-4">
-                        <p className="text-xs text-gray-400">No hay horarios disponibles para esta fecha.</p>
-                        <button onClick={() => setBookingStep("date")} className="text-xs font-semibold text-gray-500 hover:text-gray-900 mt-2 underline underline-offset-2 transition-colors">
-                          Elegir otra fecha
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto">
-                        {availableSlots.map((slot) => (
-                          <button
-                            key={slot}
-                            onClick={() => selectSlot(slot)}
-                            className="px-2 py-2 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-xl hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all"
-                          >
-                            {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <button onClick={() => setBookingStep("date")} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors">
-                        ← Cambiar fecha
-                      </button>
-                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 transition-colors ml-auto">
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step: confirm */}
-                {bookingStep === "confirm" && (
-                  <div className="flex flex-col gap-3">
-                    {/* Summary */}
-                    <div className="bg-gray-50 rounded-xl p-3 flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
-                        <p className="text-xs font-bold text-gray-900">{selectedApptType?.name}</p>
-                      </div>
-                      <p className="text-xs text-gray-600 ml-[18px]">
-                        {new Date(selectedSlot).toLocaleDateString("es-MX", { weekday: "long", day: "2-digit", month: "long" })}
-                        {" · "}
-                        {new Date(selectedSlot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                        {" · "}{selectedApptType?.duration} min
-                      </p>
-                    </div>
-
-                    {/* Guest info */}
-                    <input
-                      value={bookingGuest.name}
-                      onChange={(e) => setBookingGuest((g) => ({ ...g, name: e.target.value }))}
-                      className={`${inputCls} text-xs`}
-                      placeholder="Nombre del invitado *"
-                    />
-                    <input
-                      type="email"
-                      value={bookingGuest.email}
-                      onChange={(e) => setBookingGuest((g) => ({ ...g, email: e.target.value }))}
-                      className={`${inputCls} text-xs`}
-                      placeholder="Email del invitado *"
-                    />
-                    <input
-                      value={bookingGuest.phone}
-                      onChange={(e) => setBookingGuest((g) => ({ ...g, phone: e.target.value }))}
-                      className={`${inputCls} text-xs`}
-                      placeholder="Teléfono (opcional)"
-                    />
-                    <textarea
-                      value={bookingGuest.notes}
-                      onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))}
-                      className={`${inputCls} text-xs resize-none`}
-                      rows={2}
-                      placeholder="Notas (opcional)"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setBookingStep("slots")}
-                        className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-                      >
-                        ← Atrás
-                      </button>
-                      <button
-                        onClick={confirmBooking}
-                        disabled={savingBooking || !bookingGuest.name || !bookingGuest.email}
-                        className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl disabled:opacity-40 transition-colors"
-                      >
-                        {savingBooking ? "Reservando..." : "Confirmar cita"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Appointments list */}
-            {dealAppointments.length === 0 && !showBooking ? (
-              <div className="px-5 py-8 text-center">
-                <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <HugeiconsIcon icon={Calendar02Icon} size={18} color="#9ca3af" />
-                </div>
-                <p className="text-sm text-gray-400 mb-2">Sin citas agendadas.</p>
-                <button
-                  onClick={startBooking}
-                  className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
-                >
-                  Agendar primera cita
-                </button>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {dealAppointments.map((appt: any) => {
-                  const isCancelled = appt.status === "CANCELLED";
-                  const isPast = new Date(appt.endTime) < new Date();
-                  const isUpcoming = !isCancelled && !isPast;
-
-                  return (
-                    <div key={appt.id} className={`px-5 py-4 flex gap-3 group/appt ${isCancelled ? "opacity-50" : "hover:bg-gray-50/50"} transition-colors`}>
-                      <div
-                        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: (appt.appointmentType?.color || "#3B82F6") + "18" }}
-                      >
-                        <HugeiconsIcon icon={Calendar02Icon} size={14} color={appt.appointmentType?.color || "#3B82F6"} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[11px] font-bold text-gray-700">{appt.appointmentType?.name || "Cita"}</span>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                            isCancelled
-                              ? "bg-red-50 text-red-500"
-                              : isPast
-                              ? "bg-gray-100 text-gray-500"
-                              : "bg-emerald-50 text-emerald-700"
-                          }`}>
-                            {isCancelled ? "Cancelada" : isPast ? "Pasada" : "Confirmada"}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600">
-                          {new Date(appt.startTime).toLocaleDateString("es-MX", {
-                            weekday: "short", day: "2-digit", month: "short",
-                          })}
-                          {" · "}
-                          {new Date(appt.startTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                          {" — "}
-                          {new Date(appt.endTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-0.5 truncate">
-                          {appt.guestName} · {appt.guestEmail}
-                        </p>
-                      </div>
-                      {isUpcoming && (
-                        <button
-                          onClick={() => cancelAppointment(appt.id)}
-                          disabled={cancellingApptId === appt.id}
-                          className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50"
-                          title="Cancelar cita"
-                        >
-                          <HugeiconsIcon icon={Cancel01Icon} size={13} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Proposals */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={FileAttachmentIcon} size={16} color="#9ca3af" />
-                <p className="text-sm font-bold text-gray-900">
-                  Propuestas
-                  {deal.proposals.length > 0 && (
-                    <span className="ml-1.5 text-[11px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                      {deal.proposals.length}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowProposalModal(true)}
-                className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 px-2 py-1.5 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <HugeiconsIcon icon={Add01Icon} size={13} />
-                Nueva
-              </button>
-            </div>
-
-            {deal.proposals.length === 0 ? (
-              <div className="px-5 py-8 text-center">
-                <p className="text-sm text-gray-400">Sin propuestas aún.</p>
-                <button
-                  onClick={() => setShowProposalModal(true)}
-                  className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors"
-                >
-                  Crear primera propuesta
-                </button>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {deal.proposals.map((p: any) => {
-                  const { label, cls } = PROPOSAL_STATUS[p.status] || PROPOSAL_STATUS.BORRADOR;
-                  return (
-                    <div key={p.id} className="px-5 py-4 group/prop hover:bg-gray-50/50 transition-colors">
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <p className="text-sm font-semibold text-gray-900 flex-1 leading-snug">{p.title}</p>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
-                          <button
-                            onClick={() => setConfirmDeleteProposal(p.id)}
-                            className="text-gray-300 opacity-0 group-hover/prop:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg p-0.5 transition-all"
-                          >
-                            <HugeiconsIcon icon={Delete02Icon} size={13} />
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-sm font-bold text-gray-900 mb-2.5">{fmt(p.total, deal.currency)}</p>
-                      {p.createdAt && (
-                        <p className="text-[10px] text-gray-400 mb-2">{fmtDate(p.createdAt)}</p>
-                      )}
-                      <div className="flex gap-1.5 flex-wrap">
-                        <DownloadProposalButton proposal={p} dealTitle={deal.title} />
-                        {p.status === "BORRADOR" && (
-                          <button
-                            onClick={() => updateProposalStatus(p.id, "ENVIADA")}
-                            className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
-                          >
-                            Marcar enviada
-                          </button>
-                        )}
-                        {p.status === "ENVIADA" && (
-                          <>
-                            <button onClick={() => updateProposalStatus(p.id, "ACEPTADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
-                              Aceptada
-                            </button>
-                            <button onClick={() => updateProposalStatus(p.id, "RECHAZADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
-                              Rechazada
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {/* Delete deal (destructive, at bottom) */}
+          <button
+            onClick={() => setShowDeleteDeal(true)}
+            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl border border-transparent hover:border-red-100 transition-colors"
+          >
+            <HugeiconsIcon icon={Delete02Icon} size={13} />
+            Eliminar deal
+          </button>
         </div>
       </div>
 
