@@ -24,7 +24,7 @@ import {
 
 // ── Icon map per notification type ───────────────────────────────────────────
 
-const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
+const TYPE_ICONS: Record<NotificationType, any> = {
   NEW_EMAIL: InboxIcon,
   NEW_CONTACT: UserMultipleIcon,
   NEW_FORM_LEAD: BrowserIcon,

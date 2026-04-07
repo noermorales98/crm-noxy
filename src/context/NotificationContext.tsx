@@ -48,7 +48,7 @@ const NotificationContext = createContext<NotificationContextValue | null>(null)
 
 const POLL_INTERVAL = 60_000; // 60 seconds
 
-const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
+const TYPE_ICONS: Record<NotificationType, any> = {
   NEW_EMAIL: InboxIcon,
   NEW_CONTACT: UserMultipleIcon,
   NEW_FORM_LEAD: BrowserIcon,
