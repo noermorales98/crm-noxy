@@ -42,11 +42,9 @@ interface NotificationContextValue {
   refresh: () => void;
 }
 
-// ── Context ──────────────────────────────────────────────────────────────────
+// ── Config ───────────────────────────────────────────────────────────────────
 
-const NotificationContext = createContext<NotificationContextValue | null>(null);
-
-const POLL_INTERVAL = 30_000; // 30 seconds
+const POLL_INTERVAL = 30_000; // 30 s while tab is visible
 
 const TYPE_ICONS: Record<NotificationType, any> = {
   NEW_EMAIL: InboxIcon,
@@ -54,75 +52,139 @@ const TYPE_ICONS: Record<NotificationType, any> = {
   NEW_FORM_LEAD: BrowserIcon,
 };
 
+// ── Context ───────────────────────────────────────────────────────────────────
+
+const NotificationContext = createContext<NotificationContextValue | null>(null);
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  // Popups: list of notifications to show as floating toasts
   const [popups, setPopups] = useState<AppNotification[]>([]);
 
-  // Timestamp of the last successful poll — used as the `since` cursor
+  // ISO timestamp used as the `?since=` cursor for incremental polls
   const lastFetchAtRef = useRef<string | null>(null);
-  // True only during the very first load — we never show popups for the initial batch
+  // Prevents showing popups for the initial batch of old notifications
   const initialLoadDone = useRef(false);
+  // Notifications that arrived while the tab was hidden — shown on focus
+  const hiddenQueueRef = useRef<AppNotification[]>([]);
 
-  const fetchNotifications = useCallback(async (detectNew = false) => {
-    if (!session?.user) return;
-    try {
-      // For incremental polls use `?since=` so we only get truly new notifications
-      const url = detectNew && lastFetchAtRef.current
-        ? `/api/notifications?since=${encodeURIComponent(lastFetchAtRef.current)}`
-        : "/api/notifications";
+  // ── Core fetch ────────────────────────────────────────────────────────────
 
-      // Advance the cursor BEFORE the request so we don't use a stale timestamp
-      // even if the response takes a long time
-      const pollStart = new Date().toISOString();
+  const fetchNotifications = useCallback(
+    async (detectNew = false) => {
+      if (!session?.user) return;
+      try {
+        const pollStart = new Date().toISOString();
 
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const data = await res.json();
+        const url =
+          detectNew && lastFetchAtRef.current
+            ? `/api/notifications?since=${encodeURIComponent(lastFetchAtRef.current)}`
+            : "/api/notifications";
 
-      const incoming: AppNotification[] = data.notifications ?? [];
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
 
-      if (detectNew) {
-        // Always advance the cursor so next poll covers the gap correctly
-        lastFetchAtRef.current = pollStart;
+        const incoming: AppNotification[] = data.notifications ?? [];
 
-        if (initialLoadDone.current && incoming.length > 0) {
-          // Show popup for each new notification (max 5 stacked)
-          setPopups((prev) => [...prev, ...incoming].slice(-5));
-          // Prepend them to the notification list
-          setNotifications((prev) => {
-            const existingIds = new Set(prev.map((n) => n.id));
-            const fresh = incoming.filter((n) => !existingIds.has(n.id));
-            return [...fresh, ...prev].slice(0, 50);
-          });
+        if (detectNew) {
+          // Always advance the cursor regardless of results
+          lastFetchAtRef.current = pollStart;
+
+          if (initialLoadDone.current && incoming.length > 0) {
+            // Prepend new notifications to the list
+            setNotifications((prev) => {
+              const existingIds = new Set(prev.map((n) => n.id));
+              const fresh = incoming.filter((n) => !existingIds.has(n.id));
+              return [...fresh, ...prev].slice(0, 50);
+            });
+
+            // Show popups only if the tab is currently visible.
+            // If hidden, queue them so they appear the moment the user returns.
+            if (typeof document !== "undefined" && document.visibilityState === "visible") {
+              setPopups((prev) => [...prev, ...incoming].slice(-5));
+            } else {
+              hiddenQueueRef.current = [
+                ...hiddenQueueRef.current,
+                ...incoming,
+              ].slice(-5);
+            }
+          }
+        } else {
+          // Initial full load
+          setNotifications(incoming);
+          lastFetchAtRef.current = pollStart;
+          initialLoadDone.current = true;
         }
-      } else {
-        // Full refresh on initial load
-        setNotifications(incoming);
-        lastFetchAtRef.current = pollStart;
-        initialLoadDone.current = true;
+
+        setUnreadCount(data.unreadCount ?? 0);
+      } catch {
+        // silently ignore network errors
       }
+    },
+    [session]
+  );
 
-      setUnreadCount(data.unreadCount ?? 0);
-    } catch {
-      // silently ignore network errors
-    }
-  }, [session]);
+  // ── Initial load ──────────────────────────────────────────────────────────
 
-  // Initial full load
   useEffect(() => {
     if (!session?.user) return;
     fetchNotifications(false);
   }, [session, fetchNotifications]);
 
-  // Incremental polls every 30 seconds
+  // ── Interval — only runs while tab is visible ─────────────────────────────
+
   useEffect(() => {
     if (!session?.user) return;
-    const interval = setInterval(() => fetchNotifications(true), POLL_INTERVAL);
-    return () => clearInterval(interval);
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (intervalId) return;
+      intervalId = setInterval(() => fetchNotifications(true), POLL_INTERVAL);
+    };
+
+    const stop = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        // 1. Flush any notifications that arrived while the tab was hidden
+        if (hiddenQueueRef.current.length > 0) {
+          setPopups((prev) =>
+            [...prev, ...hiddenQueueRef.current].slice(-5)
+          );
+          hiddenQueueRef.current = [];
+        }
+
+        // 2. Immediately poll to catch anything the paused interval missed
+        fetchNotifications(true);
+
+        // 3. Resume the interval
+        start();
+      } else {
+        // Tab is hidden — pause polling to avoid wasted requests
+        stop();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    // Start polling immediately (tab is visible on mount)
+    if (document.visibilityState === "visible") start();
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [session, fetchNotifications]);
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   const markAsRead = useCallback(async (id: string) => {
     setNotifications((prev) =>
@@ -154,7 +216,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     >
       {children}
 
-      {/* ── Floating popup stack (bottom-right) ── */}
+      {/* ── Floating popup stack ─────────────────────────────────────────── */}
       <div className="fixed bottom-5 right-5 z-[9990] flex flex-col-reverse gap-2 pointer-events-none">
         {popups.map((n) => (
           <NotificationPopup
@@ -188,6 +250,7 @@ function NotificationPopup({
 }) {
   const Icon = TYPE_ICONS[notification.type] ?? InboxIcon;
 
+  // Auto-dismiss after 6 s — only starts when the component mounts (tab is visible)
   useEffect(() => {
     const t = setTimeout(() => onDismiss(notification.id), 6000);
     return () => clearTimeout(t);
@@ -222,7 +285,7 @@ function NotificationPopup({
         <Link
           href={notification.link}
           onClick={handleClick}
-          className="flex items-start gap-0 bg-gray-900 rounded-xl shadow-xl px-4 py-3 pr-9 hover:bg-gray-800 transition-colors cursor-pointer"
+          className="flex items-start bg-gray-900 rounded-xl shadow-xl px-4 py-3 pr-9 hover:bg-gray-800 transition-colors cursor-pointer"
         >
           {inner}
         </Link>
