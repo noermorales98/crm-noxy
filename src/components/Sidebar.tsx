@@ -58,7 +58,7 @@ export default function Sidebar() {
           <NavItem href="/companies" icon={Building04Icon} label="Empresas" />
           <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" />
           <NavItem href="/tasks" icon={Task01Icon} label="Tareas" />
-          <NavItem href="/pipeline" icon={BarChartIcon} label="Pipeline" />
+          <NavItem href="/pipeline" icon={BarChartIcon} label="Ventas" />
           <NavItem href="/campaigns" icon={Mail01Icon} label="Campañas de Email" />
           <NavItem href="/emails" icon={InboxIcon} label="Correos" />
           <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />

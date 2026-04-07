@@ -114,9 +114,11 @@ export default function EmailsPage() {
     fetchCompanies();
   }, [fetchCompanies]);
 
-  const fetchEmails = useCallback(async () => {
-    setIsLoadingEmails(true);
-    setSelectedEmail(null);
+  const fetchEmails = useCallback(async (background = false) => {
+    if (!background) {
+      setIsLoadingEmails(true);
+      setSelectedEmail(null);
+    }
     try {
       const params = new URLSearchParams({ folder });
       if (selectedCompanyId) params.set("companyId", selectedCompanyId);
@@ -128,12 +130,20 @@ export default function EmailsPage() {
     } catch (e) {
       console.error(e);
     } finally {
-      setIsLoadingEmails(false);
+      if (!background) setIsLoadingEmails(false);
     }
   }, [folder, selectedCompanyId]);
 
   useEffect(() => {
-    fetchEmails();
+    // Carga inicial
+    fetchEmails(false);
+
+    // Auto-recarga en segundo plano cada 1 minuto (para reflejar lo que obtenga el cron-job)
+    const intervalIds = setInterval(() => {
+      fetchEmails(true);
+    }, 60 * 1000);
+
+    return () => clearInterval(intervalIds);
   }, [fetchEmails]);
 
   const openEmail = async (email: EmailSummary) => {
