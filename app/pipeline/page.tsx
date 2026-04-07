@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
+import { useHeader } from "@/src/context/HeaderContext";
 import DatePicker from "@/src/components/DatePicker";
 import ClientDrawer from "@/src/components/ClientDrawer";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -703,6 +704,7 @@ function StatCard({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PipelinePage() {
+  const { setConfig, resetState } = useHeader();
   const [pipelines, setPipelines] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -714,6 +716,20 @@ export default function PipelinePage() {
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [selectedPipelineIdx, setSelectedPipelineIdx] = useState(0);
+
+  // ─── Header config ────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    resetState();
+    setConfig({
+      searchPlaceholder: activeTab === "pipeline" ? "Buscar deal..." : "Buscar cliente...",
+      addButton: {
+        label: activeTab === "pipeline" ? "Nuevo deal" : "Nuevo cliente",
+        onClick: () => activeTab === "pipeline" ? setShowDealModal(true) : setShowClientModal(true),
+      },
+    });
+    return () => setConfig({});
+  }, [activeTab]);
 
   // ─── Fetch ────────────────────────────────────────────────────────────────
 
@@ -905,15 +921,6 @@ export default function PipelinePage() {
                 <HugeiconsIcon icon={KanbanIcon} size={20} color="#9ca3af" />
                 <h1 className="text-xl font-bold text-gray-900">Pipeline de ventas</h1>
               </div>
-              <button
-                onClick={() =>
-                  activeTab === "pipeline" ? setShowDealModal(true) : setShowClientModal(true)
-                }
-                className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-black transition-colors"
-              >
-                <HugeiconsIcon icon={Add01Icon} size={16} />
-                {activeTab === "pipeline" ? "Nuevo deal" : "Nuevo cliente"}
-              </button>
             </div>
 
             {/* Stats row */}
