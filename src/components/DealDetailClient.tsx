@@ -70,10 +70,12 @@ const ACTIVITY_COLORS: Record<string, string> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmt(value: number | null | undefined, currency = "USD") {
-  if (!value) return currency === "MXN" ? "$0 MXN" : "$0";
-  if (currency === "MXN")
-    return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0 }).format(value);
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(value);
+  if (currency === "MXN") {
+    const formatted = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0 }).format(value ?? 0);
+    return `${formatted} MXN`;
+  }
+  const formatted = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(value ?? 0);
+  return `${formatted} USD`;
 }
 
 function fmtDate(d: string | null | undefined) {

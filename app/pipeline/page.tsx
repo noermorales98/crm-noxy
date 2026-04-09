@@ -188,7 +188,8 @@ function KanbanColumn({
   deals: any[];
   onAddDeal: (stageId: string) => void;
 }) {
-  const stageValue = deals.reduce((sum, d) => sum + (d.value ?? 0), 0);
+  const totalMXN = deals.filter(d => d.currency === "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
+  const totalUSD = deals.filter(d => d.currency !== "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
 
   return (
     <div className="flex flex-col w-72 shrink-0">
@@ -202,9 +203,14 @@ function KanbanColumn({
         <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
           {deals.length}
         </span>
-        {stageValue > 0 && (
-          <span className="text-[10px] font-bold text-gray-500">{fmtUSD(stageValue)}</span>
-        )}
+        <div className="flex flex-col items-end gap-0.5">
+          {totalMXN > 0 && (
+            <span className="text-[10px] font-bold text-gray-500">{fmtMXN(totalMXN)}</span>
+          )}
+          {totalUSD > 0 && (
+            <span className="text-[10px] font-bold text-gray-500">{fmtUSD(totalUSD)}</span>
+          )}
+        </div>
       </div>
 
       {/* Droppable */}
@@ -669,12 +675,14 @@ function ClientCard({
 function StatCard({
   label,
   value,
+  values,
   sub,
   badge,
   badgePositive,
 }: {
   label: string;
-  value: string;
+  value?: string;
+  values?: { label: string; amount: string }[];
   sub: string;
   badge?: string;
   badgePositive?: boolean;
@@ -682,20 +690,30 @@ function StatCard({
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-5 flex-1 min-w-0">
       <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">{label}</p>
-      <div className="flex items-baseline gap-2 mb-1">
-        <p className="text-2xl font-bold text-gray-900 truncate">{value}</p>
-        {badge && (
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-              badgePositive
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-red-50 text-red-600"
-            }`}
-          >
-            {badge}
-          </span>
-        )}
-      </div>
+      {values ? (
+        <div className="flex flex-col gap-0.5 mb-1">
+          {values.map((v) => (
+            <div key={v.label} className="flex items-baseline gap-2">
+              <p className="text-xl font-bold text-gray-900 truncate">{v.amount}</p>
+              <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">{v.label}</span>
+            </div>
+          ))}
+          {badge && (
+            <span className={`mt-1 self-start text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+              {badge}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="flex items-baseline gap-2 mb-1">
+          <p className="text-2xl font-bold text-gray-900 truncate">{value}</p>
+          {badge && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+              {badge}
+            </span>
+          )}
+        </div>
+      )}
       <p className="text-xs text-gray-400">{sub}</p>
     </div>
   );
@@ -853,8 +871,10 @@ export default function PipelinePage() {
     !allStages.filter((s: any) => s.isLost).some((s: any) => s.id === d.stageId)
   );
 
-  const totalPipelineValue = activeDeals.reduce((s, d) => s + (d.value ?? 0), 0);
-  const totalWonValue = wonDeals.reduce((s, d) => s + (d.value ?? 0), 0);
+  const pipelineMXN = activeDeals.filter(d => d.currency === "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
+  const pipelineUSD = activeDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
+  const wonMXN = wonDeals.filter(d => d.currency === "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
+  const wonUSD = wonDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
   const overdueDeals = activeDeals.filter((d) => d.followUpAt && new Date(d.followUpAt) < new Date());
 
   // Client stats
@@ -929,7 +949,11 @@ export default function PipelinePage() {
                 <>
                   <StatCard
                     label="Valor del pipeline"
-                    value={fmtUSD(totalPipelineValue)}
+                    values={[
+                      ...(pipelineUSD > 0 ? [{ label: "USD", amount: fmtUSD(pipelineUSD) }] : []),
+                      ...(pipelineMXN > 0 ? [{ label: "MXN", amount: fmtMXN(pipelineMXN) }] : []),
+                      ...((pipelineUSD === 0 && pipelineMXN === 0) ? [{ label: "USD", amount: fmtUSD(0) }] : []),
+                    ]}
                     sub={`${activeDeals.length} deals activos`}
                   />
                   <StatCard
@@ -941,7 +965,11 @@ export default function PipelinePage() {
                   />
                   <StatCard
                     label="Ganados"
-                    value={fmtUSD(totalWonValue)}
+                    values={[
+                      ...(wonUSD > 0 ? [{ label: "USD", amount: fmtUSD(wonUSD) }] : []),
+                      ...(wonMXN > 0 ? [{ label: "MXN", amount: fmtMXN(wonMXN) }] : []),
+                      ...((wonUSD === 0 && wonMXN === 0) ? [{ label: "USD", amount: fmtUSD(0) }] : []),
+                    ]}
                     sub={`${wonDeals.length} deals cerrados`}
                     badge={wonDeals.length > 0 ? `+${wonDeals.length}` : undefined}
                     badgePositive={true}

@@ -154,7 +154,8 @@ model Company {
   // Projects that belong to this client company
   clientProjects Project[] @relation("ProjectClientCompany")
 
-  emails Email[]
+  emails           Email[]
+  appointmentTypes AppointmentType[]
 
   @@index([organizationId])
   @@index([projectId])
@@ -638,6 +639,8 @@ model AppointmentType {
   organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scheduleId     String
   schedule       AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  companyId      String?
+  company        Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
   name           String
   description    String?              @db.Text
   duration       Int // minutes
@@ -654,6 +657,7 @@ model AppointmentType {
 
   @@unique([organizationId, slug])
   @@index([organizationId])
+  @@index([companyId])
 }
 
 model Appointment {

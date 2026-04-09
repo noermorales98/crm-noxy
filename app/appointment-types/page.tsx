@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon } from "@hugeicons/core-free-icons";
+import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
@@ -14,6 +14,7 @@ export default function AppointmentTypesPage() {
   const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
   const [types, setTypes] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<any>(null);
@@ -25,6 +26,7 @@ export default function AppointmentTypesPage() {
   const [location, setLocation] = useState("");
   const [slug, setSlug] = useState("");
   const [scheduleId, setScheduleId] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [bufferAfter, setBufferAfter] = useState("0");
   const [maxAdvanceDays, setMaxAdvanceDays] = useState("30");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,12 +55,17 @@ export default function AppointmentTypesPage() {
   const fetchAll = async () => {
     setIsLoading(true);
     try {
-      const [t, s] = await Promise.all([
+      const [t, s, c] = await Promise.all([
         fetch("/api/appointment-types"),
-        fetch("/api/availability")
+        fetch("/api/availability"),
+        fetch("/api/companies"),
       ]);
       if (t.ok) setTypes(await t.json());
       if (s.ok) setSchedules(await s.json());
+      if (c.ok) {
+        const cData = await c.json();
+        setCompanies(Array.isArray(cData) ? cData : (cData.companies ?? []));
+      }
     } catch (error) {
       console.error("Error fetching appointment types:", error);
       addToast("Error al cargar datos", "error");
@@ -71,7 +78,7 @@ export default function AppointmentTypesPage() {
     setEditingType(null);
     setName(""); setDescription(""); setDuration("30"); setColor("#3B82F6");
     setLocation(""); setSlug(""); setScheduleId(schedules[0]?.id || "");
-    setBufferAfter("0"); setMaxAdvanceDays("30");
+    setCompanyId(""); setBufferAfter("0"); setMaxAdvanceDays("30");
     setIsModalOpen(true);
   };
 
@@ -79,8 +86,8 @@ export default function AppointmentTypesPage() {
     setEditingType(type);
     setName(type.name); setDescription(type.description || ""); setDuration(String(type.duration));
     setColor(type.color); setLocation(type.location || ""); setSlug(type.slug);
-    setScheduleId(type.scheduleId); setBufferAfter(String(type.bufferAfter));
-    setMaxAdvanceDays(String(type.maxAdvanceDays));
+    setScheduleId(type.scheduleId); setCompanyId(type.companyId || "");
+    setBufferAfter(String(type.bufferAfter)); setMaxAdvanceDays(String(type.maxAdvanceDays));
     setIsModalOpen(true);
   };
 
@@ -88,7 +95,7 @@ export default function AppointmentTypesPage() {
     e.preventDefault();
     if (!scheduleId) { addToast("Debes crear una disponibilidad primero.", "warning"); return; }
     setIsSubmitting(true);
-    const body = { name, description, duration, color, location, slug, scheduleId, bufferAfter, maxAdvanceDays };
+    const body = { name, description, duration, color, location, slug, scheduleId, companyId: companyId || null, bufferAfter, maxAdvanceDays };
     const url = editingType ? `/api/appointment-types/${editingType.id}` : "/api/appointment-types";
     const method = editingType ? "PUT" : "POST";
     const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -202,19 +209,26 @@ export default function AppointmentTypesPage() {
                     <p className="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">{type.description}</p>
                   )}
 
-                  <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
+                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-gray-500 mb-4">
                     <HugeiconsIcon icon={Clock01Icon} size={14} />
                     <span>{type.duration} min</span>
-                    <span className="mx-2 text-gray-200">·</span>
+                    <span className="mx-1 text-gray-200">·</span>
                     <span>{type._count?.appointments || 0} citas</span>
                     {type._count?.forms > 0 && (
                       <>
-                        <span className="mx-2 text-gray-200">·</span>
+                        <span className="mx-1 text-gray-200">·</span>
                         <div className="flex items-center gap-1 text-blue-600 font-medium">
                           <HugeiconsIcon icon={Note01Icon} size={14} />
                           <span>Con Formulario</span>
                         </div>
                       </>
+                    )}
+                    {type.company && (
+                      <div className="w-full flex items-center gap-1 mt-1 text-xs text-gray-400">
+                        <HugeiconsIcon icon={Building04Icon} size={12} />
+                        <span>{type.company.name}</span>
+                        <HugeiconsIcon icon={Mail01Icon} size={12} className="ml-1 text-green-500" color="#22c55e" />
+                      </div>
                     )}
                   </div>
 
@@ -332,6 +346,22 @@ export default function AppointmentTypesPage() {
                     <option value="">Seleccionar horario</option>
                     {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-gray-700">Empresa (para envío de correo)</label>
+                  <select
+                    value={companyId}
+                    onChange={e => setCompanyId(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                  >
+                    <option value="">Sin empresa asignada</option>
+                    {companies.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}{c.smtpHost ? " ✓ SMTP configurado" : " (sin SMTP)"}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400">El correo de confirmación se enviará usando el SMTP de esta empresa.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">

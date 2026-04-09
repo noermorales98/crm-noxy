@@ -22,7 +22,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await context.params;
-  const { name, description, duration, color, location, slug, scheduleId, isActive, bufferAfter, maxAdvanceDays } = await req.json();
+  const { name, description, duration, color, location, slug, scheduleId, isActive, bufferAfter, maxAdvanceDays, companyId } = await req.json();
 
   try {
     const type = await prisma.appointmentType.updateMany({
@@ -36,6 +36,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
         slug,
         scheduleId,
         isActive,
+        companyId: companyId ?? null,
         bufferAfter: Number(bufferAfter) || 0,
         maxAdvanceDays: Number(maxAdvanceDays) || 30
       }

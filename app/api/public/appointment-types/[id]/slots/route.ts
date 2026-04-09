@@ -116,7 +116,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
   const existingAppointments = await prisma.appointment.findMany({
     where: {
-      appointmentTypeId: id,
+      appointmentType: { scheduleId: appointmentType.scheduleId },
       status: { not: "CANCELLED" },
       startTime: { gte: searchStart, lte: searchEnd }
     }
