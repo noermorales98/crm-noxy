@@ -4,10 +4,42 @@ import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 
+const TIMEZONES = [
+  // México
+  { label: "── México ──", value: "", disabled: true },
+  { label: "Ciudad de México, CDMX (UTC-6)", value: "America/Mexico_City" },
+  { label: "Monterrey, Nuevo León (UTC-6)", value: "America/Monterrey" },
+  { label: "Guadalajara, Jalisco (UTC-6)", value: "America/Mexico_City" },
+  { label: "Mérida, Yucatán (UTC-6)", value: "America/Merida" },
+  { label: "Cancún, Quintana Roo (UTC-5, sin cambio horario)", value: "America/Cancun" },
+  { label: "Hermosillo, Sonora (UTC-7, sin cambio horario)", value: "America/Hermosillo" },
+  { label: "Chihuahua, Chihuahua (UTC-6/-7)", value: "America/Chihuahua" },
+  { label: "Mazatlán, Sinaloa (UTC-7)", value: "America/Mazatlan" },
+  { label: "Tijuana / Mexicali, Baja California (UTC-8)", value: "America/Tijuana" },
+  // EE.UU.
+  { label: "── Estados Unidos ──", value: "", disabled: true },
+  { label: "Nueva York / Miami / Boston (ET, UTC-5)", value: "America/New_York" },
+  { label: "Chicago / Houston / Dallas (CT, UTC-6)", value: "America/Chicago" },
+  { label: "Denver / Phoenix / Salt Lake (MT, UTC-7)", value: "America/Denver" },
+  { label: "Los Ángeles / San Francisco / Seattle (PT, UTC-8)", value: "America/Los_Angeles" },
+  { label: "Anchorage, Alaska (UTC-9)", value: "America/Anchorage" },
+  { label: "Honolulu, Hawái (UTC-10)", value: "Pacific/Honolulu" },
+  // Latinoamérica
+  { label: "── Latinoamérica ──", value: "", disabled: true },
+  { label: "Bogotá, Colombia (UTC-5)", value: "America/Bogota" },
+  { label: "Lima, Perú (UTC-5)", value: "America/Lima" },
+  { label: "Santiago, Chile (UTC-3)", value: "America/Santiago" },
+  { label: "Buenos Aires, Argentina (UTC-3)", value: "America/Argentina/Buenos_Aires" },
+  // Europa
+  { label: "── Europa ──", value: "", disabled: true },
+  { label: "Madrid, España (UTC+1)", value: "Europe/Madrid" },
+];
+
 export default function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [callMeBotApiKey, setCallMeBotApiKey] = useState("");
   const [notificationEmail, setNotificationEmail] = useState("");
+  const [timezone, setTimezone] = useState("America/Cancun");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +54,7 @@ export default function SettingsPage() {
             setPhone(data.phone || "");
             setCallMeBotApiKey(data.callMeBotApiKey || "");
             setNotificationEmail(data.notificationEmail || "");
+            setTimezone(data.timezone || "America/Cancun");
           }
         }
       } catch (err) {
@@ -41,7 +74,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail }),
+        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail, timezone }),
       });
 
       if (!res.ok) {
@@ -66,6 +99,28 @@ export default function SettingsPage() {
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-2xl flex flex-col gap-8">
+
+            {/* Timezone */}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">Zona Horaria</h2>
+              <p className="text-sm text-gray-500 mb-5">
+                Define la zona horaria de tu organización. Se usará para guardar horarios bloqueados y disponibilidad correctamente.
+              </p>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-gray-700">Zona horaria</label>
+                <select
+                  value={timezone}
+                  onChange={e => setTimezone(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm"
+                >
+                  {TIMEZONES.map((tz, i) => (
+                    <option key={i} value={tz.value} disabled={tz.disabled}>{tz.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <hr className="border-gray-100" />
 
             {/* Email Notifications */}
             <div>
@@ -122,7 +177,7 @@ export default function SettingsPage() {
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
-              {success && <p className="text-sm text-green-600 font-medium">Settings saved successfully!</p>}
+              {success && <p className="text-sm text-green-600 font-medium">Configuración guardada correctamente.</p>}
 
               <div className="pt-2">
                 <button

@@ -10,7 +10,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { phone, callMeBotApiKey, notificationEmail } = body;
+    const { phone, callMeBotApiKey, notificationEmail, timezone } = body;
 
     if (!session.user.id) {
        return NextResponse.json({ error: "User ID not found" }, { status: 401 });
@@ -31,6 +31,15 @@ export async function PATCH(req: Request) {
       }
     });
 
+    // Update org timezone if provided
+    const organizationId = (session as any).currentOrganizationId;
+    if (organizationId && timezone) {
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: { timezone },
+      });
+    }
+
     return NextResponse.json(
       { message: "Settings updated successfully", user: { phone: upsertedConfig.phone, callMeBotApiKey: upsertedConfig.apiKey, notificationEmail: upsertedConfig.notificationEmail } },
       { status: 200 }
@@ -47,15 +56,26 @@ export async function GET(req: Request) {
      if (!session?.user?.id) {
        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
      }
- 
+
      const config = await prisma.callMeBot.findUnique({
        where: { userId: session.user.id }
      });
- 
+
+     const organizationId = (session as any).currentOrganizationId;
+     let timezone = "America/Cancun";
+     if (organizationId) {
+       const org = await prisma.organization.findUnique({
+         where: { id: organizationId },
+         select: { timezone: true },
+       });
+       timezone = org?.timezone || "America/Cancun";
+     }
+
      return NextResponse.json({
         phone: config?.phone || "",
         callMeBotApiKey: config?.apiKey || "",
         notificationEmail: config?.notificationEmail || "",
+        timezone,
      }, { status: 200 });
    } catch (error: any) {
      console.error("GET /api/settings error:", error);

@@ -73,15 +73,18 @@ export default function AvailabilityPage() {
   const [slots, setSlots] = useState<SlotState[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Org timezone (from settings)
+  const [orgTimezone, setOrgTimezone] = useState("America/Cancun");
+
   // Blocked Times State
   const [blockedTimes, setBlockedTimes] = useState<any[]>([]);
   const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
   const [blockedType, setBlockedType] = useState<"ALL_DAY" | "HOURS">("HOURS");
   const [blockedTitle, setBlockedTitle] = useState("");
 
-  // For ALL_DAY
-  const [allDayStart, setAllDayStart] = useState("");
-  const [allDayEnd, setAllDayEnd] = useState("");
+  // For ALL_DAY: list of specific dates
+  const [allDayDates, setAllDayDates] = useState<string[]>([]);
+  const [allDayInput, setAllDayInput] = useState("");
 
   // For HOURS
   const [hoursDate, setHoursDate] = useState("");
@@ -112,7 +115,18 @@ export default function AvailabilityPage() {
     fetchSchedules();
     fetchBlockedTimes();
     fetchExtendedTimes();
+    fetchOrgTimezone();
   }, []);
+
+  const fetchOrgTimezone = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      if (res.ok) {
+        const data = await res.json();
+        setOrgTimezone(data.timezone || "America/Cancun");
+      }
+    } catch {}
+  };
 
   const fetchSchedules = async () => {
     setIsLoading(true);
@@ -195,43 +209,67 @@ export default function AvailabilityPage() {
   const openBlockedModal = () => {
     setBlockedType("HOURS");
     setBlockedTitle("");
-    setAllDayStart("");
-    setAllDayEnd("");
+    setAllDayDates([]);
+    setAllDayInput("");
     setHoursDate("");
     setHoursStart("09:00");
     setHoursEnd("18:00");
     setIsBlockedModalOpen(true);
   };
 
+  const addAllDayDate = () => {
+    if (!allDayInput) return;
+    if (allDayDates.includes(allDayInput)) return;
+    setAllDayDates(prev => [...prev, allDayInput].sort());
+    setAllDayInput("");
+  };
+
+  const removeAllDayDate = (date: string) => {
+    setAllDayDates(prev => prev.filter(d => d !== date));
+  };
+
   const handleCreateBlocked = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingBlocked(true);
 
-    let finalStart = "";
-    let finalEnd = "";
-
-    if (blockedType === "ALL_DAY") {
-      finalStart = `${allDayStart}T00:00:00`;
-      finalEnd = `${allDayEnd}T23:59:59`;
-    } else {
-      finalStart = `${hoursDate}T${hoursStart}:00`;
-      finalEnd = `${hoursDate}T${hoursEnd}:00`;
-    }
-
     try {
-      const res = await fetch("/api/availability/blocked", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: blockedTitle, start: finalStart, end: finalEnd })
-      });
-      if (res.ok) {
-        setIsBlockedModalOpen(false);
-        fetchBlockedTimes();
-        addToast("Excepción añadida con éxito", "success");
+      if (blockedType === "ALL_DAY") {
+        if (allDayDates.length === 0) {
+          addToast("Agrega al menos una fecha.", "warning");
+          setIsSubmittingBlocked(false);
+          return;
+        }
+        // Create one blocked entry per selected date
+        for (const date of allDayDates) {
+          const res = await fetch("/api/availability/blocked", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: blockedTitle, date, allDay: true })
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            addToast(d.error || "Error al crear", "error");
+            setIsSubmittingBlocked(false);
+            return;
+          }
+        }
       } else {
-        const d = await res.json();
-        addToast(d.error || "Error al crear", "error");
+        const res = await fetch("/api/availability/blocked", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: blockedTitle, date: hoursDate, startTime: hoursStart, endTime: hoursEnd, allDay: false })
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          addToast(d.error || "Error al crear", "error");
+          setIsSubmittingBlocked(false);
+          return;
+        }
       }
+
+      setIsBlockedModalOpen(false);
+      fetchBlockedTimes();
+      addToast("Excepción añadida con éxito", "success");
     } catch (e) {
       addToast("Error de conexión", "error");
     } finally {
@@ -283,6 +321,14 @@ export default function AvailabilityPage() {
     if (!ok) return;
     await fetch(`/api/availability/blocked/${id}`, { method: "DELETE" });
     fetchBlockedTimes();
+  };
+
+  const formatBlockedDate = (isoStr: string) => {
+    return new Date(isoStr).toLocaleString("es-MX", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: orgTimezone,
+    });
   };
 
   return (
@@ -454,8 +500,8 @@ export default function AvailabilityPage() {
                   {blockedTimes.map(blocked => (
                     <tr key={blocked.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{blocked.title || "No especificado"}</td>
-                      <td className="px-6 py-4 text-gray-600">{new Date(blocked.start).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
-                      <td className="px-6 py-4 text-gray-600">{new Date(blocked.end).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })}</td>
+                      <td className="px-6 py-4 text-gray-600">{formatBlockedDate(blocked.start)}</td>
+                      <td className="px-6 py-4 text-gray-600">{formatBlockedDate(blocked.end)}</td>
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => handleDeleteBlocked(blocked.id)}
@@ -622,19 +668,51 @@ export default function AvailabilityPage() {
                 )}
 
                 {blockedType === "ALL_DAY" && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Desde el Día *</label>
-                      <input type="date" required value={allDayStart} onChange={e => setAllDayStart(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
+                  <div className="flex flex-col gap-3">
+                    <label className="text-sm font-semibold text-gray-700">Seleccionar Días *</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="date"
+                        value={allDayInput}
+                        onChange={e => setAllDayInput(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={addAllDayDate}
+                        disabled={!allDayInput}
+                        className="px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                      >
+                        Agregar
+                      </button>
                     </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Hasta el Día *</label>
-                      <input type="date" required value={allDayEnd} onChange={e => setAllDayEnd(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm" />
-                    </div>
+                    {allDayDates.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {allDayDates.map(d => (
+                          <span
+                            key={d}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium"
+                          >
+                            {new Date(d + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })}
+                            <button
+                              type="button"
+                              onClick={() => removeAllDayDate(d)}
+                              className="text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {allDayDates.length === 0 && (
+                      <p className="text-xs text-gray-400">Agrega los días que quieres bloquear.</p>
+                    )}
                   </div>
                 )}
+
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  Cualquier Lead que intente agendarte sobre este periodo verá tus disponibilidades como ocultas.
+                  Se guardarán en la zona horaria de tu organización ({orgTimezone}).
                 </p>
               </form>
             </div>
