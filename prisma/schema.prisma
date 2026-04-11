@@ -729,6 +729,7 @@ model Email {
   isRead      Boolean   @default(false)
   isArchived  Boolean   @default(false)
   receivedAt  DateTime  @default(now())
+  scheduledAt DateTime? // null = not scheduled; future date = send at this time
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -741,6 +742,7 @@ model Email {
   @@index([organizationId])
   @@index([type])
   @@index([isArchived])
+  @@index([scheduledAt])
 }
 
 model Client {

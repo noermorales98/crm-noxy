@@ -45,28 +45,26 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
   const activeTabData = tabs.find(t => t.key === activeTab)!;
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+    <div className="bg-white border border-gray-100 rounded-2xl">
       {/* Tab Header */}
       <div className="flex items-center border-b border-gray-100 px-2 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
-              activeTab === tab.key
+            className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${activeTab === tab.key
                 ? "border-gray-900 text-gray-900"
                 : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
-            }`}
+              }`}
           >
             <HugeiconsIcon icon={tab.icon} size={14} />
             {tab.label}
             {tab.count > 0 && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${
-                  activeTab === tab.key
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${activeTab === tab.key
                     ? "bg-gray-900 text-white"
                     : "bg-gray-100 text-gray-500"
-                }`}
+                  }`}
               >
                 {tab.count}
               </span>
@@ -97,9 +95,8 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
             contacts.map((contact, i) => (
               <div
                 key={contact.id}
-                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${
-                  i < contacts.length - 1 ? "border-b border-gray-50" : ""
-                }`}
+                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${i < contacts.length - 1 ? "border-b border-gray-50" : ""
+                  }`}
               >
                 <div className="col-span-2 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
@@ -139,9 +136,8 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
             appointments.map((appt, i) => (
               <div
                 key={appt.id}
-                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${
-                  i < appointments.length - 1 ? "border-b border-gray-50" : ""
-                }`}
+                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${i < appointments.length - 1 ? "border-b border-gray-50" : ""
+                  }`}
               >
                 <div className="col-span-3 flex items-center gap-2">
                   <div
@@ -184,9 +180,8 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
             tasks.map((task, i) => (
               <div
                 key={task.id}
-                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${
-                  i < tasks.length - 1 ? "border-b border-gray-50" : ""
-                }`}
+                className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-gray-50/50 transition-colors ${i < tasks.length - 1 ? "border-b border-gray-50" : ""
+                  }`}
               >
                 <div className="col-span-7 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />

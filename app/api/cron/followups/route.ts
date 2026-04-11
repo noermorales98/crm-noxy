@@ -48,8 +48,15 @@ export async function GET(req: Request) {
         ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim()
         : "Sin contacto";
 
+      const tz = deal.organization.timezone || "America/Cancun";
       const followUpDate = deal.followUpAt
-        ? new Date(deal.followUpAt).toLocaleDateString("es-MX")
+        ? new Intl.DateTimeFormat("es-MX", {
+            timeZone: tz,
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          }).format(new Date(deal.followUpAt))
         : "";
 
       const message =

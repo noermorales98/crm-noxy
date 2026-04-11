@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { companyId, to, cc, subject, bodyHtml, bodyText } = body;
+    const { companyId, to, cc, subject, bodyHtml, bodyText, scheduledAt } = body;
 
     if (!companyId || !to || !subject || !bodyHtml) {
       return NextResponse.json({ error: "companyId, to, subject and bodyHtml are required" }, { status: 400 });
@@ -48,28 +48,37 @@ export async function POST(req: Request) {
       );
     }
 
-    const transporter = nodemailer.createTransport({
-      host: company.smtpHost,
-      port: company.smtpPort || 465,
-      secure: company.smtpSecure ?? true,
-      auth: { user: company.smtpUser, pass: company.smtpPass },
-    });
+    const scheduledDate = scheduledAt ? new Date(scheduledAt) : null;
+    const isScheduled = scheduledDate !== null && scheduledDate > new Date();
 
-    const mailOptions: any = {
-      from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,
-      to,
-      subject,
-      html: bodyHtml,
-      text: bodyText || "",
-    };
-    if (cc) mailOptions.cc = cc;
+    let messageIdResult: string | null = null;
 
-    const info = await transporter.sendMail(mailOptions);
+    if (!isScheduled) {
+      // Send immediately
+      const transporter = nodemailer.createTransport({
+        host: company.smtpHost,
+        port: company.smtpPort || 465,
+        secure: company.smtpSecure ?? true,
+        auth: { user: company.smtpUser, pass: company.smtpPass },
+      });
 
-    // Save sent email to DB
+      const mailOptions: any = {
+        from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,
+        to,
+        subject,
+        html: bodyHtml,
+        text: bodyText || "",
+      };
+      if (cc) mailOptions.cc = cc;
+
+      const info = await transporter.sendMail(mailOptions);
+      messageIdResult = info.messageId || null;
+    }
+
+    // Save email to DB (with or without messageId for scheduled)
     const sentEmail = await prisma.email.create({
       data: {
-        messageId: info.messageId || null,
+        messageId: messageIdResult,
         subject,
         fromAddress: company.smtpFromEmail || company.smtpUser!,
         fromName: company.name,
@@ -81,11 +90,19 @@ export async function POST(req: Request) {
         isRead: true,
         companyId: company.id,
         organizationId: currentOrganizationId,
-        receivedAt: new Date(),
+        receivedAt: isScheduled ? scheduledDate! : new Date(),
+        scheduledAt: isScheduled ? scheduledDate : null,
       },
     });
 
-    return NextResponse.json({ message: "Email enviado exitosamente", email: sentEmail }, { status: 200 });
+    return NextResponse.json(
+      {
+        message: isScheduled ? "Correo programado exitosamente" : "Email enviado exitosamente",
+        email: sentEmail,
+        scheduled: isScheduled,
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("POST /api/emails/send error:", error);
     return NextResponse.json({ error: error.message || "Error al enviar el correo" }, { status: 500 });

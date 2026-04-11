@@ -1102,9 +1102,9 @@ export default function PipelinePage() {
                 </div>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <div className="flex-1 overflow-x-auto overflow-y-hidden">
+                  <div className="flex-1 overflow-x-auto overflow-y-auto">
                     {filteredPipeline && (
-                      <div className="flex gap-4 px-6 py-4 h-full items-start">
+                      <div className="flex gap-4 px-6 py-4 min-h-full items-start">
                         {filteredPipeline.stages.map((stage: any) => (
                           <KanbanColumn
                             key={stage.id}

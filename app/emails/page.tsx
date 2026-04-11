@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "@/src/components/Sidebar";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -19,6 +19,8 @@ import {
   ViewIcon,
   ViewOffIcon,
   Building04Icon,
+  SourceCodeIcon,
+  Clock01Icon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -85,8 +87,17 @@ export default function EmailsPage() {
     subject: "",
     bodyHtml: "",
     companyId: "",
+    scheduledAt: "",
   });
   const [isSending, setIsSending] = useState(false);
+  const [previewCompose, setPreviewCompose] = useState(false);
+  const [showSchedulePicker, setShowSchedulePicker] = useState(false);
+  // Contact autocomplete
+  type ContactOption = { id: string; firstName: string; lastName: string | null; email: string | null };
+  const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [showContactDropdown, setShowContactDropdown] = useState(false);
+  const contactInputRef = useRef<HTMLInputElement>(null);
+  const contactDropdownRef = useRef<HTMLDivElement>(null);
   const [showImapModal, setShowImapModal] = useState(false);
   const [imapForm, setImapForm] = useState({
     imapHost: "",
@@ -119,6 +130,22 @@ export default function EmailsPage() {
   useEffect(() => {
     fetchCompanies();
   }, [fetchCompanies]);
+
+  // Dismiss contact dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        contactDropdownRef.current &&
+        !contactDropdownRef.current.contains(e.target as Node) &&
+        contactInputRef.current &&
+        !contactInputRef.current.contains(e.target as Node)
+      ) {
+        setShowContactDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchEmails = useCallback(async (background = false) => {
     if (!background) {
@@ -284,13 +311,16 @@ export default function EmailsPage() {
           cc: composeData.cc || undefined,
           subject: composeData.subject,
           bodyHtml: composeData.bodyHtml,
+          scheduledAt: composeData.scheduledAt || undefined,
         }),
       });
       const data = await res.json();
       if (res.ok) {
-        addToast("Correo enviado exitosamente.", "success");
+        addToast(data.scheduled ? "Correo programado exitosamente." : "Correo enviado exitosamente.", "success");
         setIsComposing(false);
-        setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: "" });
+        setPreviewCompose(false);
+        setShowSchedulePicker(false);
+        setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: "", scheduledAt: "" });
         if (folder === "sent") fetchEmails();
       } else {
         addToast(data.error || "Error al enviar.", "error");
@@ -302,6 +332,15 @@ export default function EmailsPage() {
     }
   };
 
+  const loadContacts = () => {
+    if (contacts.length === 0) {
+      fetch("/api/contacts")
+        .then((r) => r.json())
+        .then((data: ContactOption[]) => setContacts(data.filter((c) => c.email)))
+        .catch(() => {});
+    }
+  };
+
   const openReply = (email: EmailDetail) => {
     setComposeData({
       to: sanitizeEmail(email.fromAddress, ""),
@@ -309,8 +348,12 @@ export default function EmailsPage() {
       subject: email.subject.startsWith("Re:") ? email.subject : `Re: ${email.subject}`,
       bodyHtml: `<br><br><hr><p><b>De:</b> ${email.fromName || email.fromAddress} &lt;${email.fromAddress}&gt;</p><p><b>Asunto:</b> ${email.subject}</p><div>${email.bodyHtml || email.bodyText || ""}</div>`,
       companyId: email.companyId,
+      scheduledAt: "",
     });
+    setPreviewCompose(false);
+    setShowSchedulePicker(false);
     setIsComposing(true);
+    loadContacts();
   };
 
   const openConfig = async (company: Company) => {
@@ -398,8 +441,11 @@ export default function EmailsPage() {
           <div className="p-4 shrink-0">
             <button
               onClick={() => {
-                setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: selectedCompanyId || "" });
+                setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: selectedCompanyId || "", scheduledAt: "" });
+                setPreviewCompose(false);
+                setShowSchedulePicker(false);
                 setIsComposing(true);
+                loadContacts();
               }}
               className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
             >
@@ -771,7 +817,7 @@ export default function EmailsPage() {
                 Nuevo correo
               </h3>
               <button
-                onClick={() => setIsComposing(false)}
+                onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <HugeiconsIcon icon={Cancel01Icon} size={16} />
@@ -799,17 +845,60 @@ export default function EmailsPage() {
                       ))}
                   </select>
                 </div>
-                {/* To */}
-                <div className="py-3 flex items-center gap-3">
+                {/* To — with contact autocomplete */}
+                <div className="py-3 flex items-center gap-3 relative">
                   <span className="text-xs text-gray-400 w-16 shrink-0">Para</span>
-                  <input
-                    type="email"
-                    required
-                    placeholder="destinatario@email.com"
-                    value={composeData.to}
-                    onChange={(e) => setComposeData((p) => ({ ...p, to: e.target.value }))}
-                    className="flex-1 text-sm bg-transparent focus:outline-none text-gray-900 placeholder-gray-300"
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      ref={contactInputRef}
+                      type="email"
+                      required
+                      placeholder="destinatario@email.com"
+                      value={composeData.to}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setComposeData((p) => ({ ...p, to: val }));
+                        setShowContactDropdown(val.length >= 1);
+                      }}
+                      onFocus={() => {
+                        if (composeData.to.length >= 1) setShowContactDropdown(true);
+                      }}
+                      className="w-full text-sm bg-transparent focus:outline-none text-gray-900 placeholder-gray-300"
+                    />
+                    {showContactDropdown && (() => {
+                      const q = composeData.to.toLowerCase();
+                      const matches = contacts.filter(
+                        (c) =>
+                          c.email!.toLowerCase().includes(q) ||
+                          c.firstName.toLowerCase().includes(q) ||
+                          (c.lastName?.toLowerCase() || "").includes(q)
+                      ).slice(0, 8);
+                      return matches.length > 0 ? (
+                        <div
+                          ref={contactDropdownRef}
+                          className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                        >
+                          {matches.map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setComposeData((p) => ({ ...p, to: c.email! }));
+                                setShowContactDropdown(false);
+                              }}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-gray-50 transition-colors"
+                            >
+                              <span className="text-sm font-medium text-gray-900 truncate">
+                                {c.firstName} {c.lastName || ""}
+                              </span>
+                              <span className="text-xs text-gray-400 truncate ml-2 shrink-0">{c.email}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
                 {/* CC */}
                 <div className="py-3 flex items-center gap-3">
@@ -836,34 +925,109 @@ export default function EmailsPage() {
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="flex-1 px-5 pt-3 pb-2">
-                <textarea
-                  required
-                  placeholder="Escribe tu mensaje aquí... (HTML soportado)"
-                  rows={8}
-                  value={composeData.bodyHtml}
-                  onChange={(e) => setComposeData((p) => ({ ...p, bodyHtml: e.target.value }))}
-                  className="w-full text-sm bg-transparent focus:outline-none text-gray-900 placeholder-gray-300 resize-none"
-                />
+              {/* Body with write/preview toggle */}
+              <div className="flex-1 px-5 pt-3 pb-2 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">Mensaje</span>
+                  <div className="flex items-center gap-0.5 bg-gray-100 p-1 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewCompose(false)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        !previewCompose ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <HugeiconsIcon icon={SourceCodeIcon} size={12} />
+                      Escribir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewCompose(true)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                        previewCompose ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      <HugeiconsIcon icon={ViewIcon} size={12} />
+                      Vista previa
+                    </button>
+                  </div>
+                </div>
+
+                {!previewCompose ? (
+                  <textarea
+                    required
+                    placeholder="Escribe tu mensaje aquí... (HTML soportado)"
+                    rows={8}
+                    value={composeData.bodyHtml}
+                    onChange={(e) => setComposeData((p) => ({ ...p, bodyHtml: e.target.value }))}
+                    className="w-full text-sm bg-transparent focus:outline-none text-gray-900 placeholder-gray-300 resize-none"
+                  />
+                ) : (
+                  <div className="w-full rounded-xl border border-gray-200 overflow-hidden bg-white" style={{ minHeight: "200px" }}>
+                    {composeData.bodyHtml.trim() ? (
+                      <iframe
+                        srcDoc={composeData.bodyHtml}
+                        sandbox="allow-same-origin"
+                        className="w-full border-0"
+                        style={{ minHeight: "200px", height: "200px" }}
+                        title="Previsualización del correo"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full py-10 text-gray-400 gap-2" style={{ minHeight: "200px" }}>
+                        <HugeiconsIcon icon={ViewIcon} size={24} className="opacity-40" />
+                        <span className="text-xs">Escribe HTML en el editor para previsualizar</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="px-5 py-3 border-t border-gray-100 flex justify-between items-center shrink-0 bg-gray-50/50">
                 <button
                   type="button"
-                  onClick={() => setIsComposing(false)}
+                  onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
                   className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSending}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
-                >
-                  <HugeiconsIcon icon={SentIcon} size={14} />
-                  {isSending ? "Enviando..." : "Enviar"}
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Schedule */}
+                  <div className="flex items-center gap-1">
+                    {showSchedulePicker && (
+                      <input
+                        type="datetime-local"
+                        value={composeData.scheduledAt}
+                        min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                        onChange={(e) => setComposeData((p) => ({ ...p, scheduledAt: e.target.value }))}
+                        className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-black/5"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      title="Programar envío"
+                      onClick={() => {
+                        setShowSchedulePicker((v) => !v);
+                        if (showSchedulePicker) setComposeData((p) => ({ ...p, scheduledAt: "" }));
+                      }}
+                      className={`flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors border ${
+                        composeData.scheduledAt
+                          ? "border-blue-300 bg-blue-50 text-blue-700"
+                          : "border-gray-200 text-gray-500 hover:bg-gray-100"
+                      }`}
+                    >
+                      <HugeiconsIcon icon={Clock01Icon} size={14} />
+                      {composeData.scheduledAt ? "Programado" : "Programar"}
+                    </button>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSending}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                  >
+                    <HugeiconsIcon icon={SentIcon} size={14} />
+                    {isSending ? "Guardando..." : composeData.scheduledAt ? "Programar" : "Enviar"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

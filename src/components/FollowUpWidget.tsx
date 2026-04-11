@@ -17,7 +17,7 @@ export function FollowUpWidget({ followUps }: Props) {
   if (followUps.length === 0) return null;
 
   return (
-    <div className="bg-red-50 border border-red-100 rounded-2xl overflow-hidden">
+    <div className="bg-red-50 border border-red-100 rounded-2xl">
       <div className="px-5 py-4 border-b border-red-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={CalendarCheckIn01Icon} size={16} color="#dc2626" />
@@ -28,7 +28,7 @@ export function FollowUpWidget({ followUps }: Props) {
         </Link>
       </div>
       <div className="divide-y divide-red-100">
-        {followUps.slice(0, 5).map((f) => (
+        {followUps.map((f) => (
           <Link
             key={f.id}
             href={`/pipeline/${f.id}`}

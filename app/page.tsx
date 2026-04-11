@@ -101,7 +101,6 @@ export default async function Home() {
         contact: { select: { firstName: true, lastName: true } },
       },
       orderBy: { followUpAt: "asc" },
-      take: 5,
     }),
   ]);
 
@@ -115,7 +114,7 @@ export default async function Home() {
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5">
+        <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5">
           <DashboardShortcuts
             contactsCount={contactsCount}
             appointmentsCount={upcomingAppointmentsCount}
