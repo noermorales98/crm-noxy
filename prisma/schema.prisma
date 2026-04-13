@@ -681,8 +681,9 @@ model Appointment {
   notes             String?         @db.Text
   cancelToken       String?         @unique
   googleEventId     String?
-  reminderSent24h   Boolean         @default(false)
   reminderSent1h    Boolean         @default(false)
+  reminderSent10m   Boolean         @default(false)
+  reminderSent5m    Boolean         @default(false)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   tasks             Task[]
