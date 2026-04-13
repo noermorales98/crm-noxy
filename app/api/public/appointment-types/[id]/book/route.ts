@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { randomUUID } from "crypto";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
 import nodemailer from "nodemailer";
 
 function corsHeaders() {
@@ -225,6 +226,28 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       console.error("Confirmation email error:", err);
     }
   }
+
+  // ── Sync to Google Calendar ───────────────────────────────────────────────
+  syncAppointmentToCalendar(appointmentType.organizationId, {
+    id: appointment.id,
+    startTime: appointment.startTime,
+    endTime: appointment.endTime,
+    guestName: appointment.guestName,
+    guestEmail: appointment.guestEmail,
+    notes: appointment.notes,
+    googleEventId: null,
+    appointmentType: {
+      name: appointmentType.name,
+      location: appointmentType.location,
+    },
+  }).then(async (eventId) => {
+    if (eventId) {
+      await prisma.appointment.update({
+        where: { id: appointment.id },
+        data: { googleEventId: eventId },
+      });
+    }
+  }).catch((err) => console.error("[book] Google Calendar sync error:", err));
 
   // ── Owner notifications ───────────────────────────────────────────────────
   const owner = await prisma.organizationMember.findFirst({

@@ -64,6 +64,7 @@ model Organization {
   clientPayments        ClientPayment[]
   clientVaultEntries    ClientVaultEntry[]
   notifications         Notification[]
+  googleCalendar        GoogleCalendarToken?
 }
 
 enum Role {
@@ -679,6 +680,9 @@ model Appointment {
   guestPhone        String?
   notes             String?         @db.Text
   cancelToken       String?         @unique
+  googleEventId     String?
+  reminderSent24h   Boolean         @default(false)
+  reminderSent1h    Boolean         @default(false)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   tasks             Task[]
@@ -687,6 +691,7 @@ model Appointment {
   @@index([organizationId])
   @@index([contactId])
   @@index([dealId])
+  @@index([startTime])
 }
 
 model TaskCategory {
@@ -827,6 +832,7 @@ enum NotificationType {
   NEW_EMAIL
   NEW_CONTACT
   NEW_FORM_LEAD
+  APPOINTMENT_REMINDER
 }
 
 model Notification {
@@ -845,4 +851,18 @@ model Notification {
   @@index([organizationId])
   @@index([isRead])
   @@index([createdAt])
+}
+
+model GoogleCalendarToken {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  accessToken    String       @db.Text
+  refreshToken   String?      @db.Text
+  expiresAt      DateTime?
+  calendarId     String       @default("primary")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
 }

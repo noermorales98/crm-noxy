@@ -47,14 +47,14 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
   return (
     <div className="bg-white border border-gray-100 rounded-2xl">
       {/* Tab Header */}
-      <div className="flex items-center border-b border-gray-100 px-2 overflow-x-auto">
+      <div className="flex items-center border-b border-gray-100 px-2">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${activeTab === tab.key
-                ? "border-gray-900 text-gray-900"
-                : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+              ? "border-gray-900 text-gray-900"
+              : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
               }`}
           >
             <HugeiconsIcon icon={tab.icon} size={14} />
@@ -62,8 +62,8 @@ export function DashboardWidgets({ appointments, contacts, tasks }: DashboardWid
             {tab.count > 0 && (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${activeTab === tab.key
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-500"
+                  ? "bg-gray-900 text-white"
+                  : "bg-gray-100 text-gray-500"
                   }`}
               >
                 {tab.count}
