@@ -925,14 +925,14 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? "border-gray-900 text-gray-900"
+                  ? "border-gray-700 text-gray-900"
                   : "border-transparent text-gray-400 hover:text-gray-700"
               }`}
             >
               {tab.label}
               {tab.count > 0 && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                  activeTab === tab.key ? "bg-gray-200 text-gray-700" : "bg-gray-100 text-gray-500"
                 }`}>
                   {tab.count}
                 </span>
@@ -961,7 +961,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       onClick={() => setActivityType(t.value)}
                       className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border transition-all ${
                         activityType === t.value
-                          ? "bg-gray-900 text-white border-gray-900"
+                          ? "bg-gray-200 text-gray-900 border-gray-300"
                           : "text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700"
                       }`}
                     >
@@ -1324,7 +1324,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         <button
                           key={t.id}
                           onClick={() => isSelected ? setSelectedLinkTypes(selectedLinkTypes.filter(id => id !== t.id)) : setSelectedLinkTypes([...selectedLinkTypes, t.id])}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isSelected ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
+                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isSelected ? "bg-gray-200 text-gray-900 border-gray-300" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}
                         >
                           {t.name}
                         </button>

@@ -7,14 +7,16 @@ import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import { useHeader } from "@/src/context/HeaderContext";
 import {
-  FileText, Plus, Clock, ChevronRight, BookOpen, Search,
-  Globe, Lock, Hash,
+  Plus, Clock, ChevronRight, BookOpen, Search,
+  Globe, Lock, Hash, Folder,
 } from "lucide-react";
+import PageIcon from "@/src/components/kb/PageIcon";
 
 interface KbPage {
   id: string;
   title: string;
   emoji: string | null;
+  isFolder: boolean;
   isPublished: boolean;
   updatedAt: string;
   _count: { children: number; relations: number };
@@ -41,7 +43,7 @@ export default function KbHomePage() {
       searchPlaceholder: "Buscar páginas...",
       addButton: {
         label: "Nueva página",
-        onClick: () => createPage(),
+        onClick: () => createPage(false),
       },
     });
     return () => resetState();
@@ -49,23 +51,24 @@ export default function KbHomePage() {
 
   const fetchPages = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/kb");
+    const res = await fetch("/api/kb?all=true");
     if (res.ok) setPages(await res.json());
     setLoading(false);
   }, []);
 
   useEffect(() => { fetchPages(); }, [fetchPages]);
 
-  const createPage = async () => {
+  const createPage = async (isFolder = false) => {
     setCreating(true);
     const res = await fetch("/api/kb", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Sin título" }),
+      body: JSON.stringify({ title: isFolder ? "Nueva carpeta" : "Sin título", isFolder }),
     });
     if (res.ok) {
       const page = await res.json();
-      router.push(`/kb/${page.id}`);
+      if (!isFolder) router.push(`/kb/${page.id}`);
+      else fetchPages();
     }
     setCreating(false);
   };
@@ -93,14 +96,33 @@ export default function KbHomePage() {
                 <p className="text-sm text-gray-400">Documentación, guías y notas del equipo</p>
               </div>
             </div>
+            {/* Extra actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => createPage(true)}
+                disabled={creating}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <Folder size={14} />
+                Nueva carpeta
+              </button>
+              <button
+                onClick={() => createPage(false)}
+                disabled={creating}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900 text-white text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
+              >
+                <Plus size={14} />
+                Nueva página
+              </button>
+            </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-8">
             {[
-              { label: "Páginas totales", value: pages.length, icon: FileText, color: "text-blue-600 bg-blue-50" },
-              { label: "Publicadas",       value: pages.filter((p) => p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
-              { label: "Borradores",       value: pages.filter((p) => !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
+              { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-blue-600 bg-blue-50" },
+              { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
+              { label: "Borradores",  value: pages.filter(p => !p.isFolder && !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
@@ -114,12 +136,12 @@ export default function KbHomePage() {
             ))}
           </div>
 
-          {/* Pages grid */}
+          {/* Pages list */}
           <div className="bg-white rounded-2xl border border-gray-100">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Hash size={14} className="text-gray-400" />
-                <span className="text-sm font-semibold text-gray-700">Todas las páginas raíz</span>
+                <span className="text-sm font-semibold text-gray-700">Todas las páginas</span>
                 <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{filtered.length}</span>
               </div>
             </div>
@@ -151,14 +173,24 @@ export default function KbHomePage() {
                     <div className="text-center">
                       <p className="text-sm font-medium text-gray-700 mb-1">Tu knowledge base está vacío</p>
                       <p className="text-xs text-gray-400 mb-4">Crea tu primera página para documentar procesos, guías y más</p>
-                      <button
-                        onClick={createPage}
-                        disabled={creating}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 mx-auto"
-                      >
-                        <Plus size={14} />
-                        {creating ? "Creando..." : "Crear primera página"}
-                      </button>
+                      <div className="flex items-center gap-2 justify-center">
+                        <button
+                          onClick={() => createPage(false)}
+                          disabled={creating}
+                          className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+                        >
+                          <Plus size={14} />
+                          Nueva página
+                        </button>
+                        <button
+                          onClick={() => createPage(true)}
+                          disabled={creating}
+                          className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium rounded-xl transition-colors disabled:opacity-50"
+                        >
+                          <Folder size={14} />
+                          Nueva carpeta
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -171,9 +203,12 @@ export default function KbHomePage() {
                     href={`/kb/${page.id}`}
                     className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/70 transition-colors group"
                   >
-                    {/* Emoji icon */}
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-2xl shrink-0 group-hover:bg-gray-100 transition-colors">
-                      {page.emoji || "📄"}
+                    {/* Icon */}
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover:bg-gray-100 transition-colors">
+                      {page.isFolder
+                        ? <Folder size={20} className="text-amber-500" />
+                        : <PageIcon emoji={page.emoji} size={22} fallback="📄" />
+                      }
                     </div>
 
                     {/* Info */}
@@ -188,10 +223,10 @@ export default function KbHomePage() {
                         </span>
                         {page._count.children > 0 && (
                           <span className="text-xs text-gray-400">
-                            {page._count.children} subpágina{page._count.children > 1 ? "s" : ""}
+                            {page._count.children} {page.isFolder ? "página" : "subpágina"}{page._count.children > 1 ? "s" : ""}
                           </span>
                         )}
-                        {page._count.relations > 0 && (
+                        {!page.isFolder && page._count.relations > 0 && (
                           <span className="text-xs text-gray-400">
                             {page._count.relations} relación{page._count.relations > 1 ? "es" : ""}
                           </span>
@@ -199,15 +234,19 @@ export default function KbHomePage() {
                       </div>
                     </div>
 
-                    {/* Status badge */}
+                    {/* Status */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
-                        page.isPublished
-                          ? "bg-green-50 text-green-600"
-                          : "bg-gray-50 text-gray-400"
-                      }`}>
-                        {page.isPublished ? "Publicado" : "Borrador"}
-                      </span>
+                      {page.isFolder ? (
+                        <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-amber-50 text-amber-600">
+                          Carpeta
+                        </span>
+                      ) : (
+                        <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
+                          page.isPublished ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400"
+                        }`}>
+                          {page.isPublished ? "Publicado" : "Borrador"}
+                        </span>
+                      )}
                       <ChevronRight size={14} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
                     </div>
                   </Link>

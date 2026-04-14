@@ -9,18 +9,20 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const parentId = searchParams.get("parentId"); // null = root pages
+  const all = searchParams.get("all") === "true";
+
+  const where: any = { organizationId: orgId };
+  if (!all) where.parentId = parentId ?? null;
 
   const pages = await prisma.kbPage.findMany({
-    where: {
-      organizationId: orgId,
-      parentId: parentId ?? null,
-    },
+    where,
     select: {
       id: true,
       title: true,
       emoji: true,
       parentId: true,
       sortOrder: true,
+      isFolder: true,
       isPublished: true,
       updatedAt: true,
       _count: { select: { children: true, relations: true } },
@@ -36,7 +38,7 @@ export async function POST(req: Request) {
   const orgId = (session as any)?.currentOrganizationId as string | undefined;
   if (!session?.user || !orgId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, emoji, parentId, content } = await req.json();
+  const { title, emoji, parentId, content, isFolder } = await req.json();
 
   // Max sort order for siblings
   const maxOrder = await prisma.kbPage.aggregate({
@@ -51,6 +53,7 @@ export async function POST(req: Request) {
       emoji: emoji || null,
       parentId: parentId || null,
       content: content || "",
+      isFolder: isFolder ?? false,
       sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
     },
   });

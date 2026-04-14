@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "@/src/components/Sidebar";
+import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InboxIcon,
@@ -14,7 +15,6 @@ import {
   MailReplyIcon,
   Cancel01Icon,
   Mail01Icon,
-  ArrowRight01Icon,
   Settings01Icon,
   ViewIcon,
   ViewOffIcon,
@@ -24,6 +24,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
+import { EmailProvider, useEmailContext } from "@/src/context/EmailContext";
 
 function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
   if (!address) return fallback;
@@ -69,8 +70,17 @@ const FOLDERS: { key: Folder; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function EmailsPage() {
+  return (
+    <EmailProvider>
+      <EmailsPageInner />
+    </EmailProvider>
+  );
+}
+
+function EmailsPageInner() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
+  const emailCtx = useEmailContext();
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -130,6 +140,49 @@ export default function EmailsPage() {
   useEffect(() => {
     fetchCompanies();
   }, [fetchCompanies]);
+
+  // ── Sync state into EmailContext so Sidebar can display/control it ──────────
+  useEffect(() => { emailCtx.setCompanies(companies); }, [companies]);
+  useEffect(() => { emailCtx.setSelectedCompanyId(selectedCompanyId); }, [selectedCompanyId]);
+  useEffect(() => { emailCtx.setFolder(folder); }, [folder]);
+  useEffect(() => { emailCtx.setIsSyncing(isSyncing); }, [isSyncing]);
+  useEffect(() => {
+    const unread = emails.filter((e) => !e.isRead && e.type === "RECEIVED").length;
+    emailCtx.setUnreadCount(unread);
+  }, [emails]);
+
+  // Context setters for compound state: selectedCompanyId and folder come FROM the context
+  // (sidebar writes to context, page reads from context)
+  useEffect(() => {
+    if (emailCtx.selectedCompanyId !== selectedCompanyId) {
+      setSelectedCompanyId(emailCtx.selectedCompanyId);
+    }
+  }, [emailCtx.selectedCompanyId]);
+
+  useEffect(() => {
+    if (emailCtx.folder !== folder) {
+      setFolder(emailCtx.folder);
+    }
+  }, [emailCtx.folder]);
+
+  // Register action callbacks into context
+  useEffect(() => {
+    emailCtx.setOnCompose(() => {
+      setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: selectedCompanyId || "", scheduledAt: "" });
+      setPreviewCompose(false);
+      setShowSchedulePicker(false);
+      setIsComposing(true);
+      loadContacts();
+    });
+  }, [selectedCompanyId]);
+
+  useEffect(() => {
+    emailCtx.setOnSync((reset?: boolean) => handleSync(reset ?? false));
+  }, []);
+
+  useEffect(() => {
+    emailCtx.setOnOpenConfig((company) => openConfig(company));
+  }, []);
 
   // Dismiss contact dropdown on outside click
   useEffect(() => {
@@ -433,130 +486,10 @@ export default function EmailsPage() {
     <div className="flex h-screen bg-[#f5f4ef] font-sans overflow-hidden">
       <Sidebar />
 
+      <div className="flex-1 flex flex-col overflow-hidden">
+      <Header />
       {/* Email Client Panel */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Accounts & Folders */}
-        <div className="w-56 bg-white border-r border-gray-100 flex flex-col overflow-hidden shrink-0">
-          {/* Compose button */}
-          <div className="p-4 shrink-0">
-            <button
-              onClick={() => {
-                setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: selectedCompanyId || "", scheduledAt: "" });
-                setPreviewCompose(false);
-                setShowSchedulePicker(false);
-                setIsComposing(true);
-                loadContacts();
-              }}
-              className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-2.5 px-4 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
-            >
-              <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
-              Redactar
-            </button>
-          </div>
-
-          {/* Folders */}
-          <div className="px-3 pb-2">
-            {FOLDERS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFolder(f.key)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
-                  folder === f.key
-                    ? "bg-gray-100 text-gray-900 font-medium"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`}
-              >
-                {f.icon}
-                <span>{f.label}</span>
-                {f.key === "inbox" && unread > 0 && (
-                  <span className="ml-auto text-xs bg-blue-600 text-white px-1.5 py-0.5 rounded-full font-semibold">
-                    {unread}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="mx-4 border-t border-gray-100 my-2" />
-
-          {/* Company accounts */}
-          <div className="flex-1 overflow-y-auto px-3 pb-4">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 pb-2">
-              Cuentas
-            </p>
-
-            {/* All companies option */}
-            <button
-              onClick={() => setSelectedCompanyId(null)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors text-left ${
-                selectedCompanyId === null
-                  ? "bg-gray-100 text-gray-900 font-medium"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              <HugeiconsIcon icon={Building04Icon} size={15} />
-              <span className="truncate">Todas</span>
-            </button>
-
-            {companies.map((company) => (
-              <div key={company.id} className="group relative">
-                <button
-                  onClick={() => setSelectedCompanyId(company.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors text-left pr-8 ${
-                    selectedCompanyId === company.id
-                      ? "bg-gray-100 text-gray-900 font-medium"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="shrink-0" title={company.imapHost ? "SMTP + IMAP configurados" : "Solo SMTP (no puede recibir correos)"}>
-                    {company.imapHost ? (
-                      <HugeiconsIcon icon={InboxIcon} size={14} color="#22c55e" />
-                    ) : (
-                      <HugeiconsIcon icon={SentIcon} size={14} color="#fbbf24" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="truncate block">{company.name}</span>
-                    {!company.imapHost && (
-                      <span className="text-[10px] text-amber-500 font-medium">Sin IMAP</span>
-                    )}
-                  </div>
-                </button>
-                <button
-                  onClick={() => openConfig(company)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-700 transition-all rounded-lg hover:bg-gray-100"
-                  title="Configurar SMTP / IMAP"
-                >
-                  <HugeiconsIcon icon={Settings01Icon} size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Sync buttons */}
-          <div className="p-3 border-t border-gray-100 shrink-0 flex flex-col gap-1">
-            <button
-              onClick={() => handleSync(false)}
-              disabled={isSyncing}
-              className="w-full flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 py-2 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-              title="Obtener correos nuevos"
-            >
-              <HugeiconsIcon icon={Refresh01Icon} size={14} className={isSyncing ? "animate-spin" : ""} />
-              {isSyncing ? "Sincronizando..." : "Sincronizar"}
-            </button>
-            <button
-              onClick={() => handleSync(true)}
-              disabled={isSyncing}
-              className="w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 py-1.5 rounded-xl hover:bg-blue-50 transition-colors disabled:opacity-50"
-              title="Descargar TODOS los correos históricos (puede tardar)"
-            >
-              <HugeiconsIcon icon={Refresh01Icon} size={12} className={isSyncing ? "animate-spin" : ""} />
-              Descargar todo el historial
-            </button>
-          </div>
-        </div>
-
         {/* Center: Email list */}
         <div className="w-80 bg-white border-r border-gray-100 flex flex-col overflow-hidden shrink-0">
           {/* Header */}
@@ -1210,6 +1143,7 @@ export default function EmailsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
