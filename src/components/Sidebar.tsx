@@ -23,6 +23,7 @@ import {
   GitBranchIcon,
   BarChartIcon,
   Megaphone01Icon,
+  Book01Icon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications } from "@/src/context/NotificationContext";
 
@@ -66,6 +67,12 @@ export default function Sidebar() {
           <NavItem href="/campaigns" icon={Mail01Icon} label="Campañas de Email" />
           <NavItem href="/emails" icon={InboxIcon} label="Correos" badge={unreadEmailCount} />
           <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />
+        </div>
+
+        {/* Knowledge Base */}
+        <div className="px-3 mt-5 flex flex-col gap-0.5">
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-1.5">Conocimiento</p>
+          <NavItem href="/kb" icon={Book01Icon} label="Knowledge Base" />
         </div>
 
         {/* Calendario */}

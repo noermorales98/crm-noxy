@@ -65,6 +65,7 @@ model Organization {
   clientVaultEntries    ClientVaultEntry[]
   notifications         Notification[]
   googleCalendar        GoogleCalendarToken?
+  kbPages               KbPage[]
 }
 
 enum Role {
@@ -866,4 +867,51 @@ model GoogleCalendarToken {
   updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
+}
+
+// ─── Knowledge Base ───────────────────────────────────────────────────────────
+
+enum KbRelationType {
+  PROJECT
+  FORM
+  CLIENT
+  COMPANY
+  APPOINTMENT_TYPE
+  CONTACT
+  DEAL
+}
+
+model KbPage {
+  id             String           @id @default(cuid())
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title          String           @default("Sin título")
+  emoji          String?
+  content        String?          @db.LongText
+  parentId       String?
+  parent         KbPage?          @relation("KbChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children       KbPage[]         @relation("KbChildren")
+  isFolder       Boolean          @default(false)
+  isPublished    Boolean          @default(false)
+  sortOrder      Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  relations      KbPageRelation[]
+
+  @@index([organizationId])
+  @@index([parentId])
+  @@index([updatedAt])
+}
+
+model KbPageRelation {
+  id          String         @id @default(cuid())
+  pageId      String
+  page        KbPage         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  entityType  KbRelationType
+  entityId    String
+  entityLabel String
+  createdAt   DateTime       @default(now())
+
+  @@unique([pageId, entityType, entityId])
+  @@index([pageId])
 }
