@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, MousePointer2, Pencil, PencilLine, ShieldCheck, Trash2 } from "lucide-react";
 import KbMarkdown from "@/src/components/kb/KbMarkdown";
+import KbPublicPageNav from "@/src/components/kb/KbPublicPageNav";
 import KbSuggestionAnchors from "@/src/components/kb/KbSuggestionAnchors";
 import {
   GUEST_EMAIL_KEY,
@@ -12,17 +13,12 @@ import {
   findSelectionInMarkdown,
 } from "@/src/lib/kb-suggestions";
 import { getMarkdownTheme, type KbMarkdownThemeId } from "@/src/lib/kb-markdown-themes";
+import {
+  flattenPublicDocuments,
+  resolvePublicPageNav,
+} from "@/src/lib/kb-public-nav";
+import type { PublicTreeNode } from "@/src/lib/kb-share-access";
 import type { KbShareRole, KbSuggestionType } from "@prisma/client";
-
-type PublicTreeNode = {
-  id: string;
-  title: string;
-  isFolder: boolean;
-  emoji: string | null;
-  iconColor: string | null;
-  iconBg: string | null;
-  children: PublicTreeNode[];
-};
 
 type PublicPage = {
   id: string;
@@ -482,6 +478,39 @@ export default function KbPublicViewer({
   const role = shareMeta.role;
   const isCommentator = role === "COMMENTATOR";
 
+  const pageNav = useMemo(() => {
+    if (!shareMeta.page.isFolder || shareMeta.tree.length === 0) return null;
+    const pages = flattenPublicDocuments(shareMeta.tree);
+    return resolvePublicPageNav(pages, pageId);
+  }, [shareMeta, pageId]);
+
+  const showPageNav = pageNav !== null && pageNav.total > 1;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pageId]);
+
+  useEffect(() => {
+    if (!showPageNav || !pageNav) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectionModal || editModal || deleteConfirm || showOnboarding) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+
+      if (e.key === "ArrowLeft" && pageNav.prev) {
+        e.preventDefault();
+        router.push(`/docs/s/${token}/${pageNav.prev.id}`);
+      } else if (e.key === "ArrowRight" && pageNav.next) {
+        e.preventDefault();
+        router.push(`/docs/s/${token}/${pageNav.next.id}`);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showPageNav, pageNav, token, router, selectionModal, editModal, deleteConfirm, showOnboarding]);
+
   useEffect(() => {
     const stored = sessionStorage.getItem(GUEST_NAME_KEY);
     const storedEmail = sessionStorage.getItem(GUEST_EMAIL_KEY) ?? "";
@@ -754,10 +783,23 @@ export default function KbPublicViewer({
         )}
 
         <main
-          className="flex-1 min-w-0 py-10 sm:py-14"
+          className={`relative flex-1 min-w-0 pb-10 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
           style={{ backgroundColor: themeTokens.bg, color: themeTokens.text }}
         >
-          <div style={contentPad}>{documentBody}</div>
+          {showPageNav && pageNav && (
+            <KbPublicPageNav
+              token={token}
+              nav={pageNav}
+              folderTitle={shareMeta.page.title}
+              hasLeftSidebar={isCommentator && !!guestName}
+            />
+          )}
+          <div
+            className={showPageNav ? "mt-4 md:mt-0" : ""}
+            style={contentPad}
+          >
+            {documentBody}
+          </div>
         </main>
       </div>
 
@@ -807,4 +849,4 @@ export default function KbPublicViewer({
   );
 }
 
-export type { PublicTreeNode };
+export type { PublicTreeNode } from "@/src/lib/kb-share-access";

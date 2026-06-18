@@ -55,25 +55,27 @@ function DeleteModal({
 function KbCollapsedDropSlot({
   parentId,
   depth,
-  active,
-  excludeId,
+  isDragging,
+  draggingId,
 }: {
   parentId: string;
   depth: number;
-  active: boolean;
-  excludeId: string | null;
+  isDragging: boolean;
+  draggingId: string | null;
 }) {
-  if (!active || parentId === excludeId) return null;
+  const dropDisabled = !isDragging || parentId === draggingId;
 
   return (
-    <Droppable droppableId={toDroppableId(parentId)}>
+    <Droppable droppableId={toDroppableId(parentId)} isDropDisabled={dropDisabled}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
           style={{ paddingLeft: `${28 + depth * 14}px` }}
           className={`transition-all rounded mx-1 ${
-            snapshot.isDraggingOver ? "h-7 bg-nav-active mb-0.5" : "h-0 overflow-hidden"
+            !dropDisabled && snapshot.isDraggingOver
+              ? "h-7 bg-nav-active mb-0.5"
+              : "h-0 overflow-hidden pointer-events-none"
           }`}
         >
           {provided.placeholder}
@@ -258,8 +260,8 @@ function KbTreeNode({
         <KbCollapsedDropSlot
           parentId={page.id}
           depth={depth}
-          active={isDragging}
-          excludeId={draggingId}
+          isDragging={isDragging}
+          draggingId={draggingId}
         />
       )}
 
@@ -349,18 +351,32 @@ export default function KbSidebarTree() {
   };
 
   const onDragEnd = useCallback(
-    async (result: DropResult) => {
-      setDraggingId(null);
+    (result: DropResult) => {
       const { destination, source, draggableId } = result;
-      if (!destination) return;
-      if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
-      await kb.movePage({
-        id: draggableId,
-        fromParentId: fromDroppableId(source.droppableId),
-        toParentId: fromDroppableId(destination.droppableId),
-        fromIndex: source.index,
-        toIndex: destination.index,
+      const clearDrag = () => setDraggingId(null);
+
+      if (!destination) {
+        clearDrag();
+        return;
+      }
+      if (source.droppableId === destination.droppableId && source.index === destination.index) {
+        clearDrag();
+        return;
+      }
+
+      // Defer tree updates until @hello-pangea/dnd finishes its drag lifecycle.
+      requestAnimationFrame(() => {
+        clearDrag();
+        requestAnimationFrame(() => {
+          void kb.movePage({
+            id: draggableId,
+            fromParentId: fromDroppableId(source.droppableId),
+            toParentId: fromDroppableId(destination.droppableId),
+            fromIndex: source.index,
+            toIndex: destination.index,
+          });
+        });
       });
     },
     [kb]
