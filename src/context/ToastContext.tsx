@@ -115,13 +115,13 @@ function ToastContainer({
       {toasts.map(toast => (
         <div
           key={toast.id}
-          className={`flex items-start gap-3 bg-white border ${BORDERS[toast.type]} rounded-xl shadow-lg px-4 py-3 pointer-events-auto`}
+          className={`flex items-start gap-3 bg-surface-elevated border ${BORDERS[toast.type]} rounded-lg px-4 py-3 pointer-events-auto`}
         >
           {ICONS[toast.type]}
-          <p className="flex-1 text-sm text-gray-800 leading-snug">{toast.message}</p>
+          <p className="flex-1 text-sm text-text-primary leading-snug">{toast.message}</p>
           <button
             onClick={() => onRemove(toast.id)}
-            className="text-gray-400 hover:text-gray-600 transition-colors shrink-0 mt-0.5"
+            className="text-text-secondary hover:text-text-secondary transition-colors shrink-0 mt-0.5"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={15} />
           </button>
@@ -150,11 +150,11 @@ function ConfirmDialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/20 p-4"
       onClick={onCancel}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
+        className="bg-surface-elevated rounded-lg w-full max-w-sm p-6 flex flex-col gap-4"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start gap-3">
@@ -168,15 +168,15 @@ function ConfirmDialog({
             </div>
           )}
           <div className="flex flex-col gap-1">
-            {title && <p className="text-sm font-bold text-gray-900">{title}</p>}
-            <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
+            {title && <p className="text-sm font-bold text-text-primary">{title}</p>}
+            <p className="text-sm text-text-secondary leading-relaxed">{message}</p>
           </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-1">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-colors"
+            className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-sidebar rounded-xl transition-colors"
           >
             Cancelar
           </button>
@@ -184,7 +184,7 @@ function ConfirmDialog({
             onClick={onConfirm}
             className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${isDanger
                 ? "bg-red-600 hover:bg-red-700 text-white"
-                : "bg-gray-900 hover:bg-gray-800 text-white"
+                : "bg-accent-charcoal hover:opacity-90 text-white"
               }`}
           >
             {confirmLabel ?? "Confirmar"}

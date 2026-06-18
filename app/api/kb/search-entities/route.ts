@@ -23,11 +23,17 @@ export async function GET(req: Request) {
 
   const where = { organizationId: orgId };
   const take = 20;
-  const results: { id: string; label: string; type: string; typeLabel: string }[] = [];
+  const results: { id: string; label: string; subtitle?: string; type: string; typeLabel: string }[] = [];
 
-  const addResults = (items: { id: string; label: string }[], entityType: string) => {
+  const addResults = (items: { id: string; label: string; subtitle?: string }[], entityType: string) => {
     items.forEach((item) =>
-      results.push({ id: item.id, label: item.label, type: entityType, typeLabel: ENTITY_LABELS[entityType] || entityType })
+      results.push({
+        id: item.id,
+        label: item.label,
+        subtitle: item.subtitle,
+        type: entityType,
+        typeLabel: ENTITY_LABELS[entityType] || entityType,
+      })
     );
   };
 
@@ -86,7 +92,14 @@ export async function GET(req: Request) {
       take,
     });
     addResults(
-      items.map((i) => ({ id: i.id, label: `${i.firstName} ${i.lastName || ""}`.trim() + (i.email ? ` (${i.email})` : "") })),
+      items.map((i) => {
+        const name = `${i.firstName} ${i.lastName || ""}`.trim();
+        return {
+          id: i.id,
+          label: name,
+          subtitle: i.email || undefined,
+        };
+      }),
       "CONTACT"
     );
   }

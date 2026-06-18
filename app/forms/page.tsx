@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File02Icon, Delete01Icon, CodeIcon, LinkSquare01Icon, Activity01Icon, Cancel01Icon, UserMultipleIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
@@ -161,28 +159,25 @@ export default function FormsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
+    <>
+      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">Formularios</h1>
-              {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{forms.length}</span>}
+              <h1 className="text-2xl font-bold text-text-primary">Formularios</h1>
+              {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{forms.length}</span>}
             </div>
-            <p className="text-sm text-gray-500">Crea formularios embebibles para capturar leads desde tu sitio web.</p>
+            <p className="text-sm text-text-secondary">Crea formularios embebibles para capturar leads desde tu sitio web.</p>
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
+            <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div></div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
+              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">{searchQuery || activeFilters.status ? "Sin resultados" : "No hay formularios"}</h3>
-              <p className="text-sm text-gray-500">{searchQuery || activeFilters.status ? "Prueba con otros filtros o busca un término diferente." : "Crea tu primer formulario para capturar leads."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery || activeFilters.status ? "Sin resultados" : "No hay formularios"}</h3>
+              <p className="text-sm text-text-secondary">{searchQuery || activeFilters.status ? "Prueba con otros filtros o busca un término diferente." : "Crea tu primer formulario para capturar leads."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -190,11 +185,11 @@ export default function FormsPage() {
                 const formUrl = typeof window !== 'undefined' ? `${window.location.origin}/form/${form.id}` : '';
                 const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
                 return (
-                  <div key={form.id} className="bg-white border text-left border-gray-100 rounded-2xl p-6 flex flex-col transition-all hover:shadow-md hover:border-gray-200 relative overflow-hidden group">
+                  <div key={form.id} className="bg-white border text-left border-border-subtle rounded-lg p-6 flex flex-col transition-all hover:border-border-subtle relative overflow-hidden group">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">{form.name}</h3>
-                        <div className="text-xs text-gray-500 font-medium mt-1 flex flex-col gap-0.5">
+                        <h3 className="text-lg font-bold text-text-primary">{form.name}</h3>
+                        <div className="text-xs text-text-secondary font-medium mt-1 flex flex-col gap-0.5">
                           <span>Empresa: {form.company?.name || "Unknown Company"}</span>
                           {form.project && <span className="text-blue-600">Proyecto: {form.project.name}</span>}
                         </div>
@@ -202,24 +197,24 @@ export default function FormsPage() {
                       {form.isActive ? (
                         <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-green-700 bg-green-50 px-2 py-1 rounded-md"><HugeiconsIcon icon={Activity01Icon} size={10} /> Activo</span>
                       ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Offline</span>
+                        <span className="flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-text-secondary bg-gray-100 px-2 py-1 rounded-md">Offline</span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-2">{form.description || "Sin descripción."}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-4 pb-4 border-b border-gray-50">
+                    <p className="text-sm text-text-secondary mb-6 flex-1 line-clamp-2">{form.description || "Sin descripción."}</p>
+                    <div className="flex items-center justify-between text-xs text-text-secondary mb-4 pb-4 border-b border-border-subtle">
                       <span>{form._count.fields} Campos</span>
-                      <span className="font-semibold text-gray-700">{form._count.contacts || 0} Registrados</span>
+                      <span className="font-semibold text-text-primary">{form._count.contacts || 0} Registrados</span>
                       <span>{new Date(form.createdAt).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-auto">
                       <div className="flex gap-2">
-                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Copy Public Link"><HugeiconsIcon icon={LinkSquare01Icon} size={16} /></button>
-                        <button onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")} className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Copy Iframe Code"><HugeiconsIcon icon={CodeIcon} size={16} /></button>
+                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Copy Public Link"><HugeiconsIcon icon={LinkSquare01Icon} size={16} /></button>
+                        <button onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")} className="p-2 text-text-secondary hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Copy Iframe Code"><HugeiconsIcon icon={CodeIcon} size={16} /></button>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => handleDelete(form.id, form.name)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Form"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
+                        <button onClick={() => handleDelete(form.id, form.name)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Form"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
                         <button onClick={() => handleViewContacts(form)} title="Ver Registrados" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"><HugeiconsIcon icon={UserMultipleIcon} size={14} /> Registrados</button>
-                        <Link href={`/forms/${form.id}`} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Builder</Link>
+                        <Link href={`/forms/${form.id}`} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Builder</Link>
                       </div>
                     </div>
                   </div>
@@ -228,64 +223,63 @@ export default function FormsPage() {
             </div>
           )}
         </main>
-      </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">Crear formulario</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
+              <h3 className="text-lg font-bold text-text-primary">Crear formulario</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-text-secondary p-1"><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
             </div>
             <div className="p-6">
               <form id="createForm" onSubmit={handleCreateForm} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Empresa</label>
-                  <select required value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm">
+                  <label className="text-sm font-semibold text-text-primary">Empresa</label>
+                  <select required value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm">
                     <option value="" disabled>Seleccionar Empresa</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Proyecto (Opcional)</label>
-                  <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm">
+                  <label className="text-sm font-semibold text-text-primary">Proyecto (Opcional)</label>
+                  <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm">
                     <option value="">No Project Attached</option>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Nombre del formulario</label>
-                  <input type="text" required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm" />
+                  <label className="text-sm font-semibold text-text-primary">Nombre del formulario</label>
+                  <input type="text" required maxLength={100} value={name} onChange={(e) => setName(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Descripción interna (Opcional)</label>
-                  <textarea rows={3} maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 text-sm resize-none"></textarea>
+                  <label className="text-sm font-semibold text-text-primary">Descripción interna (Opcional)</label>
+                  <textarea rows={3} maxLength={200} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm resize-none"></textarea>
                 </div>
               </form>
             </div>
-            <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100">Cancelar</button>
-              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
+            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover">Cancelar</button>
+              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
             </div>
           </div>
         </div>
       )}
 
       {isContactsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-border-subtle flex items-center justify-between shrink-0">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Registrados</h3>
-                <p className="text-sm text-gray-500">Últimos registros en {selectedFormForContacts?.name}</p>
+                <h3 className="text-lg font-bold text-text-primary">Registrados</h3>
+                <p className="text-sm text-text-secondary">Últimos registros en {selectedFormForContacts?.name}</p>
               </div>
-              <button onClick={() => setIsContactsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
+              <button onClick={() => setIsContactsModalOpen(false)} className="text-text-secondary hover:text-text-secondary p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
             </div>
-            <div className="p-0 overflow-y-auto bg-gray-50/30 flex-1">
+            <div className="p-0 overflow-y-auto bg-surface-sidebar/30 flex-1">
               {isLoadingContacts ? (
-                <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div></div>
+                <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div></div>
               ) : formContacts.length === 0 ? (
-                <div className="text-center py-16"><HugeiconsIcon icon={UserMultipleIcon} size={48} color="#d1d5db" className="mx-auto mb-3" /><h3 className="text-[15px] font-medium text-gray-900">Sin leads registrados</h3><p className="text-sm text-gray-500">Nadie ha llenado este formulario aún.</p></div>
+                <div className="text-center py-16"><HugeiconsIcon icon={UserMultipleIcon} size={48} color="#d1d5db" className="mx-auto mb-3" /><h3 className="text-[15px] font-medium text-text-primary">Sin leads registrados</h3><p className="text-sm text-text-secondary">Nadie ha llenado este formulario aún.</p></div>
               ) : (
                 <ul className="divide-y divide-gray-100">
                   {formContacts.map((contact, idx) => {
@@ -296,18 +290,18 @@ export default function FormsPage() {
                         <div className="flex justify-between items-start">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-[15px] font-bold text-gray-900">{contact.firstName} {contact.lastName || ""}</p>
+                              <p className="text-[15px] font-bold text-text-primary">{contact.firstName} {contact.lastName || ""}</p>
                               {variantName && <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">🏷️ {variantName}</span>}
                             </div>
-                            <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                            <div className="flex items-center gap-3 mt-1 text-sm text-text-secondary">
                               {contact.email && <span>📧 {contact.email}</span>}
                               {contact.phone && <span>📞 {contact.phone}</span>}
                             </div>
                           </div>
-                          <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded shrink-0 ml-2">{new Date(contact.createdAt).toLocaleDateString()}</span>
+                          <span className="text-xs font-semibold text-text-secondary bg-gray-100 px-2 py-1 rounded shrink-0 ml-2">{new Date(contact.createdAt).toLocaleDateString()}</span>
                         </div>
                         {extraFieldsBody && extraFieldsBody !== "No additional fields provided." && (
-                          <div className="mt-3 text-xs bg-gray-50 border border-gray-100 p-3 rounded-xl text-gray-600 whitespace-pre-line group-hover:bg-gray-100">{extraFieldsBody}</div>
+                          <div className="mt-3 text-xs bg-surface-sidebar border border-border-subtle p-3 rounded-lg text-text-secondary whitespace-pre-line group-hover:bg-nav-hover">{extraFieldsBody}</div>
                         )}
                       </li>
                     );
@@ -318,6 +312,6 @@ export default function FormsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

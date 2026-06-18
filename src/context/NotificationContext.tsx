@@ -309,12 +309,12 @@ function NotificationPopup({
         <Link
           href={notification.link}
           onClick={handleClick}
-          className="flex items-start bg-gray-900 rounded-xl shadow-xl px-4 py-3 pr-9 hover:bg-gray-800 transition-colors cursor-pointer"
+          className="flex items-start bg-accent-charcoal rounded-lg px-4 py-3 pr-9 hover:opacity-90 transition-colors cursor-pointer"
         >
           {inner}
         </Link>
       ) : (
-        <div className="flex items-start bg-gray-900 rounded-xl shadow-xl px-4 py-3 pr-9">
+        <div className="flex items-start bg-accent-charcoal rounded-lg px-4 py-3 pr-9">
           {inner}
         </div>
       )}

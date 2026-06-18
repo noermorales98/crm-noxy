@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
@@ -146,30 +144,27 @@ export default function AppointmentTypesPage() {
   }, [types, searchQuery, sortField, sortOrder]);
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
+    <>
+      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900">Tipos de cita</h1>
-                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{types.length}</span>}
+                <h1 className="text-2xl font-bold text-text-primary">Tipos de cita</h1>
+                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{types.length}</span>}
               </div>
-              <p className="text-sm text-gray-500">Define los tipos de reunión que tus clientes pueden agendar.</p>
+              <p className="text-sm text-text-secondary">Define los tipos de reunión que tus clientes pueden agendar.</p>
             </div>
-            <Link href="/availability" className="flex items-center gap-2 border border-gray-100 bg-white hover:bg-gray-50 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">
+            <Link href="/availability" className="flex items-center gap-2 border border-border-subtle bg-white hover:bg-surface-sidebar text-text-secondary px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
               Gestionar disponibilidad
             </Link>
           </div>
 
           {schedules.length === 0 && !isLoading && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6 text-center">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 text-center">
               <p className="text-amber-800 font-medium">Primero necesitas crear un horario de disponibilidad.</p>
               <Link
                 href="/availability"
-                className="inline-block mt-3 text-sm font-medium text-amber-900 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-xl transition-colors"
+                className="inline-block mt-3 text-sm font-medium text-amber-900 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-lg transition-colors"
               >
                 Crear Disponibilidad
               </Link>
@@ -178,38 +173,38 @@ export default function AppointmentTypesPage() {
 
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
             </div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
+              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">{searchQuery ? "Sin resultados" : "Sin tipos de cita"}</h3>
-              <p className="text-sm text-gray-500">{searchQuery ? "Prueba con otro término de búsqueda." : "Crea tu primer tipo de cita para que tus clientes puedan agendar."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery ? "Sin resultados" : "Sin tipos de cita"}</h3>
+              <p className="text-sm text-text-secondary">{searchQuery ? "Prueba con otro término de búsqueda." : "Crea tu primer tipo de cita para que tus clientes puedan agendar."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayed.map(type => (
-                <div key={type.id} className="bg-white border border-gray-100 rounded-2xl p-6 transition-shadow flex flex-col">
+                <div key={type.id} className="bg-white border border-border-subtle rounded-lg p-6 transition-shadow flex flex-col">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }}></div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">{type.name}</h3>
-                        <span className="text-xs text-gray-500">/{type.slug}</span>
+                        <h3 className="text-lg font-bold text-text-primary">{type.name}</h3>
+                        <span className="text-xs text-text-secondary">/{type.slug}</span>
                       </div>
                     </div>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${type.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${type.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
                       {type.isActive ? "Activo" : "Inactivo"}
                     </span>
                   </div>
 
                   {type.description && (
-                    <p className="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">{type.description}</p>
+                    <p className="text-sm text-text-secondary mb-4 flex-1 line-clamp-2">{type.description}</p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-gray-500 mb-4">
+                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-text-secondary mb-4">
                     <HugeiconsIcon icon={Clock01Icon} size={14} />
                     <span>{type.duration} min</span>
                     <span className="mx-1 text-gray-200">·</span>
@@ -224,7 +219,7 @@ export default function AppointmentTypesPage() {
                       </>
                     )}
                     {type.company && (
-                      <div className="w-full flex items-center gap-1 mt-1 text-xs text-gray-400">
+                      <div className="w-full flex items-center gap-1 mt-1 text-xs text-text-secondary">
                         <HugeiconsIcon icon={Building04Icon} size={12} />
                         <span>{type.company.name}</span>
                         <HugeiconsIcon icon={Mail01Icon} size={12} className="ml-1 text-green-500" color="#22c55e" />
@@ -232,10 +227,10 @@ export default function AppointmentTypesPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-auto pt-4 border-t border-gray-50">
+                  <div className="flex items-center justify-between gap-2 mt-auto pt-4 border-t border-border-subtle">
                     <button
                       onClick={() => copyLink(type.slug)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="Copiar link"
                     >
                       <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
@@ -243,13 +238,13 @@ export default function AppointmentTypesPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDelete(type.id, type.name)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <HugeiconsIcon icon={Delete01Icon} size={16} />
                       </button>
                       <button
                         onClick={() => openEdit(type)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
                       >
                         <HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Editar
                       </button>
@@ -260,99 +255,98 @@ export default function AppointmentTypesPage() {
             </div>
           )}
         </main>
-      </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
+              <h3 className="text-lg font-bold text-text-primary">
                 {editingType ? "Editar Tipo de Cita" : "Nuevo Tipo de Cita"}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-text-secondary">
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="typeForm" onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Nombre *</label>
+                  <label className="text-sm font-semibold text-text-primary">Nombre *</label>
                   <input
                     required
                     value={name}
                     onChange={e => { setName(e.target.value); if (!editingType) autoSlug(e.target.value); }}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white text-sm"
                     placeholder="Ej: Consulta inicial"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Descripción</label>
+                  <label className="text-sm font-semibold text-text-primary">Descripción</label>
                   <textarea
                     rows={2}
                     value={description}
                     onChange={e => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white text-sm resize-none"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white text-sm resize-none"
                   ></textarea>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Duración (min) *</label>
+                    <label className="text-sm font-semibold text-text-primary">Duración (min) *</label>
                     <select
                       value={duration}
                       onChange={e => setDuration(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                     >
                       {[15, 20, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} min</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Color</label>
+                    <label className="text-sm font-semibold text-text-primary">Color</label>
                     <input
                       type="color"
                       value={color}
                       onChange={e => setColor(e.target.value)}
-                      className="w-full h-[38px] rounded-xl border border-gray-200 cursor-pointer"
+                      className="w-full h-[38px] rounded-lg border border-border-subtle cursor-pointer"
                     />
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">URL / Ubicación</label>
+                  <label className="text-sm font-semibold text-text-primary">URL / Ubicación</label>
                   <input
                     value={location}
                     onChange={e => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                     placeholder="https://meet.google.com/... o dirección física"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Slug (URL) *</label>
+                  <label className="text-sm font-semibold text-text-primary">Slug (URL) *</label>
                   <input
                     required
                     value={slug}
                     onChange={e => setSlug(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-mono"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm font-mono"
                     placeholder="consulta-inicial"
                   />
-                  <p className="text-xs text-gray-400">/schedule/{slug || "tu-slug"}</p>
+                  <p className="text-xs text-text-secondary">/schedule/{slug || "tu-slug"}</p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Horario de disponibilidad *</label>
+                  <label className="text-sm font-semibold text-text-primary">Horario de disponibilidad *</label>
                   <select
                     required
                     value={scheduleId}
                     onChange={e => setScheduleId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                   >
                     <option value="">Seleccionar horario</option>
                     {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Empresa (para envío de correo)</label>
+                  <label className="text-sm font-semibold text-text-primary">Empresa (para envío de correo)</label>
                   <select
                     value={companyId}
                     onChange={e => setCompanyId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                   >
                     <option value="">Sin empresa asignada</option>
                     {companies.map(c => (
@@ -361,37 +355,37 @@ export default function AppointmentTypesPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-400">El correo de confirmación se enviará usando el SMTP de esta empresa.</p>
+                  <p className="text-xs text-text-secondary">El correo de confirmación se enviará usando el SMTP de esta empresa.</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Buffer después (min)</label>
+                    <label className="text-sm font-semibold text-text-primary">Buffer después (min)</label>
                     <input
                       type="number"
                       min="0"
                       value={bufferAfter}
                       onChange={e => setBufferAfter(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Máx. días adelante</label>
+                    <label className="text-sm font-semibold text-text-primary">Máx. días adelante</label>
                     <input
                       type="number"
                       min="1"
                       value={maxAdvanceDays}
                       onChange={e => setMaxAdvanceDays(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
                     />
                   </div>
                 </div>
               </form>
             </div>
-            <div className="p-4 border-t border-gray-50 flex justify-end gap-3 bg-gray-50/50">
+            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover"
               >
                 Cancelar
               </button>
@@ -399,7 +393,7 @@ export default function AppointmentTypesPage() {
                 type="submit"
                 form="typeForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : editingType ? "Actualizar" : "Crear"}
               </button>
@@ -407,6 +401,6 @@ export default function AppointmentTypesPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

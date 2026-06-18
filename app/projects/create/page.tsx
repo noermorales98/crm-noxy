@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderIcon, Target01Icon, FavouriteIcon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon, ArrowLeft01Icon, Loading01Icon, DashboardSquare02Icon } from "@hugeicons/core-free-icons";
 import Link from "next/link";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 
 const availableIcons = [
   { id: "folder", icon: <HugeiconsIcon icon={FolderIcon} size={20} />, label: "Folder" },
@@ -66,33 +64,28 @@ export default function CreateProjectPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-3xl mx-auto w-full">
-            <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
+            <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors mb-6">
               <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
               Volver a proyectos
             </Link>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-8">
+            <div className="bg-white border border-border-subtle rounded-lg p-8">
               <div className="mb-8">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Crear nuevo proyecto</h1>
-                <p className="text-gray-500 mt-1">Los proyectos organizan contactos, empresas, campañas y tareas en un solo lugar.</p>
+                <h1 className="text-2xl font-bold tracking-tight text-text-primary">Crear nuevo proyecto</h1>
+                <p className="text-text-secondary mt-1">Los proyectos organizan contactos, empresas, campañas y tareas en un solo lugar.</p>
               </div>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
+                <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
                   {error}
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="name" className="text-sm font-semibold text-gray-900">Nombre del proyecto <span className="text-red-500">*</span></label>
+                  <label htmlFor="name" className="text-sm font-semibold text-text-primary">Nombre del proyecto <span className="text-red-500">*</span></label>
                   <input
                     id="name"
                     type="text"
@@ -100,29 +93,29 @@ export default function CreateProjectPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Black Friday 2026, Q3 Launch, Marketing Automation"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
+                    className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="description" className="text-sm font-semibold text-gray-900">Descripción</label>
+                  <label htmlFor="description" className="text-sm font-semibold text-text-primary">Descripción</label>
                   <textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="¿Cuál es el objetivo de este proyecto?"
                     rows={4}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors resize-y"
+                    className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors resize-y"
                   />
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label htmlFor="company" className="text-sm font-semibold text-gray-900">Cliente asociado (Opcional)</label>
+                  <label htmlFor="company" className="text-sm font-semibold text-text-primary">Cliente asociado (Opcional)</label>
                   <select
                     id="company"
                     value={companyId}
                     onChange={(e) => setCompanyId(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
+                    className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 transition-colors"
                   >
                     <option value="">No associated client</option>
                     {companies.map(c => (
@@ -132,16 +125,16 @@ export default function CreateProjectPage() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  <label className="text-sm font-semibold text-gray-900">Selecciona un icono</label>
+                  <label className="text-sm font-semibold text-text-primary">Selecciona un icono</label>
                   <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
                     {availableIcons.map((item) => (
                       <button
                         key={item.id}
                         type="button"
                         onClick={() => setIcon(item.id)}
-                        className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${icon === item.id
-                          ? "border-gray-900 bg-gray-900 text-white shadow-md transform scale-105"
-                          : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 hover:bg-white"
+                        className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${icon === item.id
+                          ? "border-accent-charcoal bg-accent-charcoal text-white transform scale-105"
+                          : "border-border-subtle bg-surface-sidebar text-text-secondary hover:border-border-subtle hover:bg-white"
                           }`}
                       >
                         <div className="mb-2">{item.icon}</div>
@@ -151,17 +144,17 @@ export default function CreateProjectPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <div className="pt-4 border-t border-border-subtle flex items-center justify-end gap-3">
                   <Link
                     href="/projects"
-                    className="px-5 py-2.5 rounded-xl font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                    className="px-5 py-2.5 rounded-lg font-medium text-text-secondary hover:bg-nav-hover transition-colors"
                   >
                     Cancelar
                   </Link>
                   <button
                     type="submit"
                     disabled={isLoading || !name.trim()}
-                    className="flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-accent-charcoal text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading && <HugeiconsIcon icon={Loading01Icon} size={18} className="animate-spin" />}
                     {isLoading ? "Creando..." : "Crear proyecto"}
@@ -170,8 +163,6 @@ export default function CreateProjectPage() {
               </form>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

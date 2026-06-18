@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import AuthProvider from "@/src/components/AuthProvider";
 import { ToastProvider } from "@/src/context/ToastContext";
 import { ConfirmProvider } from "@/src/context/ConfirmContext";
 import { HeaderProvider } from "@/src/context/HeaderContext";
 import { NotificationProvider } from "@/src/context/NotificationContext";
+import AppShell from "@/src/components/AppShell";
+import "@/src/lib/fonts";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Noxy CRM - Gestión de Clientes",
@@ -24,14 +23,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-[#f5f4ef] text-gray-800 antialiased`}>
+    <html lang="es">
+      <body className="bg-surface-app text-text-primary antialiased">
         <AuthProvider>
           <ToastProvider>
             <ConfirmProvider>
               <HeaderProvider>
                 <NotificationProvider>
-                  {children}
+                  <AppShell>{children}</AppShell>
                 </NotificationProvider>
               </HeaderProvider>
             </ConfirmProvider>

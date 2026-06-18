@@ -1,8 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import DealDetailClient from "@/src/components/DealDetailClient";
 
 export default async function DealDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -52,12 +50,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
   if (!deal) notFound();
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <DealDetailClient deal={JSON.parse(JSON.stringify(deal))} />
-      </div>
-    </div>
+    <DealDetailClient deal={JSON.parse(JSON.stringify(deal))} />
   );
 }

@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick01Icon, Clock01Icon, Delete01Icon, FolderGitIcon, Cancel01Icon, Task01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import TaskCategoriesModal from "@/src/components/TaskCategoriesModal";
-
-const inputCls = "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -137,26 +134,23 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
+    <>
+      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
 
           {/* Page header */}
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900">Tareas</h1>
+                <h1 className="text-2xl font-bold text-text-primary">Tareas</h1>
                 {!loading && pendingTasks.length > 0 && (
                   <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{pendingTasks.length} pendientes</span>
                 )}
               </div>
-              <p className="text-sm text-gray-500">Organiza y da seguimiento a tus actividades pendientes.</p>
+              <p className="text-sm text-text-secondary">Organiza y da seguimiento a tus actividades pendientes.</p>
             </div>
             <button
               onClick={() => setIsCategoriesModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 text-sm font-semibold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-secondary text-sm font-semibold rounded-lg transition-colors"
             >
               <HugeiconsIcon icon={FolderGitIcon} size={15} />
               Categorías
@@ -164,7 +158,7 @@ export default function TasksPage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex items-center border-b border-gray-200 mb-6 gap-1">
+          <div className="flex items-center border-b border-border-subtle mb-6 gap-1">
             {[
               { key: "pending", label: "Pendientes", count: pendingTasks.length },
               { key: "completed", label: "Completadas", count: completedTasks.length },
@@ -172,44 +166,44 @@ export default function TasksPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as "pending" | "completed")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-gray-900 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-600"}`}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"}`}>{tab.count}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
               </button>
             ))}
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
             </div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
+              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={activeTab === "pending" ? Clock01Icon : Tick01Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">
+              <h3 className="text-base font-semibold text-text-primary mb-1">
                 {searchQuery ? "Sin resultados" : activeTab === "pending" ? "Sin tareas pendientes" : "Sin tareas completadas"}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-text-secondary">
                 {searchQuery ? `No se encontraron resultados para "${searchQuery}".` : activeTab === "pending" ? "¡Todo al día! Crea una nueva tarea." : "Completa algunas tareas para verlas aquí."}
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
               <ul className="divide-y divide-gray-50">
                 {displayed.map((task) => (
-                  <li key={task.id} className="px-5 py-4 flex items-start gap-4 hover:bg-gray-50/50 transition-colors group">
+                  <li key={task.id} className="px-5 py-4 flex items-start gap-4 hover:bg-surface-sidebar/50 transition-colors group">
                     <button
                       onClick={() => toggleTask(task.id, task.isCompleted)}
-                      className={`mt-0.5 shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.isCompleted ? "bg-green-500 border-green-500 text-white" : "border-gray-300 bg-white hover:border-gray-400"}`}
+                      className={`mt-0.5 shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.isCompleted ? "bg-green-500 border-green-500 text-white" : "border-border-subtle bg-white hover:bg-nav-hover"}`}
                     >
                       {task.isCompleted && <HugeiconsIcon icon={Tick01Icon} size={12} />}
                     </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-sm font-semibold ${task.isCompleted ? "text-gray-400 line-through" : "text-gray-900"}`}>{task.title}</span>
+                        <span className={`text-sm font-semibold ${task.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}>{task.title}</span>
                         {task.category && (
                           <span className="text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full" style={{ backgroundColor: `${task.category.color}20`, color: task.category.color }}>
                             {task.category.name}
@@ -217,19 +211,19 @@ export default function TasksPage() {
                         )}
                       </div>
                       {task.description && (
-                        <p className={`text-xs leading-relaxed ${task.isCompleted ? "text-gray-300 line-through" : "text-gray-500"}`}>{task.description}</p>
+                        <p className={`text-xs leading-relaxed ${task.isCompleted ? "text-gray-300 line-through" : "text-text-secondary"}`}>{task.description}</p>
                       )}
                       {(task.company || task.form || task.appointment || task.contact) && (
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {task.company && <span className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">🏢 {task.company.name}</span>}
+                          {task.company && <span className="text-[11px] bg-gray-100 text-text-secondary px-2 py-0.5 rounded-full font-medium">🏢 {task.company.name}</span>}
                           {task.form && <span className="text-[11px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full font-medium">📝 {task.form.name}</span>}
                           {task.appointment && <span className="text-[11px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">📅 {new Date(task.appointment.startTime).toLocaleDateString()}</span>}
-                          {task.contact && <span className="text-[11px] text-gray-400 px-2 py-0.5 rounded-full">👤 {task.contact.firstName} {task.contact.lastName}</span>}
+                          {task.contact && <span className="text-[11px] text-text-secondary px-2 py-0.5 rounded-full">👤 {task.contact.firstName} {task.contact.lastName}</span>}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[11px] font-medium text-gray-400 hidden group-hover:block">{new Date(task.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[11px] font-medium text-text-secondary hidden group-hover:block">{new Date(task.createdAt).toLocaleDateString()}</span>
                       <button onClick={() => handleDelete(task)} className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
                         <HugeiconsIcon icon={Delete01Icon} size={15} />
                       </button>
@@ -240,34 +234,33 @@ export default function TasksPage() {
             </div>
           )}
         </main>
-      </div>
 
       {/* New Task Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
                   <HugeiconsIcon icon={Task01Icon} size={16} color="#d97706" />
                 </div>
-                <h3 className="text-base font-bold text-gray-900">Nueva tarea</h3>
+                <h3 className="text-base font-bold text-text-primary">Nueva tarea</h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
+              <button onClick={() => setIsModalOpen(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg transition-colors">
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <form onSubmit={handleCreateTask} className="p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-gray-700">¿Qué necesita hacerse?</label>
+                <label className="text-sm font-semibold text-text-primary">¿Qué necesita hacerse?</label>
                 <input type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="Ej. Llamar a Juan sobre el contrato" required />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-gray-700">Notas adicionales</label>
+                <label className="text-sm font-semibold text-text-primary">Notas adicionales</label>
                 <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className={inputCls + " resize-none"} placeholder="Detalles opcionales..." />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-gray-700">Categoría</label>
+                <label className="text-sm font-semibold text-text-primary">Categoría</label>
                 <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className={inputCls}>
                   <option value="">— Sin categoría —</option>
                   {dropdownData.categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -275,14 +268,14 @@ export default function TasksPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Empresa</label>
+                  <label className="text-sm font-semibold text-text-primary">Empresa</label>
                   <select value={companyId} onChange={e => setCompanyId(e.target.value)} className={inputCls}>
                     <option value="">— Ninguna —</option>
                     {dropdownData.companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-gray-700">Formulario</label>
+                  <label className="text-sm font-semibold text-text-primary">Formulario</label>
                   <select value={formId} onChange={e => setFormId(e.target.value)} className={inputCls}>
                     <option value="">— Ninguno —</option>
                     {dropdownData.forms.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
@@ -290,15 +283,15 @@ export default function TasksPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-gray-700">Cita vinculada</label>
+                <label className="text-sm font-semibold text-text-primary">Cita vinculada</label>
                 <select value={appointmentId} onChange={e => setAppointmentId(e.target.value)} className={inputCls}>
                   <option value="">— Ninguna —</option>
                   {dropdownData.appointments.map((a: any) => <option key={a.id} value={a.id}>{new Date(a.startTime).toLocaleString()} · {a.guestName}</option>)}
                 </select>
               </div>
-              <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-gray-900 hover:bg-black rounded-xl text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
+              <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
+                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>
@@ -306,6 +299,6 @@ export default function TasksPage() {
       )}
 
       <TaskCategoriesModal isOpen={isCategoriesModalOpen} onClose={() => setIsCategoriesModalOpen(false)} onCategoriesChange={fetchDropdownData} />
-    </div>
+    </>
   );
 }

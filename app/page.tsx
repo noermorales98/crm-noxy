@@ -1,5 +1,3 @@
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { DashboardShortcuts } from "@/src/components/DashboardShortcuts";
 import { DashboardWidgets } from "@/src/components/DashboardWidgets";
 import { SalesMetrics } from "@/src/components/SalesMetrics";
@@ -110,11 +108,7 @@ export default async function Home() {
   const followUpsDue = followUpDeals.length;
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5 bg-surface-app">
           <DashboardShortcuts
             contactsCount={contactsCount}
             appointmentsCount={upcomingAppointmentsCount}
@@ -137,7 +131,5 @@ export default async function Home() {
             tasks={pendingTasks}
           />
         </main>
-      </div>
-    </div>
   );
 }

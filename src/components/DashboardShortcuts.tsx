@@ -14,7 +14,8 @@ interface ShortcutMetric {
   href: string;
   icon: any;
   description: string;
-  color: string;
+  iconBg: string;
+  iconColor: string;
 }
 
 interface DashboardShortcutsProps {
@@ -39,7 +40,8 @@ export function DashboardShortcuts({
       href: "/contacts",
       icon: UserMultipleIcon,
       description: "Leads registrados",
-      color: "#3b82f6",
+      iconBg: "#E1F0FF",
+      iconColor: "#337EA9",
     },
     {
       title: "Citas",
@@ -47,7 +49,8 @@ export function DashboardShortcuts({
       href: "/appointments",
       icon: CalendarCheckIn01Icon,
       description: "Próximas citas",
-      color: "#8b5cf6",
+      iconBg: "#F0E6F9",
+      iconColor: "#9065B0",
     },
     {
       title: "Tareas",
@@ -55,7 +58,8 @@ export function DashboardShortcuts({
       href: "/tasks",
       icon: Task01Icon,
       description: "Pendientes",
-      color: "#f97316",
+      iconBg: "#FFECD2",
+      iconColor: "#D9730D",
     },
     {
       title: "Campañas",
@@ -63,7 +67,8 @@ export function DashboardShortcuts({
       href: "/campaigns",
       icon: Mail01Icon,
       description: "Activas",
-      color: "#ec4899",
+      iconBg: "#FFE2E2",
+      iconColor: "#D44020",
     },
     {
       title: "Proyectos",
@@ -71,7 +76,8 @@ export function DashboardShortcuts({
       href: "/projects",
       icon: FolderKanbanIcon,
       description: "En progreso",
-      color: "#10b981",
+      iconBg: "#E2F6E9",
+      iconColor: "#448361",
     },
   ];
 
@@ -81,19 +87,17 @@ export function DashboardShortcuts({
         <Link
           key={metric.title}
           href={metric.href}
-          className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-sm transition-all duration-200 group"
+          className="bg-surface-elevated rounded-lg p-5 hover:bg-nav-hover transition-colors group flex flex-col"
         >
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">{metric.title}</span>
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: `${metric.color}15` }}
-            >
-              <HugeiconsIcon icon={metric.icon} size={15} color={metric.color} />
-            </div>
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center mb-4"
+            style={{ backgroundColor: metric.iconBg }}
+          >
+            <HugeiconsIcon icon={metric.icon} size={16} color={metric.iconColor} />
           </div>
-          <p className="text-2xl font-bold text-gray-900 tabular-nums">{metric.value}</p>
-          <p className="text-xs text-gray-400 mt-1">{metric.description}</p>
+          <p className="text-2xl font-bold text-text-primary tabular-nums">{metric.value}</p>
+          <p className="text-xs text-text-secondary mt-1">{metric.description}</p>
+          <p className="text-[10px] font-medium text-text-secondary uppercase tracking-wider mt-3">{metric.title}</p>
         </Link>
       ))}
     </div>

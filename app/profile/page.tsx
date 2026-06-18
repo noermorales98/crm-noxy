@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { User02Icon, Mail01Icon, LockIcon, ViewIcon, ViewOffIcon, ShieldUserIcon, Logout01Icon, CheckmarkCircle01Icon, Alert01Icon } from "@hugeicons/core-free-icons";
+import { input as inputClsBase } from "@/src/lib/crm-ui";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
@@ -116,46 +115,42 @@ export default function ProfilePage() {
   };
   const strength = passwordStrength(newPassword);
 
-  const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm text-gray-900 placeholder-gray-400";
+  const inputCls = inputClsBase + " py-3 placeholder:text-text-secondary/60";
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-8">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-8 bg-surface-app">
           <div className="max-w-3xl mx-auto">
 
             {/* Page Title */}
             <div className="mb-8">
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900">Mi Perfil</h1>
-              <p className="text-gray-500 mt-1 text-sm">Administra tu información personal y seguridad de la cuenta.</p>
+              <h1 className="text-2xl font-bold tracking-tight text-text-primary">Mi Perfil</h1>
+              <p className="text-text-secondary mt-1 text-sm">Administra tu información personal y seguridad de la cuenta.</p>
             </div>
 
             {loadingProfile ? (
               <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
               </div>
             ) : (
               <div className="flex flex-col gap-6">
 
                 {/* Avatar Card */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center shrink-0">
+                <div className="bg-white rounded-lg border border-border-subtle p-6 flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-full bg-accent-charcoal flex items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-white">
                       {name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || "U"}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-lg font-bold text-gray-900 truncate">{name || "Sin nombre"}</p>
-                    <p className="text-sm text-gray-500 truncate">{originalEmail}</p>
+                    <p className="text-lg font-bold text-text-primary truncate">{name || "Sin nombre"}</p>
+                    <p className="text-sm text-text-secondary truncate">{originalEmail}</p>
                     {memberSince && (
-                      <p className="text-xs text-gray-400 mt-1">Miembro desde {memberSince}</p>
+                      <p className="text-xs text-text-secondary mt-1">Miembro desde {memberSince}</p>
                     )}
                   </div>
                   <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl transition-colors shrink-0"
+                    className="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors shrink-0"
                   >
                     <HugeiconsIcon icon={Logout01Icon} size={16} />
                     Cerrar sesión
@@ -163,20 +158,20 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Personal Info */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="bg-white rounded-lg border border-border-subtle p-6">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
                       <HugeiconsIcon icon={User02Icon} size={18} color="#2563eb" />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-gray-900">Información Personal</h2>
-                      <p className="text-xs text-gray-500">Actualiza tu nombre y dirección de correo.</p>
+                      <h2 className="text-base font-bold text-text-primary">Información Personal</h2>
+                      <p className="text-xs text-text-secondary">Actualiza tu nombre y dirección de correo.</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleSaveInfo} className="flex flex-col gap-5">
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Nombre completo</label>
+                      <label className="text-sm font-semibold text-text-primary">Nombre completo</label>
                       <input
                         type="text"
                         value={name}
@@ -186,7 +181,7 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <label className="text-sm font-semibold text-text-primary flex items-center gap-2">
                         <HugeiconsIcon icon={Mail01Icon} size={14} color="#9ca3af" /> Correo electrónico
                       </label>
                       <input
@@ -208,7 +203,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingInfo}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-accent-charcoal hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         {savingInfo ? "Guardando..." : "Guardar cambios"}
                       </button>
@@ -217,21 +212,21 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Change Password */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="bg-white rounded-lg border border-border-subtle p-6">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center">
+                    <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
                       <HugeiconsIcon icon={LockIcon} size={18} color="#d97706" />
                     </div>
                     <div>
-                      <h2 className="text-base font-bold text-gray-900">Cambiar Contraseña</h2>
-                      <p className="text-xs text-gray-500">Usa una contraseña de al menos 8 caracteres con letras y números.</p>
+                      <h2 className="text-base font-bold text-text-primary">Cambiar Contraseña</h2>
+                      <p className="text-xs text-text-secondary">Usa una contraseña de al menos 8 caracteres con letras y números.</p>
                     </div>
                   </div>
 
                   <form onSubmit={handleChangePassword} className="flex flex-col gap-5">
                     {/* Current password */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Contraseña actual</label>
+                      <label className="text-sm font-semibold text-text-primary">Contraseña actual</label>
                       <div className="relative">
                         <input
                           type={showCurrent ? "text" : "password"}
@@ -241,7 +236,7 @@ export default function ProfilePage() {
                           placeholder="Tu contraseña actual"
                           className={inputCls + " pr-11"}
                         />
-                        <button type="button" onClick={() => setShowCurrent(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
+                        <button type="button" onClick={() => setShowCurrent(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
                           {showCurrent ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
@@ -249,7 +244,7 @@ export default function ProfilePage() {
 
                     {/* New password */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Nueva contraseña</label>
+                      <label className="text-sm font-semibold text-text-primary">Nueva contraseña</label>
                       <div className="relative">
                         <input
                           type={showNew ? "text" : "password"}
@@ -259,7 +254,7 @@ export default function ProfilePage() {
                           placeholder="Mínimo 8 caracteres"
                           className={inputCls + " pr-11"}
                         />
-                        <button type="button" onClick={() => setShowNew(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
+                        <button type="button" onClick={() => setShowNew(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
                           {showNew ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
@@ -269,14 +264,14 @@ export default function ProfilePage() {
                           <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
                             <div className={`h-full rounded-full transition-all duration-500 ${strength.color} ${strength.width}`} />
                           </div>
-                          <span className="text-xs font-bold text-gray-500 shrink-0">{strength.label}</span>
+                          <span className="text-xs font-bold text-text-secondary shrink-0">{strength.label}</span>
                         </div>
                       )}
                     </div>
 
                     {/* Confirm new password */}
                     <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-gray-700">Confirmar nueva contraseña</label>
+                      <label className="text-sm font-semibold text-text-primary">Confirmar nueva contraseña</label>
                       <div className="relative">
                         <input
                           type={showConfirm ? "text" : "password"}
@@ -286,7 +281,7 @@ export default function ProfilePage() {
                           placeholder="Repite la nueva contraseña"
                           className={inputCls + " pr-11"}
                         />
-                        <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors">
+                        <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
                           {showConfirm ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
@@ -306,7 +301,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingPassword}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         <HugeiconsIcon icon={ShieldUserIcon} size={16} />
                         {savingPassword ? "Actualizando..." : "Cambiar contraseña"}
@@ -318,8 +313,6 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

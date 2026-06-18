@@ -40,7 +40,7 @@ export default function DeleteProjectButton({ projectId, projectName }: { projec
   return (
     <button
       onClick={handleDelete}
-      className="absolute top-4 right-4 p-2 bg-white text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
+      className="absolute top-4 right-4 p-2 bg-white text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-10"
       title="Eliminar proyecto"
     >
       <HugeiconsIcon icon={Delete01Icon} size={16} />

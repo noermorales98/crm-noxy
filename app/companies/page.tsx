@@ -1,14 +1,11 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import Header from "@/src/components/Header";
-import Sidebar from "@/src/components/Sidebar";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete01Icon, Building04Icon, Cancel01Icon, ServerStack01Icon, GlobeIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
-
-const inputCls = "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 function CompanyAvatar({ name }: { name: string }) {
   const colors = ["bg-blue-100 text-blue-700", "bg-purple-100 text-purple-700", "bg-green-100 text-green-700", "bg-amber-100 text-amber-700", "bg-rose-100 text-rose-700", "bg-cyan-100 text-cyan-700"];
@@ -144,61 +141,57 @@ export default function CompaniesPage() {
   };
 
   return (
-    <div className="flex bg-[#f5f4ef] h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-6">
+    <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
 
           {/* Page header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">Empresas</h1>
+              <h1 className="text-2xl font-bold text-text-primary">Empresas</h1>
               {!loading && (
-                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{companies.length}</span>
+                <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{companies.length}</span>
               )}
             </div>
-            <p className="text-sm text-gray-500">Administra las empresas y sus configuraciones de correo (SMTP).</p>
+            <p className="text-sm text-text-secondary">Administra las empresas y sus configuraciones de correo (SMTP).</p>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
             </div>
           ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
+              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={Building04Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">{searchQuery ? "Sin resultados" : "No hay empresas"}</h3>
-              <p className="text-sm text-gray-500">{searchQuery ? `No se encontraron resultados para "${searchQuery}".` : "Agrega tu primera empresa para comenzar."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery ? "Sin resultados" : "No hay empresas"}</h3>
+              <p className="text-sm text-text-secondary">{searchQuery ? `No se encontraron resultados para "${searchQuery}".` : "Agrega tu primera empresa para comenzar."}</p>
             </div>
           ) : (
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50/60">
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Empresa</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Industria</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Website</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Contactos</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">SMTP</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-gray-400 uppercase tracking-widest text-right">Acciones</th>
+                  <tr className="border-b border-border-subtle bg-surface-sidebar/60">
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Empresa</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Industria</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Website</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Contactos</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">SMTP</th>
+                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {displayed.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <tr key={c.id} className="hover:bg-surface-sidebar/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <CompanyAvatar name={c.name} />
-                          <span className="font-semibold text-gray-900">{c.name}</span>
+                          <span className="font-semibold text-text-primary">{c.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         {c.industry ? (
-                          <span className="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{c.industry}</span>
-                        ) : <span className="text-gray-400">—</span>}
+                          <span className="px-2.5 py-1 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{c.industry}</span>
+                        ) : <span className="text-text-secondary">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         {c.website ? (
@@ -206,23 +199,23 @@ export default function CompaniesPage() {
                             <HugeiconsIcon icon={GlobeIcon} size={13} />
                             {c.website.replace(/^https?:\/\//, "")}
                           </a>
-                        ) : <span className="text-gray-400">—</span>}
+                        ) : <span className="text-text-secondary">—</span>}
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <button onClick={() => openSmtpModal(c)} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                        <button onClick={() => openSmtpModal(c)} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">
                           <HugeiconsIcon icon={ServerStack01Icon} size={13} />
                           Configurar
                         </button>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(c)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                          <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
                             <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
                           </button>
-                          <button onClick={() => handleDelete(c)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                          <button onClick={() => handleDelete(c)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                             <HugeiconsIcon icon={Delete01Icon} size={15} />
                           </button>
                         </div>
@@ -237,29 +230,29 @@ export default function CompaniesPage() {
           {/* Create/Edit Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-                  <h2 className="text-base font-bold text-gray-900">{editingId ? "Editar empresa" : "Agregar empresa"}</h2>
-                  <button onClick={() => setShowModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+              <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+                  <h2 className="text-base font-bold text-text-primary">{editingId ? "Editar empresa" : "Agregar empresa"}</h2>
+                  <button onClick={() => setShowModal(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
                     <HugeiconsIcon icon={Cancel01Icon} size={20} />
                   </button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Nombre *</label>
+                    <label className="text-sm font-semibold text-text-primary">Nombre *</label>
                     <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className={inputCls} placeholder="Acme Inc." />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Website</label>
+                    <label className="text-sm font-semibold text-text-primary">Website</label>
                     <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className={inputCls} placeholder="acme.com" />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Industria</label>
+                    <label className="text-sm font-semibold text-text-primary">Industria</label>
                     <input type="text" value={formData.industry} onChange={e => setFormData({ ...formData, industry: e.target.value })} className={inputCls} placeholder="Tecnología, Retail..." />
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
-                    <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
+                    <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
+                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
                   </div>
                 </form>
               </div>
@@ -269,61 +262,59 @@ export default function CompaniesPage() {
           {/* SMTP Modal */}
           {showSmtpModal && (
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
-                <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
+              <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden">
+                <div className="flex items-start justify-between px-6 py-5 border-b border-border-subtle">
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">Configuración SMTP</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">Los correos de <span className="font-semibold">{currentSmtpCompany?.name}</span> se enviarán con estas credenciales.</p>
+                    <h2 className="text-base font-bold text-text-primary">Configuración SMTP</h2>
+                    <p className="text-xs text-text-secondary mt-0.5">Los correos de <span className="font-semibold">{currentSmtpCompany?.name}</span> se enviarán con estas credenciales.</p>
                   </div>
-                  <button onClick={() => setShowSmtpModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+                  <button onClick={() => setShowSmtpModal(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
                     <HugeiconsIcon icon={Cancel01Icon} size={20} />
                   </button>
                 </div>
                 <form onSubmit={handleSmtpSubmit} className="p-6 flex flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Host SMTP</label>
+                      <label className="text-sm font-semibold text-text-primary">Host SMTP</label>
                       <input required type="text" value={smtpData.smtpHost} onChange={e => setSmtpData({ ...smtpData, smtpHost: e.target.value })} className={inputCls} placeholder="smtp.gmail.com" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Puerto</label>
+                      <label className="text-sm font-semibold text-text-primary">Puerto</label>
                       <input required type="number" value={smtpData.smtpPort} onChange={e => setSmtpData({ ...smtpData, smtpPort: e.target.value })} className={inputCls} placeholder="465" />
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Usuario SMTP (email)</label>
+                    <label className="text-sm font-semibold text-text-primary">Usuario SMTP (email)</label>
                     <input required type="text" value={smtpData.smtpUser} onChange={e => setSmtpData({ ...smtpData, smtpUser: e.target.value })} className={inputCls} placeholder="hola@tuempresa.com" />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-gray-700">Contraseña SMTP</label>
+                    <label className="text-sm font-semibold text-text-primary">Contraseña SMTP</label>
                     <input type="password" value={smtpData.smtpPass} onChange={e => setSmtpData({ ...smtpData, smtpPass: e.target.value })} className={inputCls} placeholder="••••••••" />
-                    <p className="text-[10px] text-gray-400">Dejar vacío para no cambiar la contraseña actual.</p>
+                    <p className="text-[10px] text-text-secondary">Dejar vacío para no cambiar la contraseña actual.</p>
                   </div>
                   <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input type="checkbox" checked={smtpData.smtpSecure} onChange={e => setSmtpData({ ...smtpData, smtpSecure: e.target.checked })} className="rounded border-gray-300 w-4 h-4" />
-                    <span className="text-sm font-medium text-gray-700">Usar conexión segura (SSL/TLS)</span>
+                    <input type="checkbox" checked={smtpData.smtpSecure} onChange={e => setSmtpData({ ...smtpData, smtpSecure: e.target.checked })} className="rounded border-border-subtle w-4 h-4" />
+                    <span className="text-sm font-medium text-text-primary">Usar conexión segura (SSL/TLS)</span>
                   </label>
 
-                  <div className="mt-2 pt-4 border-t border-gray-100">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">Probar conexión</p>
+                  <div className="mt-2 pt-4 border-t border-border-subtle">
+                    <p className="text-sm font-semibold text-text-primary mb-3">Probar conexión</p>
                     <div className="flex gap-2">
                       <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)} className={inputCls + " flex-1"} placeholder="correo@prueba.com" />
-                      <button type="button" onClick={handleSmtpTest} disabled={isTestingSmtp} className="px-4 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-50 whitespace-nowrap">
+                      <button type="button" onClick={handleSmtpTest} disabled={isTestingSmtp} className="px-4 py-2.5 text-sm font-semibold text-text-primary border border-border-subtle bg-white hover:bg-surface-sidebar rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap">
                         {isTestingSmtp ? "Probando..." : "Enviar prueba"}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 mt-2">
-                    <button type="button" onClick={() => setShowSmtpModal(false)} className="px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">Cancelar</button>
-                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
+                  <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle mt-2">
+                    <button type="button" onClick={() => setShowSmtpModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
+                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
                   </div>
                 </form>
               </div>
             </div>
           )}
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

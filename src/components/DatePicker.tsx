@@ -124,24 +124,24 @@ export default function DatePicker({
     <div
       ref={dropdownRef}
       style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
-      className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-72 select-none"
+      className="bg-white rounded-lg border border-border-subtle p-4 w-72 select-none"
     >
       {/* Month nav */}
       <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={prevMonth}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+          className="p-1.5 rounded-lg hover:bg-nav-hover transition-colors text-text-secondary"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
         </button>
-        <span className="text-sm font-bold text-gray-900">
+        <span className="text-sm font-bold text-text-primary">
           {MONTHS[month]} {year}
         </span>
         <button
           type="button"
           onClick={nextMonth}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+          className="p-1.5 rounded-lg hover:bg-nav-hover transition-colors text-text-secondary"
         >
           <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
         </button>
@@ -150,7 +150,7 @@ export default function DatePicker({
       {/* Day headers */}
       <div className="grid grid-cols-7 mb-1">
         {DAYS.map((d) => (
-          <div key={d} className="text-center text-[10px] font-bold text-gray-400 py-1">
+          <div key={d} className="text-center text-[10px] font-bold text-text-secondary py-1">
             {d}
           </div>
         ))}
@@ -173,10 +173,10 @@ export default function DatePicker({
               type="button"
               onClick={() => selectDay(day)}
               className={[
-                "w-9 h-9 rounded-xl text-sm font-medium transition-all mx-auto flex items-center justify-center",
-                isSelected ? "bg-gray-900 text-white font-bold shadow-sm" : "",
-                isToday && !isSelected ? "bg-gray-100 text-gray-900 font-bold ring-1 ring-gray-300" : "",
-                !isSelected && !isToday ? "text-gray-700 hover:bg-gray-100" : "",
+                "w-9 h-9 rounded-lg text-sm font-medium transition-all mx-auto flex items-center justify-center",
+                isSelected ? "bg-accent-charcoal text-white font-bold" : "",
+                isToday && !isSelected ? "bg-gray-100 text-text-primary font-bold ring-1 ring-gray-300" : "",
+                !isSelected && !isToday ? "text-text-primary hover:bg-nav-hover" : "",
               ].join(" ")}
             >
               {day}
@@ -186,11 +186,11 @@ export default function DatePicker({
       </div>
 
       {/* Actions */}
-      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+      <div className="mt-3 pt-3 border-t border-border-subtle flex items-center justify-between">
         <button
           type="button"
           onClick={() => { selectDay(today.getDate()); setViewDate(new Date()); }}
-          className="text-xs text-gray-500 hover:text-gray-900 font-medium px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+          className="text-xs text-text-secondary hover:text-text-primary font-medium px-2 py-1 rounded-lg hover:bg-nav-hover transition-colors"
         >
           Hoy
         </button>
@@ -210,7 +210,7 @@ export default function DatePicker({
   return (
     <div className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+        <label className="block text-sm font-semibold text-text-primary mb-1.5">{label}</label>
       )}
 
       <button
@@ -218,18 +218,18 @@ export default function DatePicker({
         type="button"
         onClick={toggle}
         className={[
-          "w-full border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-left flex items-center gap-2",
-          compact ? "px-3 py-2 rounded-xl text-xs" : "px-4 py-2.5 rounded-xl text-sm",
+          "w-full bg-surface-sidebar hover:bg-nav-hover focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-border-subtle transition-colors text-left flex items-center gap-2",
+          compact ? "px-3 py-2 rounded-lg text-xs" : "px-4 py-2.5 rounded-lg text-sm",
         ].join(" ")}
       >
-        <HugeiconsIcon icon={CalendarCheckIn01Icon} size={compact ? 14 : 16} color="#9ca3af" />
-        <span className={`flex-1 ${displayValue ? "text-gray-900" : "text-gray-400"}`}>
+        <HugeiconsIcon icon={CalendarCheckIn01Icon} size={compact ? 14 : 16} color="#787774" />
+        <span className={`flex-1 ${displayValue ? "text-text-primary" : "text-text-secondary"}`}>
           {displayValue || placeholder}
         </span>
         {value && (
           <span
             onClick={(e) => { e.stopPropagation(); onChange(""); }}
-            className="text-gray-300 hover:text-gray-500 transition-colors cursor-pointer"
+            className="text-gray-300 hover:text-text-secondary transition-colors cursor-pointer"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </span>

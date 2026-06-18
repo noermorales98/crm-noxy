@@ -881,26 +881,89 @@ enum KbRelationType {
   DEAL
 }
 
+enum KbShareRole {
+  READER
+  EDITOR
+  COMMENTATOR
+}
+
+enum KbSuggestionType {
+  COMMENT
+  REPLACE
+  DELETE
+  INSERT
+}
+
+enum KbSuggestionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model KbPage {
   id             String           @id @default(cuid())
   organizationId String
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title          String           @default("Sin título")
   emoji          String?
+  iconColor      String?
+  iconBg         String?
   content        String?          @db.LongText
   parentId       String?
   parent         KbPage?          @relation("KbChildren", fields: [parentId], references: [id], onDelete: SetNull)
   children       KbPage[]         @relation("KbChildren")
   isFolder       Boolean          @default(false)
   isPublished    Boolean          @default(false)
+  markdownTheme  String           @default("minimal")
   sortOrder      Int              @default(0)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   relations      KbPageRelation[]
+  share          KbShare?
+  suggestions    KbSuggestion[]
 
   @@index([organizationId])
   @@index([parentId])
   @@index([updatedAt])
+}
+
+model KbShare {
+  id              String      @id @default(cuid())
+  organizationId  String
+  pageId          String      @unique
+  page            KbPage      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  token           String      @unique @default(cuid())
+  role            KbShareRole @default(READER)
+  isEnabled       Boolean     @default(true)
+  includeChildren Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([organizationId])
+  @@index([token])
+}
+
+model KbSuggestion {
+  id             String             @id @default(cuid())
+  organizationId String
+  pageId         String
+  page           KbPage             @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  authorName     String
+  authorEmail    String?
+  type           KbSuggestionType
+  startOffset    Int?
+  endOffset      Int?
+  selectedText   String?            @db.Text
+  suggestedText  String?            @db.Text
+  comment        String?            @db.Text
+  status         KbSuggestionStatus @default(PENDING)
+  resolvedBy     String?
+  resolvedAt     DateTime?
+  createdAt      DateTime           @default(now())
+
+  @@index([pageId])
+  @@index([organizationId])
+  @@index([status])
 }
 
 model KbPageRelation {

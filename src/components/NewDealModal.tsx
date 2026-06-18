@@ -3,6 +3,7 @@ import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import DatePicker from "./DatePicker";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 const SOURCE_OPTIONS = [
   { value: "WHATSAPP", label: "WhatsApp" },
@@ -14,9 +15,6 @@ const SOURCE_OPTIONS = [
   { value: "INSTAGRAM", label: "Instagram" },
   { value: "OTRO", label: "Otro" },
 ];
-
-const inputCls =
-  "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
 
 interface Stage { id: string; name: string; }
 interface Pipeline { id: string; name: string; stages: Stage[]; }
@@ -77,13 +75,13 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
   return (
     /* Sin overflow-hidden en el contenedor del modal para que el DatePicker se vea */
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-white rounded-lg w-full max-w-md">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-900">Nuevo deal</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <h2 className="text-base font-bold text-text-primary">Nuevo deal</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+            className="p-1.5 text-text-secondary hover:text-text-secondary hover:bg-nav-hover rounded-lg transition-colors"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={18} />
           </button>
@@ -92,14 +90,14 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-xl border border-red-100">
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-lg border border-red-100">
               {error}
             </div>
           )}
 
           {/* Título */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Título *</label>
+            <label className="text-sm font-semibold text-text-primary">Título *</label>
             <input
               type="text"
               value={title}
@@ -112,17 +110,17 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
 
           {/* Valor + moneda */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Valor</label>
+            <label className="text-sm font-semibold text-text-primary">Valor</label>
             <div className="flex gap-2">
               {/* Selector de moneda */}
-              <div className="flex rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0">
+              <div className="flex rounded-lg border border-border-subtle bg-surface-sidebar overflow-hidden shrink-0">
                 <button
                   type="button"
                   onClick={() => setCurrency("USD")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "USD"
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-500 hover:bg-gray-100"
+                      ? "bg-accent-charcoal text-white"
+                      : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
                   USD
@@ -132,8 +130,8 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
                   onClick={() => setCurrency("MXN")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "MXN"
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-500 hover:bg-gray-100"
+                      ? "bg-accent-charcoal text-white"
+                      : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
                   MXN
@@ -154,7 +152,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
           {/* Etapa + Fuente */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Etapa</label>
+              <label className="text-sm font-semibold text-text-primary">Etapa</label>
               <select
                 value={stageId}
                 onChange={(e) => setStageId(e.target.value)}
@@ -166,7 +164,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Fuente</label>
+              <label className="text-sm font-semibold text-text-primary">Fuente</label>
               <select
                 value={source}
                 onChange={(e) => setSource(e.target.value)}
@@ -189,18 +187,18 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
           />
 
           {/* Botones */}
-          <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
+          <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm transition-colors"
+              className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-gray-900 hover:bg-black rounded-xl text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Creando..." : "Crear deal"}
             </button>

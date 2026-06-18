@@ -9,6 +9,7 @@ import {
   Building02Icon, CheckListIcon,
 } from "@hugeicons/core-free-icons";
 import DatePicker from "./DatePicker";
+import { inputCompact as inputCls } from "@/src/lib/crm-ui";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -30,17 +31,15 @@ const SOCIAL_PLATFORMS = [
   { value: "instagram",  label: "Instagram",  icon: InstagramIcon,  color: "text-pink-500" },
   { value: "facebook",   label: "Facebook",   icon: Facebook01Icon,   color: "text-blue-600" },
   { value: "linkedin",   label: "LinkedIn",   icon: Linkedin01Icon,   color: "text-blue-500" },
-  { value: "tiktok",     label: "TikTok",     icon: GlobalIcon,       color: "text-gray-900" },
+  { value: "tiktok",     label: "TikTok",     icon: GlobalIcon,       color: "text-text-primary" },
   { value: "youtube",    label: "YouTube",    icon: GlobalIcon,       color: "text-red-600" },
-  { value: "twitter",    label: "Twitter / X",icon: GlobalIcon,       color: "text-gray-800" },
+  { value: "twitter",    label: "Twitter / X",icon: GlobalIcon,       color: "text-text-primary" },
   { value: "whatsapp",   label: "WhatsApp",   icon: GlobalIcon,       color: "text-green-500" },
-  { value: "website",    label: "Sitio web",  icon: GlobalIcon,       color: "text-gray-500" },
-  { value: "otro",       label: "Otro",       icon: Link01Icon,       color: "text-gray-400" },
+  { value: "website",    label: "Sitio web",  icon: GlobalIcon,       color: "text-text-secondary" },
+  { value: "otro",       label: "Otro",       icon: Link01Icon,       color: "text-text-secondary" },
 ];
 
 const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-
-const inputCls = "w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
 
 function fmtCurrency(v: number, cur: string) {
   if (cur === "MXN") return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 0 }).format(v);
@@ -57,7 +56,7 @@ function PhoneInput({ code, phone, onCodeChange, onPhoneChange }: {
       <select
         value={code}
         onChange={(e) => onCodeChange(e.target.value)}
-        className="px-2 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-gray-900 shrink-0"
+        className="px-2 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle shrink-0"
       >
         {PHONE_CODES.map((c) => (
           <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
@@ -90,7 +89,7 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
 
   if (editing) {
     return (
-      <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 border border-gray-200">
+      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 border border-border-subtle">
         <input value={form.label} onChange={(e) => setForm(f => ({ ...f, label: e.target.value }))} className={inputCls} placeholder="Etiqueta (ej. cPanel, WordPress)" />
         <input value={form.username} onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))} className={inputCls} placeholder="Usuario / email" />
         <div className="relative">
@@ -101,39 +100,39 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
             className={`${inputCls} pr-10`}
             placeholder="Contraseña"
           />
-          <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
             <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={16} />
           </button>
         </div>
         <input value={form.url} onChange={(e) => setForm(f => ({ ...f, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
         <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} className={`${inputCls} resize-none`} rows={2} placeholder="Notas adicionales" />
         <div className="flex gap-2">
-          <button onClick={() => setEditing(false)} className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
-          <button onClick={save} className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors">Guardar</button>
+          <button onClick={() => setEditing(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
+          <button onClick={save} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors">Guardar</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="group/vault flex items-start gap-3 bg-white border border-gray-100 rounded-2xl p-4 hover:border-gray-200 transition-colors">
-      <div className="w-9 h-9 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
+    <div className="group/vault flex items-start gap-3 bg-white border border-border-subtle rounded-lg p-4 hover:border-border-subtle transition-colors">
+      <div className="w-9 h-9 rounded-lg bg-accent-charcoal flex items-center justify-center shrink-0">
         <HugeiconsIcon icon={LockPasswordIcon} size={16} color="white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-900">{entry.label}</p>
-        {entry.username && <p className="text-xs text-gray-500 truncate">{entry.username}</p>}
+        <p className="text-sm font-bold text-text-primary">{entry.label}</p>
+        {entry.username && <p className="text-xs text-text-secondary truncate">{entry.username}</p>}
         {entry.password && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-mono text-gray-700 tracking-wider">
+            <span className="text-xs font-mono text-text-primary tracking-wider">
               {show ? entry.password : "•".repeat(Math.min(entry.password.length, 12))}
             </span>
-            <button onClick={() => setShow(s => !s)} className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => setShow(s => !s)} className="text-text-secondary hover:text-text-secondary">
               <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={13} />
             </button>
             <button
               onClick={() => navigator.clipboard.writeText(entry.password)}
-              className="text-[10px] font-semibold text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-0.5 rounded-lg transition-colors"
+              className="text-[10px] font-semibold text-text-secondary hover:text-text-primary bg-gray-100 hover:bg-nav-active px-2 py-0.5 rounded-lg transition-colors"
             >
               Copiar
             </button>
@@ -144,10 +143,10 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
             {entry.url}
           </a>
         )}
-        {entry.notes && <p className="text-xs text-gray-400 mt-1">{entry.notes}</p>}
+        {entry.notes && <p className="text-xs text-text-secondary mt-1">{entry.notes}</p>}
       </div>
       <div className="flex gap-1 opacity-0 group-hover/vault:opacity-100 transition-opacity">
-        <button onClick={() => setEditing(true)} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+        <button onClick={() => setEditing(true)} className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg">
           <HugeiconsIcon icon={Edit01Icon} size={13} />
         </button>
         <button onClick={() => onDelete(entry.id)} className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg">
@@ -161,12 +160,12 @@ function VaultPasswordRow({ entry, onUpdate, onDelete }: {
 function SocialRow({ entry, onDelete }: { entry: any; onDelete: (id: string) => void }) {
   const platform = SOCIAL_PLATFORMS.find(p => p.value === entry.label) || SOCIAL_PLATFORMS[SOCIAL_PLATFORMS.length - 1];
   return (
-    <div className="group/social flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:border-gray-200 transition-colors">
+    <div className="group/social flex items-center gap-3 bg-white border border-border-subtle rounded-lg px-4 py-3 hover:border-border-subtle transition-colors">
       <div className={`shrink-0 ${platform.color}`}>
         <HugeiconsIcon icon={platform.icon} size={18} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-gray-500">{platform.label}</p>
+        <p className="text-xs font-semibold text-text-secondary">{platform.label}</p>
         <a href={entry.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline truncate block">
           {entry.url}
         </a>
@@ -379,47 +378,47 @@ export default function ClientDrawer({
       <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-[520px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden">
+      <div className="fixed right-0 top-0 h-full w-[520px] bg-white z-50 flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex items-start gap-3 shrink-0">
-          <div className="w-11 h-11 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center text-lg font-bold shrink-0">
+        <div className="px-6 py-5 border-b border-border-subtle flex items-start gap-3 shrink-0">
+          <div className="w-11 h-11 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-lg font-bold shrink-0">
             {client.name[0]?.toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-gray-900 truncate">{client.name}</h2>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${client.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-gray-100 text-gray-500"}`}>
+              <h2 className="text-lg font-bold text-text-primary truncate">{client.name}</h2>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${client.isActive ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-gray-100 text-text-secondary"}`}>
                 {client.isActive ? "Activo" : "Pausado"}
               </span>
             </div>
-            <p className="text-sm font-bold text-gray-900">
+            <p className="text-sm font-bold text-text-primary">
               {fmtCurrency(client.monthlyFee, client.currency)}
-              <span className="text-xs font-normal text-gray-400 ml-1">/mes · {monthsSince > 0 ? `${monthsSince} meses` : "Nuevo"}</span>
+              <span className="text-xs font-normal text-text-secondary ml-1">/mes · {monthsSince > 0 ? `${monthsSince} meses` : "Nuevo"}</span>
             </p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setEditing(e => !e)}
-              className={`p-2 rounded-xl transition-colors ${editing ? "bg-gray-900 text-white" : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"}`}
+              className={`p-2 rounded-lg transition-colors ${editing ? "bg-accent-charcoal text-white" : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"}`}
             >
               <HugeiconsIcon icon={Edit01Icon} size={16} />
             </button>
-            <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">
+            <button onClick={onClose} className="p-2 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors">
               <HugeiconsIcon icon={Cancel01Icon} size={16} />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 px-6 shrink-0">
+        <div className="flex border-b border-border-subtle px-6 shrink-0">
           {(["info", "pagos", "boveda"] as const).map((t) => {
             const labels = { info: "Información", pagos: "Pagos", boveda: "Bóveda" };
             return (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-gray-900 text-gray-900" : "border-transparent text-gray-400 hover:text-gray-700"}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
               >
                 {labels[t]}
               </button>
@@ -438,19 +437,19 @@ export default function ClientDrawer({
                 /* ── Edit mode ── */
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre del cliente</label>
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Nombre del cliente</label>
                     <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={inputCls} />
                   </div>
 
-                  <div className="border-t border-gray-100 pt-4">
-                    <p className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-3">Datos de contacto</p>
+                  <div className="border-t border-border-subtle pt-4">
+                    <p className="text-xs font-bold text-text-primary uppercase tracking-wide mb-3">Datos de contacto</p>
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Nombre completo</label>
+                        <label className="text-xs font-semibold text-text-secondary">Nombre completo</label>
                         <input value={form.contactName} onChange={e => setForm(f => ({ ...f, contactName: e.target.value }))} className={inputCls} placeholder="Nombre del contacto" />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Teléfono</label>
+                        <label className="text-xs font-semibold text-text-secondary">Teléfono</label>
                         <PhoneInput
                           code={form.phoneCode}
                           phone={form.phone}
@@ -459,57 +458,57 @@ export default function ClientDrawer({
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Correo (opcional)</label>
+                        <label className="text-xs font-semibold text-text-secondary">Correo (opcional)</label>
                         <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} placeholder="correo@ejemplo.com" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100 pt-4">
-                    <p className="text-xs font-bold text-gray-900 uppercase tracking-wide mb-3">Facturación</p>
+                  <div className="border-t border-border-subtle pt-4">
+                    <p className="text-xs font-bold text-text-primary uppercase tracking-wide mb-3">Facturación</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Cuota mensual</label>
+                        <label className="text-xs font-semibold text-text-secondary">Cuota mensual</label>
                         <input type="number" value={form.monthlyFee} onChange={e => setForm(f => ({ ...f, monthlyFee: e.target.value }))} className={inputCls} min={0} />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Moneda</label>
-                        <div className="flex rounded-xl border border-gray-200 overflow-hidden">
+                        <label className="text-xs font-semibold text-text-secondary">Moneda</label>
+                        <div className="flex rounded-lg border border-border-subtle overflow-hidden">
                           {["USD", "MXN"].map(c => (
                             <button key={c} type="button" onClick={() => setForm(f => ({ ...f, currency: c }))}
-                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-50"}`}>
+                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-accent-charcoal text-white" : "text-text-secondary hover:bg-surface-sidebar"}`}>
                               {c}
                             </button>
                           ))}
                         </div>
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-gray-500">Día de cobro</label>
+                        <label className="text-xs font-semibold text-text-secondary">Día de cobro</label>
                         <input type="number" value={form.billingDay} onChange={e => setForm(f => ({ ...f, billingDay: e.target.value }))} className={inputCls} min={1} max={28} />
                       </div>
                       <DatePicker label="Inicio de contrato" value={form.startDate} onChange={v => setForm(f => ({ ...f, startDate: v }))} placeholder="Seleccionar" align="right" />
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100 pt-4 flex flex-col gap-3">
+                  <div className="border-t border-border-subtle pt-4 flex flex-col gap-3">
                     <label className="flex items-center justify-between cursor-pointer">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">Cobro automático</p>
-                        <p className="text-xs text-gray-500">Marca los pagos como recibidos automáticamente cada mes</p>
+                        <p className="text-sm font-semibold text-text-primary">Cobro automático</p>
+                        <p className="text-xs text-text-secondary">Marca los pagos como recibidos automáticamente cada mes</p>
                       </div>
                       <div
                         onClick={() => setForm(f => ({ ...f, autoMarkPaid: !f.autoMarkPaid }))}
-                        className={`w-11 h-6 rounded-full transition-colors relative ${form.autoMarkPaid ? "bg-gray-900" : "bg-gray-200"}`}
+                        className={`w-11 h-6 rounded-full transition-colors relative ${form.autoMarkPaid ? "bg-accent-charcoal" : "bg-nav-active"}`}
                       >
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.autoMarkPaid ? "translate-x-5" : "translate-x-0.5"}`} />
                       </div>
                     </label>
 
                     <label className="flex items-center justify-between cursor-pointer">
-                      <p className="text-sm font-semibold text-gray-900">Cliente activo</p>
+                      <p className="text-sm font-semibold text-text-primary">Cliente activo</p>
                       <div
                         onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
-                        className={`w-11 h-6 rounded-full transition-colors relative ${form.isActive ? "bg-emerald-500" : "bg-gray-200"}`}
+                        className={`w-11 h-6 rounded-full transition-colors relative ${form.isActive ? "bg-emerald-500" : "bg-nav-active"}`}
                       >
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isActive ? "translate-x-5" : "translate-x-0.5"}`} />
                       </div>
@@ -517,13 +516,13 @@ export default function ClientDrawer({
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-gray-500">Notas internas</label>
+                    <label className="text-xs font-semibold text-text-secondary">Notas internas</label>
                     <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className={`${inputCls} resize-none`} rows={3} placeholder="Servicio, condiciones especiales..." />
                   </div>
 
-                  <div className="flex gap-3 pt-2 border-t border-gray-100">
-                    <button onClick={() => setEditing(false)} className="flex-1 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
-                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors disabled:opacity-50">
+                  <div className="flex gap-3 pt-2 border-t border-border-subtle">
+                    <button onClick={() => setEditing(false)} className="flex-1 py-2.5 text-sm font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
+                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-50">
                       {saving ? "Guardando..." : "Guardar cambios"}
                     </button>
                   </div>
@@ -533,31 +532,31 @@ export default function ClientDrawer({
                 /* ── View mode ── */
                 <>
                   {/* Contact info */}
-                  <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Contacto</p>
+                  <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3">
+                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wide">Contacto</p>
                     {client.contactName ? (
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
                           {client.contactName[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">{client.contactName}</p>
+                          <p className="text-sm font-bold text-text-primary">{client.contactName}</p>
                           {client.phone && (
-                            <p className="text-xs text-gray-500">{client.phoneCode} {client.phone}</p>
+                            <p className="text-xs text-text-secondary">{client.phoneCode} {client.phone}</p>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-400">Sin contacto registrado</p>
+                      <p className="text-sm text-text-secondary">Sin contacto registrado</p>
                     )}
                     {client.email && (
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 text-sm text-text-primary">
                         <HugeiconsIcon icon={Mail01Icon} size={14} color="#9ca3af" />
                         <a href={`mailto:${client.email}`} className="hover:underline">{client.email}</a>
                       </div>
                     )}
                     {client.phone && (
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <div className="flex items-center gap-2 text-sm text-text-primary">
                         <HugeiconsIcon icon={Call02Icon} size={14} color="#9ca3af" />
                         <a href={`tel:${client.phoneCode}${client.phone}`} className="hover:underline">
                           {client.phoneCode} {client.phone}
@@ -565,7 +564,7 @@ export default function ClientDrawer({
                       </div>
                     )}
                     {!client.contactName && !client.email && !client.phone && (
-                      <button onClick={() => setEditing(true)} className="text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2">
+                      <button onClick={() => setEditing(true)} className="text-xs font-semibold text-text-secondary hover:text-text-primary underline underline-offset-2">
                         + Agregar información de contacto
                       </button>
                     )}
@@ -573,7 +572,7 @@ export default function ClientDrawer({
 
                   {/* Billing info */}
                   <div className="flex flex-col gap-3">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Facturación</p>
+                    <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wide">Facturación</p>
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { label: "Cuota mensual", val: fmtCurrency(client.monthlyFee, client.currency) },
@@ -581,20 +580,20 @@ export default function ClientDrawer({
                         { label: "Día de cobro", val: `Día ${client.billingDay}` },
                         { label: "Inicio", val: new Date(client.startDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) },
                       ].map(({ label, val }) => (
-                        <div key={label} className="bg-gray-50 rounded-xl p-3">
-                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{label}</p>
-                          <p className="text-sm font-bold text-gray-900">{val}</p>
+                        <div key={label} className="bg-surface-sidebar rounded-lg p-3">
+                          <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide mb-0.5">{label}</p>
+                          <p className="text-sm font-bold text-text-primary">{val}</p>
                         </div>
                       ))}
                     </div>
 
                     {/* Auto-pay badge */}
-                    <div className={`flex items-center justify-between px-4 py-3 rounded-xl border ${client.autoMarkPaid ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-200"}`}>
+                    <div className={`flex items-center justify-between px-4 py-3 rounded-lg border ${client.autoMarkPaid ? "bg-emerald-50 border-emerald-100" : "bg-surface-sidebar border-border-subtle"}`}>
                       <div className="flex items-center gap-2">
                         <HugeiconsIcon icon={RefreshIcon} size={16} color={client.autoMarkPaid ? "#059669" : "#9ca3af"} />
-                        <p className="text-sm font-semibold text-gray-900">Cobro automático</p>
+                        <p className="text-sm font-semibold text-text-primary">Cobro automático</p>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${client.autoMarkPaid ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${client.autoMarkPaid ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-text-secondary"}`}>
                         {client.autoMarkPaid ? "Activo" : "Inactivo"}
                       </span>
                     </div>
@@ -603,8 +602,8 @@ export default function ClientDrawer({
                   {/* Notes */}
                   {client.notes && (
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Notas</p>
-                      <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4">{client.notes}</p>
+                      <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wide mb-2">Notas</p>
+                      <p className="text-sm text-text-primary bg-surface-sidebar rounded-lg p-4">{client.notes}</p>
                     </div>
                   )}
                 </>
@@ -616,9 +615,9 @@ export default function ClientDrawer({
           {tab === "pagos" && (
             <div className="p-6 flex flex-col gap-4">
               {/* This month */}
-              <div className={`rounded-2xl p-5 border ${isPaidThisMonth ? "bg-emerald-50 border-emerald-100" : "bg-amber-50 border-amber-100"}`}>
+              <div className={`rounded-lg p-5 border ${isPaidThisMonth ? "bg-emerald-50 border-emerald-100" : "bg-amber-50 border-amber-100"}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold uppercase tracking-wide text-gray-500">
+                  <p className="text-xs font-bold uppercase tracking-wide text-text-secondary">
                     {MONTH_NAMES[currentMonth - 1]} {currentYear}
                   </p>
                   {isPaidThisMonth ? (
@@ -630,11 +629,11 @@ export default function ClientDrawer({
                     <span className="text-amber-600 text-xs font-bold">Pendiente</span>
                   )}
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mb-3">{fmtCurrency(client.monthlyFee, client.currency)}</p>
+                <p className="text-2xl font-bold text-text-primary mb-3">{fmtCurrency(client.monthlyFee, client.currency)}</p>
                 {!isPaidThisMonth && (
                   <button
                     onClick={() => markPaid(currentPayment?.id)}
-                    className="w-full py-2.5 text-sm font-semibold bg-gray-900 text-white rounded-xl hover:bg-black transition-colors"
+                    className="w-full py-2.5 text-sm font-semibold bg-accent-charcoal text-white rounded-lg hover:bg-black transition-colors"
                   >
                     Marcar como pagado
                   </button>
@@ -648,37 +647,37 @@ export default function ClientDrawer({
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900">{paidCount}</p>
-                  <p className="text-[10px] text-gray-500 font-semibold uppercase">Pagados</p>
+                <div className="bg-surface-sidebar rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-text-primary">{paidCount}</p>
+                  <p className="text-[10px] text-text-secondary font-semibold uppercase">Pagados</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900">{monthsSince}</p>
-                  <p className="text-[10px] text-gray-500 font-semibold uppercase">Meses</p>
+                <div className="bg-surface-sidebar rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-text-primary">{monthsSince}</p>
+                  <p className="text-[10px] text-text-secondary font-semibold uppercase">Meses</p>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-bold text-gray-900">{fmtCurrency(client.monthlyFee * paidCount, client.currency).replace(/\.\d+/, "")}</p>
-                  <p className="text-[10px] text-gray-500 font-semibold uppercase">Total</p>
+                <div className="bg-surface-sidebar rounded-lg p-3 text-center">
+                  <p className="text-lg font-bold text-text-primary">{fmtCurrency(client.monthlyFee * paidCount, client.currency).replace(/\.\d+/, "")}</p>
+                  <p className="text-[10px] text-text-secondary font-semibold uppercase">Total</p>
                 </div>
               </div>
 
               {/* History */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Historial</p>
+                <p className="text-xs font-bold text-text-secondary uppercase tracking-wide mb-3">Historial</p>
                 <div className="flex flex-col gap-2">
                   {recentPayments.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-6">Sin pagos registrados.</p>
+                    <p className="text-sm text-text-secondary text-center py-6">Sin pagos registrados.</p>
                   ) : (
                     recentPayments.map((p: any) => (
-                      <div key={p.id} className="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3">
+                      <div key={p.id} className="flex items-center justify-between bg-white border border-border-subtle rounded-lg px-4 py-3">
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{MONTH_NAMES[p.month - 1]} {p.year}</p>
+                          <p className="text-sm font-semibold text-text-primary">{MONTH_NAMES[p.month - 1]} {p.year}</p>
                           {p.receivedAt && (
-                            <p className="text-xs text-gray-400">{new Date(p.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}</p>
+                            <p className="text-xs text-text-secondary">{new Date(p.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-bold text-gray-900">{fmtCurrency(p.amount, p.currency)}</span>
+                          <span className="text-sm font-bold text-text-primary">{fmtCurrency(p.amount, p.currency)}</span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.status === "RECIBIDO" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"}`}>
                             {p.status === "RECIBIDO" ? "Pagado" : "Pendiente"}
                           </span>
@@ -697,34 +696,34 @@ export default function ClientDrawer({
 
               {loadingVault ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
                   {/* Redes sociales */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Redes sociales</p>
-                      <button onClick={() => setShowAddSocial(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                      <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">Redes sociales</p>
+                      <button onClick={() => setShowAddSocial(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">
                         <HugeiconsIcon icon={Add01Icon} size={13} />Agregar
                       </button>
                     </div>
 
                     {showAddSocial && (
-                      <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 mb-3 border border-gray-200">
+                      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
                         <select value={newSocial.platform} onChange={e => setNewSocial(s => ({ ...s, platform: e.target.value }))} className={inputCls}>
                           {SOCIAL_PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
                         </select>
                         <input value={newSocial.url} onChange={e => setNewSocial(s => ({ ...s, url: e.target.value }))} className={inputCls} placeholder="https://..." />
                         <div className="flex gap-2">
-                          <button onClick={() => setShowAddSocial(false)} className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
-                          <button onClick={addSocial} disabled={!newSocial.url} className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors disabled:opacity-40">Guardar</button>
+                          <button onClick={() => setShowAddSocial(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
+                          <button onClick={addSocial} disabled={!newSocial.url} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-40">Guardar</button>
                         </div>
                       </div>
                     )}
 
                     {socials.length === 0 && !showAddSocial ? (
-                      <p className="text-sm text-gray-400 py-3 text-center">Sin redes sociales guardadas.</p>
+                      <p className="text-sm text-text-secondary py-3 text-center">Sin redes sociales guardadas.</p>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {socials.map(e => <SocialRow key={e.id} entry={e} onDelete={deleteVaultEntry} />)}
@@ -735,14 +734,14 @@ export default function ClientDrawer({
                   {/* Contraseñas */}
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Bóveda de contraseñas</p>
-                      <button onClick={() => setShowAddCredential(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors">
+                      <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">Bóveda de contraseñas</p>
+                      <button onClick={() => setShowAddCredential(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">
                         <HugeiconsIcon icon={Add01Icon} size={13} />Agregar
                       </button>
                     </div>
 
                     {showAddCredential && (
-                      <div className="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 mb-3 border border-gray-200">
+                      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
                         <input value={newCred.label} onChange={e => setNewCred(c => ({ ...c, label: e.target.value }))} className={inputCls} placeholder="Etiqueta (ej. cPanel, WordPress, Google Ads)" autoFocus />
                         <input value={newCred.username} onChange={e => setNewCred(c => ({ ...c, username: e.target.value }))} className={inputCls} placeholder="Usuario o email" />
                         <div className="relative">
@@ -753,26 +752,26 @@ export default function ClientDrawer({
                             className={`${inputCls} pr-10`}
                             placeholder="Contraseña"
                           />
-                          <button type="button" onClick={() => setShowNewPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                          <button type="button" onClick={() => setShowNewPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
                             <HugeiconsIcon icon={showNewPass ? ViewOffIcon : EyeIcon} size={16} />
                           </button>
                         </div>
                         <input value={newCred.url} onChange={e => setNewCred(c => ({ ...c, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
                         <textarea value={newCred.notes} onChange={e => setNewCred(c => ({ ...c, notes: e.target.value }))} className={`${inputCls} resize-none`} rows={2} placeholder="Notas adicionales" />
                         <div className="flex gap-2">
-                          <button onClick={() => setShowAddCredential(false)} className="flex-1 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Cancelar</button>
-                          <button onClick={addCredential} disabled={!newCred.label} className="flex-1 py-2 text-xs font-semibold text-white bg-gray-900 hover:bg-black rounded-xl transition-colors disabled:opacity-40">Guardar</button>
+                          <button onClick={() => setShowAddCredential(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
+                          <button onClick={addCredential} disabled={!newCred.label} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-40">Guardar</button>
                         </div>
                       </div>
                     )}
 
                     {credentials.length === 0 && !showAddCredential ? (
                       <div className="text-center py-6">
-                        <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                           <HugeiconsIcon icon={LockPasswordIcon} size={18} color="#9ca3af" />
                         </div>
-                        <p className="text-sm text-gray-400">Sin contraseñas guardadas.</p>
-                        <button onClick={() => setShowAddCredential(true)} className="mt-2 text-xs font-semibold text-gray-500 hover:text-gray-900 underline underline-offset-2 transition-colors">
+                        <p className="text-sm text-text-secondary">Sin contraseñas guardadas.</p>
+                        <button onClick={() => setShowAddCredential(true)} className="mt-2 text-xs font-semibold text-text-secondary hover:text-text-primary underline underline-offset-2 transition-colors">
                           Guardar primera contraseña
                         </button>
                       </div>

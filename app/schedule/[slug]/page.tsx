@@ -260,43 +260,43 @@ export default function SchedulePage() {
   const tzGroups = [...new Set(filteredTz.map(t => t.group))];
 
   if (isLoading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+    <div className="min-h-screen bg-surface-app flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-red-100 max-w-md w-full text-center">
+    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-lg border border-red-100 max-w-md w-full text-center">
         <p className="text-red-500 font-medium">{error}</p>
       </div>
     </div>
   );
 
   if (step === "success") return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white p-10 rounded-xl shadow-sm border border-gray-100 max-w-md w-full text-center flex flex-col items-center gap-4">
+    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
+      <div className="bg-white p-10 rounded-lg border border-border-subtle max-w-md w-full text-center flex flex-col items-center gap-4">
         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={56} color="#22c55e" />
-        <h2 className="text-2xl font-bold text-gray-900">¡Cita Confirmada!</h2>
-        <p className="text-gray-600">
+        <h2 className="text-2xl font-bold text-text-primary">¡Cita Confirmada!</h2>
+        <p className="text-text-secondary">
           Tu cita ha sido agendada. Recibirás una confirmación en <strong>{guestEmail}</strong>.
         </p>
-        <div className="bg-gray-50 rounded-xl p-4 w-full text-left mt-2 flex flex-col gap-1">
-          <p className="text-sm font-semibold text-gray-700">{appointmentType?.name}</p>
-          <p className="text-sm text-gray-500">{selectedDate && formatDate(selectedDate)}</p>
-          <p className="text-sm text-gray-500">{selectedSlot && formatSlot(selectedSlot)} · {appointmentType?.duration} min</p>
-          <p className="text-xs text-gray-400 mt-1 flex items-center gap-1"><HugeiconsIcon icon={GlobeIcon} size={11} /> {tzLabel}</p>
+        <div className="bg-surface-sidebar rounded-lg p-4 w-full text-left mt-2 flex flex-col gap-1">
+          <p className="text-sm font-semibold text-text-primary">{appointmentType?.name}</p>
+          <p className="text-sm text-text-secondary">{selectedDate && formatDate(selectedDate)}</p>
+          <p className="text-sm text-text-secondary">{selectedSlot && formatSlot(selectedSlot)} · {appointmentType?.duration} min</p>
+          <p className="text-xs text-text-secondary mt-1 flex items-center gap-1"><HugeiconsIcon icon={GlobeIcon} size={11} /> {tzLabel}</p>
         </div>
 
         {confirmedAppt && (
           <div className="w-full flex flex-col gap-2 mt-2">
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Agregar a mi calendario</p>
+            <p className="text-xs text-text-secondary font-medium uppercase tracking-wide">Agregar a mi calendario</p>
             <div className="flex gap-2">
               <a
                 href={buildGoogleCalendarUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border-subtle hover:bg-surface-sidebar text-sm font-medium text-text-primary transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 21.8055 10.0415Z" fill="#FFC107"/>
@@ -308,7 +308,7 @@ export default function SchedulePage() {
               </a>
               <button
                 onClick={downloadIcs}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-border-subtle hover:bg-surface-sidebar text-sm font-medium text-text-primary transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.78 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/>
@@ -326,24 +326,24 @@ export default function SchedulePage() {
   const firstDay = getFirstDayOfMonth(currentMonth);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:py-10">
+    <div className="min-h-screen bg-surface-app p-4 md:py-10">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
           <div className="flex flex-col md:flex-row">
 
             {/* Left panel */}
-            <div className="md:w-72 p-8 border-b md:border-b-0 md:border-r border-gray-100">
+            <div className="md:w-72 p-8 border-b md:border-b-0 md:border-r border-border-subtle">
               <div className="w-10 h-10 rounded-full mb-4" style={{ backgroundColor: appointmentType?.color || "#3B82F6" }}></div>
-              <h1 className="text-xl font-bold text-gray-900 mb-2">{appointmentType?.name}</h1>
+              <h1 className="text-xl font-bold text-text-primary mb-2">{appointmentType?.name}</h1>
               {appointmentType?.description && (
-                <p className="text-gray-500 text-sm mb-4">{appointmentType.description}</p>
+                <p className="text-text-secondary text-sm mb-4">{appointmentType.description}</p>
               )}
-              <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
+              <div className="flex items-center gap-2 text-text-secondary text-sm mb-2">
                 <HugeiconsIcon icon={Clock01Icon} size={16} />
                 <span>{appointmentType?.duration} minutos</span>
               </div>
               {appointmentType?.location && (
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <div className="flex items-center gap-2 text-text-secondary text-sm">
                   <HugeiconsIcon icon={Location01Icon} size={16} />
                   <span>{appointmentType.location}</span>
                 </div>
@@ -359,14 +359,14 @@ export default function SchedulePage() {
                     {/* Calendar */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-bold text-gray-900">
+                        <h2 className="text-lg font-bold text-text-primary">
                           {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                         </h2>
                         <div className="flex gap-1">
-                          <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+                          <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-nav-hover text-text-secondary">
                             <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                           </button>
-                          <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500">
+                          <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-nav-hover text-text-secondary">
                             <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
                           </button>
                         </div>
@@ -374,7 +374,7 @@ export default function SchedulePage() {
 
                       <div className="grid grid-cols-7 gap-1 mb-2">
                         {DAYS.map(d => (
-                          <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">{d}</div>
+                          <div key={d} className="text-center text-xs font-semibold text-text-secondary py-1">{d}</div>
                         ))}
                       </div>
                       <div className="grid grid-cols-7 gap-1">
@@ -389,8 +389,8 @@ export default function SchedulePage() {
                               onClick={() => available && handleDateSelect(date)}
                               disabled={!available}
                               className={`aspect-square rounded-full text-sm font-medium transition-colors
-                                ${isSelected ? "bg-gray-900 text-white" : ""}
-                                ${available && !isSelected ? "hover:bg-gray-100 text-gray-900" : ""}
+                                ${isSelected ? "bg-accent-charcoal text-white" : ""}
+                                ${available && !isSelected ? "hover:bg-nav-hover text-text-primary" : ""}
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
                             >
@@ -404,20 +404,20 @@ export default function SchedulePage() {
                     {/* Time slots */}
                     {selectedDate && (
                       <div className="lg:w-52">
-                        <h3 className="font-semibold text-gray-900 mb-4">{formatDate(selectedDate)}</h3>
+                        <h3 className="font-semibold text-text-primary mb-4">{formatDate(selectedDate)}</h3>
                         {loadingSlots ? (
                           <div className="flex justify-center py-8">
-                            <div className="w-6 h-6 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+                            <div className="w-6 h-6 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
                           </div>
                         ) : availableSlots.length === 0 ? (
-                          <p className="text-sm text-gray-400">No hay horarios disponibles.</p>
+                          <p className="text-sm text-text-secondary">No hay horarios disponibles.</p>
                         ) : (
                           <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
                             {availableSlots.map(slot => (
                               <button
                                 key={slot}
                                 onClick={() => handleSlotSelect(slot)}
-                                className="py-2.5 px-4 rounded-xl border border-gray-200 hover:border-gray-900 hover:bg-gray-900 hover:text-white text-sm font-medium text-gray-700 transition-colors text-center"
+                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-accent-charcoal hover:bg-accent-charcoal hover:text-white text-sm font-medium text-text-primary transition-colors text-center"
                               >
                                 {formatSlot(slot)}
                               </button>
@@ -433,7 +433,7 @@ export default function SchedulePage() {
                     <button
                       type="button"
                       onClick={() => { setShowTzPicker(p => !p); setTzSearch(""); }}
-                      className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors group"
+                      className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors group"
                     >
                       <HugeiconsIcon icon={GlobeIcon} size={15} color="#9ca3af" />
                       <span>{tzLabel}</span>
@@ -441,10 +441,10 @@ export default function SchedulePage() {
                     </button>
 
                     {showTzPicker && (
-                      <div className="absolute bottom-8 left-0 z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+                      <div className="absolute bottom-8 left-0 z-50 w-80 bg-white rounded-lg border border-border-subtle overflow-hidden">
                         {/* Search */}
-                        <div className="p-3 border-b border-gray-100">
-                          <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                        <div className="p-3 border-b border-border-subtle">
+                          <div className="flex items-center gap-2 bg-surface-sidebar rounded-lg px-3 py-2">
                             <HugeiconsIcon icon={Search01Icon} size={14} color="#9ca3af" className="shrink-0" />
                             <input
                               autoFocus
@@ -452,7 +452,7 @@ export default function SchedulePage() {
                               placeholder="Buscar zona horaria..."
                               value={tzSearch}
                               onChange={e => setTzSearch(e.target.value)}
-                              className="flex-1 bg-transparent text-sm outline-none text-gray-700 placeholder-gray-400"
+                              className="flex-1 bg-transparent text-sm outline-none text-text-primary placeholder-gray-400"
                             />
                           </div>
                         </div>
@@ -460,24 +460,24 @@ export default function SchedulePage() {
                         <div className="max-h-64 overflow-y-auto">
                           {tzGroups.map(group => (
                             <div key={group}>
-                              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{group}</p>
+                              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-text-secondary">{group}</p>
                               {filteredTz.filter(t => t.group === group).map(t => (
                                 <button
                                   key={t.tz}
                                   type="button"
                                   onClick={() => { setTimezone(t.tz); setShowTzPicker(false); }}
-                                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between
-                                    ${timezone === t.tz ? "text-gray-900 font-semibold" : "text-gray-600"}
+                                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-sidebar transition-colors flex items-center justify-between
+                                    ${timezone === t.tz ? "text-text-primary font-semibold" : "text-text-secondary"}
                                   `}
                                 >
                                   <span>{t.label}</span>
-                                  {timezone === t.tz && <div className="w-2 h-2 rounded-full bg-gray-900" />}
+                                  {timezone === t.tz && <div className="w-2 h-2 rounded-full bg-accent-charcoal" />}
                                 </button>
                               ))}
                             </div>
                           ))}
                           {filteredTz.length === 0 && (
-                            <p className="px-4 py-6 text-sm text-gray-400 text-center">Sin resultados</p>
+                            <p className="px-4 py-6 text-sm text-text-secondary text-center">Sin resultados</p>
                           )}
                         </div>
                       </div>
@@ -490,17 +490,17 @@ export default function SchedulePage() {
                 <div className="max-w-md">
                   <button
                     onClick={() => setStep("calendar")}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
+                    className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary mb-6 transition-colors"
                   >
                     <HugeiconsIcon icon={ArrowLeft01Icon} size={16} /> Volver al calendario
                   </button>
-                  <h2 className="text-lg font-bold text-gray-900 mb-1">Confirma tu cita</h2>
+                  <h2 className="text-lg font-bold text-text-primary mb-1">Confirma tu cita</h2>
                   <div className="flex flex-col gap-1 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-text-secondary">
                       <HugeiconsIcon icon={Calendar01Icon} size={14} />
                       <span>{selectedDate && formatDate(selectedDate)}{selectedSlot && ` · ${formatSlot(selectedSlot)}`}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                    <div className="flex items-center gap-2 text-xs text-text-secondary">
                       <HugeiconsIcon icon={GlobeIcon} size={12} />
                       <span>{tzLabel}</span>
                     </div>
@@ -508,22 +508,22 @@ export default function SchedulePage() {
 
                   <form onSubmit={handleBook} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Nombre completo *</label>
-                      <input type="text" required value={guestName} onChange={e => setGuestName(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" placeholder="Tu nombre" />
+                      <label className="text-sm font-semibold text-text-primary">Nombre completo *</label>
+                      <input type="text" required value={guestName} onChange={e => setGuestName(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm" placeholder="Tu nombre" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Correo electrónico *</label>
-                      <input type="email" required value={guestEmail} onChange={e => setGuestEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" placeholder="tu@email.com" />
+                      <label className="text-sm font-semibold text-text-primary">Correo electrónico *</label>
+                      <input type="email" required value={guestEmail} onChange={e => setGuestEmail(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm" placeholder="tu@email.com" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Teléfono (opcional)</label>
-                      <input type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm" placeholder="+52 55 1234 5678" />
+                      <label className="text-sm font-semibold text-text-primary">Teléfono (opcional)</label>
+                      <input type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm" placeholder="+52 55 1234 5678" />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-gray-700">Notas adicionales</label>
-                      <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 text-sm resize-none" placeholder="¿Algún tema específico que quieras tratar?"></textarea>
+                      <label className="text-sm font-semibold text-text-primary">Notas adicionales</label>
+                      <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm resize-none" placeholder="¿Algún tema específico que quieras tratar?"></textarea>
                     </div>
-                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-xl font-bold text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:opacity-50 mt-2">
+                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-lg font-bold text-white bg-accent-charcoal hover:opacity-90 transition-colors disabled:opacity-50 mt-2">
                       {isBooking ? "Agendando..." : "Confirmar Cita"}
                     </button>
                   </form>
@@ -532,7 +532,7 @@ export default function SchedulePage() {
             </div>
           </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-6">Desarrollado por Noxy</p>
+        <p className="text-center text-xs text-text-secondary mt-6">Desarrollado por Noxy</p>
       </div>
     </div>
   );

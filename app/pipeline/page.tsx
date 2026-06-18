@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import { useHeader } from "@/src/context/HeaderContext";
 import DatePicker from "@/src/components/DatePicker";
 import ClientDrawer from "@/src/components/ClientDrawer";
@@ -23,6 +21,7 @@ import {
   Money02Icon,
 } from "@hugeicons/core-free-icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -31,10 +30,10 @@ const SOURCE_COLORS: Record<string, string> = {
   REFERIDO: "bg-purple-50 text-purple-700 border-purple-100",
   LINKEDIN: "bg-blue-50 text-blue-700 border-blue-100",
   VISITA: "bg-amber-50 text-amber-700 border-amber-100",
-  EMAIL_FRIO: "bg-gray-100 text-gray-600 border-gray-200",
+  EMAIL_FRIO: "bg-gray-100 text-text-secondary border-border-subtle",
   FORMULARIO: "bg-teal-50 text-teal-700 border-teal-100",
   INSTAGRAM: "bg-pink-50 text-pink-700 border-pink-100",
-  OTRO: "bg-gray-100 text-gray-500 border-gray-200",
+  OTRO: "bg-gray-100 text-text-secondary border-border-subtle",
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -83,27 +82,27 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => router.push(`/pipeline/${deal.id}`)}
-          className={`bg-white border rounded-2xl p-4 cursor-pointer transition-all select-none group ${
+          className={`bg-surface-elevated rounded-lg p-4 cursor-pointer transition-colors select-none group ${
             snapshot.isDragging
-              ? "shadow-2xl ring-2 ring-gray-900/10 rotate-1 scale-105"
-              : "border-gray-100 hover:border-gray-200 hover:shadow-md"
+              ? "ring-2 ring-black/5 rotate-1 scale-105 opacity-90"
+              : "hover:bg-nav-hover"
           }`}
         >
           {/* Title */}
-          <p className="text-sm font-semibold text-gray-900 leading-snug mb-1.5 line-clamp-2">
+          <p className="text-sm font-semibold text-text-primary leading-snug mb-1.5 line-clamp-2">
             {deal.title}
           </p>
 
           {/* Company */}
           {deal.company && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
+            <div className="flex items-center gap-1.5 text-xs text-text-secondary mb-2">
               <HugeiconsIcon icon={Building02Icon} size={11} />
               <span className="truncate">{deal.company.name}</span>
             </div>
           )}
 
           {/* Value */}
-          <p className="text-base font-bold text-gray-900 mb-3">
+          <p className="text-base font-bold text-text-primary mb-3">
             {deal.currency === "MXN" ? fmtMXN(deal.value ?? 0) : fmtUSD(deal.value ?? 0)}
           </p>
 
@@ -119,14 +118,14 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
           )}
 
           {/* Footer row */}
-          <div className="flex items-center justify-between mt-2 pt-2.5 border-t border-gray-50">
+          <div className="flex items-center justify-between mt-2 pt-2.5 border-t border-border-subtle">
             {/* Contact avatar */}
             {deal.contact ? (
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[9px] font-bold">
                   {deal.contact.firstName?.[0]?.toUpperCase() || "?"}
                 </div>
-                <span className="text-[11px] text-gray-500 truncate max-w-[100px]">
+                <span className="text-[11px] text-text-secondary truncate max-w-[100px]">
                   {deal.contact.firstName} {deal.contact.lastName || ""}
                 </span>
               </div>
@@ -146,7 +145,7 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
           {deal.followUpAt && (
             <div
               className={`flex items-center gap-1.5 text-[11px] mt-2 ${
-                isOverdue ? "text-red-500 font-semibold" : "text-gray-400"
+                isOverdue ? "text-red-500 font-semibold" : "text-text-secondary"
               }`}
             >
               <HugeiconsIcon icon={CalendarCheckIn01Icon} size={11} />
@@ -166,7 +165,7 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
           )}
 
           {deal._count?.activities > 0 && (
-            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 mt-1.5">
+            <div className="flex items-center gap-1.5 text-[11px] text-text-secondary mt-1.5">
               <HugeiconsIcon icon={MessageIcon} size={11} />
               <span>{deal._count.activities} actividades</span>
             </div>
@@ -199,16 +198,16 @@ function KanbanColumn({
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: stage.color || "#6B7280" }}
         />
-        <span className="text-sm font-bold text-gray-900 flex-1 truncate">{stage.name}</span>
-        <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+        <span className="text-sm font-bold text-text-primary flex-1 truncate">{stage.name}</span>
+        <span className="text-[10px] font-semibold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded-full">
           {deals.length}
         </span>
         <div className="flex flex-col items-end gap-0.5">
           {totalMXN > 0 && (
-            <span className="text-[10px] font-bold text-gray-500">{fmtMXN(totalMXN)}</span>
+            <span className="text-[10px] font-bold text-text-secondary">{fmtMXN(totalMXN)}</span>
           )}
           {totalUSD > 0 && (
-            <span className="text-[10px] font-bold text-gray-500">{fmtUSD(totalUSD)}</span>
+            <span className="text-[10px] font-bold text-text-secondary">{fmtUSD(totalUSD)}</span>
           )}
         </div>
       </div>
@@ -219,8 +218,8 @@ function KanbanColumn({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex flex-col gap-2.5 flex-1 min-h-[80px] rounded-2xl p-2 transition-colors ${
-              snapshot.isDraggingOver ? "bg-gray-100/80 ring-2 ring-gray-200" : "bg-gray-50/60"
+            className={`flex flex-col gap-2.5 flex-1 min-h-[80px] rounded-lg p-2 transition-colors ${
+              snapshot.isDraggingOver ? "bg-gray-100/80 ring-2 ring-gray-200" : "bg-surface-sidebar/60"
             }`}
           >
             {deals.map((deal, index) => (
@@ -234,7 +233,7 @@ function KanbanColumn({
       {/* Add button */}
       <button
         onClick={() => onAddDeal(stage.id)}
-        className="mt-2 w-full flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 py-2 px-3 rounded-xl hover:bg-gray-100 transition-colors"
+        className="mt-2 w-full flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary py-2 px-3 rounded-lg hover:bg-nav-hover transition-colors"
       >
         <HugeiconsIcon icon={Add01Icon} size={14} />
         Agregar deal
@@ -255,9 +254,6 @@ const SOURCE_OPTIONS = [
   { value: "INSTAGRAM", label: "Instagram" },
   { value: "OTRO", label: "Otro" },
 ];
-
-const inputCls =
-  "w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all text-sm";
 
 function NewDealModal({
   pipelines,
@@ -317,21 +313,21 @@ function NewDealModal({
   return (
     /* Sin overflow-hidden para que el DatePicker portal no quede tapado */
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-900">Nuevo deal</h2>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+      <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <h2 className="text-base font-bold text-text-primary">Nuevo deal</h2>
+          <button onClick={onClose} className="p-1.5 text-text-secondary hover:text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">
             <HugeiconsIcon icon={Cancel01Icon} size={18} />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-xl border border-red-100">
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-lg border border-red-100">
               {error}
             </div>
           )}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Título *</label>
+            <label className="text-sm font-semibold text-text-primary">Título *</label>
             <input
               type="text"
               value={title}
@@ -344,20 +340,20 @@ function NewDealModal({
 
           {/* Valor + moneda */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Valor</label>
+            <label className="text-sm font-semibold text-text-primary">Valor</label>
             <div className="flex gap-2">
-              <div className="flex rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shrink-0">
+              <div className="flex rounded-lg border border-border-subtle bg-surface-sidebar overflow-hidden shrink-0">
                 <button
                   type="button"
                   onClick={() => setCurrency("USD")}
-                  className={`px-3 py-2.5 text-sm font-bold transition-all ${currency === "USD" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+                  className={`px-3 py-2.5 text-sm font-bold transition-all ${currency === "USD" ? "bg-accent-charcoal text-white" : "text-text-secondary hover:bg-nav-hover"}`}
                 >
                   USD
                 </button>
                 <button
                   type="button"
                   onClick={() => setCurrency("MXN")}
-                  className={`px-3 py-2.5 text-sm font-bold transition-all ${currency === "MXN" ? "bg-gray-900 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+                  className={`px-3 py-2.5 text-sm font-bold transition-all ${currency === "MXN" ? "bg-accent-charcoal text-white" : "text-text-secondary hover:bg-nav-hover"}`}
                 >
                   MXN
                 </button>
@@ -376,7 +372,7 @@ function NewDealModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Etapa</label>
+              <label className="text-sm font-semibold text-text-primary">Etapa</label>
               <select value={stageId} onChange={(e) => setStageId(e.target.value)} className={inputCls}>
                 {allStages.map((s: any) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
@@ -384,7 +380,7 @@ function NewDealModal({
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Fuente</label>
+              <label className="text-sm font-semibold text-text-primary">Fuente</label>
               <select value={source} onChange={(e) => setSource(e.target.value)} className={inputCls}>
                 <option value="">— Sin fuente —</option>
                 {SOURCE_OPTIONS.map((o) => (
@@ -401,18 +397,18 @@ function NewDealModal({
             placeholder="Sin fecha"
           />
 
-          <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
+          <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm transition-colors"
+              className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-gray-900 hover:bg-black rounded-xl text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Creando..." : "Crear deal"}
             </button>
@@ -470,19 +466,19 @@ function NewClientModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-          <h2 className="text-base font-bold text-gray-900">Nuevo cliente</h2>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+      <div className="bg-white rounded-lg w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <h2 className="text-base font-bold text-text-primary">Nuevo cliente</h2>
+          <button onClick={onClose} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-xl border border-red-100">{error}</div>
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-lg border border-red-100">{error}</div>
           )}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Nombre del cliente *</label>
+            <label className="text-sm font-semibold text-text-primary">Nombre del cliente *</label>
             <input
               type="text"
               value={name}
@@ -494,7 +490,7 @@ function NewClientModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Cuota mensual *</label>
+              <label className="text-sm font-semibold text-text-primary">Cuota mensual *</label>
               <input
                 type="number"
                 value={monthlyFee}
@@ -506,7 +502,7 @@ function NewClientModal({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Moneda</label>
+              <label className="text-sm font-semibold text-text-primary">Moneda</label>
               <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputCls}>
                 <option value="USD">USD — Dólar</option>
                 <option value="MXN">MXN — Peso mexicano</option>
@@ -521,7 +517,7 @@ function NewClientModal({
               placeholder="Seleccionar"
             />
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700">Día de cobro</label>
+              <label className="text-sm font-semibold text-text-primary">Día de cobro</label>
               <input
                 type="number"
                 value={billingDay}
@@ -534,7 +530,7 @@ function NewClientModal({
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-gray-700">Notas</label>
+            <label className="text-sm font-semibold text-text-primary">Notas</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -543,18 +539,18 @@ function NewClientModal({
               placeholder="Servicio, condiciones, etc."
             />
           </div>
-          <div className="flex gap-3 pt-2 border-t border-gray-100 mt-2">
+          <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm transition-colors"
+              className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-gray-900 hover:bg-black rounded-xl text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando..." : "Crear cliente"}
             </button>
@@ -596,18 +592,18 @@ function ClientCard({
   })();
 
   return (
-    <div onClick={onClick} className="bg-white border border-gray-100 rounded-2xl p-5 hover:border-gray-200 hover:shadow-md transition-all cursor-pointer">
+    <div onClick={onClick} className="bg-white border border-border-subtle rounded-lg p-5 hover:border-border-subtle transition-all cursor-pointer">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
               {client.name[0]?.toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">{client.name}</p>
+              <p className="text-sm font-bold text-text-primary truncate">{client.name}</p>
               {client.company && (
-                <p className="text-xs text-gray-500 truncate">{client.company.name}</p>
+                <p className="text-xs text-text-secondary truncate">{client.company.name}</p>
               )}
             </div>
           </div>
@@ -616,7 +612,7 @@ function ClientCard({
           className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ml-2 ${
             client.isActive
               ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-              : "bg-gray-100 text-gray-500 border-gray-200"
+              : "bg-gray-100 text-text-secondary border-border-subtle"
           }`}
         >
           {client.isActive ? "Activo" : "Pausado"}
@@ -624,19 +620,19 @@ function ClientCard({
       </div>
 
       {/* Fee */}
-      <p className="text-xl font-bold text-gray-900 mb-1">
+      <p className="text-xl font-bold text-text-primary mb-1">
         {fmtCurrency(client.monthlyFee, client.currency)}
-        <span className="text-sm font-normal text-gray-400 ml-1">/mes</span>
+        <span className="text-sm font-normal text-text-secondary ml-1">/mes</span>
       </p>
-      <p className="text-xs text-gray-400 mb-4">
+      <p className="text-xs text-text-secondary mb-4">
         {client.currency} · Día {client.billingDay} de cada mes ·{" "}
         {monthsSinceStart > 0 ? `${monthsSinceStart} mes${monthsSinceStart !== 1 ? "es" : ""} activo` : "Nuevo"}
       </p>
 
       {/* This month payment status */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+      <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-text-secondary mb-0.5">
             {MONTH_NAMES[currentMonth - 1]} {currentYear}
           </p>
           {isPaid ? (
@@ -644,7 +640,7 @@ function ClientCard({
               <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
               <span className="text-xs font-semibold">Pagado</span>
               {currentPayment?.receivedAt && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-text-secondary">
                   · {new Date(currentPayment.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
                 </span>
               )}
@@ -660,7 +656,7 @@ function ClientCard({
         {isPending && client.isActive && (
           <button
             onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
-            className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-900 text-white hover:bg-black transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-accent-charcoal text-white hover:bg-black transition-colors"
           >
             Marcar pagado
           </button>
@@ -688,14 +684,14 @@ function StatCard({
   badgePositive?: boolean;
 }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-5 flex-1 min-w-0">
-      <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">{label}</p>
+    <div className="bg-white border border-border-subtle rounded-lg p-5 flex-1 min-w-0">
+      <p className="text-xs font-semibold text-text-secondary mb-3 uppercase tracking-wide">{label}</p>
       {values ? (
         <div className="flex flex-col gap-0.5 mb-1">
           {values.map((v) => (
             <div key={v.label} className="flex items-baseline gap-2">
-              <p className="text-xl font-bold text-gray-900 truncate">{v.amount}</p>
-              <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">{v.label}</span>
+              <p className="text-xl font-bold text-text-primary truncate">{v.amount}</p>
+              <span className="text-[10px] font-semibold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">{v.label}</span>
             </div>
           ))}
           {badge && (
@@ -706,7 +702,7 @@ function StatCard({
         </div>
       ) : (
         <div className="flex items-baseline gap-2 mb-1">
-          <p className="text-2xl font-bold text-gray-900 truncate">{value}</p>
+          <p className="text-2xl font-bold text-text-primary truncate">{value}</p>
           {badge && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
               {badge}
@@ -714,7 +710,7 @@ function StatCard({
           )}
         </div>
       )}
-      <p className="text-xs text-gray-400">{sub}</p>
+      <p className="text-xs text-text-secondary">{sub}</p>
     </div>
   );
 }
@@ -915,31 +911,22 @@ export default function PipelinePage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-[#f5f4ef]">
-        <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
-          </div>
-        </div>
+      <div className="flex-1 min-h-0 flex items-center justify-center bg-surface-app">
+        <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-hidden flex flex-col">
+    <>
+      <main className="flex-1 min-h-0 overflow-hidden flex flex-col bg-surface-app font-sans">
 
           {/* ── Page header ── */}
-          <div className="px-6 pt-5 pb-0 bg-white border-b border-gray-100 shrink-0">
+          <div className="px-6 pt-5 pb-0 bg-white border-b border-border-subtle shrink-0">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <HugeiconsIcon icon={KanbanIcon} size={20} color="#9ca3af" />
-                <h1 className="text-xl font-bold text-gray-900">Pipeline de ventas</h1>
+                <h1 className="text-xl font-bold text-text-primary">Pipeline de ventas</h1>
               </div>
             </div>
 
@@ -1018,8 +1005,8 @@ export default function PipelinePage() {
                 onClick={() => setActiveTab("pipeline")}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
                   activeTab === "pipeline"
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-700"
+                    ? "border-accent-charcoal text-text-primary"
+                    : "border-transparent text-text-secondary hover:text-text-primary"
                 }`}
               >
                 <HugeiconsIcon icon={KanbanIcon} size={15} />
@@ -1029,14 +1016,14 @@ export default function PipelinePage() {
                 onClick={() => setActiveTab("clientes")}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
                   activeTab === "clientes"
-                    ? "border-gray-900 text-gray-900"
-                    : "border-transparent text-gray-400 hover:text-gray-700"
+                    ? "border-accent-charcoal text-text-primary"
+                    : "border-transparent text-text-secondary hover:text-text-primary"
                 }`}
               >
                 <HugeiconsIcon icon={Money02Icon} size={15} />
                 Clientes
                 {activeClients.length > 0 && (
-                  <span className="bg-gray-100 text-gray-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-gray-100 text-text-secondary text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {activeClients.length}
                   </span>
                 )}
@@ -1049,7 +1036,7 @@ export default function PipelinePage() {
             // ── Pipeline tab ──────────────────────────────────────────────────
             <div className="flex-1 overflow-hidden flex flex-col">
               {/* Toolbar */}
-              <div className="px-6 py-3 flex items-center gap-3 shrink-0 bg-[#f5f4ef]">
+              <div className="px-6 py-3 flex items-center gap-3 shrink-0 bg-surface-app">
                 {/* Search */}
                 <div className="relative flex-1 max-w-xs">
                   <HugeiconsIcon
@@ -1063,12 +1050,12 @@ export default function PipelinePage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Buscar deal o empresa..."
-                    className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all"
+                    className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all"
                   />
                   {search && (
                     <button
                       onClick={() => setSearch("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-secondary"
                     >
                       <HugeiconsIcon icon={Cancel01Icon} size={14} />
                     </button>
@@ -1080,7 +1067,7 @@ export default function PipelinePage() {
                   <select
                     value={selectedPipelineIdx}
                     onChange={(e) => setSelectedPipelineIdx(parseInt(e.target.value))}
-                    className="text-sm border border-gray-200 bg-white rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-gray-900 transition-all"
+                    className="text-sm border border-border-subtle bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all"
                   >
                     {pipelines.map((p, i) => (
                       <option key={p.id} value={i}>{p.name}</option>
@@ -1093,11 +1080,11 @@ export default function PipelinePage() {
               {pipelines.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 border border-border-subtle">
                       <HugeiconsIcon icon={KanbanIcon} size={28} color="#9ca3af" />
                     </div>
-                    <h3 className="text-base font-semibold text-gray-900 mb-2">Sin pipelines configurados</h3>
-                    <p className="text-sm text-gray-500">Crea un pipeline desde configuración para comenzar.</p>
+                    <h3 className="text-base font-semibold text-text-primary mb-2">Sin pipelines configurados</h3>
+                    <p className="text-sm text-text-secondary">Crea un pipeline desde configuración para comenzar.</p>
                   </div>
                 </div>
               ) : (
@@ -1127,20 +1114,20 @@ export default function PipelinePage() {
             <div className="flex-1 overflow-y-auto px-6 py-5">
               {loadingClients ? (
                 <div className="flex items-center justify-center py-16">
-                  <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
                 </div>
               ) : clients.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-100">
+                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 border border-border-subtle">
                     <HugeiconsIcon icon={RefreshIcon} size={28} color="#9ca3af" />
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Sin clientes recurrentes</h3>
-                  <p className="text-sm text-gray-500 mb-4 max-w-xs">
+                  <h3 className="text-base font-semibold text-text-primary mb-2">Sin clientes recurrentes</h3>
+                  <p className="text-sm text-text-secondary mb-4 max-w-xs">
                     Agrega tus clientes establecidos que pagan mensualmente para llevar el control de sus pagos.
                   </p>
                   <button
                     onClick={() => setShowClientModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-black transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors"
                   >
                     <HugeiconsIcon icon={Add01Icon} size={16} />
                     Agregar primer cliente
@@ -1161,7 +1148,6 @@ export default function PipelinePage() {
             </div>
           )}
         </main>
-      </div>
 
       {/* Deal modal */}
       {showDealModal && (
@@ -1192,6 +1178,6 @@ export default function PipelinePage() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

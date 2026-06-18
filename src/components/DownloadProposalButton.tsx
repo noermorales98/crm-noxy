@@ -171,7 +171,7 @@ export default function DownloadProposalButton({ proposal, dealTitle }: Props) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors flex items-center gap-1"
+      className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-border-subtle text-text-secondary hover:bg-surface-sidebar disabled:opacity-50 transition-colors flex items-center gap-1"
     >
       <HugeiconsIcon icon={Download01Icon} size={10} />
       {loading ? "Generando..." : "Descargar PDF"}

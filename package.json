@@ -7,9 +7,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "bash -c 'set -a && source .env.local && set +a && prisma db push'",
+    "db:migrate": "bash -c 'set -a && source .env.local && set +a && prisma migrate dev'",
+    "db:studio": "bash -c 'set -a && source .env.local && set +a && prisma studio'"
   },
   "dependencies": {
+    "@fontsource-variable/google-sans-flex": "^5.2.3",
+    "@fontsource/crimson-pro": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@fontsource/lora": "^5.2.8",
+    "@fontsource/playfair-display": "^5.2.8",
+    "@fontsource/source-serif-4": "^5.2.9",
     "@hello-pangea/dnd": "^18.0.1",
     "@hugeicons/core-free-icons": "^4.1.1",
     "@hugeicons/react": "^1.1.6",

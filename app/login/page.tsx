@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LoginIcon } from "@hugeicons/core-free-icons";
+import { btnPrimary, card, input } from "@/src/lib/crm-ui";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -46,54 +47,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f4ef]">
-      <div className="bg-white p-8 rounded-2xl shadow-sm w-full max-w-md border border-gray-100">
-        <div className="flex justify-center mb-6 text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-surface-app p-4">
+      <div className={`${card} w-full max-w-md`}>
+        <div className="flex justify-center mb-6 text-text-primary">
           <HugeiconsIcon icon={LoginIcon} size={40} />
         </div>
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">Bienvenido</h1>
-        <p className="text-sm text-gray-500 text-center mb-8">Inicia sesión en tu CRM</p>
+        <h1 className="text-2xl font-bold text-center text-text-primary mb-2">Bienvenido</h1>
+        <p className="text-sm text-text-secondary text-center mb-8">Inicia sesión en tu CRM</p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-4 border border-red-100 font-medium">
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+            <label className="block text-sm font-medium text-text-primary mb-1">Correo electrónico</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className={input}
               placeholder="tu@correo.com"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-sm font-medium text-text-primary mb-1">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-200 focus:bg-white transition-all text-sm"
+              className={input}
               placeholder="••••••••"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#2d2d2d] text-white font-medium py-2.5 rounded-xl mt-2 hover:bg-black transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-          >
+          <button type="submit" disabled={loading} className={`w-full ${btnPrimary} py-2.5 mt-2`}>
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-text-secondary mt-6">
           Do not have an account?{" "}
-          <Link href="/register" className="text-gray-900 font-medium hover:underline">
+          <Link href="/register" className="text-text-primary font-medium hover:underline">
             Register your agency
           </Link>
         </p>

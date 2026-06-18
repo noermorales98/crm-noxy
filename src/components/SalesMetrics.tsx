@@ -4,7 +4,6 @@ import {
   DollarCircleIcon,
   Analytics01Icon,
   CalendarCheckIn01Icon,
-  TrendingUp,
 } from "@hugeicons/core-free-icons";
 
 interface Props {
@@ -26,32 +25,32 @@ export function SalesMetrics({ pipelineValue, closingRate, revenueThisMonth, fol
       label: "Pipeline activo",
       value: formatCurrency(pipelineValue),
       icon: DollarCircleIcon,
-      iconBg: "bg-blue-50",
-      iconColor: "#3b82f6",
+      iconBg: "#E1F0FF",
+      iconColor: "#337EA9",
       href: "/pipeline",
     },
     {
       label: "Tasa de cierre",
       value: `${closingRate}%`,
-      icon: TrendingUp,
-      iconBg: "bg-green-50",
-      iconColor: "#16a34a",
+      icon: Analytics01Icon,
+      iconBg: "#E2F6E9",
+      iconColor: "#448361",
       href: "/pipeline",
     },
     {
       label: "Ingreso este mes",
       value: formatCurrency(revenueThisMonth),
-      icon: Analytics01Icon,
-      iconBg: "bg-purple-50",
-      iconColor: "#9333ea",
+      icon: DollarCircleIcon,
+      iconBg: "#F0E6F9",
+      iconColor: "#9065B0",
       href: "/pipeline",
     },
     {
       label: "Follow-ups vencidos",
       value: String(followUpsDue),
       icon: CalendarCheckIn01Icon,
-      iconBg: followUpsDue > 0 ? "bg-red-50" : "bg-gray-100",
-      iconColor: followUpsDue > 0 ? "#dc2626" : "#6b7280",
+      iconBg: followUpsDue > 0 ? "#FFE2E2" : "#F7F7F5",
+      iconColor: followUpsDue > 0 ? "#D44020" : "#787774",
       href: "/pipeline",
       highlight: followUpsDue > 0,
     },
@@ -63,16 +62,19 @@ export function SalesMetrics({ pipelineValue, closingRate, revenueThisMonth, fol
         <Link
           key={m.label}
           href={m.href}
-          className={`bg-white rounded-2xl border p-5 flex items-start gap-3 hover:shadow-md transition-all ${
-            m.highlight ? "border-red-200 bg-red-50/40" : "border-gray-100 hover:border-gray-200"
+          className={`bg-surface-elevated rounded-lg p-5 flex items-start gap-3 hover:bg-nav-hover transition-colors ${
+            m.highlight ? "bg-red-50/50" : ""
           }`}
         >
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${m.iconBg}`}>
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+            style={{ backgroundColor: m.iconBg }}
+          >
             <HugeiconsIcon icon={m.icon} size={20} color={m.iconColor} />
           </div>
           <div>
-            <p className={`text-xl font-bold ${m.highlight ? "text-red-600" : "text-gray-900"}`}>{m.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{m.label}</p>
+            <p className={`text-xl font-bold ${m.highlight ? "text-red-600" : "text-text-primary"}`}>{m.value}</p>
+            <p className="text-xs text-text-secondary mt-0.5">{m.label}</p>
           </div>
         </Link>
       ))}

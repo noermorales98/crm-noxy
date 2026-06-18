@@ -4,8 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, FolderIcon, ArrowRight01Icon, Activity01Icon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon } from "@hugeicons/core-free-icons";
-import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
 import DeleteProjectButton from "@/src/components/DeleteProjectButton";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useRouter } from "next/navigation";
@@ -68,32 +66,28 @@ export default function ProjectsPage() {
   }, [projects, searchQuery, sortField, sortOrder]);
 
   return (
-    <div className="flex h-screen bg-[#f5f4ef] font-sans">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-6 py-6">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-7xl mx-auto w-full">
             <div className="mb-6">
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Proyectos</h1>
-                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">{projects.length}</span>}
+                <h1 className="text-2xl font-bold tracking-tight text-text-primary">Proyectos</h1>
+                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{projects.length}</span>}
               </div>
-              <p className="text-sm text-gray-500">Organiza tus campañas, formularios y contactos por iniciativa o cliente.</p>
+              <p className="text-sm text-text-secondary">Organiza tus campañas, formularios y contactos por iniciativa o cliente.</p>
             </div>
 
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayed.map(project => {
                   const totalAssets = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
                   return (
-                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
+                    <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-border-subtle rounded-lg p-6 hover:border-border-subtle transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-gray-700 group-hover:bg-gray-900 group-hover:text-white transition-all">
+                        <div className="w-12 h-12 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary group-hover:bg-accent-charcoal group-hover:text-white transition-all">
                           {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}
                           {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={24} />}
                           {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={24} />}
@@ -102,14 +96,14 @@ export default function ProjectsPage() {
                         </div>
                         <DeleteProjectButton projectId={project.id} projectName={project.name} />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 truncate">{project.name}</h3>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-6 flex-1">{project.description || "Sin descripción."}</p>
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <h3 className="text-lg font-bold text-text-primary mb-2 truncate">{project.name}</h3>
+                      <p className="text-sm text-text-secondary line-clamp-2 mb-6 flex-1">{project.description || "Sin descripción."}</p>
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-subtle">
+                        <div className="flex items-center gap-2 text-sm text-text-secondary">
                           <HugeiconsIcon icon={Activity01Icon} size={16} />
                           <span>{totalAssets} assets connected</span>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-surface-sidebar flex items-center justify-center group-hover:bg-accent-charcoal group-hover:text-white transition-colors">
                           <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                         </div>
                       </div>
@@ -118,15 +112,15 @@ export default function ProjectsPage() {
                 })}
 
                 {displayed.length === 0 && (
-                  <div className="col-span-full bg-gray-50 rounded-3xl border border-dashed border-gray-300 p-12 flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-400 mb-4">
+                  <div className="col-span-full bg-surface-sidebar rounded-3xl border border-dashed border-border-subtle p-12 flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-text-secondary mb-4">
                       <HugeiconsIcon icon={FolderIcon} size={32} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{searchQuery ? "No se encontraron proyectos." : "No projects yet"}</h3>
+                    <h3 className="text-lg font-bold text-text-primary mb-2">{searchQuery ? "No se encontraron proyectos." : "No projects yet"}</h3>
                     {!searchQuery && (
                       <>
-                        <p className="text-gray-500 max-w-sm mb-6">Group your forms, campaigns, contacts, and companies together by creating your first project.</p>
-                        <Link href="/projects/create" className="inline-flex items-center justify-center gap-2 bg-white text-gray-900 border border-gray-200 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors font-medium shadow-sm">
+                        <p className="text-text-secondary max-w-sm mb-6">Group your forms, campaigns, contacts, and companies together by creating your first project.</p>
+                        <Link href="/projects/create" className="inline-flex items-center justify-center gap-2 bg-white text-text-primary border border-border-subtle px-5 py-2.5 rounded-lg hover:bg-surface-sidebar transition-colors font-medium">
                           <HugeiconsIcon icon={Add01Icon} size={18} /> Create your first project
                         </Link>
                       </>
@@ -136,8 +130,6 @@ export default function ProjectsPage() {
               </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </main>
   );
 }

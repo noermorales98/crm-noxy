@@ -17,7 +17,7 @@ export function FollowUpWidget({ followUps }: Props) {
   if (followUps.length === 0) return null;
 
   return (
-    <div className="bg-red-50 border border-red-100 rounded-2xl">
+    <div className="bg-red-50 border border-red-100 rounded-lg">
       <div className="px-5 py-4 border-b border-red-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={CalendarCheckIn01Icon} size={16} color="#dc2626" />
@@ -35,9 +35,9 @@ export function FollowUpWidget({ followUps }: Props) {
             className="flex items-center justify-between px-5 py-3 hover:bg-red-100/50 transition-colors"
           >
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{f.title}</p>
+              <p className="text-sm font-semibold text-text-primary truncate">{f.title}</p>
               {f.contact && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-text-secondary">
                   {f.contact.firstName} {f.contact.lastName || ""}
                 </p>
               )}
