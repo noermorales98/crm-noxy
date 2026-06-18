@@ -101,7 +101,7 @@ export default function KbPublicPageNav({
       </nav>
 
       {/* Spacer so content clears the fixed mobile navbar */}
-      <div className="md:hidden h-[52px] shrink-0" aria-hidden />
+      <div className="md:hidden h-[56px] shrink-0" aria-hidden />
 
       {/* Desktop floating buttons — fixed, vertically centered in viewport */}
       {nav.prev && (

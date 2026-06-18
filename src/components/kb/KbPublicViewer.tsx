@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, MousePointer2, Pencil, PencilLine, ShieldCheck, Trash2 } from "lucide-react";
 import KbMarkdown from "@/src/components/kb/KbMarkdown";
 import KbPublicPageNav from "@/src/components/kb/KbPublicPageNav";
 import KbSuggestionAnchors from "@/src/components/kb/KbSuggestionAnchors";
 import {
-  GUEST_EMAIL_KEY,
-  GUEST_NAME_KEY,
   COMMENTATOR_ONBOARDING_KEY,
   findSelectionInMarkdown,
+  getStoredGuestIdentity,
+  setStoredGuestIdentity,
 } from "@/src/lib/kb-suggestions";
 import { getMarkdownTheme, type KbMarkdownThemeId } from "@/src/lib/kb-markdown-themes";
 import {
@@ -49,6 +49,14 @@ const TYPE_LABELS: Record<KbSuggestionType, string> = {
   DELETE: "Eliminar",
   INSERT: "Insertar",
 };
+
+function PublicLoadingShell() {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#fafafa" }}>
+      <div className="w-8 h-8 border-2 border-border-subtle border-t-text-primary rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function GuestNameModal({ onDone }: { onDone: (name: string, email: string) => void }) {
   const [name, setName] = useState("");
@@ -459,6 +467,7 @@ export default function KbPublicViewer({
   const router = useRouter();
   const [guestName, setGuestName] = useState<string | null>(null);
   const [guestEmail, setGuestEmail] = useState("");
+  const [guestReady, setGuestReady] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [page, setPage] = useState<PublicPage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -477,6 +486,7 @@ export default function KbPublicViewer({
 
   const role = shareMeta.role;
   const isCommentator = role === "COMMENTATOR";
+  const needsGuestIdentity = role === "COMMENTATOR" || role === "EDITOR";
 
   const pageNav = useMemo(() => {
     if (!shareMeta.page.isFolder || shareMeta.tree.length === 0) return null;
@@ -511,13 +521,13 @@ export default function KbPublicViewer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showPageNav, pageNav, token, router, selectionModal, editModal, deleteConfirm, showOnboarding]);
 
-  useEffect(() => {
-    const stored = sessionStorage.getItem(GUEST_NAME_KEY);
-    const storedEmail = sessionStorage.getItem(GUEST_EMAIL_KEY) ?? "";
-    if (stored) {
-      setGuestName(stored);
-      setGuestEmail(storedEmail);
+  useLayoutEffect(() => {
+    const stored = getStoredGuestIdentity();
+    if (stored.name) {
+      setGuestName(stored.name);
+      setGuestEmail(stored.email);
     }
+    setGuestReady(true);
   }, []);
 
   useEffect(() => {
@@ -587,8 +597,7 @@ export default function KbPublicViewer({
   }, [title, content, role, save]);
 
   const handleGuestDone = (name: string, email: string) => {
-    sessionStorage.setItem(GUEST_NAME_KEY, name);
-    sessionStorage.setItem(GUEST_EMAIL_KEY, email);
+    setStoredGuestIdentity(name, email);
     setGuestName(name);
     setGuestEmail(email);
   };
@@ -694,16 +703,16 @@ export default function KbPublicViewer({
     []
   );
 
-  if (!guestName) {
+  if (!guestReady) {
+    return <PublicLoadingShell />;
+  }
+
+  if (needsGuestIdentity && !guestName) {
     return <GuestNameModal onDone={handleGuestDone} />;
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#fafafa" }}>
-        <div className="w-8 h-8 border-2 border-border-subtle border-t-text-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <PublicLoadingShell />;
   }
 
   if (error || !page) {
@@ -795,7 +804,7 @@ export default function KbPublicViewer({
             />
           )}
           <div
-            className={showPageNav ? "mt-4 md:mt-0" : ""}
+            className={showPageNav ? "mt-7 md:mt-0" : ""}
             style={contentPad}
           >
             {documentBody}
