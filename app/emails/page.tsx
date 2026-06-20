@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   InboxIcon,
@@ -22,7 +23,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
-import { EmailProvider, useEmailContext } from "@/src/context/EmailContext";
+import { useEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 
 function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
   if (!address) return fallback;
@@ -69,9 +70,15 @@ const FOLDERS: { key: Folder; label: string; icon: React.ReactNode }[] = [
 
 export default function EmailsPage() {
   return (
-    <EmailProvider>
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
+        </div>
+      }
+    >
       <EmailsPageInner />
-    </EmailProvider>
+    </Suspense>
   );
 }
 
@@ -79,15 +86,14 @@ function EmailsPageInner() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const emailCtx = useEmailContext();
+  const searchParams = useSearchParams();
+  const { folder, selectedCompanyId, setIsSyncing, isSyncing, syncGeneration, notifySyncComplete, lastSyncedAt } = emailCtx;
 
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
-  const [folder, setFolder] = useState<Folder>("inbox");
   const [emails, setEmails] = useState<EmailSummary[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const [composeData, setComposeData] = useState({
     to: "",
@@ -139,48 +145,38 @@ function EmailsPageInner() {
     fetchCompanies();
   }, [fetchCompanies]);
 
+  // Deep link: /emails?box=sent&company=...
+  const urlInitialized = useRef(false);
+  useEffect(() => {
+    if (urlInitialized.current) return;
+    urlInitialized.current = true;
+    const box = searchParams.get("box");
+    const company = searchParams.get("company");
+    if (box === "sent" || box === "archived") {
+      emailCtx.setFolder(box);
+    }
+    if (company) {
+      emailCtx.setSelectedCompanyId(company);
+    }
+  }, [searchParams, emailCtx.setFolder, emailCtx.setSelectedCompanyId]);
+
   // ── Sync state into EmailContext so Sidebar can display/control it ──────────
   useEffect(() => { emailCtx.setCompanies(companies); }, [companies]);
-  useEffect(() => { emailCtx.setSelectedCompanyId(selectedCompanyId); }, [selectedCompanyId]);
-  useEffect(() => { emailCtx.setFolder(folder); }, [folder]);
-  useEffect(() => { emailCtx.setIsSyncing(isSyncing); }, [isSyncing]);
   useEffect(() => {
     const unread = emails.filter((e) => !e.isRead && e.type === "RECEIVED").length;
     emailCtx.setUnreadCount(unread);
   }, [emails]);
 
-  // Context setters for compound state: selectedCompanyId and folder come FROM the context
-  // (sidebar writes to context, page reads from context)
-  useEffect(() => {
-    if (emailCtx.selectedCompanyId !== selectedCompanyId) {
-      setSelectedCompanyId(emailCtx.selectedCompanyId);
-    }
-  }, [emailCtx.selectedCompanyId]);
-
-  useEffect(() => {
-    if (emailCtx.folder !== folder) {
-      setFolder(emailCtx.folder);
-    }
-  }, [emailCtx.folder]);
-
-  // Register action callbacks into context
+  // Register compose callback into context
   useEffect(() => {
     emailCtx.setOnCompose(() => {
-      setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: selectedCompanyId || "", scheduledAt: "" });
+      setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: emailCtx.selectedCompanyId || "", scheduledAt: "" });
       setPreviewCompose(false);
       setShowSchedulePicker(false);
       setIsComposing(true);
       loadContacts();
     });
-  }, [selectedCompanyId]);
-
-  useEffect(() => {
-    emailCtx.setOnSync((reset?: boolean) => handleSync(reset ?? false));
-  }, []);
-
-  useEffect(() => {
-    emailCtx.setOnOpenConfig((company) => openConfig(company));
-  }, []);
+  }, [emailCtx.selectedCompanyId]);
 
   // Dismiss contact dropdown on outside click
   useEffect(() => {
@@ -222,13 +218,19 @@ function EmailsPageInner() {
     // Carga inicial
     fetchEmails(false);
 
-    // Auto-recarga en segundo plano cada 1 minuto (para reflejar lo que obtenga el cron-job)
+    // Relee la BD periódicamente (el IMAP lo dispara EmailContext / cron-job.org)
     const intervalIds = setInterval(() => {
       fetchEmails(true);
     }, 60 * 1000);
 
     return () => clearInterval(intervalIds);
   }, [fetchEmails]);
+
+  // Refrescar lista tras sync IMAP (manual o automático)
+  useEffect(() => {
+    if (syncGeneration === 0) return;
+    fetchEmails(true);
+  }, [syncGeneration, fetchEmails]);
 
   const openEmail = async (email: EmailSummary) => {
     setIsLoadingDetail(true);
@@ -338,7 +340,7 @@ function EmailsPageInner() {
         if (data.errorDetails?.length) {
           addToast(`Errores: ${data.errorDetails[0]}`, "error");
         }
-        fetchEmails();
+        notifySyncComplete();
       } else {
         addToast(data.error || "Error al sincronizar.", "error");
       }
@@ -432,6 +434,12 @@ function EmailsPageInner() {
     setShowImapModal(true);
   };
 
+  useEffect(() => {
+    emailCtx.setOnSync((reset?: boolean) => handleSync(reset ?? false));
+    emailCtx.setOnOpenConfig((company) => openConfig(company as Company));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCompanyId, companies, fetchEmails]);
+
   const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!configCompanyId) return;
@@ -479,6 +487,7 @@ function EmailsPageInner() {
 
   const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
   const unread = emails.filter((e) => !e.isRead && e.type === "RECEIVED").length;
+  const lastSyncLabel = formatLastEmailSync(lastSyncedAt);
 
   return (
     <>
@@ -494,7 +503,10 @@ function EmailsPageInner() {
                 <span className="text-xs font-normal text-text-secondary truncate">· {selectedCompany.name}</span>
               )}
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">{emails.length} correos</p>
+            <p className="text-xs text-text-secondary mt-0.5">
+              {emails.length} correos
+              {lastSyncLabel ? ` · Sync ${lastSyncLabel}` : ""}
+            </p>
           </div>
 
           {/* Email list */}

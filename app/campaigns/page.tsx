@@ -22,7 +22,7 @@ type Campaign = {
 };
 
 export default function CampaignsPage() {
-  const { addToast, showConfirm } = useToast();
+  const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState, searchQuery, sortField, sortOrder, activeFilters } = useHeader();
 
@@ -148,7 +148,11 @@ export default function CampaignsPage() {
   };
 
   const handleSendCampaign = async (campaignId: string) => {
-    const ok = await showConfirm("¿Enviar esta campaña a todos tus contactos?", { title: "Enviar campaña", confirmLabel: "Enviar" });
+    const ok = await confirm({
+      title: "Enviar campaña",
+      description: "¿Enviar esta campaña a todos tus contactos?",
+      confirmText: "Enviar",
+    });
     if (!ok) return;
     try {
       const res = await fetch("/api/campaigns/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaignId }) });

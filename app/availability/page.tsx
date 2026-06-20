@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon, Add01Icon, Delete01Icon, Cancel01Icon, CalendarOffIcon, CalendarCheckIn01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 
 const DAYS = [
@@ -59,7 +60,8 @@ type SlotState = {
 };
 
 export default function AvailabilityPage() {
-  const { addToast, showConfirm } = useToast();
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { setConfig, resetState } = useHeader();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,10 +196,11 @@ export default function AvailabilityPage() {
   };
 
   const handleDelete = async (id: string, scheduleName: string) => {
-    const ok = await showConfirm(`¿Eliminar el horario '${scheduleName}'?`, {
+    const ok = await confirm({
       title: "Eliminar horario",
-      confirmLabel: "Eliminar",
-      isDanger: true,
+      description: `¿Eliminar el horario '${scheduleName}'?`,
+      confirmText: "Eliminar",
+      variant: "danger",
     });
     if (!ok) return;
     await fetch(`/api/availability/${id}`, { method: "DELETE" });
@@ -308,14 +311,24 @@ export default function AvailabilityPage() {
   };
 
   const handleDeleteExtended = async (id: string) => {
-    const ok = await showConfirm("¿Eliminar este horario extendido?", { title: "Eliminar horario extendido", confirmLabel: "Eliminar", isDanger: true });
+    const ok = await confirm({
+      title: "Eliminar horario extendido",
+      description: "¿Eliminar este horario extendido?",
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
     if (!ok) return;
     await fetch(`/api/availability/extended/${id}`, { method: "DELETE" });
     fetchExtendedTimes();
   };
 
   const handleDeleteBlocked = async (id: string) => {
-    const ok = await showConfirm(`¿Eliminar esta excepción del calendario?`, { title: "Eliminar excepción", confirmLabel: "Eliminar", isDanger: true });
+    const ok = await confirm({
+      title: "Eliminar excepción",
+      description: "¿Eliminar esta excepción del calendario?",
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
     if (!ok) return;
     await fetch(`/api/availability/blocked/${id}`, { method: "DELETE" });
     fetchBlockedTimes();

@@ -4,11 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
 
 export default function AppointmentTypesPage() {
-  const { addToast, showConfirm } = useToast();
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
   const [types, setTypes] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -103,10 +105,11 @@ export default function AppointmentTypesPage() {
   };
 
   const handleDelete = async (id: string, typeName: string) => {
-    const ok = await showConfirm(`¿Eliminar el tipo de cita '${typeName}'?`, {
+    const ok = await confirm({
       title: "Eliminar tipo de cita",
-      confirmLabel: "Eliminar",
-      isDanger: true,
+      description: `¿Eliminar el tipo de cita '${typeName}'?`,
+      confirmText: "Eliminar",
+      variant: "danger",
     });
     if (!ok) return;
     await fetch(`/api/appointment-types/${id}`, { method: "DELETE" });

@@ -2,6 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -48,6 +49,8 @@ function timeAgo(date: string): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Header() {
+  const pathname = usePathname();
+  const isEmailsRoute = pathname === "/emails" || pathname.startsWith("/emails/");
   const { data: session } = useSession();
   const { config, searchQuery, setSearchQuery, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
@@ -79,7 +82,11 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between bg-surface-elevated flex-shrink-0">
+    <header
+      className={`h-16 px-6 flex items-center justify-between bg-surface-elevated flex-shrink-0${
+        isEmailsRoute ? " border-b border-border-subtle" : ""
+      }`}
+    >
 
       {/* Search */}
       <div className="flex-1 max-w-xs">

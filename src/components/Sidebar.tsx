@@ -29,7 +29,7 @@ import {
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications } from "@/src/context/NotificationContext";
-import { useOptionalEmailContext } from "@/src/context/EmailContext";
+import { useOptionalEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import { ChevronDown, Check } from "lucide-react";
 
@@ -351,6 +351,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
   );
   const selectedCompanyId = emailCtx?.selectedCompanyId ?? null;
   const isOnEmail = pathname.startsWith("/emails");
+  const lastSyncLabel = emailCtx?.lastSyncedAt ? formatLastEmailSync(emailCtx.lastSyncedAt) : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -476,6 +477,11 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
             <HugeiconsIcon icon={Refresh01Icon} size={14} color={ICON_COLOR} />
             Descargar todo el historial
           </button>
+          {lastSyncLabel && (
+            <p className="text-[10px] text-text-secondary text-center pt-1">
+              Última sync: {lastSyncLabel}
+            </p>
+          )}
         </div>
       )}
 

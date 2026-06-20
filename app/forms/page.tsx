@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File02Icon, Delete01Icon, CodeIcon, LinkSquare01Icon, Activity01Icon, Cancel01Icon, UserMultipleIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
+import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
 
@@ -20,7 +21,8 @@ type Form = {
 };
 
 export default function FormsPage() {
-  const { addToast, showConfirm } = useToast();
+  const { addToast } = useToast();
+  const { confirm } = useConfirm();
   const { setConfig, resetState, searchQuery, sortField, sortOrder, activeFilters } = useHeader();
 
   const [forms, setForms] = useState<Form[]>([]);
@@ -132,7 +134,12 @@ export default function FormsPage() {
   };
 
   const handleDelete = async (id: string, formName: string) => {
-    const ok = await showConfirm(`¿Eliminar permanentemente '${formName}'? Esto deshabilitará cualquier embed activo.`, { title: "Eliminar formulario", confirmLabel: "Eliminar", isDanger: true });
+    const ok = await confirm({
+      title: "Eliminar formulario",
+      description: `¿Eliminar permanentemente '${formName}'? Esto deshabilitará cualquier embed activo.`,
+      confirmText: "Eliminar",
+      variant: "danger",
+    });
     if (!ok) return;
     try {
       const res = await fetch(`/api/forms/${id}`, { method: "DELETE" });
