@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
@@ -21,7 +21,11 @@ import {
   getMarkdownTheme,
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
+import KbPdfExportConfirmModal from "@/src/components/kb/KbPdfExportConfirmModal";
+import { renderPagesToPdf } from "@/src/lib/kb-pdf-export";
+import { slugifyPdfFilename } from "@/src/lib/kb-pdf-tree";
 import { useOptionalKbContext } from "@/src/context/KbContext";
+import { useToast } from "@/src/context/ToastContext";
 import KbSuggestionsReviewSidebar from "@/src/components/kb/KbSuggestionsReviewSidebar";
 
 function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) => void; onClose: () => void }) {
@@ -57,6 +61,27 @@ function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) 
   );
 }
 
+const SUPPORTS_FIELD_SIZING =
+  typeof CSS !== "undefined" && CSS.supports("field-sizing", "content");
+
+function adjustTextareaHeight(
+  ta: HTMLTextAreaElement,
+  scrollEl: HTMLElement,
+  minHeight: number
+) {
+  const prevScrollTop = scrollEl.scrollTop;
+  const anchorTop = ta.getBoundingClientRect().top;
+
+  const needed = Math.max(ta.scrollHeight, minHeight);
+  const prevHeight = ta.offsetHeight;
+
+  if (needed !== prevHeight) {
+    ta.style.height = `${needed}px`;
+    const deltaTop = ta.getBoundingClientRect().top - anchorTop;
+    scrollEl.scrollTop = prevScrollTop + deltaTop;
+  }
+}
+
 // ─── Toolbar insert helper ────────────────────────────────────────────────────
 
 function insertFormat(
@@ -85,7 +110,11 @@ function insertFormat(
   }
 
   setValue(nv);
-  requestAnimationFrame(() => { ta.selectionStart = ns; ta.selectionEnd = ne; ta.focus(); });
+  requestAnimationFrame(() => {
+    ta.selectionStart = ns;
+    ta.selectionEnd = ne;
+    ta.focus({ preventScroll: true });
+  });
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -129,6 +158,7 @@ export default function KbEditor({
   onFolderRefresh,
 }: KbEditorProps) {
   const kb = useOptionalKbContext();
+  const { addToast } = useToast();
   const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [title, setTitle] = useState(initialTitle);
@@ -144,8 +174,11 @@ export default function KbEditor({
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [showMdIconPicker, setShowMdIconPicker] = useState(false);
+  const [exportPdfLoading, setExportPdfLoading] = useState(false);
+  const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
 
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const proseContainerRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextAutoSave = useRef(true);
@@ -243,11 +276,12 @@ export default function KbEditor({
     saveTimer.current = setTimeout(() => save(savePayload()), 1200);
   }, [title, emoji, iconColor, iconBg, content, isPublished, markdownTheme]); // eslint-disable-line
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const ta = taRef.current;
-    if (!ta || mode !== "edit") return;
-    ta.style.height = "auto";
-    ta.style.height = `${Math.max(ta.scrollHeight, window.innerHeight * 0.5)}px`;
+    const scrollEl = scrollContainerRef.current;
+    if (!ta || !scrollEl || mode !== "edit") return;
+    if (SUPPORTS_FIELD_SIZING) return;
+    adjustTextareaHeight(ta, scrollEl, window.innerHeight * 0.5);
   }, [content, mode]);
 
   // Ctrl+S
@@ -276,7 +310,10 @@ export default function KbEditor({
       const ta = e.currentTarget;
       const nv = ta.value.slice(0, ta.selectionStart) + "  " + ta.value.slice(ta.selectionEnd);
       setContent(nv);
-      requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = ta.selectionStart + 2; });
+      requestAnimationFrame(() => {
+        ta.selectionStart = ta.selectionEnd = ta.selectionStart + 2;
+        ta.focus({ preventScroll: true });
+      });
     }
   };
 
@@ -292,6 +329,33 @@ export default function KbEditor({
     setIconColor(selection.iconColor);
     setIconBg(selection.iconBg);
   };
+
+  const handleExportPdf = useCallback(() => {
+    setExportPdfModalOpen(true);
+  }, []);
+
+  const handleExportPdfConfirm = useCallback(async () => {
+    setExportPdfLoading(true);
+    try {
+      await renderPagesToPdf(
+        [
+          {
+            title: title || "Sin título",
+            content,
+            markdownTheme,
+          },
+        ],
+        `${slugifyPdfFilename(title || "documento")}.pdf`
+      );
+      addToast("PDF descargado.", "success");
+      setExportPdfModalOpen(false);
+    } catch (err) {
+      console.error("[KbEditor export PDF]", err);
+      addToast("Error al generar PDF.", "error");
+    } finally {
+      setExportPdfLoading(false);
+    }
+  }, [title, content, markdownTheme, addToast]);
 
   const contentPad = { paddingLeft: "max(40px, calc((100% - 740px) / 2))", paddingRight: "max(40px, calc((100% - 740px) / 2))" };
   const themeTokens = getMarkdownTheme(isFolder ? null : markdownTheme);
@@ -316,6 +380,15 @@ export default function KbEditor({
         onMarkdownThemeChange={setMarkdownTheme}
         pendingSuggestions={pendingSuggestions}
         onOpenSuggestionsReview={openSuggestionsReview}
+        onExportPdf={handleExportPdf}
+        exportPdfLoading={exportPdfLoading}
+      />
+
+      <KbPdfExportConfirmModal
+        open={exportPdfModalOpen}
+        onClose={() => !exportPdfLoading && setExportPdfModalOpen(false)}
+        onConfirm={handleExportPdfConfirm}
+        generating={exportPdfLoading}
       />
 
       {!isFolder && (
@@ -332,8 +405,12 @@ export default function KbEditor({
       )}
 
       <div
+        ref={scrollContainerRef}
         className={`flex-1 overflow-y-auto min-h-0 transition-colors duration-300 ${isFolder ? "bg-surface-elevated" : ""}`}
-        style={pageBg ? { backgroundColor: pageBg, color: pageText } : undefined}
+        style={{
+          overflowAnchor: "none",
+          ...(pageBg ? { backgroundColor: pageBg, color: pageText } : {}),
+        }}
       >
       {isFolder && folderStats ? (
         <KbFolderView
@@ -381,7 +458,12 @@ export default function KbEditor({
           placeholder="Sin título"
           className="w-full text-4xl font-semibold tracking-tight bg-transparent border-none outline-none placeholder:opacity-40 leading-tight mb-3"
           style={{ color: pageText ?? undefined }}
-          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); taRef.current?.focus(); } }}
+          onKeyDown={e => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              taRef.current?.focus({ preventScroll: true });
+            }
+          }}
         />
 
         <div className="mb-4">
@@ -452,7 +534,12 @@ export default function KbEditor({
                 onKeyDown={handleKeyDown}
                 placeholder={`Escribe en Markdown...\n\n# Título\n**negrita** *cursiva*\n- lista\n\`icon:Home01\` ← inserta un ícono`}
                 className="w-full min-h-[50vh] resize-none border-none outline-none font-mono text-sm leading-7 py-4 placeholder:opacity-40 block"
-                style={{ ...contentPad, backgroundColor: "transparent", color: pageText ?? undefined }}
+                style={{
+                  ...contentPad,
+                  backgroundColor: "transparent",
+                  color: pageText ?? undefined,
+                  ...(SUPPORTS_FIELD_SIZING ? { fieldSizing: "content" as const } : {}),
+                }}
                 spellCheck={false}
               />
               <div className="py-1.5 border-t text-xs opacity-40" style={{ ...contentPad, borderColor: pageBorder ?? undefined }}>

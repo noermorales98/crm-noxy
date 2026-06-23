@@ -11,6 +11,7 @@ import {
   getHrVariant,
   themeCssVars,
   type KbMarkdownThemeId,
+  type KbMarkdownThemeTokens,
 } from "@/src/lib/kb-markdown-themes";
 
 function InlineMdIcon({ name, color }: { name: string; color: string }) {
@@ -87,11 +88,17 @@ function buildComponents(themeId: KbMarkdownThemeId, accent: string) {
 interface KbMarkdownProps {
   content: string;
   theme?: KbMarkdownThemeId | string | null;
+  themeTokens?: KbMarkdownThemeTokens;
   className?: string;
 }
 
-export default function KbMarkdown({ content, theme = "minimal", className = "" }: KbMarkdownProps) {
-  const resolved = getMarkdownTheme(theme);
+export default function KbMarkdown({
+  content,
+  theme = "minimal",
+  themeTokens,
+  className = "",
+}: KbMarkdownProps) {
+  const resolved = themeTokens ?? getMarkdownTheme(theme);
   const components = useMemo(
     () => buildComponents(resolved.id, resolved.accent),
     [resolved.id, resolved.accent, content]

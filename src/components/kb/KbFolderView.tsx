@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Plus, FolderPlus, Globe, Lock } from "lucide-react";
+import { ChevronRight, Plus, FolderPlus, Globe, Lock, Download } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
 import KbIconPicker from "@/src/components/kb/KbIconPicker";
+import KbFolderPdfExportModal from "@/src/components/kb/KbFolderPdfExportModal";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
 import type { KbIconSelection } from "@/src/lib/kb-icons";
 import { useOptionalKbContext } from "@/src/context/KbContext";
@@ -172,6 +173,7 @@ export default function KbFolderView({
   const kb = useOptionalKbContext();
   const [showPicker, setShowPicker] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
 
   const createChild = async (isFolder: boolean) => {
     setCreating(true);
@@ -239,6 +241,15 @@ export default function KbFolderView({
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
+          {folderStats.totalPages > 0 && (
+            <button
+              type="button"
+              onClick={() => setPdfModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-sidebar text-text-primary text-sm font-medium hover:bg-nav-hover"
+            >
+              <Download size={14} /> Exportar PDF
+            </button>
+          )}
           <button
             type="button"
             disabled={creating}
@@ -319,6 +330,13 @@ export default function KbFolderView({
           </div>
         </div>
       )}
+
+      <KbFolderPdfExportModal
+        open={pdfModalOpen}
+        onClose={() => setPdfModalOpen(false)}
+        folderTitle={title}
+        tree={tree}
+      />
     </div>
   );
 }

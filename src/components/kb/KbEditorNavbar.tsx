@@ -12,7 +12,7 @@ import {
   Settings01Icon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare } from "lucide-react";
+import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
 import {
   KB_MARKDOWN_THEMES,
@@ -52,6 +52,8 @@ interface Props {
   onMarkdownThemeChange?: (theme: KbMarkdownThemeId) => void;
   pendingSuggestions?: number;
   onOpenSuggestionsReview?: () => void;
+  onExportPdf?: () => void;
+  exportPdfLoading?: boolean;
 }
 
 export default function KbEditorNavbar({
@@ -68,6 +70,8 @@ export default function KbEditorNavbar({
   onMarkdownThemeChange,
   pendingSuggestions = 0,
   onOpenSuggestionsReview,
+  onExportPdf,
+  exportPdfLoading = false,
 }: Props) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -304,6 +308,19 @@ export default function KbEditorNavbar({
               </button>
             ))}
           </div>
+
+          {onExportPdf && (
+            <button
+              type="button"
+              onClick={onExportPdf}
+              disabled={exportPdfLoading}
+              title="Descargar PDF"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover disabled:opacity-50 transition-colors"
+            >
+              <Download size={12} />
+              <span className="hidden sm:inline">{exportPdfLoading ? "PDF..." : "PDF"}</span>
+            </button>
+          )}
           </>
         )}
 
