@@ -4,7 +4,19 @@ import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { RotateCcw, Check, Copy, Maximize2, Minimize2, X } from "lucide-react";
-import { getModelGroups, type AiModel } from "@/src/lib/ai-models";
+import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
+
+function buildGroups(builtins: AiModel[], customs: AiModel[]): { group: string; models: AiModel[] }[] {
+  const all = [...builtins, ...customs];
+  const result: { group: string; models: AiModel[] }[] = [];
+  const idx = new Map<string, number>();
+  for (const m of all) {
+    const i = idx.get(m.group);
+    if (i !== undefined) { result[i].models.push(m); }
+    else { idx.set(m.group, result.length); result.push({ group: m.group, models: [m] }); }
+  }
+  return result;
+}
 
 interface Props {
   role: "user" | "assistant";
@@ -25,8 +37,9 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
   const [retryOpen, setRetryOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [groups, setGroups] = useState(() => getModelGroups());
+  const [groupsLoaded, setGroupsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const groups = getModelGroups();
 
   useEffect(() => {
     if (!retryOpen) return;
@@ -51,6 +64,32 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
   const handleSelect = (model: AiModel) => {
     setRetryOpen(false);
     onRetry?.(model.id);
+  };
+
+  const openRetry = async () => {
+    if (!groupsLoaded) {
+      try {
+        const res = await fetch("/api/settings/ai-models", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          const hidden: string[] = Array.isArray(data.hiddenBuiltins) ? data.hiddenBuiltins : [];
+          const customs: AiModel[] = (data.models ?? [])
+            .filter((m: any) => m.enabled)
+            .map((m: any) => ({
+              id: m.modelId,
+              name: m.name,
+              provider: "openrouter" as const,
+              group: m.group || "Personalizados",
+              description: m.description || "",
+              tags: JSON.parse(m.tags || "[]"),
+            }));
+          const visibleBuiltins = AI_MODELS.filter((m) => !hidden.includes(m.id));
+          setGroups(buildGroups(visibleBuiltins, customs));
+        }
+      } catch {}
+      setGroupsLoaded(true);
+    }
+    setRetryOpen((v) => !v);
   };
 
   const handleCopy = async () => {
@@ -121,7 +160,7 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
             {onRetry && (
               <button
                 type="button"
-                onClick={() => setRetryOpen((v) => !v)}
+                onClick={openRetry}
                 className="flex items-center gap-1 text-[10px] text-text-secondary/40 hover:text-text-secondary transition-colors"
                 title="Reintentar con otro modelo"
               >
