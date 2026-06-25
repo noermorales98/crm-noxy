@@ -13,6 +13,7 @@
     "db:studio": "bash -c 'set -a && source .env.local && set +a && prisma studio'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@fontsource-variable/google-sans-flex": "^5.2.3",
     "@fontsource/crimson-pro": "^5.2.8",
     "@fontsource/ibm-plex-mono": "^5.2.7",
