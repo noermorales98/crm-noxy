@@ -17,7 +17,8 @@ export async function POST(req: Request) {
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
   }
-  if (!conversationId || !content?.trim()) {
+  const trimmed = content?.trim();
+  if (!conversationId || !trimmed) {
     return new Response(JSON.stringify({ error: "Missing conversationId or content" }), { status: 400 });
   }
 
@@ -32,19 +33,19 @@ export async function POST(req: Request) {
 
   // Save user message
   await prisma.aiMessage.create({
-    data: { conversationId, role: "user", content: content.trim() },
+    data: { conversationId, role: "user", content: trimmed },
   });
 
   // Auto-title from first message
   if (conversation.messages.length === 0) {
-    const title = content.trim().slice(0, 60) + (content.trim().length > 60 ? "…" : "");
+    const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
     await prisma.aiConversation.update({ where: { id: conversationId }, data: { title } });
   }
 
   // Build history for Chatbase (include new user message)
   const history = [
     ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: content.trim() },
+    { role: "user", content: trimmed },
   ];
 
   // Call Chatbase with streaming

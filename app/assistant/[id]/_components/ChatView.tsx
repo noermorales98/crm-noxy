@@ -34,12 +34,12 @@ export default function ChatView({ conversationId, initialMessages }: Props) {
 
   const sendMessage = async (content: string) => {
     const userMsg: Message = {
-      id: `user-${Date.now()}`,
+      id: crypto.randomUUID(),
       role: "user",
       content,
       createdAt: new Date().toISOString(),
     };
-    const assistantId = `assistant-${Date.now() + 1}`;
+    const assistantId = crypto.randomUUID();
     streamingIdRef.current = assistantId;
 
     setMessages((prev) => [

@@ -527,20 +527,26 @@ function AssistantNav() {
 
   const createNew = async () => {
     setCreating(true);
-    const res = await fetch("/api/assistant/conversations", { method: "POST" });
-    if (res.ok) {
-      const conv = await res.json();
-      await fetchConversations();
-      router.push(`/assistant/${conv.id}`);
+    try {
+      const res = await fetch("/api/assistant/conversations", { method: "POST" });
+      if (res.ok) {
+        const conv = await res.json();
+        setConversations((prev) => [conv, ...prev]);
+        router.push(`/assistant/${conv.id}`);
+      }
+    } finally {
+      setCreating(false);
     }
-    setCreating(false);
   };
 
   const deleteConv = async (id: string) => {
-    await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
-    setDeletingId(null);
-    await fetchConversations();
-    if (pathname === `/assistant/${id}`) router.push("/assistant");
+    try {
+      await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      if (pathname === `/assistant/${id}`) router.push("/assistant");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
