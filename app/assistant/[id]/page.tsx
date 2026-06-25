@@ -4,11 +4,8 @@ import { prisma } from "@/src/lib/db";
 import DashboardShell from "@/src/components/DashboardShell";
 import ChatView from "./_components/ChatView";
 
-interface Props {
-  params: { id: string };
-}
-
-export default async function AssistantConversationPage({ params }: Props) {
+export default async function AssistantConversationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -16,7 +13,7 @@ export default async function AssistantConversationPage({ params }: Props) {
   if (!orgId) redirect("/");
 
   const conversation = await prisma.aiConversation.findFirst({
-    where: { id: params.id, userId: session.user.id!, organizationId: orgId },
+    where: { id, userId: session.user.id!, organizationId: orgId },
     include: { messages: { orderBy: { createdAt: "asc" } } },
   });
 
