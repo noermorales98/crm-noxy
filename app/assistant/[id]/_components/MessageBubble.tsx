@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { RotateCcw, Check, Copy, Maximize2, Minimize2, X } from "lucide-react";
 import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
+import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
 
 function buildGroups(builtins: AiModel[], customs: AiModel[]): { group: string; models: AiModel[] }[] {
   const all = [...builtins, ...customs];
@@ -128,7 +129,26 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
               style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
             >
               <div className={PROSE}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ className, children }) {
+                      const lang = /language-(\w+)/.exec(className ?? "")?.[1];
+                      const codeStr = String(children).replace(/\n$/, "");
+                      if (lang === "action") {
+                        try {
+                          const parsed = JSON.parse(codeStr) as ActionCardData;
+                          return <ActionCard action={parsed} />;
+                        } catch {
+                          return <code className={className}>{children}</code>;
+                        }
+                      }
+                      return <code className={className}>{children}</code>;
+                    },
+                  }}
+                >
+                  {content}
+                </ReactMarkdown>
               </div>
               {streaming && (
                 <span className="inline-block w-0.5 h-4 bg-text-primary ml-0.5 animate-pulse" />
@@ -265,7 +285,26 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
                   style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
                 >
                   <div className={PROSE}>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ className, children }) {
+                          const lang = /language-(\w+)/.exec(className ?? "")?.[1];
+                          const codeStr = String(children).replace(/\n$/, "");
+                          if (lang === "action") {
+                            try {
+                              const parsed = JSON.parse(codeStr) as ActionCardData;
+                              return <ActionCard action={parsed} />;
+                            } catch {
+                              return <code className={className}>{children}</code>;
+                            }
+                          }
+                          return <code className={className}>{children}</code>;
+                        },
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
                   </div>
                 </div>
 
