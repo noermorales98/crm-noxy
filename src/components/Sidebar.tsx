@@ -567,7 +567,7 @@ function AssistantNav() {
                 <div key={conv.id} className="group relative">
                   <Link
                     href={`/assistant/${conv.id}`}
-                    className={`${navItemClass(isActive)} pr-8 w-full block truncate`}
+                    className={`${navItemClass(isActive)} pr-8 w-full`}
                   >
                     <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
                     <span className="truncate text-sm">{conv.title}</span>
