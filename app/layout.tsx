@@ -4,6 +4,7 @@ import { ToastProvider } from "@/src/context/ToastContext";
 import { ConfirmProvider } from "@/src/context/ConfirmContext";
 import { HeaderProvider } from "@/src/context/HeaderContext";
 import { NotificationProvider } from "@/src/context/NotificationContext";
+import { AiProvider } from "@/src/components/ai/AiProvider";
 import AppShell from "@/src/components/AppShell";
 import "@/src/lib/fonts";
 import "./globals.css";
@@ -30,7 +31,9 @@ export default function RootLayout({
             <ConfirmProvider>
               <HeaderProvider>
                 <NotificationProvider>
-                  <AppShell>{children}</AppShell>
+                  <AiProvider>
+                    <AppShell>{children}</AppShell>
+                  </AiProvider>
                 </NotificationProvider>
               </HeaderProvider>
             </ConfirmProvider>
