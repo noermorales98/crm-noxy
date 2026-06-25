@@ -6,13 +6,13 @@ import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
 import { usePathname } from "next/navigation";
 
-function isKbEditorRoute(pathname: string) {
-  return /^\/kb\/[^/]+$/.test(pathname);
+function isHideHeaderRoute(pathname: string) {
+  return /^\/kb\/[^/]+$/.test(pathname) || pathname.startsWith("/assistant");
 }
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideHeader = isKbEditorRoute(pathname ?? "");
+  const hideHeader = isHideHeaderRoute(pathname ?? "");
 
   return (
     <KbProvider>

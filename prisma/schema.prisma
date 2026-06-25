@@ -68,6 +68,8 @@ model Organization {
   googleCalendar        GoogleCalendarToken?
   kbPages               KbPage[]
   aiConversations       AiConversation[]
+  hiddenAiModels        String         @default("[]")
+  customAiModels        CustomAiModel[]
 }
 
 enum Role {
@@ -1007,4 +1009,22 @@ model AiMessage {
 
   @@index([conversationId])
   @@index([createdAt])
+}
+
+model CustomAiModel {
+  id             String   @id @default(cuid())
+  organizationId String
+  modelId        String
+  name           String
+  group          String   @default("Personalizados")
+  description    String   @default("")
+  tags           String   @default("[]")
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, modelId])
+  @@index([organizationId])
 }

@@ -12,18 +12,24 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "No organization context" }), { status: 400 });
   }
 
-  let conversationId: string, content: string;
+  let conversationId: string, content: string, model: string, preferKey: "1" | "2";
   try {
-    ({ conversationId, content } = await req.json() as { conversationId: string; content: string });
+    const body = await req.json() as { conversationId: string; content: string; model?: string; preferKey?: "1" | "2" };
+    conversationId = body.conversationId;
+    content = body.content;
+    model = body.model ?? "chatbase";
+    preferKey = body.preferKey ?? "1";
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
   }
+
   const trimmed = content?.trim();
   if (!conversationId || !trimmed) {
     return new Response(JSON.stringify({ error: "Missing conversationId or content" }), { status: 400 });
   }
 
-  // Verify ownership
+  const selectedModel = model.trim() || "chatbase";
+
   const conversation = await prisma.aiConversation.findFirst({
     where: { id: conversationId, userId: session.user.id!, organizationId: orgId },
     include: { messages: { orderBy: { createdAt: "asc" } } },
@@ -32,22 +38,32 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
   }
 
-  // Save user message
   await prisma.aiMessage.create({
     data: { conversationId, role: "user", content: trimmed },
   });
 
-  // Auto-title from first message
   if (conversation.messages.length === 0) {
     const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
     await prisma.aiConversation.update({ where: { id: conversationId }, data: { title } });
   }
 
-  // Build CRM context and inject as system message
   const crmContext = await buildCrmContext(session.user.id!, orgId);
 
-  // Inject CRM context as a user/assistant exchange at the start
-  // (Chatbase does not support role:"system" — must use user/assistant pairs)
+  if (selectedModel === "chatbase") {
+    return streamChatbase(crmContext, conversation, trimmed, conversationId);
+  } else {
+    return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey);
+  }
+}
+
+// ── Chatbase ────────────────────────────────────────────────────────────────
+
+async function streamChatbase(
+  crmContext: string,
+  conversation: { messages: { role: string; content: string }[] },
+  trimmed: string,
+  conversationId: string,
+) {
   const history = [
     { role: "user", content: `[CONTEXTO CRM ACTUALIZADO]\n\n${crmContext}\n\n[FIN CONTEXTO]` },
     { role: "assistant", content: "Entendido. Tengo acceso a los datos actuales del CRM y los usaré para responder tus preguntas." },
@@ -55,7 +71,6 @@ export async function POST(req: Request) {
     { role: "user", content: trimmed },
   ];
 
-  // Call Chatbase with streaming
   const chatbaseRes = await fetch("https://www.chatbase.co/api/v1/chat", {
     method: "POST",
     headers: {
@@ -73,24 +88,234 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Chatbase error" }), { status: 502 });
   }
 
-  // Forward stream to client, accumulate full response
+  return buildStream(chatbaseRes.body, conversationId, "plain");
+}
+
+// ── OpenRouter ───────────────────────────────────────────────────────────────
+
+type OrSuccess = { ok: true; body: ReadableStream<Uint8Array> };
+type OrFailure = { ok: false; status: number; headers: Headers; errBody: string };
+type OrResult = OrSuccess | OrFailure;
+
+async function callOpenRouter(apiKey: string, modelId: string, messages: unknown[]): Promise<OrResult> {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://noxthy.co",
+      "X-Title": "CRM Noxy",
+    },
+    body: JSON.stringify({ model: modelId, messages, stream: true }),
+  });
+
+  if (!res.ok || !res.body) {
+    const errBody = await res.text().catch(() => "");
+    return { ok: false, status: res.status, headers: res.headers, errBody };
+  }
+  return { ok: true, body: res.body };
+}
+
+function openRouterErrorStream(failure: OrFailure): Response {
+  console.error("[openrouter] HTTP error:", failure.status, failure.errBody);
+
+  let errMsg = `HTTP ${failure.status}`;
+  try {
+    const parsed = JSON.parse(failure.errBody);
+    const detail = parsed?.error?.message ?? parsed?.message ?? "";
+    if (detail) errMsg += ` — ${detail}`;
+  } catch {}
+
+  if (failure.status === 401) errMsg += " (API key inválida)";
+  if (failure.status === 402) errMsg += " (se necesitan créditos en tu cuenta de OpenRouter)";
+  if (failure.status === 429) {
+    const retryAfter = failure.headers.get("Retry-After");
+    const resetRequests = failure.headers.get("X-RateLimit-Reset-Requests");
+    const resetTokens = failure.headers.get("X-RateLimit-Reset-Tokens");
+    const remainingReqs = failure.headers.get("X-RateLimit-Remaining-Requests");
+    const remainingTokens = failure.headers.get("X-RateLimit-Remaining-Tokens");
+
+    const hitTokens = remainingTokens !== null && parseInt(remainingTokens) <= 0;
+    const hitRequests = remainingReqs !== null && parseInt(remainingReqs) <= 0;
+    const limitType = hitTokens && !hitRequests ? "tokens" : "peticiones";
+
+    let waitMsg = "";
+    const waitSrc = retryAfter ?? resetRequests ?? resetTokens;
+    if (waitSrc) {
+      const secs = parseInt(waitSrc);
+      if (!isNaN(secs) && secs > 0 && secs < 3600) {
+        waitMsg = secs < 60 ? ` Espera ${secs} segundos.` : ` Espera ${Math.ceil(secs / 60)} minutos.`;
+      }
+    }
+    errMsg += ` (límite de ${limitType} alcanzado.${waitMsg})`;
+  }
+
+  return errorStream(`Error ${errMsg}. Prueba con otro modelo o intenta de nuevo.`);
+}
+
+// Stream markers sent as first 2 bytes (ESC + char, never appear in LLM output):
+//   \x1bP = key 1 used directly
+//   \x1bS = key 2 used directly
+//   \x1bF = fallback: tried key 1, key 2 succeeded  → "key 1 → key 2"
+//   \x1bG = reverse fallback: tried key 2, key 1 succeeded → "key 2 → key 1"
+
+async function streamOpenRouter(
+  modelId: string,
+  crmContext: string,
+  conversation: { messages: { role: string; content: string }[] },
+  trimmed: string,
+  conversationId: string,
+  preferKey: "1" | "2",
+) {
+  const primaryKey = process.env.OPENROUTER_API_KEY;
+  const secondaryKey = process.env.OPENROUTER_API_KEY_SECONDARY;
+
+  if (!primaryKey && !secondaryKey) {
+    return errorStream("Falta OPENROUTER_API_KEY en el servidor. Agrégala al .env.local y reinicia.");
+  }
+
+  const sanitizedContext = crmContext
+    .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
+    .replace(/•/g, "-")
+    .slice(0, 6000);
+
+  const messages = [
+    { role: "system", content: sanitizedContext },
+    ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
+    { role: "user", content: trimmed },
+  ];
+
+  if (preferKey === "2" && secondaryKey) {
+    // User prefers key 2 — try secondary first
+    const r = await callOpenRouter(secondaryKey, modelId, messages);
+    if (r.ok) return buildStream(r.body, conversationId, "sse", "S");
+
+    if (primaryKey) {
+      console.warn(`[openrouter] Secondary key failed (${r.status}), falling back to primary key…`);
+      const r2 = await callOpenRouter(primaryKey, modelId, messages);
+      if (r2.ok) return buildStream(r2.body, conversationId, "sse", "G");
+      return openRouterErrorStream(r2);
+    }
+    return openRouterErrorStream(r);
+  }
+
+  // Default (preferKey "1" or no secondary): try primary first
+  if (primaryKey) {
+    const r = await callOpenRouter(primaryKey, modelId, messages);
+    if (r.ok) return buildStream(r.body, conversationId, "sse", "P");
+
+    if (secondaryKey) {
+      console.warn(`[openrouter] Primary key failed (${r.status}), falling back to secondary key…`);
+      const r2 = await callOpenRouter(secondaryKey, modelId, messages);
+      if (r2.ok) return buildStream(r2.body, conversationId, "sse", "F");
+      return openRouterErrorStream(r2);
+    }
+    return openRouterErrorStream(r);
+  }
+
+  // Only secondary configured
+  const r = await callOpenRouter(secondaryKey!, modelId, messages);
+  if (r.ok) return buildStream(r.body, conversationId, "sse", "S");
+  return openRouterErrorStream(r);
+}
+
+function errorStream(message: string): Response {
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(`⚠️ ${message}`));
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
+  });
+}
+
+// ── Shared stream builder ────────────────────────────────────────────────────
+
+function buildStream(
+  body: ReadableStream<Uint8Array>,
+  conversationId: string,
+  format: "plain" | "sse",
+  keyLabel?: string,
+) {
   let fullResponse = "";
+  let hasContent = false;
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
   const stream = new ReadableStream({
     async start(controller) {
-      const reader = chatbaseRes.body!.getReader();
+      const reader = body.getReader();
+      let buffer = "";
+
+      // Prepend 2-byte key marker (ESC + single char). Never appears in LLM output.
+      // Not counted in fullResponse so it isn't persisted to the database.
+      if (keyLabel) {
+        controller.enqueue(encoder.encode(`\x1b${keyLabel}`));
+      }
+
+      const enqueue = (text: string) => {
+        if (!text) return;
+        fullResponse += text;
+        hasContent = true;
+        controller.enqueue(encoder.encode(text));
+      };
+
       try {
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          fullResponse += chunk;
-          controller.enqueue(encoder.encode(chunk));
+
+          const raw = decoder.decode(value, { stream: true });
+
+          if (format === "plain") {
+            enqueue(raw);
+          } else {
+            // OpenRouter SSE: lines starting with "data: "
+            buffer += raw;
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (!trimmedLine.startsWith("data: ")) continue;
+              const data = trimmedLine.slice(6).trim();
+              if (data === "[DONE]") continue;
+
+              let json: any;
+              try {
+                json = JSON.parse(data);
+              } catch {
+                continue; // skip malformed lines
+              }
+
+              // OpenRouter may embed errors inside the SSE stream
+              if (json.error) {
+                const errMsg: string = json.error?.message ?? "Error desconocido del modelo";
+                console.error("[openrouter] stream-level error:", json.error);
+                enqueue(`⚠️ Error: ${errMsg}. Prueba con otro modelo.`);
+                return; // stop reading; finally will close + save
+              }
+
+              const token: string = json.choices?.[0]?.delta?.content ?? "";
+              enqueue(token);
+            }
+          }
         }
+      } catch (err) {
+        console.error("[assistant/chat] stream read error:", err);
       } finally {
+        // If the model produced nothing, show a helpful message instead of silence
+        if (!hasContent) {
+          const fallback =
+            "Este modelo no generó respuesta. Puede estar sobrecargado o temporalmente no disponible. Intenta de nuevo o selecciona otro modelo.";
+          controller.enqueue(encoder.encode(fallback));
+          fullResponse = fallback;
+        }
+
         controller.close();
+
         try {
           if (fullResponse.trim()) {
             await prisma.aiMessage.create({
@@ -101,17 +326,14 @@ export async function POST(req: Request) {
               data: { updatedAt: new Date() },
             });
           }
-        } catch (err) {
-          console.error("[assistant/chat] Failed to save assistant message:", err);
+        } catch (dbErr) {
+          console.error("[assistant/chat] Failed to save assistant message:", dbErr);
         }
       }
     },
   });
 
   return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-cache",
-    },
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
   });
 }

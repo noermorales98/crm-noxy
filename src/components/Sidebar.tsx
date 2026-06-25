@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -28,8 +28,15 @@ import {
   Refresh01Icon,
   Settings01Icon,
   AiChatIcon,
+  Search01Icon,
+  Notification01Icon,
+  Logout01Icon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  Delete01Icon,
 } from "@hugeicons/core-free-icons";
-import { useNotifications } from "@/src/context/NotificationContext";
+import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
+import SpotlightSearch from "@/src/components/SpotlightSearch";
 import { useOptionalEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import { ChevronDown, Check } from "lucide-react";
@@ -48,6 +55,28 @@ const itemHover = "hover:bg-nav-hover";
 const itemIdle = "text-text-primary";
 
 const sectionLabelClass = "text-[11px] font-medium italic text-text-secondary uppercase tracking-wider px-3 pt-6 pb-2";
+
+// ─── Notification helpers (mirrored from Header) ───────────────────────────────
+
+const NOTIF_ICONS: Record<NotificationType, typeof UserMultipleIcon> = {
+  NEW_EMAIL: InboxIcon,
+  NEW_CONTACT: UserMultipleIcon,
+  NEW_FORM_LEAD: BrowserIcon,
+};
+
+const NOTIF_COLORS: Record<NotificationType, string> = {
+  NEW_EMAIL: "bg-blue-50 text-blue-600",
+  NEW_CONTACT: "bg-green-50 text-green-600",
+  NEW_FORM_LEAD: "bg-violet-50 text-violet-600",
+};
+
+function timeAgo(date: string): string {
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
+  if (diff < 60) return "ahora";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+}
 
 function navItemClass(isActive: boolean, extra = "") {
   return `${itemBase} ${isActive ? itemActive : `${itemIdle} ${itemHover}`} ${extra}`.trim();
@@ -508,7 +537,7 @@ function KbNav() {
 
 type AiConversation = { id: string; title: string; updatedAt: string };
 
-function AssistantNav() {
+function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -551,7 +580,7 @@ function AssistantNav() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 pt-1 pb-3 shrink-0">
+      <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
         <button
           onClick={createNew}
           disabled={creating}
@@ -559,6 +588,14 @@ function AssistantNav() {
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           {creating ? "Creando…" : "Nueva conversación"}
+        </button>
+        <button
+          onClick={onSearchOpen}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+        >
+          <HugeiconsIcon icon={Search01Icon} size={ICON_SIZE} color="#9ca3af" />
+          <span className="flex-1 text-left">Buscar…</span>
+          <kbd className="text-[10px] font-mono bg-surface-sidebar border border-border-subtle px-1.5 py-0.5 rounded">⌘K</kbd>
         </button>
       </div>
 
@@ -619,8 +656,13 @@ function AssistantNav() {
 export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { notifications } = useNotifications();
+  const { notifications, unreadCount: notifUnread, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
   const [projects, setProjects] = useState<any[]>([]);
+  const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const [sidebarNotifOpen, setSidebarNotifOpen] = useState(false);
+  const [sidebarUserOpen, setSidebarUserOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
 
   const unreadEmailCount = notifications.filter(n => n.type === "NEW_EMAIL" && !n.isRead).length;
 
@@ -645,28 +687,182 @@ export default function Sidebar() {
       .catch(() => {});
   }, [session]);
 
-  return (
-    <aside className={`${SIDEBAR_W} bg-white border-r border-border-subtle h-screen flex flex-col flex-shrink-0 overflow-hidden`}>
-      <SectionSwitcher
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        unreadCount={unreadEmailCount}
-      />
+  // Global ⌘K shortcut to open spotlight
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSpotlightOpen(true);
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
-      <div className="flex-1 overflow-y-auto min-h-0 relative">
-        <div className={activeTab === "home" ? "block" : "hidden"}>
-          <HomeNav projects={projects} />
+  // Close bottom dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setSidebarNotifOpen(false);
+      if (userRef.current && !userRef.current.contains(e.target as Node)) setSidebarUserOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const isAssistant = activeTab === "assistant";
+
+  return (
+    <>
+      <aside className={`${SIDEBAR_W} bg-white border-r border-border-subtle h-screen flex flex-col flex-shrink-0 overflow-hidden`}>
+        <SectionSwitcher
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          unreadCount={unreadEmailCount}
+        />
+
+        <div className="flex-1 overflow-y-auto min-h-0 relative">
+          <div className={activeTab === "home" ? "block" : "hidden"}>
+            <HomeNav projects={projects} />
+          </div>
+          <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
+            <MailNav unreadCount={unreadEmailCount} />
+          </div>
+          <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
+            <KbNav />
+          </div>
+          <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
+            <AssistantNav onSearchOpen={() => setSpotlightOpen(true)} />
+          </div>
         </div>
-        <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
-          <MailNav unreadCount={unreadEmailCount} />
-        </div>
-        <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
-          <KbNav />
-        </div>
-        <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
-          <AssistantNav />
-        </div>
-      </div>
-    </aside>
+
+        {/* ── Bottom bar (only on assistant tab) ─────────────────────────────── */}
+        {isAssistant && (
+          <div className="shrink-0 border-t border-border-subtle px-3 py-3 flex items-center gap-1">
+            {/* Notification bell */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => { setSidebarNotifOpen(v => !v); setSidebarUserOpen(false); }}
+                className="relative w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+                title="Notificaciones"
+              >
+                <HugeiconsIcon icon={Notification01Icon} size={16} />
+                {notifUnread > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {notifUnread > 99 ? "99+" : notifUnread}
+                  </span>
+                )}
+              </button>
+
+              {sidebarNotifOpen && (
+                <div className="absolute bottom-full left-0 mb-2 w-72 bg-surface-elevated rounded-lg overflow-hidden z-50 border border-border-subtle shadow-lg">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
+                    <p className="text-sm font-bold text-text-primary">Notificaciones</p>
+                    <div className="flex items-center gap-2">
+                      {notifUnread > 0 && (
+                        <button onClick={markAllAsRead} className="flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary transition-colors">
+                          <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} />
+                          Leer todas
+                        </button>
+                      )}
+                      {notifications.length > 0 && (
+                        <button onClick={clearAll} className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors">
+                          <HugeiconsIcon icon={Delete01Icon} size={12} />
+                          Borrar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="max-h-72 overflow-y-auto divide-y divide-border-subtle">
+                    {notifications.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-text-secondary">
+                        <HugeiconsIcon icon={Notification01Icon} size={22} color="#d1d5db" />
+                        <p className="text-xs mt-2">Sin notificaciones</p>
+                      </div>
+                    ) : (
+                      notifications.map((n: AppNotification) => {
+                        const Icon = NOTIF_ICONS[n.type] ?? Notification01Icon;
+                        const colorClass = NOTIF_COLORS[n.type] ?? "bg-surface-sidebar text-text-secondary";
+                        return (
+                          <button
+                            key={n.id}
+                            onClick={() => { markAsRead(n.id); setSidebarNotifOpen(false); }}
+                            className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface-sidebar transition-colors ${!n.isRead ? "bg-blue-50/40" : ""}`}
+                          >
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}>
+                              <HugeiconsIcon icon={Icon} size={12} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-xs leading-tight ${!n.isRead ? "font-semibold text-text-primary" : "text-text-primary"}`}>{n.title}</p>
+                              {n.body && <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-2">{n.body}</p>}
+                              <p className="text-[10px] text-gray-300 mt-1">{timeAgo(n.createdAt)}</p>
+                            </div>
+                            {!n.isRead && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* User menu */}
+            <div className="relative ml-auto" ref={userRef}>
+              <button
+                onClick={() => { setSidebarUserOpen(v => !v); setSidebarNotifOpen(false); }}
+                className="w-8 h-8 rounded-lg bg-accent-charcoal flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity"
+                title={session?.user?.name || "Usuario"}
+              >
+                {session?.user?.name?.[0]?.toUpperCase() || "U"}
+              </button>
+
+              {sidebarUserOpen && (
+                <div className="absolute bottom-full right-0 mb-2 w-52 bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle shadow-lg">
+                  <div className="px-4 py-3 border-b border-border-subtle">
+                    <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
+                    <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
+                  </div>
+                  <Link
+                    href="/profile"
+                    onClick={() => setSidebarUserOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                  >
+                    <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
+                    Mi perfil
+                  </Link>
+                  <Link
+                    href="/settings"
+                    onClick={() => setSidebarUserOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                  >
+                    <HugeiconsIcon icon={Settings01Icon} size={14} color="#9ca3af" />
+                    Configuración
+                  </Link>
+                  <Link
+                    href="/settings/ai-models"
+                    onClick={() => setSidebarUserOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                  >
+                    <HugeiconsIcon icon={AiChatIcon} size={14} color="#9ca3af" />
+                    Modelos de IA
+                  </Link>
+                  <div className="border-t border-border-subtle mt-1 pt-1">
+                    <button
+                      onClick={() => signOut()}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <HugeiconsIcon icon={Logout01Icon} size={14} color="#ef4444" />
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </aside>
+
+      <SpotlightSearch open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
+    </>
   );
 }
