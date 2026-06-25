@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
@@ -27,13 +27,14 @@ import {
   PencilEdit01Icon,
   Refresh01Icon,
   Settings01Icon,
+  AiChatIcon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications } from "@/src/context/NotificationContext";
 import { useOptionalEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import { ChevronDown, Check } from "lucide-react";
 
-type SidebarTab = "home" | "mail" | "kb";
+type SidebarTab = "home" | "mail" | "kb" | "assistant";
 
 // ─── Design tokens (Notion-style premium) ─────────────────────────────────────
 
@@ -63,6 +64,7 @@ const SECTIONS: {
   { id: "home", label: "Inicio", href: "/", icon: Home01Icon, accent: "#5B9BF5", accentBg: "#E1F0FF" },
   { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon, accent: "#F0A050", accentBg: "#FFECD2" },
   { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#9B7EDE", accentBg: "#F0E6F9" },
+  { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#6366F1", accentBg: "#EEF2FF" },
 ];
 
 // ─── Section switcher (unified dropdown) ───────────────────────────────────────
@@ -169,6 +171,7 @@ function SectionSwitcher({
                     {section.id === "home" && "Dashboard y proyectos"}
                     {section.id === "mail" && "Bandeja y campañas"}
                     {section.id === "kb" && "Documentación interna"}
+                    {section.id === "assistant" && "Asistente de IA"}
                   </span>
                 </span>
                 {section.id === "mail" && unreadCount > 0 && (
@@ -501,6 +504,110 @@ function KbNav() {
   return <KbSidebarTree />;
 }
 
+// ─── Tab 4: Asistente ─────────────────────────────────────────────────────────
+
+type AiConversation = { id: string; title: string; updatedAt: string };
+
+function AssistantNav() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = useSession();
+  const [conversations, setConversations] = useState<AiConversation[]>([]);
+  const [creating, setCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const fetchConversations = useCallback(async () => {
+    const res = await fetch("/api/assistant/conversations");
+    if (res.ok) setConversations(await res.json());
+  }, []);
+
+  useEffect(() => {
+    if (session?.user) fetchConversations();
+  }, [session, fetchConversations]);
+
+  const createNew = async () => {
+    setCreating(true);
+    const res = await fetch("/api/assistant/conversations", { method: "POST" });
+    if (res.ok) {
+      const conv = await res.json();
+      await fetchConversations();
+      router.push(`/assistant/${conv.id}`);
+    }
+    setCreating(false);
+  };
+
+  const deleteConv = async (id: string) => {
+    await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
+    setDeletingId(null);
+    await fetchConversations();
+    if (pathname === `/assistant/${id}`) router.push("/assistant");
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-3 pt-1 pb-3 shrink-0">
+        <button
+          onClick={createNew}
+          disabled={creating}
+          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors disabled:opacity-50"
+        >
+          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
+          {creating ? "Creando…" : "Nueva conversación"}
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 pb-4 min-h-0">
+        {conversations.length === 0 ? (
+          <p className="text-xs text-text-secondary px-1 py-2 italic">Sin conversaciones</p>
+        ) : (
+          <div className="flex flex-col gap-0.5">
+            {conversations.map((conv) => {
+              const isActive = pathname === `/assistant/${conv.id}`;
+              return (
+                <div key={conv.id} className="group relative">
+                  <Link
+                    href={`/assistant/${conv.id}`}
+                    className={`${navItemClass(isActive)} pr-8 w-full block truncate`}
+                  >
+                    <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
+                    <span className="truncate text-sm">{conv.title}</span>
+                  </Link>
+                  {deletingId === conv.id ? (
+                    <div className="absolute inset-0 flex items-center justify-end gap-1 pr-1 bg-surface-elevated rounded-lg">
+                      <button
+                        onClick={() => setDeletingId(null)}
+                        className="text-[10px] px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={() => deleteConv(conv.id)}
+                        className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeletingId(conv.id)}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-nav-active rounded-md transition-all"
+                      title="Eliminar conversación"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-secondary">
+                        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Sidebar ──────────────────────────────────────────────────────────────
 
 export default function Sidebar() {
@@ -514,6 +621,7 @@ export default function Sidebar() {
   const getTabForPath = (p: string): SidebarTab => {
     if (p.startsWith("/kb")) return "kb";
     if (p.startsWith("/emails") || p.startsWith("/campaigns")) return "mail";
+    if (p.startsWith("/assistant")) return "assistant";
     return "home";
   };
 
@@ -548,6 +656,9 @@ export default function Sidebar() {
         </div>
         <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
           <KbNav />
+        </div>
+        <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
+          <AssistantNav />
         </div>
       </div>
     </aside>
