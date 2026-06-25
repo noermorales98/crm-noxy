@@ -1,0 +1,37 @@
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { prisma } from "@/src/lib/db";
+import DashboardShell from "@/src/components/DashboardShell";
+import ChatView from "./_components/ChatView";
+
+interface Props {
+  params: { id: string };
+}
+
+export default async function AssistantConversationPage({ params }: Props) {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const orgId = (session as any).currentOrganizationId as string | undefined;
+  if (!orgId) redirect("/");
+
+  const conversation = await prisma.aiConversation.findFirst({
+    where: { id: params.id, userId: session.user.id!, organizationId: orgId },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
+  });
+
+  if (!conversation) notFound();
+
+  const messages = conversation.messages.map((m) => ({
+    id: m.id,
+    role: m.role as "user" | "assistant",
+    content: m.content,
+    createdAt: m.createdAt.toISOString(),
+  }));
+
+  return (
+    <DashboardShell>
+      <ChatView conversationId={conversation.id} initialMessages={messages} />
+    </DashboardShell>
+  );
+}
