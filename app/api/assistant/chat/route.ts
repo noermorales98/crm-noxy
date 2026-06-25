@@ -2,6 +2,43 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
 
+const ACTION_CARDS_PROMPT = `
+=== CAPACIDADES DE ACCIÓN ===
+Puedes proponer acciones CRM usando bloques de código con lenguaje \`action\`.
+El usuario verá un formulario interactivo y DEBERÁ confirmar antes de que se ejecute.
+
+Acciones disponibles y sus campos:
+- create_contact: prefill: firstName, lastName, email, phone, companyId
+- edit_contact: requiere id + prefill (mismos campos)
+- delete_contact: requiere id + name (nombre del contacto para confirmar)
+- create_deal: prefill: title (requerido), value, stageId, contactId
+- edit_deal: requiere id + prefill: title, value, stageId
+- create_task: prefill: title (requerido), dueDate, description
+- complete_task: requiere id + title (título de la tarea para confirmar)
+- draft_email: prefill: to, subject, body
+- query_result: columns (array), rows (array de arrays) — para mostrar datos en tabla
+
+Ejemplo de formato:
+\`\`\`action
+{"type":"create_contact","prefill":{"firstName":"Juan","email":"juan@empresa.com"}}
+\`\`\`
+
+Reglas:
+1. SIEMPRE escribe texto explicativo ANTES del bloque action
+2. Usa query_result para mostrar listas de datos consultados en tablas
+3. Solo propone una acción a la vez
+4. Para delete_* incluye el id y name/title del elemento a eliminar
+`.trim();
+
+function buildPageContextSection(pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null): string {
+  if (!pageContext) return "";
+  const lines = [`\n\n=== CONTEXTO DE PÁGINA ACTUAL ===`, `El usuario está viendo: ${pageContext.label ?? pageContext.page}`];
+  if (pageContext.data && Object.keys(pageContext.data).length > 0) {
+    lines.push(JSON.stringify(pageContext.data, null, 2));
+  }
+  return lines.join("\n");
+}
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
@@ -13,12 +50,20 @@ export async function POST(req: Request) {
   }
 
   let conversationId: string, content: string, model: string, preferKey: "1" | "2";
+  let pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null = null;
   try {
-    const body = await req.json() as { conversationId: string; content: string; model?: string; preferKey?: "1" | "2" };
+    const body = await req.json() as {
+      conversationId: string;
+      content: string;
+      model?: string;
+      preferKey?: "1" | "2";
+      pageContext?: { page: string; id?: string; label?: string; data?: Record<string, unknown> };
+    };
     conversationId = body.conversationId;
     content = body.content;
     model = body.model ?? "chatbase";
     preferKey = body.preferKey ?? "1";
+    pageContext = body.pageContext ?? null;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
   }
@@ -50,9 +95,9 @@ export async function POST(req: Request) {
   const crmContext = await buildCrmContext(session.user.id!, orgId);
 
   if (selectedModel === "chatbase") {
-    return streamChatbase(crmContext, conversation, trimmed, conversationId);
+    return streamChatbase(crmContext, conversation, trimmed, conversationId, pageContext);
   } else {
-    return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey);
+    return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext);
   }
 }
 
@@ -63,10 +108,12 @@ async function streamChatbase(
   conversation: { messages: { role: string; content: string }[] },
   trimmed: string,
   conversationId: string,
+  pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
 ) {
+  const contextWithExtras = `[CONTEXTO CRM ACTUALIZADO]\n\n${crmContext}${buildPageContextSection(pageContext)}\n\n${ACTION_CARDS_PROMPT}\n\n[FIN CONTEXTO]`;
   const history = [
-    { role: "user", content: `[CONTEXTO CRM ACTUALIZADO]\n\n${crmContext}\n\n[FIN CONTEXTO]` },
-    { role: "assistant", content: "Entendido. Tengo acceso a los datos actuales del CRM y los usaré para responder tus preguntas." },
+    { role: "user", content: contextWithExtras },
+    { role: "assistant", content: "Entendido. Tengo acceso a los datos del CRM y puedo proponer acciones CRM usando bloques action." },
     ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: trimmed },
   ];
@@ -166,6 +213,7 @@ async function streamOpenRouter(
   trimmed: string,
   conversationId: string,
   preferKey: "1" | "2",
+  pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
 ) {
   const primaryKey = process.env.OPENROUTER_API_KEY;
   const secondaryKey = process.env.OPENROUTER_API_KEY_SECONDARY;
@@ -174,10 +222,10 @@ async function streamOpenRouter(
     return errorStream("Falta OPENROUTER_API_KEY en el servidor. Agrégala al .env.local y reinicia.");
   }
 
-  const sanitizedContext = crmContext
+  const sanitizedContext = (crmContext
     .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
     .replace(/•/g, "-")
-    .slice(0, 6000);
+    .slice(0, 6000)) + buildPageContextSection(pageContext) + "\n\n" + ACTION_CARDS_PROMPT;
 
   const messages = [
     { role: "system", content: sanitizedContext },
