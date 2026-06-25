@@ -18,6 +18,7 @@ model User {
   tasks         Task[]
   callMeBot     CallMeBot?
   activityLogs  ActivityLog[]
+  aiConversations AiConversation[]
 }
 
 model CallMeBot {
@@ -66,6 +67,7 @@ model Organization {
   notifications         Notification[]
   googleCalendar        GoogleCalendarToken?
   kbPages               KbPage[]
+  aiConversations       AiConversation[]
 }
 
 enum Role {
@@ -977,4 +979,32 @@ model KbPageRelation {
 
   @@unique([pageId, entityType, entityId])
   @@index([pageId])
+}
+
+model AiConversation {
+  id             String       @id @default(cuid())
+  title          String       @default("Nueva conversación")
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages       AiMessage[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([updatedAt])
+}
+
+model AiMessage {
+  id             String          @id @default(cuid())
+  conversationId String
+  conversation   AiConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String
+  content        String          @db.Text
+  createdAt      DateTime        @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
 }
