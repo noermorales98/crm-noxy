@@ -20,6 +20,7 @@ import {
   Building04Icon,
   SourceCodeIcon,
   Clock01Icon,
+  SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -113,6 +114,11 @@ function EmailsPageInner() {
   const contactInputRef = useRef<HTMLInputElement>(null);
   const contactDropdownRef = useRef<HTMLDivElement>(null);
   const [showImapModal, setShowImapModal] = useState(false);
+  const [showAiDraft, setShowAiDraft] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiTone, setAiTone] = useState<"formal" | "casual" | "friendly">("formal");
+  const [aiResult, setAiResult] = useState<{ subject: string; body: string } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [imapForm, setImapForm] = useState({
     imapHost: "",
     imapPort: "993",
@@ -485,6 +491,29 @@ function EmailsPageInner() {
     }
   };
 
+  const handleAiDraft = async () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiResult(null);
+    try {
+      const res = await fetch("/api/ai/draft-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt, recipientEmail: composeData.to || undefined, tone: aiTone }),
+      });
+      const data = await res.json() as { subject?: string; body?: string; error?: string };
+      if (!res.ok || !data.subject) {
+        addToast(data.error ?? "Error al generar el borrador", "error");
+        return;
+      }
+      setAiResult({ subject: data.subject, body: data.body ?? "" });
+    } catch {
+      addToast("Error de conexión al generar el borrador", "error");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
   const unread = emails.filter((e) => !e.isRead && e.type === "RECEIVED").length;
   const lastSyncLabel = formatLastEmailSync(lastSyncedAt);
@@ -754,15 +783,110 @@ function EmailsPageInner() {
                 <HugeiconsIcon icon={PencilEdit01Icon} size={15} color="#9ca3af" />
                 Nuevo correo
               </h3>
-              <button
-                onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
-                className="text-text-secondary hover:text-text-secondary p-1 rounded-lg hover:bg-nav-hover transition-colors"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={16} />
-              </button>
+              {/* Right side: AI button + close */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowAiDraft((v) => !v); setAiResult(null); }}
+                  className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
+                    showAiDraft
+                      ? "bg-[#EEF2FF] text-[#6366F1] font-medium"
+                      : "text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+                  }`}
+                >
+                  <HugeiconsIcon icon={SparklesIcon} size={13} color={showAiDraft ? "#6366F1" : undefined} />
+                  Redactar con IA
+                </button>
+                <button
+                  onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
+                  className="text-text-secondary hover:text-text-secondary p-1 rounded-lg hover:bg-nav-hover transition-colors"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSend} className="flex-1 overflow-y-auto flex flex-col">
+              {/* AI Draft Panel */}
+              {showAiDraft && (
+                <div className="px-5 py-4 border-b border-border-subtle bg-[#F5F3FF]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <HugeiconsIcon icon={SparklesIcon} size={14} color="#6366F1" />
+                    <span className="text-xs font-semibold text-[#6366F1]">Redactar con IA</span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    placeholder="Describe lo que quieres comunicar... (ej: seguimiento a propuesta enviada la semana pasada)"
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    className="w-full text-sm border border-[#DDD6FE] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#6366F1] resize-none text-text-primary placeholder-gray-300"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-1">
+                      {(["formal", "casual", "friendly"] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setAiTone(t)}
+                          className={`text-xs px-2.5 py-1 rounded-md transition-colors capitalize ${
+                            aiTone === t
+                              ? "bg-[#6366F1] text-white"
+                              : "text-text-secondary hover:bg-surface-elevated"
+                          }`}
+                        >
+                          {t === "formal" ? "Formal" : t === "casual" ? "Casual" : "Amigable"}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAiDraft}
+                      disabled={!aiPrompt.trim() || aiLoading}
+                      className="flex items-center gap-1.5 text-xs bg-[#6366F1] text-white px-3 py-1.5 rounded-lg hover:bg-[#4F46E5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {aiLoading ? (
+                        <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <HugeiconsIcon icon={SparklesIcon} size={12} color="white" />
+                      )}
+                      {aiLoading ? "Generando..." : "Generar"}
+                    </button>
+                  </div>
+                  {/* Result */}
+                  {aiResult && (
+                    <div className="mt-3 border border-[#DDD6FE] rounded-lg bg-white overflow-hidden">
+                      <div className="px-3 py-2 border-b border-[#EDE9FE]">
+                        <p className="text-xs text-text-secondary">Asunto: <span className="text-text-primary font-medium">{aiResult.subject}</span></p>
+                      </div>
+                      <div className="px-3 py-2 max-h-28 overflow-y-auto">
+                        <div className="text-xs text-text-secondary" dangerouslySetInnerHTML={{ __html: aiResult.body }} />
+                      </div>
+                      <div className="px-3 py-2 border-t border-[#EDE9FE] flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setComposeData((p) => ({ ...p, subject: aiResult.subject, bodyHtml: aiResult.body }));
+                            setShowAiDraft(false);
+                            setAiResult(null);
+                            setAiPrompt("");
+                          }}
+                          className="text-xs bg-[#6366F1] text-white px-3 py-1.5 rounded-md hover:bg-[#4F46E5] transition-colors"
+                        >
+                          Insertar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleAiDraft}
+                          disabled={aiLoading}
+                          className="text-xs text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-md hover:bg-surface-elevated transition-colors"
+                        >
+                          Regenerar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex flex-col divide-y divide-gray-100 px-5">
                 {/* Company selector */}
                 <div className="py-3 flex items-center gap-3">
