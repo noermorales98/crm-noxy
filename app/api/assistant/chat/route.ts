@@ -11,7 +11,12 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "No organization context" }), { status: 400 });
   }
 
-  const { conversationId, content } = await req.json() as { conversationId: string; content: string };
+  let conversationId: string, content: string;
+  try {
+    ({ conversationId, content } = await req.json() as { conversationId: string; content: string });
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+  }
   if (!conversationId || !content?.trim()) {
     return new Response(JSON.stringify({ error: "Missing conversationId or content" }), { status: 400 });
   }
@@ -78,14 +83,18 @@ export async function POST(req: Request) {
         }
       } finally {
         controller.close();
-        if (fullResponse.trim()) {
-          await prisma.aiMessage.create({
-            data: { conversationId, role: "assistant", content: fullResponse.trim() },
-          });
-          await prisma.aiConversation.update({
-            where: { id: conversationId },
-            data: { updatedAt: new Date() },
-          });
+        try {
+          if (fullResponse.trim()) {
+            await prisma.aiMessage.create({
+              data: { conversationId, role: "assistant", content: fullResponse.trim() },
+            });
+            await prisma.aiConversation.update({
+              where: { id: conversationId },
+              data: { updatedAt: new Date() },
+            });
+          }
+        } catch (err) {
+          console.error("[assistant/chat] Failed to save assistant message:", err);
         }
       }
     },
