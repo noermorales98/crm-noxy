@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
-import DashboardShell from "@/src/components/DashboardShell";
 import ChatView from "./_components/ChatView";
 
 export default async function AssistantConversationPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,9 +25,5 @@ export default async function AssistantConversationPage({ params }: { params: Pr
     createdAt: m.createdAt.toISOString(),
   }));
 
-  return (
-    <DashboardShell>
-      <ChatView conversationId={conversation.id} initialMessages={messages} />
-    </DashboardShell>
-  );
+  return <ChatView conversationId={conversation.id} initialMessages={messages} />;
 }
