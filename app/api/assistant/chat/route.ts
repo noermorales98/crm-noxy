@@ -1,9 +1,6 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -46,44 +43,52 @@ export async function POST(req: Request) {
     await prisma.aiConversation.update({ where: { id: conversationId }, data: { title } });
   }
 
-  // Build live CRM context for the system prompt
-  const systemPrompt = await buildCrmContext(session.user.id!, orgId);
+  // Build CRM context and inject as system message
+  const crmContext = await buildCrmContext(session.user.id!, orgId);
 
-  // Build message history (exclude system messages stored in DB)
-  const messages: Anthropic.MessageParam[] = [
-    ...conversation.messages.map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    })),
+  // Inject CRM context as a user/assistant exchange at the start
+  // (Chatbase does not support role:"system" — must use user/assistant pairs)
+  const history = [
+    { role: "user", content: `[CONTEXTO CRM ACTUALIZADO]\n\n${crmContext}\n\n[FIN CONTEXTO]` },
+    { role: "assistant", content: "Entendido. Tengo acceso a los datos actuales del CRM y los usaré para responder tus preguntas." },
+    ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: trimmed },
   ];
 
-  // Stream from Claude
-  const encoder = new TextEncoder();
+  // Call Chatbase with streaming
+  const chatbaseRes = await fetch("https://www.chatbase.co/api/v1/chat", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.CHATBASE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messages: history,
+      chatbotId: process.env.CHATBASE_BOT_ID,
+      stream: true,
+    }),
+  });
+
+  if (!chatbaseRes.ok || !chatbaseRes.body) {
+    return new Response(JSON.stringify({ error: "Chatbase error" }), { status: 502 });
+  }
+
+  // Forward stream to client, accumulate full response
   let fullResponse = "";
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
   const stream = new ReadableStream({
     async start(controller) {
+      const reader = chatbaseRes.body!.getReader();
       try {
-        const claudeStream = await anthropic.messages.stream({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages,
-        });
-
-        for await (const chunk of claudeStream) {
-          if (
-            chunk.type === "content_block_delta" &&
-            chunk.delta.type === "text_delta"
-          ) {
-            const text = chunk.delta.text;
-            fullResponse += text;
-            controller.enqueue(encoder.encode(text));
-          }
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          fullResponse += chunk;
+          controller.enqueue(encoder.encode(chunk));
         }
-      } catch (err) {
-        console.error("[assistant/chat] Claude stream error:", err);
       } finally {
         controller.close();
         try {
