@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { buildCrmContext } from "@/src/lib/ai-context";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -42,8 +43,12 @@ export async function POST(req: Request) {
     await prisma.aiConversation.update({ where: { id: conversationId }, data: { title } });
   }
 
-  // Build history for Chatbase (include new user message)
+  // Build CRM context and inject as system message
+  const crmContext = await buildCrmContext(session.user.id!, orgId);
+
+  // Build history for Chatbase (system context + conversation + new user message)
   const history = [
+    { role: "system", content: crmContext },
     ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: trimmed },
   ];
