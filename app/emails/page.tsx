@@ -25,6 +25,7 @@ import {
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
+import { useAi } from "@/src/hooks/useAi";
 
 function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
   if (!address) return fallback;
@@ -134,6 +135,12 @@ function EmailsPageInner() {
   });
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configCompanyId, setConfigCompanyId] = useState<string | null>(null);
+
+  const { setPageContext } = useAi();
+  useEffect(() => {
+    setPageContext({ page: "email", label: "Vista de emails" });
+    return () => setPageContext(null);
+  }, []);
 
   const fetchCompanies = useCallback(async () => {
     try {

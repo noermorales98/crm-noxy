@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
+import { useAi } from "@/src/hooks/useAi";
 import KbEditor from "@/src/components/kb/KbEditor";
 import type { KbTreeNodeDto } from "@/src/components/kb/KbFolderView";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
@@ -74,6 +75,13 @@ export default function KbPageEditor() {
   }, [id]);
 
   useEffect(() => { fetchPage(); }, [fetchPage]);
+
+  const { setPageContext } = useAi();
+  useEffect(() => {
+    if (!page) return;
+    setPageContext({ page: "kb", id: page.id, label: page.title, data: { isFolder: page.isFolder, isPublished: page.isPublished } });
+    return () => setPageContext(null);
+  }, [page?.id, page?.title]);
 
   const handleAiAction = async (action: "summarize" | "improve" | "continue") => {
     if (!page?.content?.trim()) {

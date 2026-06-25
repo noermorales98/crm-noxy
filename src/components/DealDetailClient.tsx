@@ -27,6 +27,7 @@ import {
 import DownloadProposalButton from "./DownloadProposalButton";
 import DatePicker from "./DatePicker";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { useAi } from "@/src/hooks/useAi";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -235,6 +236,23 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
       setSelectedLinkTypes(appointmentTypes.map((t) => t.id));
     }
   }, [deal.allowedBookingTypes, appointmentTypes]);
+
+  const { setPageContext } = useAi();
+  useEffect(() => {
+    setPageContext({
+      page: "deal",
+      id: deal.id,
+      label: deal.title,
+      data: {
+        value: deal.value,
+        currency: deal.currency,
+        stage: deal.stage?.name,
+        pipeline: deal.stage?.pipeline?.name,
+        contact: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName ?? ""}`.trim() : undefined,
+      },
+    });
+    return () => setPageContext(null);
+  }, [deal.id, deal.title]);
 
   // ─── API helpers ─────────────────────────────────────────────────────────
 

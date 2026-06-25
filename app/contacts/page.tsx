@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
+import { useAi } from "@/src/hooks/useAi";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete01Icon, PencilEdit01Icon, Cancel01Icon, UserMultipleIcon, GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
@@ -60,6 +61,12 @@ function ContactsContent() {
   }, []);
 
   useEffect(() => { fetchContacts(); fetchCompanies(); }, []);
+
+  const { setPageContext } = useAi();
+  useEffect(() => {
+    setPageContext({ page: "contacts", label: "Lista de contactos", data: { count: contacts.length } });
+    return () => setPageContext(null);
+  }, [contacts.length]);
 
   const fetchContacts = async () => {
     try {
