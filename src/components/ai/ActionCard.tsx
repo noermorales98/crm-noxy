@@ -168,12 +168,14 @@ function FormFields({
   onChange,
   companies,
   availabilities,
+  stages,
 }: {
   action: ActionCardData;
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
   companies: { id: string; name: string }[];
   availabilities: { id: string; name: string }[];
+  stages: { id: string; name: string; pipelineName: string }[];
 }) {
   switch (action.type) {
     case "create_contact":
@@ -192,12 +194,33 @@ function FormFields({
       );
 
     case "create_deal":
-    case "edit_deal":
       return (
         <div className="flex flex-col gap-2 mt-3">
           <input className={inputClass} placeholder="Título *" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
           <input className={inputClass} placeholder="Valor" type="number" value={formData.value ?? ""} onChange={(e) => onChange("value", e.target.value)} />
-          <input className={inputClass} placeholder="ID de etapa" value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)} />
+          <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
+            <option value="">Seleccionar etapa</option>
+            {stages.map((s) => (
+              <option key={s.id} value={s.id}>{s.pipelineName} → {s.name}</option>
+            ))}
+          </select>
+        </div>
+      );
+
+    case "edit_deal":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          {formData.title && (
+            <p className="text-xs text-text-secondary">Deal: <span className="font-medium text-text-primary">{formData.title}</span></p>
+          )}
+          <input className={inputClass} placeholder="Nuevo título" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          <input className={inputClass} placeholder="Valor" type="number" value={formData.value ?? ""} onChange={(e) => onChange("value", e.target.value)} />
+          <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
+            <option value="">Seleccionar etapa</option>
+            {stages.map((s) => (
+              <option key={s.id} value={s.id}>{s.pipelineName} → {s.name}</option>
+            ))}
+          </select>
         </div>
       );
 
@@ -307,6 +330,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
+  const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string }[]>([]);
   const router = useRouter();
 
   const markDone = (msg: string) => {
@@ -329,6 +353,24 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           if (!prev.companyId) return prev;
           return list.some((c) => c.id === prev.companyId) ? prev : { ...prev, companyId: "" };
         });
+      })
+      .catch(() => {});
+  }, [action.type]);
+
+  // Load pipeline stages for deal forms
+  useEffect(() => {
+    if (action.type !== "create_deal" && action.type !== "edit_deal") return;
+    fetch("/api/pipelines")
+      .then((r) => r.json())
+      .then((data: unknown) => {
+        if (!Array.isArray(data)) return;
+        const flat: { id: string; name: string; pipelineName: string }[] = [];
+        for (const p of data as { name: string; stages?: { id: string; name: string }[] }[]) {
+          for (const s of p.stages ?? []) {
+            flat.push({ id: s.id, name: s.name, pipelineName: p.name });
+          }
+        }
+        setStages(flat);
       })
       .catch(() => {});
   }, [action.type]);
@@ -587,6 +629,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               onChange={handleFieldChange}
               companies={companies}
               availabilities={availabilities}
+              stages={stages}
             />
           )}
 

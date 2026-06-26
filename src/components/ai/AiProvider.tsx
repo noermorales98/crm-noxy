@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { AiFloatingBubble } from './AiFloatingBubble';
+import { createContext, useState, useEffect } from 'react';
 
 export type PageContext = {
   page: string;
@@ -67,7 +66,6 @@ export function AiProvider({ children }: { children: React.ReactNode }) {
   return (
     <AiContext.Provider value={value}>
       {children}
-      <AiFloatingBubble />
     </AiContext.Provider>
   );
 }
