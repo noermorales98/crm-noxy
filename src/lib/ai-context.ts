@@ -19,6 +19,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     totalCompanies,
     recentCompanies,
     activeDeals,
+    pipelines,
     pendingTasks,
     overdueTasks,
     todayTasks,
@@ -32,7 +33,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       orderBy: { createdAt: "desc" },
       take: 15,
       select: {
-        firstName: true, lastName: true, email: true, phone: true,
+        id: true, firstName: true, lastName: true, email: true, phone: true,
         createdAt: true, source: true,
         company: { select: { name: true } },
       },
@@ -42,17 +43,24 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       where: { organizationId: orgId },
       orderBy: { createdAt: "desc" },
       take: 10,
-      select: { name: true, industry: true, website: true, createdAt: true },
+      select: { id: true, name: true, industry: true, website: true, createdAt: true },
     }),
     prisma.deal.findMany({
       where: { organizationId: orgId },
       orderBy: { createdAt: "desc" },
       take: 20,
       select: {
-        title: true, value: true, currency: true, createdAt: true, followUpAt: true, notes: true,
-        stage: { select: { name: true, isWon: true, isLost: true } },
+        id: true, title: true, value: true, currency: true, createdAt: true, followUpAt: true, notes: true,
+        stage: { select: { id: true, name: true, isWon: true, isLost: true } },
         contact: { select: { firstName: true, lastName: true, email: true } },
         company: { select: { name: true } },
+      },
+    }),
+    prisma.pipeline.findMany({
+      where: { organizationId: orgId },
+      select: {
+        id: true, name: true,
+        stages: { select: { id: true, name: true, order: true }, orderBy: { order: "asc" } },
       },
     }),
     prisma.task.count({
@@ -72,7 +80,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       },
       take: 10,
       select: {
-        title: true, dueDate: true,
+        id: true, title: true, dueDate: true,
         contact: { select: { firstName: true, lastName: true } },
         deal: { select: { title: true } },
       },
@@ -82,7 +90,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       orderBy: { startTime: "asc" },
       take: 5,
       select: {
-        startTime: true, endTime: true, status: true,
+        id: true, startTime: true, endTime: true, status: true,
         appointmentType: { select: { name: true } },
         contact: { select: { firstName: true, lastName: true, email: true } },
       },
@@ -110,9 +118,9 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     `• Nuevos esta semana (desde ${fmt(startOfWeek)}): ${newContactsWeek}`,
     `• Nuevos este mes: ${newContactsMonth}`,
     ``,
-    `Últimos ${recentContacts.length} contactos:`,
+    `Últimos ${recentContacts.length} contactos (con id para acciones):`,
     ...recentContacts.map(c =>
-      `  - ${c.firstName} ${c.lastName ?? ""} | ${c.email ?? "sin email"} | ${c.company?.name ?? "sin empresa"} | agregado ${fmt(c.createdAt)}${c.source ? ` | fuente: ${c.source}` : ""}`
+      `  - [id:${c.id}] ${c.firstName} ${c.lastName ?? ""} | ${c.email ?? "sin email"} | ${c.company?.name ?? "sin empresa"} | agregado ${fmt(c.createdAt)}${c.source ? ` | fuente: ${c.source}` : ""}`
     ),
     ``,
     `═══════════════════════════════════════`,
@@ -132,14 +140,20 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     `• Ganados: ${wonDeals.length} | Perdidos: ${lostDeals.length}`,
     `• Seguimientos vencidos: ${overdueFollowUps.length}`,
     ``,
-    `Deals recientes (${activeDeals.length}):`,
+    `Deals recientes (con id y stageId para acciones):`,
     ...activeDeals.map(d => {
       const contact = d.contact ? `${d.contact.firstName} ${d.contact.lastName ?? ""}`.trim() : "sin contacto";
       const co = d.company?.name ?? "";
       const followUp = d.followUpAt ? ` | seguimiento: ${fmt(d.followUpAt)}` : "";
       const status = d.stage.isWon ? "GANADO" : d.stage.isLost ? "PERDIDO" : d.stage.name;
-      return `  - "${d.title}" | $${(d.value || 0).toLocaleString()} ${d.currency} | etapa: ${status} | ${contact}${co ? ` / ${co}` : ""}${followUp}`;
+      return `  - [id:${d.id}] "${d.title}" | $${(d.value || 0).toLocaleString()} ${d.currency} | etapa: ${status} [stageId:${d.stage.id}] | ${contact}${co ? ` / ${co}` : ""}${followUp}`;
     }),
+    ``,
+    `Etapas disponibles por pipeline (usa stageId al mover un deal):`,
+    ...pipelines.map(p =>
+      `  Pipeline "${p.name}" [id:${p.id}]:\n` +
+      p.stages.map(s => `    - "${s.name}" [stageId:${s.id}]`).join("\n")
+    ),
     ``,
     `═══════════════════════════════════════`,
     `TAREAS`,
@@ -148,7 +162,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     `• Tareas para hoy (${fmt(now)}): ${todayTasks.length}`,
     ...todayTasks.map(t => {
       const who = t.contact ? `${t.contact.firstName} ${t.contact.lastName ?? ""}`.trim() : "";
-      return `  - "${t.title}"${who ? ` → ${who}` : ""}${t.deal ? ` (deal: ${t.deal.title})` : ""}`;
+      return `  - [id:${t.id}] "${t.title}"${who ? ` → ${who}` : ""}${t.deal ? ` (deal: ${t.deal.title})` : ""}`;
     }),
     ``,
     `═══════════════════════════════════════`,
@@ -158,14 +172,15 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       ? `• Sin citas próximas`
       : upcomingAppointments.map(a => {
           const who = a.contact ? `${a.contact.firstName} ${a.contact.lastName ?? ""}`.trim() : "sin contacto";
-          return `  - ${fmtDt(a.startTime)} | ${a.appointmentType?.name ?? "Cita"} | ${who} | ${a.status}`;
+          return `  - [id:${a.id}] ${fmtDt(a.startTime)} | ${a.appointmentType?.name ?? "Cita"} | ${who} | ${a.status}`;
         }).join("\n"),
     ``,
     `═══════════════════════════════════════`,
     `INSTRUCCIONES`,
     `═══════════════════════════════════════`,
     `Usa los datos anteriores para responder preguntas específicas.`,
-    `Si el usuario pide crear, modificar o eliminar registros, dile que eso aún no está disponible directamente desde el chat — debe hacerlo desde la sección correspondiente del CRM.`,
+    `Cuando el usuario pida crear, modificar o eliminar registros, usa los bloques \`action\` con los IDs reales del contexto anterior.`,
+    `Los IDs aparecen entre corchetes: [id:...] y [stageId:...]. Úsalos directamente en el JSON del action.`,
     `Responde siempre en español, de forma concisa y útil.`,
   ];
 
