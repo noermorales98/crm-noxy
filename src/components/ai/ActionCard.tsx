@@ -335,25 +335,32 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const cancelKey = `${storageKey}_cancelled`;
   const isPermanent = PERMANENT_TYPES.includes(action.type);
 
-  const alreadyDone = typeof window !== "undefined" && (
-    isPermanent
-      ? localStorage.getItem(storageKey) === "done"
-      : sessionStorage.getItem(storageKey) === "done"
-  );
-  const alreadyCancelled =
-    typeof window !== "undefined" && sessionStorage.getItem(cancelKey) === "yes";
-
-  const [status, setStatus] = useState<CardStatus>(alreadyDone ? "success" : "pending");
+  // Always start in neutral state — SSR and client must agree on initial render.
+  // Restore persisted state in useEffect (client-only) to avoid hydration mismatch.
+  const [status, setStatus] = useState<CardStatus>("pending");
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMessage, setSuccessMessage] = useState(
-    alreadyDone ? getSuccessMessage(action.type) : ""
-  );
-  const [cancelled, setCancelled] = useState(alreadyCancelled);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [cancelled, setCancelled] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
   const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string }[]>([]);
   const router = useRouter();
+
+  // Restore done/cancelled state after mount (storage is client-only)
+  useEffect(() => {
+    const done = isPermanent
+      ? localStorage.getItem(storageKey) === "done"
+      : sessionStorage.getItem(storageKey) === "done";
+    if (done) {
+      setSuccessMessage(getSuccessMessage(action.type));
+      setStatus("success");
+      return;
+    }
+    if (sessionStorage.getItem(cancelKey) === "yes") {
+      setCancelled(true);
+    }
+  }, []);
 
   const markDone = (msg: string) => {
     if (isPermanent) {
