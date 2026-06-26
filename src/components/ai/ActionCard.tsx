@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserAddIcon,
@@ -331,7 +331,10 @@ function FormFields({
 }
 
 export function ActionCard({ action }: { action: ActionCardData }) {
-  const storageKey = getActionStorageKey(action);
+  const params = useParams();
+  // Scope keys to the current conversation so a new chat always starts fresh.
+  const convId = (params?.id as string | undefined) ?? "global";
+  const storageKey = `${getActionStorageKey(action)}_${convId}`;
   const cancelKey = `${storageKey}_cancelled`;
   const isPermanent = PERMANENT_TYPES.includes(action.type);
 
