@@ -207,22 +207,32 @@ function FormFields({
         </div>
       );
 
-    case "edit_deal":
+    case "edit_deal": {
+      const p = action.prefill ?? {};
       return (
         <div className="flex flex-col gap-2 mt-3">
           {formData.title && (
-            <p className="text-xs text-text-secondary">Deal: <span className="font-medium text-text-primary">{formData.title}</span></p>
+            <p className="text-xs text-text-secondary">
+              Deal: <span className="font-medium text-text-primary">{formData.title}</span>
+            </p>
           )}
-          <input className={inputClass} placeholder="Nuevo título" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
-          <input className={inputClass} placeholder="Valor" type="number" value={formData.value ?? ""} onChange={(e) => onChange("value", e.target.value)} />
-          <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
-            <option value="">Seleccionar etapa</option>
-            {stages.map((s) => (
-              <option key={s.id} value={s.id}>{s.pipelineName} → {s.name}</option>
-            ))}
-          </select>
+          {"title" in p && (
+            <input className={inputClass} placeholder="Nuevo título" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          )}
+          {"value" in p && (
+            <input className={inputClass} placeholder="Valor" type="number" value={formData.value ?? ""} onChange={(e) => onChange("value", e.target.value)} />
+          )}
+          {"stageId" in p && (
+            <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
+              <option value="">Seleccionar etapa</option>
+              {stages.map((s) => (
+                <option key={s.id} value={s.id}>{s.pipelineName} → {s.name}</option>
+              ))}
+            </select>
+          )}
         </div>
       );
+    }
 
     case "create_task":
       return (
