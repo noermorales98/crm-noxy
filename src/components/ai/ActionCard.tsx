@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -81,10 +81,12 @@ function FormFields({
   action,
   formData,
   onChange,
+  companies,
 }: {
   action: ActionCardData;
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  companies: { id: string; name: string }[];
 }) {
   switch (action.type) {
     case "create_contact":
@@ -117,6 +119,16 @@ function FormFields({
             value={formData.phone ?? ""}
             onChange={(e) => onChange("phone", e.target.value)}
           />
+          <select
+            className={`${inputClass} text-text-primary`}
+            value={formData.companyId ?? ""}
+            onChange={(e) => onChange("companyId", e.target.value)}
+          >
+            <option value="">Sin empresa</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
         </div>
       );
 
@@ -208,7 +220,27 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [successMessage, setSuccessMessage] = useState("");
   const [cancelled, setCancelled] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    if (action.type === "create_contact" || action.type === "edit_contact") {
+      fetch("/api/companies")
+        .then((r) => r.json())
+        .then((data: unknown) => {
+          if (!Array.isArray(data)) return;
+          const list = data as { id: string; name: string }[];
+          setCompanies(list);
+          // Clear prefilled companyId if it doesn't exist in this org
+          setFormData((prev) => {
+            if (!prev.companyId) return prev;
+            const valid = list.some((c) => c.id === prev.companyId);
+            return valid ? prev : { ...prev, companyId: "" };
+          });
+        })
+        .catch(() => {});
+    }
+  }, [action.type]);
 
   const config = typeConfig[action.type];
   const cardTitle =
@@ -413,6 +445,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               action={action}
               formData={formData}
               onChange={handleFieldChange}
+              companies={companies}
             />
           )}
 
