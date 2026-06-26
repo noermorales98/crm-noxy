@@ -48,6 +48,11 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   query_result:   { icon: AiBrainIcon, color: "#6366F1", title: "Resultados" },
 };
 
+function getActionStorageKey(action: ActionCardData): string {
+  const id = "id" in action ? (action as { id: string }).id : JSON.stringify(action);
+  return `ai_card_done_${action.type}_${id}`;
+}
+
 function getPrefill(action: ActionCardData): Record<string, string> {
   if (action.type === "delete_contact" || action.type === "complete_task" || action.type === "query_result") {
     return {};
@@ -215,13 +220,25 @@ function FormFields({
 }
 
 export function ActionCard({ action }: { action: ActionCardData }) {
-  const [status, setStatus] = useState<CardStatus>("pending");
+  const storageKey = getActionStorageKey(action);
+  const alreadyDone =
+    typeof window !== "undefined" && localStorage.getItem(storageKey) === "done";
+
+  const [status, setStatus] = useState<CardStatus>(alreadyDone ? "success" : "pending");
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(
+    alreadyDone ? getSuccessMessage(action.type) : ""
+  );
   const [cancelled, setCancelled] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const router = useRouter();
+
+  const markDone = (msg: string) => {
+    localStorage.setItem(storageKey, "done");
+    setSuccessMessage(msg);
+    setStatus("success");
+  };
 
   useEffect(() => {
     if (action.type === "create_contact" || action.type === "edit_contact") {
@@ -263,8 +280,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify(formData),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al crear contacto");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "edit_contact": {
@@ -274,15 +290,13 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify({ id: action.id, ...formData }),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al actualizar contacto");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "delete_contact": {
           const res = await fetch(`/api/contacts/${action.id}`, { method: "DELETE" });
           if (!res.ok) throw new Error("Error al eliminar contacto");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "create_deal": {
@@ -292,8 +306,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify(formData),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al crear deal");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "edit_deal": {
@@ -303,8 +316,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify({ id: action.id, ...formData }),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al actualizar deal");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "create_task": {
@@ -314,8 +326,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify(formData),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al crear tarea");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "complete_task": {
@@ -325,8 +336,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
             body: JSON.stringify({ id: action.id, isCompleted: true }),
           });
           if (!res.ok) throw new Error("Error al completar tarea");
-          setSuccessMessage(getSuccessMessage(action.type));
-          setStatus("success");
+          markDone(getSuccessMessage(action.type));
           break;
         }
         case "draft_email": {
