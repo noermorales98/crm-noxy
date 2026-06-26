@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import { AiFloatingBubble } from './AiFloatingBubble';
 
 export type PageContext = {
   page: string;
@@ -66,6 +68,17 @@ export function AiProvider({ children }: { children: React.ReactNode }) {
   return (
     <AiContext.Provider value={value}>
       {children}
+      <ConditionalBubble />
     </AiContext.Provider>
   );
+}
+
+function ConditionalBubble() {
+  const pathname = usePathname();
+  const show =
+    pathname === "/" ||
+    pathname.startsWith("/emails") ||
+    pathname.startsWith("/kb");
+  if (!show) return null;
+  return <AiFloatingBubble />;
 }

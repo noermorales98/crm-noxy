@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, forwardRef, useImperativeHandle } from "react";
+
+export type KbEditorHandle = {
+  insertAtEnd: (text: string) => void;
+  setContent: (text: string) => void;
+};
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
@@ -151,12 +156,12 @@ type ViewMode = "edit" | "preview";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function KbEditor({
+const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   pageId, initialTitle, initialEmoji, initialIconColor, initialIconBg,
   initialContent, initialPublished, initialMarkdownTheme, initialRelations, ancestors,
   isFolder = false, folderStats, folderChildren = [], folderTree = [],
   onFolderRefresh,
-}: KbEditorProps) {
+}, ref) {
   const kb = useOptionalKbContext();
   const { addToast } = useToast();
   const [pendingSuggestions, setPendingSuggestions] = useState(0);
@@ -182,6 +187,20 @@ export default function KbEditor({
   const proseContainerRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextAutoSave = useRef(true);
+
+  useImperativeHandle(ref, () => ({
+    insertAtEnd(text: string) {
+      setContent((prev) => {
+        const newContent = prev ? `${prev}\n\n${text}` : text;
+        return newContent;
+      });
+      if (mode === "preview") setMode("edit");
+    },
+    setContent(text: string) {
+      setContent(text);
+      if (mode === "preview") setMode("edit");
+    },
+  }), [mode]);
 
   type SavePayload = {
     title: string;
@@ -565,4 +584,6 @@ export default function KbEditor({
       </div>
     </div>
   );
-}
+});
+
+export default KbEditor;
