@@ -158,7 +158,7 @@ function EmailsPageInner() {
     fetchCompanies();
   }, [fetchCompanies]);
 
-  // Deep link: /emails?box=sent&company=...
+  // Deep link: /emails?box=sent&company=... or /emails?compose=true&to=...&subject=...&body=...
   const urlInitialized = useRef(false);
   useEffect(() => {
     if (urlInitialized.current) return;
@@ -170,6 +170,14 @@ function EmailsPageInner() {
     }
     if (company) {
       emailCtx.setSelectedCompanyId(company);
+    }
+    if (searchParams.get("compose") === "true") {
+      const to = searchParams.get("to") ?? "";
+      const subject = searchParams.get("subject") ?? "";
+      const body = searchParams.get("body") ?? "";
+      setComposeData((p) => ({ ...p, to, subject, bodyHtml: body }));
+      setIsComposing(true);
+      loadContacts();
     }
   }, [searchParams, emailCtx.setFolder, emailCtx.setSelectedCompanyId]);
 
@@ -866,7 +874,7 @@ function EmailsPageInner() {
                         <p className="text-xs text-text-secondary">Asunto: <span className="text-text-primary font-medium">{aiResult.subject}</span></p>
                       </div>
                       <div className="px-3 py-2 max-h-28 overflow-y-auto">
-                        <div className="text-xs text-text-secondary" dangerouslySetInnerHTML={{ __html: aiResult.body }} />
+                        <p className="text-xs text-text-secondary whitespace-pre-wrap">{aiResult.body.replace(/<[^>]*>/g, "")}</p>
                       </div>
                       <div className="px-3 py-2 border-t border-[#EDE9FE] flex gap-2">
                         <button

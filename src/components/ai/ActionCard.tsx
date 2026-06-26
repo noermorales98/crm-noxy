@@ -236,10 +236,10 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           break;
         }
         case "edit_contact": {
-          const res = await fetch(`/api/contacts/${action.id}`, {
-            method: "PATCH",
+          const res = await fetch("/api/contacts", {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({ id: action.id, ...formData }),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al actualizar contacto");
           setSuccessMessage(getSuccessMessage(action.type));
@@ -265,10 +265,10 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           break;
         }
         case "edit_deal": {
-          const res = await fetch(`/api/deals/${action.id}`, {
+          const res = await fetch("/api/deals", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({ id: action.id, ...formData }),
           });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al actualizar deal");
           setSuccessMessage(getSuccessMessage(action.type));
@@ -287,10 +287,10 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           break;
         }
         case "complete_task": {
-          const res = await fetch(`/api/tasks/${action.id}`, {
+          const res = await fetch("/api/tasks", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ isCompleted: true }),
+            body: JSON.stringify({ id: action.id, isCompleted: true }),
           });
           if (!res.ok) throw new Error("Error al completar tarea");
           setSuccessMessage(getSuccessMessage(action.type));
