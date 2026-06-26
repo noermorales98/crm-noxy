@@ -7,16 +7,46 @@ const ACTION_CARDS_PROMPT = `
 Puedes proponer acciones CRM usando bloques de código con lenguaje \`action\`.
 El usuario verá un formulario interactivo y DEBERÁ confirmar antes de que se ejecute.
 
-Acciones disponibles y sus campos:
+Acciones disponibles:
+
+CONTACTOS:
 - create_contact: prefill: firstName, lastName, email, phone, companyId
-- edit_contact: requiere id + prefill (mismos campos)
-- delete_contact: requiere id + name (nombre del contacto para confirmar)
+- edit_contact: id + prefill: firstName, lastName, email, phone, companyId
+- delete_contact: id + name
+
+DEALS/VENTAS:
 - create_deal: prefill: title (requerido), value, stageId, contactId
-- edit_deal: requiere id + prefill: title, value, stageId
+- edit_deal: id + prefill: title, value, stageId
+- delete_deal: id + title
+
+TAREAS:
 - create_task: prefill: title (requerido), dueDate, description
-- complete_task: requiere id + title (título de la tarea para confirmar)
+- complete_task: id + title
+
+EMAIL:
 - draft_email: prefill: to, subject, body
-- query_result: columns (array), rows (array de arrays) — para mostrar datos en tabla
+
+CITAS (appointments):
+- update_appointment: id + title + prefill: status (confirmed|completed|cancelled|no_show|scheduled)
+- delete_appointment: id + title
+
+DISPONIBILIDAD (availability/schedules):
+- create_availability: prefill: name (requerido), timezone (requerido, ej: America/Mexico_City)
+- edit_availability: id + prefill: name, timezone
+- delete_availability: id + name
+
+TIPOS DE CITA (appointment-types):
+- create_appointment_type: prefill: name (requerido), slug (requerido), duration en minutos (requerido), scheduleId (requerido), description, color
+- edit_appointment_type: id + prefill: name, slug, duration, description, color, isActive (true|false)
+- delete_appointment_type: id + name
+
+FORMULARIOS (forms):
+- create_form: prefill: name (requerido), companyId (requerido), description
+- edit_form: id + prefill: name, description, isActive (true|false)
+- delete_form: id + name
+
+CONSULTAS:
+- query_result: title, columns (array de strings), rows (array de arrays) — para mostrar datos en tabla
 
 Ejemplo de formato:
 \`\`\`action
@@ -26,8 +56,9 @@ Ejemplo de formato:
 Reglas:
 1. SIEMPRE escribe texto explicativo ANTES del bloque action
 2. Usa query_result para mostrar listas de datos consultados en tablas
-3. Solo propone una acción a la vez
-4. Para delete_* incluye el id y name/title del elemento a eliminar
+3. Solo propone UNA acción a la vez
+4. Para delete_* y complete_task incluye el id y name/title del elemento
+5. Para los IDs usa los IDs reales del contexto CRM cuando los tengas disponibles
 `.trim();
 
 function buildPageContextSection(pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null): string {
