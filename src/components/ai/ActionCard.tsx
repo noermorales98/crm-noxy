@@ -332,19 +332,23 @@ function FormFields({
 
 export function ActionCard({ action }: { action: ActionCardData }) {
   const storageKey = getActionStorageKey(action);
+  const cancelKey = `${storageKey}_cancelled`;
   const isPermanent = PERMANENT_TYPES.includes(action.type);
+
   const alreadyDone = typeof window !== "undefined" && (
     isPermanent
       ? localStorage.getItem(storageKey) === "done"
       : sessionStorage.getItem(storageKey) === "done"
   );
+  const alreadyCancelled =
+    typeof window !== "undefined" && sessionStorage.getItem(cancelKey) === "yes";
 
   const [status, setStatus] = useState<CardStatus>(alreadyDone ? "success" : "pending");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMessage, setSuccessMessage] = useState(
     alreadyDone ? getSuccessMessage(action.type) : ""
   );
-  const [cancelled, setCancelled] = useState(false);
+  const [cancelled, setCancelled] = useState(alreadyCancelled);
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
@@ -379,10 +383,10 @@ export function ActionCard({ action }: { action: ActionCardData }) {
       .catch(() => {});
   }, [action.type]);
 
-  // Load pipeline stages for deal forms
+  // Load pipeline stages for deal forms — ?slim=true skips loading deals (fast)
   useEffect(() => {
     if (action.type !== "create_deal" && action.type !== "edit_deal") return;
-    fetch("/api/pipelines")
+    fetch("/api/pipelines?slim=true")
       .then((r) => r.json())
       .then((data: unknown) => {
         if (!Array.isArray(data)) return;
@@ -669,7 +673,10 @@ export function ActionCard({ action }: { action: ActionCardData }) {
                 {status === "loading" ? "Procesando..." : confirmLabel}
               </button>
               <button
-                onClick={() => setCancelled(true)}
+                onClick={() => {
+                  sessionStorage.setItem(cancelKey, "yes");
+                  setCancelled(true);
+                }}
                 disabled={status === "loading"}
                 className="text-text-secondary text-sm px-3 py-1.5 rounded-lg hover:bg-surface-elevated disabled:opacity-60 disabled:cursor-not-allowed"
               >

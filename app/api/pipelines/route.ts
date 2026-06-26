@@ -14,25 +14,30 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "No organization context" }, { status: 400 });
     }
 
+    const { searchParams } = new URL(req.url);
+    const slim = searchParams.get("slim") === "true";
+
     const pipelines = await prisma.pipeline.findMany({
-      where: {
-        organizationId: currentOrganizationId,
-      },
+      where: { organizationId: currentOrganizationId },
+      orderBy: { createdAt: "asc" },
       include: {
         stages: {
           orderBy: { order: "asc" },
-          include: {
-            deals: {
-              orderBy: { createdAt: "desc" },
-              include: {
-                company: { select: { name: true } },
-                contact: { select: { firstName: true, lastName: true } }
-              }
-            }
-          }
-        }
+          ...(slim
+            ? { select: { id: true, name: true, order: true } }
+            : {
+                include: {
+                  deals: {
+                    orderBy: { createdAt: "desc" },
+                    include: {
+                      company: { select: { name: true } },
+                      contact: { select: { firstName: true, lastName: true } },
+                    },
+                  },
+                },
+              }),
+        },
       },
-      orderBy: { createdAt: "asc" }
     });
 
     return NextResponse.json(pipelines);
