@@ -96,6 +96,14 @@ const CONFIRM_ONLY_TYPES: ActionCardData["type"][] = [
   "delete_appointment_type", "delete_form",
 ];
 
+// Only truly one-time operations are persisted in localStorage.
+// Edits and creates are repeatable and must NOT be persisted.
+const PERSIST_DONE_TYPES: ActionCardData["type"][] = [
+  "delete_contact", "delete_deal", "complete_task",
+  "delete_appointment", "delete_availability",
+  "delete_appointment_type", "delete_form",
+];
+
 function getActionStorageKey(action: ActionCardData): string {
   const id = "id" in action ? (action as { id: string }).id : JSON.stringify(action);
   return `ai_card_done_${action.type}_${id}`;
@@ -285,9 +293,10 @@ function FormFields({
 }
 
 export function ActionCard({ action }: { action: ActionCardData }) {
+  const shouldPersist = PERSIST_DONE_TYPES.includes(action.type);
   const storageKey = getActionStorageKey(action);
   const alreadyDone =
-    typeof window !== "undefined" && localStorage.getItem(storageKey) === "done";
+    shouldPersist && typeof window !== "undefined" && localStorage.getItem(storageKey) === "done";
 
   const [status, setStatus] = useState<CardStatus>(alreadyDone ? "success" : "pending");
   const [errorMsg, setErrorMsg] = useState("");
@@ -301,7 +310,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const router = useRouter();
 
   const markDone = (msg: string) => {
-    localStorage.setItem(storageKey, "done");
+    if (shouldPersist) localStorage.setItem(storageKey, "done");
     setSuccessMessage(msg);
     setStatus("success");
   };
