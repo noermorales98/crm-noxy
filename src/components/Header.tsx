@@ -4,10 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
+import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Search01Icon,
   SlidersHorizontalIcon,
   ArrowUpDownIcon,
   Add01Icon,
@@ -88,23 +88,25 @@ export default function Header() {
       }`}
     >
 
-      {/* Search */}
-      <div className="flex-1 max-w-xs">
-        <div className="relative flex items-center w-full h-9 rounded-lg bg-surface-sidebar px-3 focus-within:bg-surface-elevated transition-colors">
-          <HugeiconsIcon icon={Search01Icon} size={15} color="#787774" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={config.searchPlaceholder || "Buscar..."}
-            className="flex-1 ml-2 bg-transparent border-none outline-none text-sm text-text-primary placeholder:text-text-secondary"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="ml-1 text-text-secondary hover:text-text-secondary">
-              <HugeiconsIcon icon={Cancel01Icon} size={13} />
-            </button>
-          )}
-        </div>
+      {/* Global CRM search + optional local list filter */}
+      <div className="flex items-center gap-2 flex-1 max-w-2xl min-w-0">
+        <GlobalSearchTrigger className="max-w-md flex-1 min-w-[180px]" />
+        {config.searchPlaceholder && (
+          <div className="relative flex items-center w-full max-w-[220px] h-9 rounded-lg bg-surface-sidebar px-3 focus-within:bg-surface-elevated transition-colors shrink-0">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={config.searchPlaceholder}
+              className="flex-1 bg-transparent border-none outline-none text-sm text-text-primary placeholder:text-text-secondary"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="ml-1 text-text-secondary hover:text-text-primary">
+                <HugeiconsIcon icon={Cancel01Icon} size={13} />
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Actions */}

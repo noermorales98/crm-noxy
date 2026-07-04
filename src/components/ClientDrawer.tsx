@@ -1,11 +1,10 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Cancel01Icon, Edit01Icon, CheckmarkCircle01Icon, Add01Icon, Delete02Icon,
+  Cancel01Icon, Edit01Icon, CheckmarkCircle01Icon,
   User02Icon, Call02Icon, Mail01Icon, DollarCircleIcon, CalendarCheckIn01Icon,
-  LockPasswordIcon, GlobalIcon, InstagramIcon, Facebook01Icon, Linkedin01Icon,
-  EyeIcon, ViewOffIcon, Link01Icon, RefreshIcon, MoreHorizontalIcon,
+  RefreshIcon, MoreHorizontalIcon,
   Building02Icon, CheckListIcon,
 } from "@hugeicons/core-free-icons";
 import DatePicker from "./DatePicker";
@@ -25,18 +24,6 @@ const PHONE_CODES = [
   { code: "+44", flag: "🇬🇧", label: "UK" },
   { code: "+49", flag: "🇩🇪", label: "DE" },
   { code: "+33", flag: "🇫🇷", label: "FR" },
-];
-
-const SOCIAL_PLATFORMS = [
-  { value: "instagram",  label: "Instagram",  icon: InstagramIcon,  color: "text-pink-500" },
-  { value: "facebook",   label: "Facebook",   icon: Facebook01Icon,   color: "text-blue-600" },
-  { value: "linkedin",   label: "LinkedIn",   icon: Linkedin01Icon,   color: "text-blue-500" },
-  { value: "tiktok",     label: "TikTok",     icon: GlobalIcon,       color: "text-text-primary" },
-  { value: "youtube",    label: "YouTube",    icon: GlobalIcon,       color: "text-red-600" },
-  { value: "twitter",    label: "Twitter / X",icon: GlobalIcon,       color: "text-text-primary" },
-  { value: "whatsapp",   label: "WhatsApp",   icon: GlobalIcon,       color: "text-green-500" },
-  { value: "website",    label: "Sitio web",  icon: GlobalIcon,       color: "text-text-secondary" },
-  { value: "otro",       label: "Otro",       icon: Link01Icon,       color: "text-text-secondary" },
 ];
 
 const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -73,110 +60,6 @@ function PhoneInput({ code, phone, onCodeChange, onPhoneChange }: {
   );
 }
 
-function VaultPasswordRow({ entry, onUpdate, onDelete }: {
-  entry: any;
-  onUpdate: (id: string, data: Partial<any>) => void;
-  onDelete: (id: string) => void;
-}) {
-  const [show, setShow] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ label: entry.label, username: entry.username || "", password: entry.password || "", url: entry.url || "", notes: entry.notes || "" });
-
-  function save() {
-    onUpdate(entry.id, form);
-    setEditing(false);
-  }
-
-  if (editing) {
-    return (
-      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 border border-border-subtle">
-        <input value={form.label} onChange={(e) => setForm(f => ({ ...f, label: e.target.value }))} className={inputCls} placeholder="Etiqueta (ej. cPanel, WordPress)" />
-        <input value={form.username} onChange={(e) => setForm(f => ({ ...f, username: e.target.value }))} className={inputCls} placeholder="Usuario / email" />
-        <div className="relative">
-          <input
-            type={show ? "text" : "password"}
-            value={form.password}
-            onChange={(e) => setForm(f => ({ ...f, password: e.target.value }))}
-            className={`${inputCls} pr-10`}
-            placeholder="Contraseña"
-          />
-          <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-            <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={16} />
-          </button>
-        </div>
-        <input value={form.url} onChange={(e) => setForm(f => ({ ...f, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
-        <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} className={`${inputCls} resize-none`} rows={2} placeholder="Notas adicionales" />
-        <div className="flex gap-2">
-          <button onClick={() => setEditing(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
-          <button onClick={save} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors">Guardar</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="group/vault flex items-start gap-3 bg-white border border-border-subtle rounded-lg p-4 hover:border-border-subtle transition-colors">
-      <div className="w-9 h-9 rounded-lg bg-accent-charcoal flex items-center justify-center shrink-0">
-        <HugeiconsIcon icon={LockPasswordIcon} size={16} color="white" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-text-primary">{entry.label}</p>
-        {entry.username && <p className="text-xs text-text-secondary truncate">{entry.username}</p>}
-        {entry.password && (
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-mono text-text-primary tracking-wider">
-              {show ? entry.password : "•".repeat(Math.min(entry.password.length, 12))}
-            </span>
-            <button onClick={() => setShow(s => !s)} className="text-text-secondary hover:text-text-secondary">
-              <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={13} />
-            </button>
-            <button
-              onClick={() => navigator.clipboard.writeText(entry.password)}
-              className="text-[10px] font-semibold text-text-secondary hover:text-text-primary bg-gray-100 hover:bg-nav-active px-2 py-0.5 rounded-lg transition-colors"
-            >
-              Copiar
-            </button>
-          </div>
-        )}
-        {entry.url && (
-          <a href={entry.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline truncate block mt-0.5">
-            {entry.url}
-          </a>
-        )}
-        {entry.notes && <p className="text-xs text-text-secondary mt-1">{entry.notes}</p>}
-      </div>
-      <div className="flex gap-1 opacity-0 group-hover/vault:opacity-100 transition-opacity">
-        <button onClick={() => setEditing(true)} className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg">
-          <HugeiconsIcon icon={Edit01Icon} size={13} />
-        </button>
-        <button onClick={() => onDelete(entry.id)} className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg">
-          <HugeiconsIcon icon={Delete02Icon} size={13} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SocialRow({ entry, onDelete }: { entry: any; onDelete: (id: string) => void }) {
-  const platform = SOCIAL_PLATFORMS.find(p => p.value === entry.label) || SOCIAL_PLATFORMS[SOCIAL_PLATFORMS.length - 1];
-  return (
-    <div className="group/social flex items-center gap-3 bg-white border border-border-subtle rounded-lg px-4 py-3 hover:border-border-subtle transition-colors">
-      <div className={`shrink-0 ${platform.color}`}>
-        <HugeiconsIcon icon={platform.icon} size={18} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-text-secondary">{platform.label}</p>
-        <a href={entry.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline truncate block">
-          {entry.url}
-        </a>
-      </div>
-      <button onClick={() => onDelete(entry.id)} className="opacity-0 group-hover/social:opacity-100 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
-        <HugeiconsIcon icon={Delete02Icon} size={13} />
-      </button>
-    </div>
-  );
-}
-
 // ─── Main Drawer ──────────────────────────────────────────────────────────────
 
 export default function ClientDrawer({
@@ -189,7 +72,7 @@ export default function ClientDrawer({
   onUpdate: (updated: any) => void;
 }) {
   const [client, setClient] = useState(initialClient);
-  const [tab, setTab] = useState<"info" | "pagos" | "boveda">("info");
+  const [tab, setTab] = useState<"info" | "pagos">("info");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -209,32 +92,9 @@ export default function ClientDrawer({
     notes: client.notes || "",
   });
 
-  // Vault
-  const [vaultEntries, setVaultEntries] = useState<any[]>([]);
-  const [loadingVault, setLoadingVault] = useState(false);
-  const [showAddCredential, setShowAddCredential] = useState(false);
-  const [showAddSocial, setShowAddSocial] = useState(false);
-  const [newCred, setNewCred] = useState({ label: "", username: "", password: "", url: "", notes: "" });
-  const [newSocial, setNewSocial] = useState({ platform: "instagram", url: "" });
-  const [showNewPass, setShowNewPass] = useState(false);
-
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
-
-  const fetchVault = useCallback(async () => {
-    setLoadingVault(true);
-    try {
-      const res = await fetch(`/api/clients/${client.id}/vault`);
-      if (res.ok) setVaultEntries(await res.json());
-    } finally {
-      setLoadingVault(false);
-    }
-  }, [client.id]);
-
-  useEffect(() => {
-    if (tab === "boveda") fetchVault();
-  }, [tab, fetchVault]);
 
   // ─── Save info ──────────────────────────────────────────────────────────────
 
@@ -296,63 +156,7 @@ export default function ClientDrawer({
     }
   }
 
-  // ─── Vault CRUD ──────────────────────────────────────────────────────────────
-
-  async function addCredential() {
-    if (!newCred.label) return;
-    const res = await fetch(`/api/clients/${client.id}/vault`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "credential", ...newCred }),
-    });
-    if (res.ok) {
-      const entry = await res.json();
-      setVaultEntries(prev => [entry, ...prev]);
-      setNewCred({ label: "", username: "", password: "", url: "", notes: "" });
-      setShowAddCredential(false);
-    }
-  }
-
-  async function addSocial() {
-    if (!newSocial.url) return;
-    const res = await fetch(`/api/clients/${client.id}/vault`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "social", label: newSocial.platform, url: newSocial.url }),
-    });
-    if (res.ok) {
-      const entry = await res.json();
-      setVaultEntries(prev => [...prev, entry]);
-      setNewSocial({ platform: "instagram", url: "" });
-      setShowAddSocial(false);
-    }
-  }
-
-  async function updateVaultEntry(entryId: string, data: Partial<any>) {
-    const res = await fetch(`/api/clients/${client.id}/vault`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entryId, ...data }),
-    });
-    if (res.ok) {
-      const updated = await res.json();
-      setVaultEntries(prev => prev.map(e => e.id === entryId ? updated : e));
-    }
-  }
-
-  async function deleteVaultEntry(entryId: string) {
-    const res = await fetch(`/api/clients/${client.id}/vault`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ entryId }),
-    });
-    if (res.ok) setVaultEntries(prev => prev.filter(e => e.id !== entryId));
-  }
-
   // ─── Derived data ─────────────────────────────────────────────────────────
-
-  const credentials = vaultEntries.filter(e => e.type === "credential");
-  const socials = vaultEntries.filter(e => e.type === "social");
 
   const recentPayments = [...(client.payments || [])].sort(
     (a: any, b: any) => b.year !== a.year ? b.year - a.year : b.month - a.month
@@ -412,8 +216,8 @@ export default function ClientDrawer({
 
         {/* Tabs */}
         <div className="flex border-b border-border-subtle px-6 shrink-0">
-          {(["info", "pagos", "boveda"] as const).map((t) => {
-            const labels = { info: "Información", pagos: "Pagos", boveda: "Bóveda" };
+          {(["info", "pagos"] as const).map((t) => {
+            const labels = { info: "Información", pagos: "Pagos" };
             return (
               <button
                 key={t}
@@ -690,103 +494,6 @@ export default function ClientDrawer({
             </div>
           )}
 
-          {/* ── BÓVEDA TAB ── */}
-          {tab === "boveda" && (
-            <div className="p-6 flex flex-col gap-6">
-
-              {loadingVault ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
-                </div>
-              ) : (
-                <>
-                  {/* Redes sociales */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">Redes sociales</p>
-                      <button onClick={() => setShowAddSocial(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">
-                        <HugeiconsIcon icon={Add01Icon} size={13} />Agregar
-                      </button>
-                    </div>
-
-                    {showAddSocial && (
-                      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
-                        <select value={newSocial.platform} onChange={e => setNewSocial(s => ({ ...s, platform: e.target.value }))} className={inputCls}>
-                          {SOCIAL_PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
-                        </select>
-                        <input value={newSocial.url} onChange={e => setNewSocial(s => ({ ...s, url: e.target.value }))} className={inputCls} placeholder="https://..." />
-                        <div className="flex gap-2">
-                          <button onClick={() => setShowAddSocial(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
-                          <button onClick={addSocial} disabled={!newSocial.url} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-40">Guardar</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {socials.length === 0 && !showAddSocial ? (
-                      <p className="text-sm text-text-secondary py-3 text-center">Sin redes sociales guardadas.</p>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {socials.map(e => <SocialRow key={e.id} entry={e} onDelete={deleteVaultEntry} />)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Contraseñas */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">Bóveda de contraseñas</p>
-                      <button onClick={() => setShowAddCredential(s => !s)} className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">
-                        <HugeiconsIcon icon={Add01Icon} size={13} />Agregar
-                      </button>
-                    </div>
-
-                    {showAddCredential && (
-                      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
-                        <input value={newCred.label} onChange={e => setNewCred(c => ({ ...c, label: e.target.value }))} className={inputCls} placeholder="Etiqueta (ej. cPanel, WordPress, Google Ads)" autoFocus />
-                        <input value={newCred.username} onChange={e => setNewCred(c => ({ ...c, username: e.target.value }))} className={inputCls} placeholder="Usuario o email" />
-                        <div className="relative">
-                          <input
-                            type={showNewPass ? "text" : "password"}
-                            value={newCred.password}
-                            onChange={e => setNewCred(c => ({ ...c, password: e.target.value }))}
-                            className={`${inputCls} pr-10`}
-                            placeholder="Contraseña"
-                          />
-                          <button type="button" onClick={() => setShowNewPass(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary">
-                            <HugeiconsIcon icon={showNewPass ? ViewOffIcon : EyeIcon} size={16} />
-                          </button>
-                        </div>
-                        <input value={newCred.url} onChange={e => setNewCred(c => ({ ...c, url: e.target.value }))} className={inputCls} placeholder="URL (opcional)" />
-                        <textarea value={newCred.notes} onChange={e => setNewCred(c => ({ ...c, notes: e.target.value }))} className={`${inputCls} resize-none`} rows={2} placeholder="Notas adicionales" />
-                        <div className="flex gap-2">
-                          <button onClick={() => setShowAddCredential(false)} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
-                          <button onClick={addCredential} disabled={!newCred.label} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-40">Guardar</button>
-                        </div>
-                      </div>
-                    )}
-
-                    {credentials.length === 0 && !showAddCredential ? (
-                      <div className="text-center py-6">
-                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                          <HugeiconsIcon icon={LockPasswordIcon} size={18} color="#9ca3af" />
-                        </div>
-                        <p className="text-sm text-text-secondary">Sin contraseñas guardadas.</p>
-                        <button onClick={() => setShowAddCredential(true)} className="mt-2 text-xs font-semibold text-text-secondary hover:text-text-primary underline underline-offset-2 transition-colors">
-                          Guardar primera contraseña
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {credentials.map(e => (
-                          <VaultPasswordRow key={e.id} entry={e} onUpdate={updateVaultEntry} onDelete={deleteVaultEntry} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </>

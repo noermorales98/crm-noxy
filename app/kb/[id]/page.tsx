@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useAi } from "@/src/hooks/useAi";
-import KbEditor, { type KbEditorHandle } from "@/src/components/kb/KbEditor";
+import KbEditor from "@/src/components/kb/KbEditor";
 import type { KbTreeNodeDto } from "@/src/components/kb/KbFolderView";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
 import { FileText } from "lucide-react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { SparklesIcon, Cancel01Icon, Copy01Icon } from "@hugeicons/core-free-icons";
-import { useToast } from "@/src/context/ToastContext";
 
 interface KbPage {
   id: string;
@@ -23,6 +20,7 @@ interface KbPage {
   isFolder: boolean;
   parentId: string | null;
   markdownTheme?: string | null;
+  updatedAt: string;
   ancestors: Array<{ id: string; title: string; emoji: string | null; iconColor?: string | null; iconBg?: string | null }>;
   relations: Array<{
     id: string;
@@ -56,14 +54,6 @@ export default function KbPageEditor() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  const { addToast } = useToast();
-  const editorRef = useRef<KbEditorHandle>(null);
-  const [aiAction, setAiAction] = useState<"summarize" | "improve" | "continue" | "draft" | null>(null);
-  const [aiResult, setAiResult] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [draftPrompt, setDraftPrompt] = useState("");
-  const [showDraftInput, setShowDraftInput] = useState(false);
-
   useEffect(() => {
     resetState();
     return () => resetState();
@@ -84,62 +74,7 @@ export default function KbPageEditor() {
     if (!page) return;
     setPageContext({ page: "kb", id: page.id, label: page.title, data: { isFolder: page.isFolder, isPublished: page.isPublished } });
     return () => setPageContext(null);
-  }, [page?.id, page?.title]);
-
-  const handleAiAction = async (action: "summarize" | "improve" | "continue") => {
-    if (!page?.content?.trim()) {
-      addToast("La página no tiene contenido para analizar", "error");
-      return;
-    }
-    setAiAction(action);
-    setAiResult("");
-    setAiLoading(true);
-    try {
-      const res = await fetch("/api/ai/draft-document", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, content: page.content }),
-      });
-      const data = await res.json() as { result?: string; error?: string };
-      if (!res.ok || !data.result) {
-        addToast(data.error ?? "Error al procesar", "error");
-        setAiAction(null);
-        return;
-      }
-      setAiResult(data.result);
-    } catch {
-      addToast("Error de conexión", "error");
-      setAiAction(null);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleDraft = async () => {
-    if (!draftPrompt.trim()) return;
-    setAiAction("draft");
-    setAiResult("");
-    setAiLoading(true);
-    try {
-      const res = await fetch("/api/ai/draft-document", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "draft", prompt: draftPrompt, content: page?.content ?? "" }),
-      });
-      const data = await res.json() as { result?: string; error?: string };
-      if (!res.ok || !data.result) {
-        addToast(data.error ?? "Error al generar", "error");
-        setAiAction(null);
-        return;
-      }
-      setAiResult(data.result);
-    } catch {
-      addToast("Error de conexión", "error");
-      setAiAction(null);
-    } finally {
-      setAiLoading(false);
-    }
-  };
+  }, [page?.id, page?.title, page?.isFolder, page?.isPublished, setPageContext]);
 
   if (loading) {
     return (
@@ -173,152 +108,25 @@ export default function KbPageEditor() {
 
   return (
     <div className="flex-1 overflow-hidden h-full flex flex-col">
-      {/* AI Toolbar */}
-      <div className="shrink-0 px-4 py-2 border-b border-border-subtle bg-white flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={SparklesIcon} size={14} color="#6366F1" />
-          <span className="text-xs font-semibold text-[#6366F1] mr-2">IA</span>
-          {(["summarize", "improve", "continue"] as const).map((a) => (
-            <button
-              key={a}
-              type="button"
-              onClick={() => { setShowDraftInput(false); handleAiAction(a); }}
-              disabled={aiLoading}
-              className={`text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                aiAction === a && (aiLoading || aiResult)
-                  ? "bg-[#EEF2FF] text-[#6366F1] font-medium"
-                  : "text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
-              }`}
-            >
-              {a === "summarize" ? "✦ Resumir" : a === "improve" ? "✦ Mejorar" : "✦ Continuar"}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => { setShowDraftInput((v) => !v); setAiResult(""); setAiAction(null); }}
-            disabled={aiLoading}
-            className={`text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-              showDraftInput
-                ? "bg-[#EEF2FF] text-[#6366F1] font-medium"
-                : "text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
-            }`}
-          >
-            ✦ Redactar
-          </button>
-          {aiLoading && (
-            <span className="ml-auto text-xs text-text-secondary flex items-center gap-1.5">
-              <span className="w-3 h-3 border border-[#6366F1] border-t-transparent rounded-full animate-spin" />
-              Generando...
-            </span>
-          )}
-        </div>
-
-        {/* Draft prompt input */}
-        {showDraftInput && (
-          <div className="flex items-center gap-2 pb-1">
-            <input
-              type="text"
-              value={draftPrompt}
-              onChange={(e) => setDraftPrompt(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleDraft(); }}
-              placeholder="Describe qué quieres redactar..."
-              className="flex-1 text-xs px-3 py-1.5 rounded-lg border border-border-subtle bg-surface-app focus:outline-none focus:border-[#6366F1] text-text-primary placeholder:text-text-secondary"
-            />
-            <button
-              type="button"
-              onClick={handleDraft}
-              disabled={!draftPrompt.trim() || aiLoading}
-              className="text-xs px-3 py-1.5 rounded-lg bg-[#6366F1] text-white font-medium hover:bg-[#4F46E5] disabled:opacity-40 transition-colors"
-            >
-              Generar
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* AI Result Panel */}
-      {aiResult && (
-        <div className="shrink-0 mx-4 mt-3 mb-1 border border-[#DDD6FE] rounded-xl bg-[#F5F3FF] overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#EDE9FE]">
-            <span className="text-xs font-semibold text-[#6366F1]">
-              {aiAction === "summarize" ? "Resumen" : aiAction === "improve" ? "Texto mejorado" : aiAction === "draft" ? "Contenido redactado" : "Continuación"}
-            </span>
-            <div className="flex items-center gap-1">
-              {aiAction === "draft" && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      editorRef.current?.insertAtEnd(aiResult);
-                      setAiResult("");
-                      setAiAction(null);
-                      addToast("Insertado al final del documento", "success");
-                    }}
-                    className="text-xs px-2.5 py-1 rounded-md bg-[#6366F1] text-white font-medium hover:bg-[#4F46E5] transition-colors"
-                  >
-                    Insertar al final
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      editorRef.current?.setContent(aiResult);
-                      setAiResult("");
-                      setAiAction(null);
-                      addToast("Documento reemplazado", "success");
-                    }}
-                    className="text-xs px-2.5 py-1 rounded-md border border-[#DDD6FE] text-[#6366F1] font-medium hover:bg-[#EDE9FE] transition-colors"
-                  >
-                    Reemplazar todo
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                title="Copiar"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(aiResult).catch(() => {});
-                  addToast("Copiado al portapapeles", "success");
-                }}
-                className="p-1.5 rounded-md text-[#6366F1] hover:bg-[#EEF2FF] transition-colors"
-              >
-                <HugeiconsIcon icon={Copy01Icon} size={13} color="#6366F1" />
-              </button>
-              <button
-                type="button"
-                onClick={() => { setAiAction(null); setAiResult(""); }}
-                className="p-1.5 rounded-md text-text-secondary hover:bg-[#EDE9FE] transition-colors"
-              >
-                <HugeiconsIcon icon={Cancel01Icon} size={13} />
-              </button>
-            </div>
-          </div>
-          <div className="px-4 py-3 max-h-48 overflow-y-auto">
-            <p className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed">{aiResult}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="flex-1 overflow-hidden">
-        <KbEditor
-          ref={editorRef}
-          key={page.id}
-          pageId={page.id}
-          initialTitle={page.title}
-          initialEmoji={page.emoji}
-          initialIconColor={page.iconColor}
-          initialIconBg={page.iconBg}
-          initialContent={page.content || ""}
-          initialPublished={page.isPublished}
-          initialMarkdownTheme={page.markdownTheme ?? "minimal"}
-          initialRelations={page.relations}
-          isFolder={page.isFolder}
-          ancestors={page.ancestors ?? []}
-          folderStats={page.folderStats ?? null}
-          folderChildren={page.children ?? []}
-          folderTree={page.tree ?? []}
-          onFolderRefresh={fetchPage}
-        />
-      </div>
+      <KbEditor
+        key={page.id}
+        pageId={page.id}
+        initialTitle={page.title}
+        initialEmoji={page.emoji}
+        initialIconColor={page.iconColor}
+        initialIconBg={page.iconBg}
+        initialContent={page.content || ""}
+        initialPublished={page.isPublished}
+        initialMarkdownTheme={page.markdownTheme ?? "minimal"}
+        initialRelations={page.relations}
+        initialUpdatedAt={page.updatedAt}
+        isFolder={page.isFolder}
+        ancestors={page.ancestors ?? []}
+        folderStats={page.folderStats ?? null}
+        folderChildren={page.children ?? []}
+        folderTree={page.tree ?? []}
+        onFolderRefresh={fetchPage}
+      />
     </div>
   );
 }

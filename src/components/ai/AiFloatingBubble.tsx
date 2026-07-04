@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Square } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  SparklesIcon,
+  AiChatIcon,
   ArrowUpRight01Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
@@ -74,7 +74,7 @@ function BubbleInput({
           <button
             onClick={submit}
             disabled={!value.trim()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-[#6366F1] text-white hover:bg-[#4F46E5] transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white hover:bg-neutral-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
           >
             <Send size={11} />
           </button>
@@ -193,7 +193,7 @@ export function AiFloatingBubble() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
             <div className="flex items-center">
-              <HugeiconsIcon icon={SparklesIcon} size={16} color="#6366F1" />
+              <HugeiconsIcon icon={AiChatIcon} size={16} color="#000000" />
               <span className="ml-2 text-sm font-semibold text-text-primary">
                 Asistente IA
               </span>
@@ -232,9 +232,7 @@ export function AiFloatingBubble() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 min-h-0">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#EEF2FF] flex items-center justify-center">
-                  <HugeiconsIcon icon={SparklesIcon} size={18} color="#6366F1" />
-                </div>
+                <HugeiconsIcon icon={AiChatIcon} size={28} color="#000000" />
                 <p className="text-sm font-semibold text-text-primary">
                   ¿En qué puedo ayudarte?
                 </p>
@@ -271,9 +269,9 @@ export function AiFloatingBubble() {
       {/* Bubble button */}
       <button
         onClick={toggle}
-        className="fixed bottom-6 right-6 z-50 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-[#6366F1] text-white shadow-lg hover:bg-[#4F46E5] transition-all"
+        className="fixed bottom-6 right-6 z-50 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-black text-white shadow-lg hover:bg-neutral-800 transition-all"
       >
-        <HugeiconsIcon icon={SparklesIcon} size={22} color="white" />
+        <HugeiconsIcon icon={AiChatIcon} size={22} color="white" />
       </button>
     </>
   );

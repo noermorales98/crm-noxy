@@ -63,6 +63,15 @@ export default function KbIconPicker({
     [iconColor, iconBg, onSelect, onClose]
   );
 
+  const applyColors = useCallback(
+    (nextColor: string, nextBg: string) => {
+      setIconColor(nextColor);
+      setIconBg(nextBg);
+      onSelect({ emoji: currentEmoji, iconColor: nextColor, iconBg: nextBg });
+    },
+    [currentEmoji, onSelect]
+  );
+
   const loadMore = () => {
     if (iconNames.length >= 64) setIconOffset((o) => o + 64);
   };
@@ -95,7 +104,7 @@ export default function KbIconPicker({
               key={p.label}
               type="button"
               title={p.label}
-              onClick={() => { setIconColor(p.iconColor); setIconBg(p.iconBg); }}
+              onClick={() => applyColors(p.iconColor, p.iconBg)}
               className={`w-7 h-7 rounded-lg border-2 transition-all ${
                 iconColor === p.iconColor && iconBg === p.iconBg ? "border-accent-charcoal scale-105" : "border-transparent"
               }`}
@@ -111,7 +120,7 @@ export default function KbIconPicker({
             <input
               type="color"
               value={iconColor}
-              onChange={(e) => setIconColor(e.target.value)}
+              onChange={(e) => applyColors(e.target.value, iconBg)}
               className="w-full h-7 rounded cursor-pointer mt-0.5"
             />
           </label>
@@ -120,7 +129,7 @@ export default function KbIconPicker({
             <input
               type="color"
               value={iconBg}
-              onChange={(e) => setIconBg(e.target.value)}
+              onChange={(e) => applyColors(iconColor, e.target.value)}
               className="w-full h-7 rounded cursor-pointer mt-0.5"
             />
           </label>

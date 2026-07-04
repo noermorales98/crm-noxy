@@ -5,6 +5,9 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, forwardRef, 
 export type KbEditorHandle = {
   insertAtEnd: (text: string) => void;
   setContent: (text: string) => void;
+  getSelection: () => { text: string; start: number; end: number };
+  insertBelowSelection: (text: string) => void;
+  replaceSelection: (text: string) => void;
 };
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -32,6 +35,16 @@ import { slugifyPdfFilename } from "@/src/lib/kb-pdf-tree";
 import { useOptionalKbContext } from "@/src/context/KbContext";
 import { useToast } from "@/src/context/ToastContext";
 import KbSuggestionsReviewSidebar from "@/src/components/kb/KbSuggestionsReviewSidebar";
+import KbEditorAiBar from "@/src/components/kb/KbEditorAiBar";
+import KbRevisionHistoryPanel from "@/src/components/kb/KbRevisionHistoryPanel";
+import {
+  clearKbDraft,
+  draftDiffersFromServer,
+  loadKbDraft,
+  saveKbDraft,
+} from "@/src/lib/kb-draft";
+import { useDocUndoRedo, type DocSnapshot } from "@/src/lib/use-doc-undo-redo";
+import { extractLeadingMarkdownTitle } from "@/src/lib/kb-markdown-title";
 
 function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -134,6 +147,7 @@ interface KbEditorProps {
   initialPublished: boolean;
   initialMarkdownTheme?: KbMarkdownThemeId | string | null;
   initialRelations: KbRelation[];
+  initialUpdatedAt?: string;
   ancestors: KbBreadcrumb[];
   isFolder?: boolean;
   folderStats?: KbFolderStats | null;
@@ -154,11 +168,23 @@ interface KbEditorProps {
 
 type ViewMode = "edit" | "preview";
 
+type SavePayload = {
+  title: string;
+  emoji: string;
+  iconColor: string | null;
+  iconBg: string | null;
+  content: string;
+  isPublished: boolean;
+  markdownTheme: KbMarkdownThemeId;
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   pageId, initialTitle, initialEmoji, initialIconColor, initialIconBg,
-  initialContent, initialPublished, initialMarkdownTheme, initialRelations, ancestors,
+  initialContent, initialPublished, initialMarkdownTheme, initialRelations,
+  initialUpdatedAt,
+  ancestors,
   isFolder = false, folderStats, folderChildren = [], folderTree = [],
   onFolderRefresh,
 }, ref) {
@@ -166,11 +192,9 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   const { addToast } = useToast();
   const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [title, setTitle] = useState(initialTitle);
   const [emoji, setEmoji] = useState(initialEmoji || "");
   const [iconColor, setIconColor] = useState<string | null>(initialIconColor);
   const [iconBg, setIconBg] = useState<string | null>(initialIconBg);
-  const [content, setContent] = useState(initialContent);
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [markdownTheme, setMarkdownTheme] = useState<KbMarkdownThemeId>(
     (initialMarkdownTheme as KbMarkdownThemeId) || DEFAULT_MARKDOWN_THEME
@@ -181,36 +205,249 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   const [showMdIconPicker, setShowMdIconPicker] = useState(false);
   const [exportPdfLoading, setExportPdfLoading] = useState(false);
   const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [restoringRevisionId, setRestoringRevisionId] = useState<string | null>(null);
+  const [hasLocalDraft, setHasLocalDraft] = useState(false);
 
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const lastSelectionRef = useRef({ start: 0, end: 0, text: "" });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const proseContainerRef = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipNextAutoSave = useRef(true);
+  const restoredDraftRef = useRef(false);
+  const lastSavedRef = useRef<SavePayload>({
+    title: initialTitle,
+    emoji: initialEmoji || "",
+    iconColor: initialIconColor,
+    iconBg: initialIconBg,
+    content: initialContent,
+    isPublished: initialPublished,
+    markdownTheme: (initialMarkdownTheme as KbMarkdownThemeId) || DEFAULT_MARKDOWN_THEME,
+  });
 
-  useImperativeHandle(ref, () => ({
-    insertAtEnd(text: string) {
-      setContent((prev) => {
-        const newContent = prev ? `${prev}\n\n${text}` : text;
-        return newContent;
+  const getSelectionForHistory = useCallback(() => {
+    const ta = taRef.current;
+    if (ta && document.activeElement === ta) {
+      return { start: ta.selectionStart, end: ta.selectionEnd };
+    }
+    const ls = lastSelectionRef.current;
+    return { start: ls.start, end: ls.end };
+  }, []);
+
+  const {
+    content,
+    title,
+    setContent,
+    setContentImmediate,
+    setTitle,
+    setDocImmediate,
+    undo: undoDoc,
+    redo: redoDoc,
+    reset: resetDocHistory,
+  } = useDocUndoRedo(initialContent, initialTitle, {
+    getSelection: getSelectionForHistory,
+  });
+
+  const editorApiRef = useRef<KbEditorHandle>({
+    insertAtEnd: () => {},
+    setContent: () => {},
+    getSelection: () => ({ text: "", start: 0, end: 0 }),
+    insertBelowSelection: () => {},
+    replaceSelection: () => {},
+  });
+
+  const insertTextAtEnd = useCallback((text: string) => {
+    if (!text) return;
+    if (mode === "preview") setMode("edit");
+    skipNextAutoSave.current = false;
+    setContentImmediate((prev) => {
+      const trimmed = prev.trimEnd();
+      return trimmed ? `${trimmed}\n\n${text}` : text;
+    });
+  }, [mode, setContentImmediate]);
+
+  const insertTextAfter = useCallback((text: string, pos: number) => {
+    if (!text) return;
+    if (mode === "preview") setMode("edit");
+    skipNextAutoSave.current = false;
+    setContentImmediate((prev) => {
+      const insertAt = Math.min(Math.max(0, pos), prev.length);
+      const before = prev.slice(0, insertAt);
+      const after = prev.slice(insertAt);
+      const gap =
+        before.length > 0
+          ? before.endsWith("\n\n")
+            ? ""
+            : before.endsWith("\n")
+              ? "\n"
+              : "\n\n"
+          : "";
+      const tail = after.length > 0 && !after.startsWith("\n") ? "\n" : "";
+      return `${before}${gap}${text}${tail}${after}`;
+    });
+  }, [mode, setContentImmediate]);
+
+  const applyMarkdownWithTitle = useCallback(
+    (rawContent: string) => {
+      const extracted = extractLeadingMarkdownTitle(rawContent);
+      if (!extracted) return false;
+      skipNextAutoSave.current = false;
+      setDocImmediate({
+        content: extracted.contentWithoutTitle,
+        title: extracted.title,
       });
-      if (mode === "preview") setMode("edit");
+      void kb?.syncTree({
+        type: "update",
+        id: pageId,
+        patch: { title: extracted.title },
+      });
+      return true;
     },
-    setContent(text: string) {
-      setContent(text);
-      if (mode === "preview") setMode("edit");
-    },
-  }), [mode]);
+    [setDocImmediate, kb, pageId]
+  );
 
-  type SavePayload = {
-    title: string;
-    emoji: string;
-    iconColor: string | null;
-    iconBg: string | null;
-    content: string;
-    isPublished: boolean;
-    markdownTheme: KbMarkdownThemeId;
-  };
+  const applyContentEdit = useCallback(
+    (next: string) => {
+      if (mode === "preview") setMode("edit");
+      if (applyMarkdownWithTitle(next)) return;
+      skipNextAutoSave.current = false;
+      setContentImmediate(next);
+    },
+    [mode, applyMarkdownWithTitle, setContentImmediate]
+  );
+
+  const readSelection = useCallback(() => {
+    const ta = taRef.current;
+    if (ta && ta.selectionStart !== ta.selectionEnd) {
+      return {
+        start: ta.selectionStart,
+        end: ta.selectionEnd,
+        text: ta.value.slice(ta.selectionStart, ta.selectionEnd),
+      };
+    }
+    return { ...lastSelectionRef.current };
+  }, []);
+
+  const syncSelection = useCallback(() => {
+    const ta = taRef.current;
+    if (!ta) return;
+    lastSelectionRef.current = {
+      start: ta.selectionStart,
+      end: ta.selectionEnd,
+      text: ta.value.slice(ta.selectionStart, ta.selectionEnd),
+    };
+  }, []);
+
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const pasted = e.clipboardData.getData("text/plain");
+      if (!pasted) return;
+
+      const ta = e.currentTarget;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const before = content.slice(0, start);
+      const after = content.slice(end);
+
+      if (before.trim() !== "") return;
+
+      const newContent = before + pasted + after;
+      const extracted = extractLeadingMarkdownTitle(newContent);
+      if (!extracted) return;
+
+      e.preventDefault();
+      skipNextAutoSave.current = false;
+      setDocImmediate({
+        content: extracted.contentWithoutTitle,
+        title: extracted.title,
+      });
+      void kb?.syncTree({
+        type: "update",
+        id: pageId,
+        patch: { title: extracted.title },
+      });
+
+      requestAnimationFrame(() => {
+        ta.selectionStart = ta.selectionEnd = before.length;
+        syncSelection();
+      });
+    },
+    [content, setDocImmediate, kb, pageId, syncSelection]
+  );
+
+  const restoreSelectionFromSnapshot = useCallback((snap: DocSnapshot) => {
+    if (snap.selStart === undefined || snap.selEnd === undefined) return;
+    requestAnimationFrame(() => {
+      const ta = taRef.current;
+      if (!ta) return;
+      const start = Math.min(snap.selStart!, ta.value.length);
+      const end = Math.min(snap.selEnd!, ta.value.length);
+      ta.selectionStart = start;
+      ta.selectionEnd = end;
+      ta.focus({ preventScroll: true });
+      syncSelection();
+    });
+  }, [syncSelection]);
+
+  const handleUndoRedoKey = useCallback(
+    (e: KeyboardEvent | React.KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) return false;
+
+      if (e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        const snap = undoDoc();
+        if (snap) restoreSelectionFromSnapshot(snap);
+        return true;
+      }
+
+      if (e.key === "y" || (e.key === "z" && e.shiftKey)) {
+        e.preventDefault();
+        const snap = redoDoc();
+        if (snap) restoreSelectionFromSnapshot(snap);
+        return true;
+      }
+
+      return false;
+    },
+    [undoDoc, redoDoc, restoreSelectionFromSnapshot]
+  );
+
+  useImperativeHandle(ref, () => {
+    const api: KbEditorHandle = {
+      insertAtEnd: insertTextAtEnd,
+      setContent: applyContentEdit,
+      getSelection: () => {
+        const sel = readSelection();
+        return { text: sel.text, start: sel.start, end: sel.end };
+      },
+      insertBelowSelection: (text: string) => {
+        const sel = readSelection();
+        insertTextAfter(text, sel.end);
+      },
+      replaceSelection: (text: string) => {
+        const sel = readSelection();
+        const base = content;
+        let next: string | null = null;
+        if (sel.end > sel.start) {
+          const s = Math.min(Math.max(0, sel.start), base.length);
+          const e = Math.min(Math.max(s, sel.end), base.length);
+          next = base.slice(0, s) + text + base.slice(e);
+        } else if (sel.text) {
+          const idx = base.indexOf(sel.text);
+          if (idx !== -1) {
+            next = base.slice(0, idx) + text + base.slice(idx + sel.text.length);
+          }
+        }
+        if (next) applyContentEdit(next);
+      },
+    };
+    editorApiRef.current = api;
+    return api;
+  }, [insertTextAtEnd, insertTextAfter, applyContentEdit, readSelection, content]);
 
   const save = useCallback(async (data: SavePayload) => {
     setSaveStatus("saving");
@@ -236,6 +473,9 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
         const err = await res.json().catch(() => ({}));
         console.error("[KbEditor save]", res.status, err);
       } else {
+        lastSavedRef.current = data;
+        clearKbDraft(pageId);
+        setHasLocalDraft(false);
         void kb?.syncTree({
           type: "update",
           id: pageId,
@@ -267,9 +507,9 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
 
   const handleContentPatched = useCallback((newContent: string) => {
     skipNextAutoSave.current = true;
-    setContent(newContent);
+    setContentImmediate(newContent);
     void kb?.syncTree({ type: "update", id: pageId, patch: { title } });
-  }, [kb, pageId, title]);
+  }, [kb, pageId, title, setContentImmediate]);
 
   const openSuggestionsReview = useCallback(() => {
     setMode("preview");
@@ -284,6 +524,141 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   const savePayload = (): SavePayload => ({
     title, emoji, iconColor, iconBg, content, isPublished, markdownTheme,
   });
+
+  const serverSnapshot = useCallback(
+    () => ({
+      title: initialTitle,
+      emoji: initialEmoji || "",
+      iconColor: initialIconColor,
+      iconBg: initialIconBg,
+      content: initialContent,
+      markdownTheme: (initialMarkdownTheme as KbMarkdownThemeId) || DEFAULT_MARKDOWN_THEME,
+      isPublished: initialPublished,
+    }),
+    [
+      initialTitle,
+      initialEmoji,
+      initialIconColor,
+      initialIconBg,
+      initialContent,
+      initialMarkdownTheme,
+      initialPublished,
+    ]
+  );
+
+  useEffect(() => {
+    restoredDraftRef.current = false;
+    resetDocHistory({ content: initialContent, title: initialTitle });
+    lastSavedRef.current = {
+      title: initialTitle,
+      emoji: initialEmoji || "",
+      iconColor: initialIconColor,
+      iconBg: initialIconBg,
+      content: initialContent,
+      isPublished: initialPublished,
+      markdownTheme: (initialMarkdownTheme as KbMarkdownThemeId) || DEFAULT_MARKDOWN_THEME,
+    };
+  }, [pageId, initialTitle, initialEmoji, initialIconColor, initialIconBg, initialContent, initialPublished, initialMarkdownTheme, resetDocHistory]);
+
+  useEffect(() => {
+    if (isFolder || restoredDraftRef.current) return;
+    restoredDraftRef.current = true;
+    const draft = loadKbDraft(pageId);
+    if (!draft) return;
+    if (!draftDiffersFromServer(draft, serverSnapshot())) return;
+
+    setEmoji(draft.emoji);
+    setIconColor(draft.iconColor);
+    setIconBg(draft.iconBg);
+    resetDocHistory({ content: draft.content, title: draft.title });
+    setMarkdownTheme(draft.markdownTheme as KbMarkdownThemeId);
+    setIsPublished(draft.isPublished);
+    setHasLocalDraft(true);
+    setMode("edit");
+    addToast("Borrador local restaurado", "success");
+  }, [pageId, isFolder, serverSnapshot, addToast, resetDocHistory]);
+
+  useEffect(() => {
+    if (isFolder) return;
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => {
+      const payload = savePayload();
+      saveKbDraft(pageId, {
+        ...payload,
+        savedAt: Date.now(),
+        serverUpdatedAt: initialUpdatedAt ?? new Date(0).toISOString(),
+      });
+      setHasLocalDraft(
+        payload.title !== lastSavedRef.current.title ||
+          payload.emoji !== lastSavedRef.current.emoji ||
+          payload.iconColor !== lastSavedRef.current.iconColor ||
+          payload.iconBg !== lastSavedRef.current.iconBg ||
+          payload.content !== lastSavedRef.current.content ||
+          payload.isPublished !== lastSavedRef.current.isPublished ||
+          payload.markdownTheme !== lastSavedRef.current.markdownTheme
+      );
+    }, 400);
+    return () => {
+      if (draftTimer.current) clearTimeout(draftTimer.current);
+    };
+  }, [title, emoji, iconColor, iconBg, content, isPublished, markdownTheme, pageId, isFolder, initialUpdatedAt]);
+
+  const isDirty =
+    title !== lastSavedRef.current.title ||
+    emoji !== lastSavedRef.current.emoji ||
+    iconColor !== lastSavedRef.current.iconColor ||
+    iconBg !== lastSavedRef.current.iconBg ||
+    content !== lastSavedRef.current.content ||
+    isPublished !== lastSavedRef.current.isPublished ||
+    markdownTheme !== lastSavedRef.current.markdownTheme;
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (saveStatus === "saving" || isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [saveStatus, isDirty]);
+
+  const handleRestoreRevision = useCallback(async (revisionId: string) => {
+    setRestoringRevisionId(revisionId);
+    try {
+      const res = await fetch(`/api/kb/${pageId}/revisions/${revisionId}`);
+      const rev = await res.json();
+      if (!res.ok) {
+        addToast(rev.error ?? "No se pudo cargar la versión", "error");
+        return;
+      }
+      const restored: SavePayload = {
+        title: rev.title,
+        emoji: rev.emoji ?? "",
+        iconColor: rev.iconColor ?? null,
+        iconBg: rev.iconBg ?? null,
+        content: rev.content ?? "",
+        isPublished: rev.isPublished,
+        markdownTheme: (rev.markdownTheme as KbMarkdownThemeId) || DEFAULT_MARKDOWN_THEME,
+      };
+      setEmoji(restored.emoji);
+      setIconColor(restored.iconColor);
+      setIconBg(restored.iconBg);
+      resetDocHistory({ content: restored.content, title: restored.title });
+      setIsPublished(restored.isPublished);
+      setMarkdownTheme(restored.markdownTheme);
+      setMode("edit");
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      skipNextAutoSave.current = true;
+      await save(restored);
+      setHistoryOpen(false);
+      addToast("Versión restaurada", "success");
+    } catch {
+      addToast("Error al restaurar versión", "error");
+    } finally {
+      setRestoringRevisionId(null);
+    }
+  }, [pageId, save, addToast, resetDocHistory]);
 
   useEffect(() => {
     if (skipNextAutoSave.current) {
@@ -303,24 +678,33 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
     adjustTextareaHeight(ta, scrollEl, window.innerHeight * 0.5);
   }, [content, mode]);
 
-  // Ctrl+S
+  // Ctrl+S, Ctrl+Z, Ctrl+Y
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
         if (saveTimer.current) clearTimeout(saveTimer.current);
         save(savePayload());
+        return;
       }
+
+      const target = e.target as Node | null;
+      const inTitle = titleInputRef.current && target === titleInputRef.current;
+      const inContent = taRef.current && target === taRef.current;
+      if (!inTitle && !inContent) return;
+
+      handleUndoRedoKey(e);
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [title, emoji, content, isPublished, markdownTheme, save]);
+  }, [title, emoji, content, isPublished, markdownTheme, save, handleUndoRedoKey]);
 
   const fmt = (wrap?: { before: string; after?: string }, line?: string, block?: string) => {
-    if (taRef.current) insertFormat(taRef.current, setContent, wrap, line, block);
+    if (taRef.current) insertFormat(taRef.current, setContentImmediate, wrap, line, block);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (handleUndoRedoKey(e)) return;
     if ((e.ctrlKey || e.metaKey) && e.key === "b") { e.preventDefault(); fmt({ before: "**" }); }
     if ((e.ctrlKey || e.metaKey) && e.key === "i") { e.preventDefault(); fmt({ before: "*" }); }
     if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); fmt({ before: "[", after: "](url)" }); }
@@ -328,7 +712,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
       e.preventDefault();
       const ta = e.currentTarget;
       const nv = ta.value.slice(0, ta.selectionStart) + "  " + ta.value.slice(ta.selectionEnd);
-      setContent(nv);
+      setContentImmediate(nv);
       requestAnimationFrame(() => {
         ta.selectionStart = ta.selectionEnd = ta.selectionStart + 2;
         ta.focus({ preventScroll: true });
@@ -401,7 +785,19 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
         onOpenSuggestionsReview={openSuggestionsReview}
         onExportPdf={handleExportPdf}
         exportPdfLoading={exportPdfLoading}
+        onOpenHistory={() => setHistoryOpen(true)}
+        hasLocalDraft={hasLocalDraft}
       />
+
+      {!isFolder && (
+        <KbRevisionHistoryPanel
+          pageId={pageId}
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          onRestore={handleRestoreRevision}
+          restoringId={restoringRevisionId}
+        />
+      )}
 
       <KbPdfExportConfirmModal
         open={exportPdfModalOpen}
@@ -452,8 +848,8 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
           <button onClick={() => setShowIconPicker(v => !v)} className="hover:opacity-80 transition-opacity" title="Cambiar icono y colores">
             <PageIcon
               emoji={emoji}
-              iconColor={themeTokens.pageIconColor}
-              iconBg={themeTokens.pageIconBg}
+              iconColor={iconColor}
+              iconBg={iconBg}
               isFolder={false}
               size={28}
               block
@@ -471,6 +867,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
         </div>
 
         <input
+          ref={titleInputRef}
           type="text"
           value={title}
           onChange={e => setTitle(e.target.value)}
@@ -478,6 +875,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
           className="w-full text-4xl font-semibold tracking-tight bg-transparent border-none outline-none placeholder:opacity-40 leading-tight mb-3"
           style={{ color: pageText ?? undefined }}
           onKeyDown={e => {
+            if (handleUndoRedoKey(e)) return;
             if (e.key === "Enter") {
               e.preventDefault();
               taRef.current?.focus({ preventScroll: true });
@@ -534,7 +932,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
                   {showMdIconPicker && (
                     <MarkdownIconPicker
                       onInsert={syntax => {
-                        if (taRef.current) insertFormat(taRef.current, setContent, { before: syntax, after: "" });
+                        if (taRef.current) insertFormat(taRef.current, setContentImmediate, { before: syntax, after: "" });
                       }}
                       onClose={() => setShowMdIconPicker(false)}
                     />
@@ -550,6 +948,10 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
                 ref={taRef}
                 value={content}
                 onChange={e => setContent(e.target.value)}
+                onPaste={handlePaste}
+                onSelect={syncSelection}
+                onKeyUp={syncSelection}
+                onMouseUp={syncSelection}
                 onKeyDown={handleKeyDown}
                 placeholder={`Escribe en Markdown...\n\n# Título\n**negrita** *cursiva*\n- lista\n\`icon:Home01\` ← inserta un ícono`}
                 className="w-full min-h-[50vh] resize-none border-none outline-none font-mono text-sm leading-7 py-4 placeholder:opacity-40 block"
@@ -560,6 +962,15 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
                   ...(SUPPORTS_FIELD_SIZING ? { fieldSizing: "content" as const } : {}),
                 }}
                 spellCheck={false}
+              />
+              <KbEditorAiBar
+                content={content}
+                onReadSelection={readSelection}
+                onInsertAtEnd={insertTextAtEnd}
+                onInsertAfter={insertTextAfter}
+                onSetContent={applyContentEdit}
+                borderColor={pageBorder ?? undefined}
+                contentPad={contentPad}
               />
               <div className="py-1.5 border-t text-xs opacity-40" style={{ ...contentPad, borderColor: pageBorder ?? undefined }}>
                 {content.split(/\s+/).filter(Boolean).length} palabras · {content.length} chars

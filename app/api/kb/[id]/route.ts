@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { getFolderStatsAndTree } from "@/src/lib/kb-folder-stats";
 import { DEFAULT_MARKDOWN_THEME, isValidMarkdownTheme } from "@/src/lib/kb-markdown-themes";
+import { createKbPageRevisionIfChanged } from "@/src/lib/kb-revisions";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -100,6 +101,12 @@ export async function PATCH(req: Request, { params }: Params) {
           : DEFAULT_MARKDOWN_THEME
         : undefined;
 
+    const existing = await prisma.kbPage.findFirst({
+      where: { id, organizationId: orgId },
+      select: { id: true, isFolder: true },
+    });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const page = await prisma.kbPage.updateMany({
       where: { id, organizationId: orgId },
       data: {
@@ -116,7 +123,28 @@ export async function PATCH(req: Request, { params }: Params) {
     });
 
     if (page.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json({ ok: true });
+
+    const updated = await prisma.kbPage.findFirst({
+      where: { id, organizationId: orgId },
+    });
+
+    if (updated && !updated.isFolder) {
+      try {
+        await createKbPageRevisionIfChanged(id, orgId, session.user.id, {
+          title: updated.title,
+          emoji: updated.emoji,
+          iconColor: updated.iconColor,
+          iconBg: updated.iconBg,
+          content: updated.content,
+          markdownTheme: updated.markdownTheme,
+          isPublished: updated.isPublished,
+        });
+      } catch (revisionErr) {
+        console.error("[kb PATCH] revision save failed:", revisionErr);
+      }
+    }
+
+    return NextResponse.json({ ok: true, updatedAt: updated?.updatedAt ?? null });
   } catch (err) {
     console.error("[kb PATCH]", err);
     return NextResponse.json(

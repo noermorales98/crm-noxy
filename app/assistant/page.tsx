@@ -6,12 +6,23 @@ export default async function AssistantPage() {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const orgId = (session as any).currentOrganizationId as string | undefined;
+  const orgId = (session as { currentOrganizationId?: string }).currentOrganizationId;
   if (!orgId) redirect("/");
 
-  // Find the most recent conversation
+  await prisma.aiConversation.deleteMany({
+    where: {
+      userId: session.user.id!,
+      organizationId: orgId,
+      messages: { none: {} },
+    },
+  });
+
   const latest = await prisma.aiConversation.findFirst({
-    where: { userId: session.user.id!, organizationId: orgId },
+    where: {
+      userId: session.user.id!,
+      organizationId: orgId,
+      messages: { some: {} },
+    },
     orderBy: { updatedAt: "desc" },
     select: { id: true },
   });
@@ -20,11 +31,5 @@ export default async function AssistantPage() {
     redirect(`/assistant/${latest.id}`);
   }
 
-  // Create first conversation
-  const newConv = await prisma.aiConversation.create({
-    data: { userId: session.user.id!, organizationId: orgId },
-    select: { id: true },
-  });
-
-  redirect(`/assistant/${newConv.id}`);
+  redirect("/assistant/new");
 }

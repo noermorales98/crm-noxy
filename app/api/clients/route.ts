@@ -20,6 +20,7 @@ export async function GET() {
         company: { select: { id: true, name: true } },
         contact: { select: { id: true, firstName: true, lastName: true } },
         payments: { orderBy: [{ year: "desc" }, { month: "desc" }], take: 13 },
+        _count: { select: { vaultEntries: true } },
       },
     });
 
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
       autoMarkPaid, contactName, phone, phoneCode, email,
     } = body;
 
-    if (!name || !monthlyFee || !startDate)
+    if (!name?.trim() || monthlyFee == null || monthlyFee === "" || !startDate)
       return NextResponse.json({ error: "Nombre, cuota y fecha de inicio son requeridos" }, { status: 400 });
 
     const client = await prisma.client.create({

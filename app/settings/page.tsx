@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 type GoogleStatus = {
   connected: boolean;
@@ -255,6 +256,22 @@ export default function SettingsPage() {
                 />
                 <p className="text-xs text-text-secondary">Si lo dejas vacío, se usará el correo de tu cuenta. El SMTP debe estar configurado en la empresa del formulario.</p>
               </div>
+            </div>
+
+            <hr className="border-border-subtle" />
+
+            {/* Digest summary */}
+            <div>
+              <h2 className="text-lg font-bold text-text-primary mb-1">Resumen por WhatsApp</h2>
+              <p className="text-sm text-text-secondary mb-4">
+                Programa un resumen diario/semanal generado por IA con pipelines, ventas pendientes, ingresos y cobros próximos.
+              </p>
+              <Link
+                href="/settings/digest"
+                className="inline-flex items-center px-4 py-2.5 border border-border-subtle text-sm font-semibold rounded-lg hover:bg-nav-hover transition-colors"
+              >
+                Configurar resumen →
+              </Link>
             </div>
 
             <hr className="border-border-subtle" />

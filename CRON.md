@@ -19,6 +19,8 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/process-emails` | Cada 5 min | Despacha cola de campañas (logs PENDING) |
 | `GET /api/cron/followups` | Cada 15 min | Recordatorios WhatsApp de deals con follow-up |
 | `GET /api/cron/appointment-reminders` | Cada 15 min | Recordatorios de citas (WhatsApp / email) |
+| `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot) |
+| `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
 
 **Producción:**
 
@@ -104,4 +106,6 @@ https://crm-noxy.vercel.app/api/cron/send-scheduled
 https://crm-noxy.vercel.app/api/cron/process-emails
 https://crm-noxy.vercel.app/api/cron/followups
 https://www.noxthy.co/api/cron/appointment-reminders
+https://crm-noxy.vercel.app/api/cron/digest
+https://crm-noxy.vercel.app/api/cron/google-calendar-reminders
 ```

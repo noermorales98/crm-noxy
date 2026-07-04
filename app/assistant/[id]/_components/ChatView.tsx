@@ -47,6 +47,7 @@ function defaultKeyUsed(modelId: string, preferKey: "1" | "2"): string | undefin
 }
 
 export default function ChatView({ conversationId, initialMessages }: Props) {
+  const [activeConversationId, setActiveConversationId] = useState(conversationId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streaming, setStreaming] = useState(false);
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
@@ -55,6 +56,13 @@ export default function ChatView({ conversationId, initialMessages }: Props) {
   const streamingIdRef = useRef<string | null>(null);
   const messagesRef = useRef(messages);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const activeConversationIdRef = useRef(conversationId);
+
+  useEffect(() => {
+    setActiveConversationId(conversationId);
+    activeConversationIdRef.current = conversationId;
+    setMessages(initialMessages);
+  }, [conversationId, initialMessages]);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
@@ -77,6 +85,20 @@ export default function ChatView({ conversationId, initialMessages }: Props) {
     abortControllerRef.current?.abort();
   };
 
+  const ensureConversation = async (): Promise<string | null> => {
+    if (activeConversationIdRef.current !== "new") {
+      return activeConversationIdRef.current;
+    }
+    const res = await fetch("/api/assistant/conversations", { method: "POST" });
+    if (!res.ok) return null;
+    const conv = (await res.json()) as { id: string };
+    setActiveConversationId(conv.id);
+    activeConversationIdRef.current = conv.id;
+    window.history.replaceState(null, "", `/assistant/${conv.id}`);
+    window.dispatchEvent(new CustomEvent("assistant:conversations-changed"));
+    return conv.id;
+  };
+
   const streamIntoMessage = async (
     assistantId: string,
     userContent: string,
@@ -88,10 +110,16 @@ export default function ChatView({ conversationId, initialMessages }: Props) {
     abortControllerRef.current = controller;
 
     try {
+      const convId = await ensureConversation();
+      if (!convId) {
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        return;
+      }
+
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId, content: userContent, model: activeModel, preferKey: activeKey }),
+        body: JSON.stringify({ conversationId: convId, content: userContent, model: activeModel, preferKey: activeKey }),
         signal: controller.signal,
       });
 

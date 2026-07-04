@@ -18,6 +18,11 @@ export default async function AssistantConversationPage({ params }: { params: Pr
 
   if (!conversation) notFound();
 
+  if (conversation.messages.length === 0) {
+    await prisma.aiConversation.delete({ where: { id } });
+    redirect("/assistant/new");
+  }
+
   const messages = conversation.messages.map((m) => ({
     id: m.id,
     role: m.role as "user" | "assistant",

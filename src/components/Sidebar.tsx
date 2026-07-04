@@ -14,11 +14,7 @@ import {
   Calendar01Icon,
   Clock01Icon,
   CalendarCheckIn01Icon,
-  FolderKanbanIcon,
   Add01Icon,
-  ZapIcon,
-  Analytics01Icon,
-  GitBranchIcon,
   BarChartIcon,
   Megaphone01Icon,
   Book01Icon,
@@ -34,14 +30,16 @@ import {
   Cancel01Icon,
   CheckmarkCircle01Icon,
   Delete01Icon,
+  LockPasswordIcon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
-import SpotlightSearch from "@/src/components/SpotlightSearch";
+import { useGlobalSearch } from "@/src/context/SearchContext";
 import { useOptionalEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
+import VaultNav from "@/src/components/vault/VaultNav";
 import { ChevronDown, Check } from "lucide-react";
 
-type SidebarTab = "home" | "mail" | "kb" | "assistant";
+type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault";
 
 // ─── Design tokens (Notion-style premium) ─────────────────────────────────────
 
@@ -94,6 +92,7 @@ const SECTIONS: {
   { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon, accent: "#F0A050", accentBg: "#FFECD2" },
   { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#9B7EDE", accentBg: "#F0E6F9" },
   { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#6366F1", accentBg: "#EEF2FF" },
+  { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#10B981", accentBg: "#D1FAE5" },
 ];
 
 // ─── Section switcher (unified dropdown) ───────────────────────────────────────
@@ -201,6 +200,7 @@ function SectionSwitcher({
                     {section.id === "mail" && "Bandeja y campañas"}
                     {section.id === "kb" && "Documentación interna"}
                     {section.id === "assistant" && "Asistente de IA"}
+                    {section.id === "vault" && "Contraseñas de clientes"}
                   </span>
                 </span>
                 {section.id === "mail" && unreadCount > 0 && (
@@ -276,36 +276,7 @@ function SectionLabel({ label }: { label: string }) {
 
 // ─── Tab 1: Inicio ─────────────────────────────────────────────────────────────
 
-const PROJECT_ICON_MAP: Record<string, any> = {
-  "zap": ZapIcon, "trending-up": Analytics01Icon,
-  "git-branch": GitBranchIcon, "megaphone": Megaphone01Icon,
-};
-
-function ProjectItem({ project }: { project: any }) {
-  const pathname = usePathname();
-  const isActive = pathname === `/projects/${project.id}`;
-  const ProjectIcon = PROJECT_ICON_MAP[project.icon] || FolderKanbanIcon;
-  const count = (project._count?.forms || 0) + (project._count?.campaigns || 0) +
-    (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
-  return (
-    <Link href={`/projects/${project.id}`} className={`${navItemClass(isActive)} justify-between`}>
-      <div className="flex items-center gap-2.5 min-w-0">
-        <HugeiconsIcon icon={ProjectIcon} size={ICON_SIZE} color={ICON_COLOR} />
-        <span className="truncate">{project.name}</span>
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        {count > 0 && (
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-nav-hover text-[#37352F]">
-            {count}
-          </span>
-        )}
-        {isActive && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
-      </div>
-    </Link>
-  );
-}
-
-function HomeNav({ projects }: { projects: any[] }) {
+function HomeNav() {
   return (
     <div className="py-1 pb-4">
       <div className="px-3 flex flex-col gap-1">
@@ -323,21 +294,6 @@ function HomeNav({ projects }: { projects: any[] }) {
           <NavItem href="/appointment-types" icon={Calendar01Icon} label="Tipos de Cita" />
           <NavItem href="/availability" icon={Clock01Icon} label="Disponibilidad" />
           <NavItem href="/appointments" icon={CalendarCheckIn01Icon} label="Citas Agendadas" />
-        </div>
-      </div>
-
-      <div className="px-0">
-        <div className="flex items-center justify-between px-3 pt-6 pb-2">
-          <p className="text-[11px] font-medium italic text-text-secondary uppercase tracking-wider">Proyectos</p>
-          <Link href="/projects/create" className="text-[#37352F] hover:bg-nav-hover rounded-md p-1 transition-colors mr-1">
-            <HugeiconsIcon icon={Add01Icon} size={14} color={ICON_COLOR} />
-          </Link>
-        </div>
-        <div className="px-3 flex flex-col gap-1">
-          {projects.map((project) => <ProjectItem key={project.id} project={project} />)}
-          <Link href="/projects" className={`${itemBase} ${itemIdle} ${itemHover} text-text-secondary hover:text-[#37352F]`}>
-            Ver todos ({projects.length})
-          </Link>
         </div>
       </div>
     </div>
@@ -533,7 +489,7 @@ function KbNav() {
   return <KbSidebarTree />;
 }
 
-// ─── Tab 4: Asistente ─────────────────────────────────────────────────────────
+// ─── Tab 5: Asistente ─────────────────────────────────────────────────────────
 
 type AiConversation = { id: string; title: string; updatedAt: string };
 
@@ -542,7 +498,6 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [conversations, setConversations] = useState<AiConversation[]>([]);
-  const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchConversations = useCallback(async () => {
@@ -554,25 +509,21 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
     if (session?.user) fetchConversations();
   }, [session, fetchConversations]);
 
-  const createNew = async () => {
-    setCreating(true);
-    try {
-      const res = await fetch("/api/assistant/conversations", { method: "POST" });
-      if (res.ok) {
-        const conv = await res.json();
-        setConversations((prev) => [conv, ...prev]);
-        router.push(`/assistant/${conv.id}`);
-      }
-    } finally {
-      setCreating(false);
-    }
+  useEffect(() => {
+    const onChanged = () => { void fetchConversations(); };
+    window.addEventListener("assistant:conversations-changed", onChanged);
+    return () => window.removeEventListener("assistant:conversations-changed", onChanged);
+  }, [fetchConversations]);
+
+  const createNew = () => {
+    router.push("/assistant/new");
   };
 
   const deleteConv = async (id: string) => {
     try {
       await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
       setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (pathname === `/assistant/${id}`) router.push("/assistant");
+      if (pathname === `/assistant/${id}`) router.push("/assistant/new");
     } finally {
       setDeletingId(null);
     }
@@ -583,13 +534,13 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
       <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
         <button
           onClick={createNew}
-          disabled={creating}
-          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
-          {creating ? "Creando…" : "Nueva conversación"}
+          Nueva conversación
         </button>
         <button
+          type="button"
           onClick={onSearchOpen}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
         >
@@ -657,8 +608,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { notifications, unreadCount: notifUnread, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [spotlightOpen, setSpotlightOpen] = useState(false);
+  const { openSearch } = useGlobalSearch();
   const [sidebarNotifOpen, setSidebarNotifOpen] = useState(false);
   const [sidebarUserOpen, setSidebarUserOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -670,6 +620,7 @@ export default function Sidebar() {
     if (p.startsWith("/kb")) return "kb";
     if (p.startsWith("/emails") || p.startsWith("/campaigns")) return "mail";
     if (p.startsWith("/assistant")) return "assistant";
+    if (p.startsWith("/boveda")) return "vault";
     return "home";
   };
 
@@ -678,26 +629,6 @@ export default function Sidebar() {
   useEffect(() => {
     setActiveTab(getTabForPath(pathname));
   }, [pathname]);
-
-  useEffect(() => {
-    if (!session?.user) return;
-    fetch("/api/projects?limit=5")
-      .then(r => r.json())
-      .then(d => { if (Array.isArray(d)) setProjects(d); })
-      .catch(() => {});
-  }, [session]);
-
-  // Global ⌘K shortcut to open spotlight
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setSpotlightOpen(true);
-      }
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, []);
 
   // Close bottom dropdowns on outside click
   useEffect(() => {
@@ -722,7 +653,7 @@ export default function Sidebar() {
 
         <div className="flex-1 overflow-y-auto min-h-0 relative">
           <div className={activeTab === "home" ? "block" : "hidden"}>
-            <HomeNav projects={projects} />
+            <HomeNav />
           </div>
           <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
             <MailNav unreadCount={unreadEmailCount} />
@@ -730,8 +661,11 @@ export default function Sidebar() {
           <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
             <KbNav />
           </div>
+          <div className={activeTab === "vault" ? "flex flex-col h-full" : "hidden"}>
+            <VaultNav />
+          </div>
           <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
-            <AssistantNav onSearchOpen={() => setSpotlightOpen(true)} />
+            <AssistantNav onSearchOpen={openSearch} />
           </div>
         </div>
 
@@ -839,6 +773,14 @@ export default function Sidebar() {
                     Configuración
                   </Link>
                   <Link
+                    href="/settings/digest"
+                    onClick={() => setSidebarUserOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                  >
+                    <HugeiconsIcon icon={Notification01Icon} size={14} color="#9ca3af" />
+                    Resumen WhatsApp
+                  </Link>
+                  <Link
                     href="/settings/ai-models"
                     onClick={() => setSidebarUserOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
@@ -861,8 +803,6 @@ export default function Sidebar() {
           </div>
         )}
       </aside>
-
-      <SpotlightSearch open={spotlightOpen} onClose={() => setSpotlightOpen(false)} />
     </>
   );
 }

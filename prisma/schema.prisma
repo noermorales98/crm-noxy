@@ -17,6 +17,8 @@ model User {
   organizations OrganizationMember[]
   tasks         Task[]
   callMeBot     CallMeBot?
+  digestSchedules DigestSchedule[]
+  googleCalendarReminderLogs GoogleCalendarReminderLog[]
   activityLogs  ActivityLog[]
   aiConversations AiConversation[]
 }
@@ -32,6 +34,50 @@ model CallMeBot {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+}
+
+model DigestSchedule {
+  id             String    @id @default(cuid())
+  enabled        Boolean   @default(false)
+  frequency      String    @default("daily") // daily | weekly | monthly | custom
+  customDays     String?   // JSON: weekday numbers 0=Sun..6=Sat
+  weeklyDay      Int       @default(1)
+  monthlyDay     Int       @default(1)
+  hour           Int       @default(8)
+  minute         Int       @default(0)
+  lastSentAt     DateTime?
+  includeGoogleCalendar       Boolean @default(true)
+  calendarRemindDayBefore     Boolean @default(true)
+  calendarRemindMinutesBefore Int     @default(15) // 0 = desactivado
+  aiModelId                   String  @default("chatbase")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model GoogleCalendarReminderLog {
+  id             String   @id @default(cuid())
+  googleEventId  String
+  userId         String
+  organizationId String
+  reminderType   String   // day_before | minutes_before
+  eventStart     DateTime
+  sentAt         DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([googleEventId, userId, reminderType])
+  @@index([organizationId])
   @@index([userId])
 }
 
@@ -70,6 +116,8 @@ model Organization {
   aiConversations       AiConversation[]
   hiddenAiModels        String         @default("[]")
   customAiModels        CustomAiModel[]
+  digestSchedules       DigestSchedule[]
+  googleCalendarReminderLogs GoogleCalendarReminderLog[]
 }
 
 enum Role {
@@ -925,10 +973,30 @@ model KbPage {
   relations      KbPageRelation[]
   share          KbShare?
   suggestions    KbSuggestion[]
+  revisions      KbPageRevision[]
 
   @@index([organizationId])
   @@index([parentId])
   @@index([updatedAt])
+}
+
+model KbPageRevision {
+  id             String   @id @default(cuid())
+  pageId         String
+  page           KbPage   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  organizationId String
+  savedById      String?
+  title          String
+  emoji          String?
+  iconColor      String?
+  iconBg         String?
+  content        String?  @db.LongText
+  markdownTheme  String   @default("minimal")
+  isPublished    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([pageId, createdAt])
+  @@index([organizationId])
 }
 
 model KbShare {

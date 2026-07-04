@@ -119,3 +119,72 @@ export async function deleteGoogleCalendarEvent(
     console.error("[google-calendar] Failed to delete event:", err);
   }
 }
+
+export interface CalendarEventSummary {
+  id: string;
+  summary: string;
+  start: Date;
+  end: Date;
+  location?: string | null;
+  htmlLink?: string | null;
+}
+
+function parseEventDate(
+  start?: { dateTime?: string | null; date?: string | null },
+  end?: { dateTime?: string | null; date?: string | null }
+): { start: Date; end: Date } | null {
+  if (start?.dateTime) {
+    const startDate = new Date(start.dateTime);
+    const endDate = end?.dateTime ? new Date(end.dateTime) : startDate;
+    return { start: startDate, end: endDate };
+  }
+  if (start?.date) {
+    const startDate = new Date(`${start.date}T00:00:00`);
+    const endDate = end?.date ? new Date(`${end.date}T00:00:00`) : startDate;
+    return { start: startDate, end: endDate };
+  }
+  return null;
+}
+
+export async function listGoogleCalendarEvents(
+  organizationId: string,
+  timeMin: Date,
+  timeMax: Date
+): Promise<CalendarEventSummary[]> {
+  const client = await getCalendarClient(organizationId);
+  if (!client) return [];
+
+  const { calendar, calendarId } = client;
+  try {
+    const res = await calendar.events.list({
+      calendarId,
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString(),
+      singleEvents: true,
+      orderBy: "startTime",
+      maxResults: 100,
+    });
+
+    const items = res.data.items ?? [];
+    const events: CalendarEventSummary[] = [];
+
+    for (const item of items) {
+      if (!item.id) continue;
+      const dates = parseEventDate(item.start, item.end);
+      if (!dates) continue;
+      events.push({
+        id: item.id,
+        summary: item.summary ?? "(Sin título)",
+        start: dates.start,
+        end: dates.end,
+        location: item.location ?? null,
+        htmlLink: item.htmlLink ?? null,
+      });
+    }
+
+    return events;
+  } catch (err) {
+    console.error("[google-calendar] Failed to list events:", err);
+    return [];
+  }
+}

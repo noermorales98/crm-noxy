@@ -8,9 +8,24 @@ import {
   UserMultipleIcon,
   Building04Icon,
   BarChartIcon,
+  Book01Icon,
+  Task01Icon,
+  BrowserIcon,
+  Home01Icon,
+  LockPasswordIcon,
+  Folder01Icon,
 } from "@hugeicons/core-free-icons";
 
-type ResultType = "contact" | "company" | "deal";
+type ResultType =
+  | "page"
+  | "contact"
+  | "company"
+  | "deal"
+  | "kb"
+  | "client"
+  | "task"
+  | "form"
+  | "project";
 
 type SearchResult = {
   id: string;
@@ -21,15 +36,27 @@ type SearchResult = {
 };
 
 const RESULT_ICONS: Record<ResultType, typeof UserMultipleIcon> = {
+  page: Home01Icon,
   contact: UserMultipleIcon,
   company: Building04Icon,
   deal: BarChartIcon,
+  kb: Book01Icon,
+  client: LockPasswordIcon,
+  task: Task01Icon,
+  form: BrowserIcon,
+  project: Folder01Icon,
 };
 
 const RESULT_LABELS: Record<ResultType, string> = {
+  page: "Sección",
   contact: "Contacto",
   company: "Empresa",
   deal: "Venta",
+  kb: "Doc",
+  client: "Cliente",
+  task: "Tarea",
+  form: "Formulario",
+  project: "Proyecto",
 };
 
 export default function SpotlightSearch({
@@ -113,7 +140,6 @@ export default function SpotlightSearch({
         className="relative w-full max-w-[560px] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden border border-border-subtle"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Search input */}
         <div className="flex items-center gap-3 px-5 py-4 border-b border-border-subtle">
           <HugeiconsIcon icon={Search01Icon} size={17} color="#9ca3af" />
           <input
@@ -121,7 +147,7 @@ export default function SpotlightSearch({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar contactos, empresas, ventas…"
+            placeholder="Buscar"
             className="flex-1 text-sm text-text-primary placeholder:text-text-secondary bg-transparent border-none outline-none"
           />
           {query && (
@@ -137,7 +163,6 @@ export default function SpotlightSearch({
           </kbd>
         </div>
 
-        {/* Results */}
         {results.length > 0 && (
           <div className="max-h-80 overflow-y-auto py-1.5">
             {results.map((r, i) => {
@@ -145,7 +170,7 @@ export default function SpotlightSearch({
               const isSelected = i === selectedIndex;
               return (
                 <button
-                  key={r.id}
+                  key={`${r.type}-${r.id}`}
                   onClick={() => navigate(r.href)}
                   onMouseEnter={() => setSelectedIndex(i)}
                   className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
@@ -177,12 +202,11 @@ export default function SpotlightSearch({
         )}
 
         {!query && (
-          <div className="px-5 py-5 text-xs text-text-secondary">
-            Escribe para buscar en todo el CRM…
+          <div className="px-5 py-5 text-xs text-text-secondary leading-relaxed">
+            Busca secciones, contactos, empresas, ventas, docs (título y contenido markdown), clientes, tareas y más.
           </div>
         )}
 
-        {/* Footer hints */}
         <div className="border-t border-border-subtle px-5 py-2.5 flex items-center gap-4">
           <span className="text-[10px] text-text-secondary">
             <kbd className="font-mono bg-surface-sidebar px-1 rounded">↑↓</kbd> navegar

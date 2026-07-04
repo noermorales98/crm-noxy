@@ -73,12 +73,25 @@ export function AiProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+const BUBBLE_PATH_PREFIXES = [
+  "/",
+  "/emails",
+  "/kb",
+  "/companies",
+  "/contacts",
+  "/tasks",
+  "/pipeline",
+  "/forms",
+  "/appointment-types",
+  "/availability",
+  "/appointments",
+];
+
 function ConditionalBubble() {
   const pathname = usePathname();
-  const show =
-    pathname === "/" ||
-    pathname.startsWith("/emails") ||
-    pathname.startsWith("/kb");
+  const show = BUBBLE_PATH_PREFIXES.some((prefix) =>
+    prefix === "/" ? pathname === "/" : pathname.startsWith(prefix)
+  );
   if (!show) return null;
   return <AiFloatingBubble />;
 }

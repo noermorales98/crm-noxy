@@ -19,6 +19,7 @@ import {
   DollarCircleIcon,
   RefreshIcon,
   Money02Icon,
+  Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { input as inputCls } from "@/src/lib/crm-ui";
@@ -191,9 +192,9 @@ function KanbanColumn({
   const totalUSD = deals.filter(d => d.currency !== "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
 
   return (
-    <div className="flex flex-col w-72 shrink-0">
+    <div className="flex flex-col w-64 shrink-0">
       {/* Column header */}
-      <div className="flex items-center gap-2 mb-3 px-1">
+      <div className="flex items-center gap-1.5 mb-2 px-1">
         <div
           className="w-2.5 h-2.5 rounded-full shrink-0"
           style={{ backgroundColor: stage.color || "#6B7280" }}
@@ -218,7 +219,7 @@ function KanbanColumn({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex flex-col gap-2.5 flex-1 min-h-[80px] rounded-lg p-2 transition-colors ${
+            className={`flex flex-col gap-2 flex-1 min-h-[60px] rounded-lg p-1.5 transition-colors ${
               snapshot.isDraggingOver ? "bg-gray-100/80 ring-2 ring-gray-200" : "bg-surface-sidebar/60"
             }`}
           >
@@ -567,11 +568,14 @@ function ClientCard({
   client,
   onMarkPaid,
   onClick,
+  onDelete,
 }: {
   client: any;
   onMarkPaid: (clientId: string, paymentId: string) => void;
   onClick: () => void;
+  onDelete?: (clientId: string) => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
@@ -592,24 +596,57 @@ function ClientCard({
   })();
 
   return (
-    <div onClick={onClick} className="bg-white border border-border-subtle rounded-lg p-5 hover:border-border-subtle transition-all cursor-pointer">
+    <div
+      onClick={() => !confirming && onClick()}
+      className="group relative bg-white border border-border-subtle rounded-lg p-3.5 hover:border-border-subtle transition-all cursor-pointer"
+    >
+      {onDelete && confirming && (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/95 rounded-lg border border-border-subtle"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => setConfirming(false)}
+            className="text-xs px-3 py-1.5 rounded-lg hover:bg-nav-hover text-text-secondary transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => onDelete(client.id)}
+            className="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-semibold transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
+      )}
+
+      {onDelete && !confirming && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
+          title="Eliminar cliente"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-text-secondary hover:text-red-600 hover:bg-red-50 transition-all z-[1]"
+        >
+          <HugeiconsIcon icon={Delete02Icon} size={14} />
+        </button>
+      )}
+
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2 pr-6">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">
               {client.name[0]?.toUpperCase()}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-text-primary truncate">{client.name}</p>
               {client.company && (
-                <p className="text-xs text-text-secondary truncate">{client.company.name}</p>
+                <p className="text-[11px] text-text-secondary truncate">{client.company.name}</p>
               )}
             </div>
           </div>
         </div>
         <span
-          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ml-2 ${
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ml-1 ${
             client.isActive
               ? "bg-emerald-50 text-emerald-700 border-emerald-100"
               : "bg-gray-100 text-text-secondary border-border-subtle"
@@ -620,17 +657,17 @@ function ClientCard({
       </div>
 
       {/* Fee */}
-      <p className="text-xl font-bold text-text-primary mb-1">
+      <p className="text-lg font-bold text-text-primary mb-0.5">
         {fmtCurrency(client.monthlyFee, client.currency)}
-        <span className="text-sm font-normal text-text-secondary ml-1">/mes</span>
+        <span className="text-xs font-normal text-text-secondary ml-1">/mes</span>
       </p>
-      <p className="text-xs text-text-secondary mb-4">
-        {client.currency} · Día {client.billingDay} de cada mes ·{" "}
-        {monthsSinceStart > 0 ? `${monthsSinceStart} mes${monthsSinceStart !== 1 ? "es" : ""} activo` : "Nuevo"}
+      <p className="text-[11px] text-text-secondary mb-3">
+        {client.currency} · Día {client.billingDay} ·{" "}
+        {monthsSinceStart > 0 ? `${monthsSinceStart} mes${monthsSinceStart !== 1 ? "es" : ""}` : "Nuevo"}
       </p>
 
       {/* This month payment status */}
-      <div className="flex items-center justify-between pt-3 border-t border-border-subtle">
+      <div className="flex items-center justify-between pt-2.5 border-t border-border-subtle">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wide text-text-secondary mb-0.5">
             {MONTH_NAMES[currentMonth - 1]} {currentYear}
@@ -656,7 +693,7 @@ function ClientCard({
         {isPending && client.isActive && (
           <button
             onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-accent-charcoal text-white hover:bg-black transition-colors"
+            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-accent-charcoal text-white hover:bg-black transition-colors"
           >
             Marcar pagado
           </button>
@@ -675,6 +712,7 @@ function StatCard({
   sub,
   badge,
   badgePositive,
+  onHide,
 }: {
   label: string;
   value?: string;
@@ -682,36 +720,72 @@ function StatCard({
   sub: string;
   badge?: string;
   badgePositive?: boolean;
+  onHide?: () => void;
 }) {
   return (
-    <div className="bg-white border border-border-subtle rounded-lg p-5 flex-1 min-w-0">
-      <p className="text-xs font-semibold text-text-secondary mb-3 uppercase tracking-wide">{label}</p>
+    <div className="group relative bg-white border border-border-subtle rounded-lg p-3 flex-1 min-w-[140px]">
+      {onHide && (
+        <button
+          onClick={onHide}
+          title="Ocultar resumen"
+          className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-0.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-all"
+        >
+          <HugeiconsIcon icon={Cancel01Icon} size={12} />
+        </button>
+      )}
+      <p className="text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wide pr-4">{label}</p>
       {values ? (
-        <div className="flex flex-col gap-0.5 mb-1">
+        <div className="flex flex-col gap-0.5 mb-0.5">
           {values.map((v) => (
-            <div key={v.label} className="flex items-baseline gap-2">
-              <p className="text-xl font-bold text-text-primary truncate">{v.amount}</p>
+            <div key={v.label} className="flex items-baseline gap-1.5">
+              <p className="text-lg font-bold text-text-primary truncate">{v.amount}</p>
               <span className="text-[10px] font-semibold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">{v.label}</span>
             </div>
           ))}
           {badge && (
-            <span className={`mt-1 self-start text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+            <span className={`mt-0.5 self-start text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
               {badge}
             </span>
           )}
         </div>
       ) : (
-        <div className="flex items-baseline gap-2 mb-1">
-          <p className="text-2xl font-bold text-text-primary truncate">{value}</p>
+        <div className="flex items-baseline gap-1.5 mb-0.5">
+          <p className="text-xl font-bold text-text-primary truncate">{value}</p>
           {badge && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
               {badge}
             </span>
           )}
         </div>
       )}
-      <p className="text-xs text-text-secondary">{sub}</p>
+      <p className="text-[11px] text-text-secondary">{sub}</p>
     </div>
+  );
+}
+
+// ─── Compact stat chip (minimized summary bar) ────────────────────────────────
+
+function StatChip({
+  label,
+  value,
+  onRestore,
+}: {
+  label: string;
+  value: string;
+  onRestore: () => void;
+}) {
+  return (
+    <button
+      onClick={onRestore}
+      title="Restaurar resumen"
+      className="group flex items-center gap-2 shrink-0 bg-white border border-border-subtle rounded-lg px-3 py-1.5 hover:border-gray-300 hover:bg-nav-hover transition-colors"
+    >
+      <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide">{label}</span>
+      <span className="text-xs font-bold text-text-primary truncate max-w-[140px]">{value}</span>
+      <span className="text-text-secondary group-hover:text-text-primary transition-colors">
+        <HugeiconsIcon icon={Add01Icon} size={12} />
+      </span>
+    </button>
   );
 }
 
@@ -730,6 +804,33 @@ export default function PipelinePage() {
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [selectedPipelineIdx, setSelectedPipelineIdx] = useState(0);
+  const [hiddenStats, setHiddenStats] = useState<Set<string>>(new Set());
+
+  // ─── Hidden stat cards (persisted) ─────────────────────────────────────────
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("pipeline_hidden_stats");
+      if (raw) setHiddenStats(new Set(JSON.parse(raw)));
+    } catch { /* ignore */ }
+  }, []);
+
+  const hideStat = useCallback((id: string) => {
+    setHiddenStats((prev) => {
+      const next = new Set(prev).add(id);
+      try { localStorage.setItem("pipeline_hidden_stats", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const restoreStat = useCallback((id: string) => {
+    setHiddenStats((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      try { localStorage.setItem("pipeline_hidden_stats", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   // ─── Header config ────────────────────────────────────────────────────────
 
@@ -856,6 +957,13 @@ export default function PipelinePage() {
     fetchClients();
   };
 
+  const handleDeleteClient = async (clientId: string) => {
+    const res = await fetch(`/api/clients/${clientId}`, { method: "DELETE" });
+    if (!res.ok) return;
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+    if (selectedClient?.id === clientId) setSelectedClient(null);
+  };
+
   // ─── Stats ────────────────────────────────────────────────────────────────
 
   const allDeals = pipelines.flatMap((p) => p.stages.flatMap((s: any) => s.deals));
@@ -871,6 +979,10 @@ export default function PipelinePage() {
   const pipelineUSD = activeDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
   const wonMXN = wonDeals.filter(d => d.currency === "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
   const wonUSD = wonDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
+  const activeDealsUSD = activeDeals.filter((d) => d.currency !== "MXN");
+  const activeDealsMXN = activeDeals.filter((d) => d.currency === "MXN");
+  const wonDealsUSD = wonDeals.filter((d) => d.currency !== "MXN");
+  const wonDealsMXN = wonDeals.filter((d) => d.currency === "MXN");
   const overdueDeals = activeDeals.filter((d) => d.followUpAt && new Date(d.followUpAt) < new Date());
 
   // Client stats
@@ -887,6 +999,115 @@ export default function PipelinePage() {
   const pendingThisMonth = activeClients.filter(
     (c) => !c.payments?.some((p: any) => p.month === currentMonth && p.year === currentYear && p.status === "RECIBIDO")
   ).length;
+
+  // ─── Stat card definitions (support hide/restore) ──────────────────────────
+
+  type StatDef = {
+    id: string;
+    label: string;
+    value?: string;
+    values?: { label: string; amount: string }[];
+    sub: string;
+    badge?: string;
+    badgePositive?: boolean;
+    chipValue: string;
+  };
+
+  const pipelineStats: StatDef[] = [
+    {
+      id: "total_deals",
+      label: "Total deals",
+      value: String(allDeals.length),
+      sub: `${overdueDeals.length} necesitan atención`,
+      badge: overdueDeals.length > 0 ? `${overdueDeals.length} vencidos` : undefined,
+      badgePositive: false,
+      chipValue: String(allDeals.length),
+    },
+    {
+      id: "pipeline_usd",
+      label: "Pipeline en USD",
+      value: fmtUSD(pipelineUSD),
+      sub: `${activeDealsUSD.length} deals activos`,
+      badge: pipelineUSD > 0 ? "Activo" : undefined,
+      badgePositive: true,
+      chipValue: fmtUSD(pipelineUSD),
+    },
+    {
+      id: "pipeline_mxn",
+      label: "Pipeline en MXN",
+      value: fmtMXN(pipelineMXN),
+      sub: `${activeDealsMXN.length} deals activos`,
+      badge: pipelineMXN > 0 ? "Activo" : undefined,
+      badgePositive: true,
+      chipValue: fmtMXN(pipelineMXN),
+    },
+    {
+      id: "won_usd",
+      label: "Ganados en USD",
+      value: fmtUSD(wonUSD),
+      sub: `${wonDealsUSD.length} deals cerrados`,
+      badge: wonDealsUSD.length > 0 ? `+${wonDealsUSD.length}` : undefined,
+      badgePositive: true,
+      chipValue: fmtUSD(wonUSD),
+    },
+    {
+      id: "won_mxn",
+      label: "Ganados en MXN",
+      value: fmtMXN(wonMXN),
+      sub: `${wonDealsMXN.length} deals cerrados`,
+      badge: wonDealsMXN.length > 0 ? `+${wonDealsMXN.length}` : undefined,
+      badgePositive: true,
+      chipValue: fmtMXN(wonMXN),
+    },
+    {
+      id: "in_progress",
+      label: "En proceso",
+      value: String(activeDeals.length),
+      sub: "Deals sin cerrar",
+      chipValue: String(activeDeals.length),
+    },
+  ];
+
+  const clientStats: StatDef[] = [
+    {
+      id: "active_clients",
+      label: "Clientes activos",
+      value: String(activeClients.length),
+      sub: `${clients.length} clientes en total`,
+      chipValue: String(activeClients.length),
+    },
+    {
+      id: "mrr_usd",
+      label: "MRR en USD",
+      value: fmtUSD(mrrUSD),
+      sub: "Ingresos mensuales recurrentes",
+      badge: mrrUSD > 0 ? "Activo" : undefined,
+      badgePositive: true,
+      chipValue: fmtUSD(mrrUSD),
+    },
+    {
+      id: "mrr_mxn",
+      label: "MRR en MXN",
+      value: fmtMXN(mrrMXN),
+      sub: "Ingresos mensuales recurrentes",
+      badge: mrrMXN > 0 ? "Activo" : undefined,
+      badgePositive: true,
+      chipValue: fmtMXN(mrrMXN),
+    },
+    {
+      id: "pending_month",
+      label: "Pendientes este mes",
+      value: String(pendingThisMonth),
+      sub: `de ${activeClients.length} clientes activos`,
+      badge: pendingThisMonth > 0 ? `${pendingThisMonth} pendientes` : undefined,
+      badgePositive: false,
+      chipValue: String(pendingThisMonth),
+    },
+  ];
+
+  const currentStats = activeTab === "pipeline" ? pipelineStats : clientStats;
+  const visibleStats = currentStats.filter((s) => !hiddenStats.has(s.id));
+  const minimizedStats = currentStats.filter((s) => hiddenStats.has(s.id));
 
   // ─── Filtered deals for search ────────────────────────────────────────────
 
@@ -919,91 +1140,56 @@ export default function PipelinePage() {
 
   return (
     <>
-      <main className="flex-1 min-h-0 overflow-hidden flex flex-col bg-surface-app font-sans">
+      <main className="flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
 
           {/* ── Page header ── */}
-          <div className="px-6 pt-5 pb-0 bg-white border-b border-border-subtle shrink-0">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <HugeiconsIcon icon={KanbanIcon} size={20} color="#9ca3af" />
-                <h1 className="text-xl font-bold text-text-primary">Pipeline de ventas</h1>
+          <div className="px-5 pt-3 pb-0 bg-white border-b border-border-subtle">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <HugeiconsIcon icon={KanbanIcon} size={18} color="#9ca3af" />
+                <h1 className="text-lg font-bold text-text-primary">Pipeline de ventas</h1>
               </div>
             </div>
 
             {/* Stats row */}
-            <div className="flex gap-4 mb-5 overflow-x-auto">
-              {activeTab === "pipeline" ? (
-                <>
+            {visibleStats.length > 0 && (
+              <div className="flex gap-2.5 mb-2 overflow-x-auto pb-0.5">
+                {visibleStats.map((s) => (
                   <StatCard
-                    label="Valor del pipeline"
-                    values={[
-                      ...(pipelineUSD > 0 ? [{ label: "USD", amount: fmtUSD(pipelineUSD) }] : []),
-                      ...(pipelineMXN > 0 ? [{ label: "MXN", amount: fmtMXN(pipelineMXN) }] : []),
-                      ...((pipelineUSD === 0 && pipelineMXN === 0) ? [{ label: "USD", amount: fmtUSD(0) }] : []),
-                    ]}
-                    sub={`${activeDeals.length} deals activos`}
+                    key={s.id}
+                    label={s.label}
+                    value={s.value}
+                    values={s.values}
+                    sub={s.sub}
+                    badge={s.badge}
+                    badgePositive={s.badgePositive}
+                    onHide={() => hideStat(s.id)}
                   />
-                  <StatCard
-                    label="Total deals"
-                    value={String(allDeals.length)}
-                    sub={`${overdueDeals.length} necesitan atención`}
-                    badge={overdueDeals.length > 0 ? `${overdueDeals.length} vencidos` : undefined}
-                    badgePositive={false}
+                ))}
+              </div>
+            )}
+
+            {/* Minimized summary bar */}
+            {minimizedStats.length > 0 && (
+              <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+                {minimizedStats.map((s) => (
+                  <StatChip
+                    key={s.id}
+                    label={s.label}
+                    value={s.chipValue}
+                    onRestore={() => restoreStat(s.id)}
                   />
-                  <StatCard
-                    label="Ganados"
-                    values={[
-                      ...(wonUSD > 0 ? [{ label: "USD", amount: fmtUSD(wonUSD) }] : []),
-                      ...(wonMXN > 0 ? [{ label: "MXN", amount: fmtMXN(wonMXN) }] : []),
-                      ...((wonUSD === 0 && wonMXN === 0) ? [{ label: "USD", amount: fmtUSD(0) }] : []),
-                    ]}
-                    sub={`${wonDeals.length} deals cerrados`}
-                    badge={wonDeals.length > 0 ? `+${wonDeals.length}` : undefined}
-                    badgePositive={true}
-                  />
-                  <StatCard
-                    label="En proceso"
-                    value={String(activeDeals.length)}
-                    sub="Deals sin cerrar"
-                  />
-                </>
-              ) : (
-                <>
-                  <StatCard
-                    label="Clientes activos"
-                    value={String(activeClients.length)}
-                    sub={`${clients.length} clientes en total`}
-                  />
-                  <StatCard
-                    label="MRR en USD"
-                    value={fmtUSD(mrrUSD)}
-                    sub="Ingresos mensuales recurrentes"
-                    badge={mrrUSD > 0 ? "Activo" : undefined}
-                    badgePositive={true}
-                  />
-                  <StatCard
-                    label="MRR en MXN"
-                    value={fmtMXN(mrrMXN)}
-                    sub="Ingresos mensuales recurrentes"
-                    badge={mrrMXN > 0 ? "Activo" : undefined}
-                    badgePositive={true}
-                  />
-                  <StatCard
-                    label="Pendientes este mes"
-                    value={String(pendingThisMonth)}
-                    sub={`de ${activeClients.length} clientes activos`}
-                    badge={pendingThisMonth > 0 ? `${pendingThisMonth} pendientes` : undefined}
-                    badgePositive={false}
-                  />
-                </>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {visibleStats.length > 0 && minimizedStats.length === 0 && <div className="mb-1" />}
 
             {/* Tabs */}
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               <button
                 onClick={() => setActiveTab("pipeline")}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${
                   activeTab === "pipeline"
                     ? "border-accent-charcoal text-text-primary"
                     : "border-transparent text-text-secondary hover:text-text-primary"
@@ -1014,7 +1200,7 @@ export default function PipelinePage() {
               </button>
               <button
                 onClick={() => setActiveTab("clientes")}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 transition-colors -mb-px ${
                   activeTab === "clientes"
                     ? "border-accent-charcoal text-text-primary"
                     : "border-transparent text-text-secondary hover:text-text-primary"
@@ -1034,9 +1220,9 @@ export default function PipelinePage() {
           {/* ── Content ── */}
           {activeTab === "pipeline" ? (
             // ── Pipeline tab ──────────────────────────────────────────────────
-            <div className="flex-1 overflow-hidden flex flex-col">
+            <div>
               {/* Toolbar */}
-              <div className="px-6 py-3 flex items-center gap-3 shrink-0 bg-surface-app">
+              <div className="px-5 py-2 flex items-center gap-3 bg-surface-app">
                 {/* Search */}
                 <div className="relative flex-1 max-w-xs">
                   <HugeiconsIcon
@@ -1078,20 +1264,20 @@ export default function PipelinePage() {
 
               {/* Kanban */}
               {pipelines.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex items-center justify-center py-12">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 border border-border-subtle">
-                      <HugeiconsIcon icon={KanbanIcon} size={28} color="#9ca3af" />
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-3 border border-border-subtle">
+                      <HugeiconsIcon icon={KanbanIcon} size={22} color="#9ca3af" />
                     </div>
-                    <h3 className="text-base font-semibold text-text-primary mb-2">Sin pipelines configurados</h3>
-                    <p className="text-sm text-text-secondary">Crea un pipeline desde configuración para comenzar.</p>
+                    <h3 className="text-sm font-semibold text-text-primary mb-1">Sin pipelines configurados</h3>
+                    <p className="text-xs text-text-secondary">Crea un pipeline desde configuración para comenzar.</p>
                   </div>
                 </div>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <div className="flex-1 overflow-x-auto overflow-y-auto">
+                  <div className="overflow-x-auto">
                     {filteredPipeline && (
-                      <div className="flex gap-4 px-6 py-4 min-h-full items-start">
+                      <div className="flex gap-3 px-5 py-3 items-start">
                         {filteredPipeline.stages.map((stage: any) => (
                           <KanbanColumn
                             key={stage.id}
@@ -1111,36 +1297,37 @@ export default function PipelinePage() {
             </div>
           ) : (
             // ── Clientes tab ──────────────────────────────────────────────────
-            <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="px-5 py-3">
               {loadingClients ? (
-                <div className="flex items-center justify-center py-16">
-                  <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-7 h-7 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
                 </div>
               ) : clients.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-4 border border-border-subtle">
-                    <HugeiconsIcon icon={RefreshIcon} size={28} color="#9ca3af" />
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-3 border border-border-subtle">
+                    <HugeiconsIcon icon={RefreshIcon} size={22} color="#9ca3af" />
                   </div>
-                  <h3 className="text-base font-semibold text-text-primary mb-2">Sin clientes recurrentes</h3>
-                  <p className="text-sm text-text-secondary mb-4 max-w-xs">
+                  <h3 className="text-sm font-semibold text-text-primary mb-1">Sin clientes recurrentes</h3>
+                  <p className="text-xs text-text-secondary mb-3 max-w-xs">
                     Agrega tus clientes establecidos que pagan mensualmente para llevar el control de sus pagos.
                   </p>
                   <button
                     onClick={() => setShowClientModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors"
                   >
-                    <HugeiconsIcon icon={Add01Icon} size={16} />
+                    <HugeiconsIcon icon={Add01Icon} size={15} />
                     Agregar primer cliente
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                   {clients.map((client) => (
                     <ClientCard
                       key={client.id}
                       client={client}
                       onMarkPaid={handleMarkPaid}
                       onClick={() => setSelectedClient(client)}
+                      onDelete={handleDeleteClient}
                     />
                   ))}
                 </div>

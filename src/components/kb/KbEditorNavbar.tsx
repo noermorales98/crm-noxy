@@ -1,38 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Search01Icon,
-  Cancel01Icon,
   UserMultipleIcon,
   Settings01Icon,
   Logout01Icon,
 } from "@hugeicons/core-free-icons";
-import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download } from "lucide-react";
-import PageIcon from "@/src/components/kb/PageIcon";
+import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download, History } from "lucide-react";
+import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
+import KbSharePanel from "@/src/components/kb/KbSharePanel";
 import {
   KB_MARKDOWN_THEMES,
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
-import KbSharePanel from "@/src/components/kb/KbSharePanel";
 
 export interface KbBreadcrumb {
   id: string;
   title: string;
   emoji: string | null;
-}
-
-interface KbSearchPage {
-  id: string;
-  title: string;
-  emoji: string | null;
-  iconColor?: string | null;
-  iconBg?: string | null;
-  isFolder: boolean;
 }
 
 type ViewMode = "edit" | "preview";
@@ -54,6 +42,8 @@ interface Props {
   onOpenSuggestionsReview?: () => void;
   onExportPdf?: () => void;
   exportPdfLoading?: boolean;
+  onOpenHistory?: () => void;
+  hasLocalDraft?: boolean;
 }
 
 export default function KbEditorNavbar({
@@ -72,30 +62,17 @@ export default function KbEditorNavbar({
   onOpenSuggestionsReview,
   onExportPdf,
   exportPdfLoading = false,
+  onOpenHistory,
+  hasLocalDraft = false,
 }: Props) {
-  const router = useRouter();
   const { data: session } = useSession();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const [allPages, setAllPages] = useState<KbSearchPage[]>([]);
-  const searchRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const themeMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/kb?all=true")
-      .then((r) => (r.ok ? r.json() : []))
-      .then(setAllPages)
-      .catch(() => setAllPages([]));
-  }, []);
-
-  useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setSearchOpen(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setUserMenuOpen(false);
       }
@@ -106,20 +83,6 @@ export default function KbEditorNavbar({
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
-
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    return allPages
-      .filter((p) => p.id !== pageId && p.title.toLowerCase().includes(q))
-      .slice(0, 8);
-  }, [allPages, searchQuery, pageId]);
-
-  const navigateTo = (id: string) => {
-    setSearchQuery("");
-    setSearchOpen(false);
-    router.push(`/kb/${id}`);
-  };
 
   return (
     <div className="flex items-center gap-3 px-4 h-14 border-b border-border-subtle shrink-0 bg-surface-elevated">
@@ -142,59 +105,9 @@ export default function KbEditorNavbar({
         </span>
       </div>
 
-      {/* Search */}
-      <div ref={searchRef} className="flex-1 max-w-md mx-auto relative">
-        <div className="relative flex items-center w-full h-9 rounded-lg bg-surface-sidebar px-3 focus-within:bg-surface-elevated transition-colors">
-          <HugeiconsIcon icon={Search01Icon} size={15} color="#787774" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSearchOpen(true);
-            }}
-            onFocus={() => setSearchOpen(true)}
-            placeholder="Buscar páginas..."
-            className="flex-1 ml-2 bg-transparent border-none outline-none text-sm text-text-primary placeholder:text-text-secondary"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSearchOpen(false);
-              }}
-              className="ml-1 text-text-secondary hover:text-text-primary"
-            >
-              <HugeiconsIcon icon={Cancel01Icon} size={13} />
-            </button>
-          )}
-        </div>
-
-        {searchOpen && searchQuery.trim() && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-surface-elevated rounded-lg py-1 z-50 max-h-64 overflow-y-auto border border-border-subtle">
-            {searchResults.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-text-secondary">Sin resultados</p>
-            ) : (
-              searchResults.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => navigateTo(p.id)}
-                  className="flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-nav-hover transition-colors"
-                >
-                  <PageIcon
-                    emoji={p.emoji}
-                    iconColor={p.iconColor}
-                    iconBg={p.iconBg}
-                    isFolder={p.isFolder}
-                    size={16}
-                    block
-                  />
-                  <span className="truncate text-text-primary">{p.title}</span>
-                </button>
-              ))
-            )}
-          </div>
-        )}
+      {/* Global search */}
+      <div className="flex-1 max-w-md mx-auto">
+        <GlobalSearchTrigger />
       </div>
 
       {/* Actions */}
@@ -216,6 +129,18 @@ export default function KbEditorNavbar({
           </button>
         )}
 
+        {!isFolder && onOpenHistory && (
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover transition-colors"
+            title="Historial de cambios"
+          >
+            <History size={12} />
+            <span className="hidden sm:inline">Historial</span>
+          </button>
+        )}
+
         <button
           onClick={onTogglePublished}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -227,6 +152,12 @@ export default function KbEditorNavbar({
           {isPublished ? <Globe size={12} /> : <Lock size={12} />}
           {isPublished ? "Publicado" : "Borrador"}
         </button>
+
+        {hasLocalDraft && (
+          <span className="text-[11px] font-medium px-2 py-1 rounded-lg bg-amber-50 text-amber-800">
+            Borrador local
+          </span>
+        )}
 
         <div
           className={`text-xs font-medium px-2 py-1 rounded-lg transition-all ${
@@ -255,7 +186,6 @@ export default function KbEditorNavbar({
               onClick={() => {
                 setThemeMenuOpen((v) => !v);
                 setUserMenuOpen(false);
-                setSearchOpen(false);
               }}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover transition-colors"
               title="Tema de markdown"
@@ -329,7 +259,6 @@ export default function KbEditorNavbar({
           <button
             onClick={() => {
               setUserMenuOpen(!userMenuOpen);
-              setSearchOpen(false);
             }}
             className="w-8 h-8 rounded-lg bg-accent-charcoal flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity"
             title={session?.user?.name || "Usuario"}
