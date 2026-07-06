@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       const result = await runDigestForUser(session.user.id, orgId, {
         sendWhatsApp: true,
         skipScheduleCheck: true,
+        updateLastSent: false,
       });
       return NextResponse.json({
         message: result.message,

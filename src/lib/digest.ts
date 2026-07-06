@@ -261,7 +261,7 @@ Reglas:
 export async function runDigestForUser(
   userId: string,
   orgId: string,
-  options?: { sendWhatsApp?: boolean; skipScheduleCheck?: boolean }
+  options?: { sendWhatsApp?: boolean; skipScheduleCheck?: boolean; updateLastSent?: boolean }
 ): Promise<{ message: string; sent: boolean; context: string }> {
   const [schedule, user, org] = await Promise.all([
     prisma.digestSchedule.findUnique({
@@ -321,7 +321,7 @@ export async function runDigestForUser(
     if (!sent) throw new Error("No se pudo enviar el WhatsApp");
   }
 
-  if (schedule && shouldSend) {
+  if (schedule && shouldSend && options?.updateLastSent !== false) {
     await prisma.digestSchedule.update({
       where: { id: schedule.id },
       data: { lastSentAt: new Date() },
