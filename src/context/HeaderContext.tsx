@@ -17,12 +17,29 @@ export interface FilterGroup {
   options: FilterOption[];
 }
 
+export interface HeaderActionMenuItem {
+  label: string;
+  onClick: () => void;
+}
+
+export interface HeaderAction {
+  key: string;
+  icon: any;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  spinning?: boolean;
+  menu?: HeaderActionMenuItem[];
+}
+
 export interface HeaderConfig {
   title?: ReactNode;
   titleBadge?: string | number;
   sortOptions?: SortOption[];
   filterGroups?: FilterGroup[];
   addButton?: { label: string; onClick: () => void };
+  actions?: HeaderAction[];
 }
 
 interface HeaderContextValue {

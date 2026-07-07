@@ -21,10 +21,12 @@ import {
   SourceCodeIcon,
   Clock01Icon,
   SparklesIcon,
+  Megaphone01Icon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
+import { useHeader } from "@/src/context/HeaderContext";
 import { useAi } from "@/src/hooks/useAi";
 
 function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
@@ -90,6 +92,37 @@ function EmailsPageInner() {
   const emailCtx = useEmailContext();
   const searchParams = useSearchParams();
   const { folder, selectedCompanyId, setIsSyncing, isSyncing, syncGeneration, notifySyncComplete, lastSyncedAt } = emailCtx;
+  const { setConfig, resetState } = useHeader();
+
+  useEffect(() => {
+    resetState();
+  }, []);
+
+  useEffect(() => {
+    setConfig({
+      title: FOLDERS.find((f) => f.key === folder)?.label,
+      actions: [
+        {
+          key: "sync",
+          icon: Refresh01Icon,
+          label: "Sincronizar",
+          disabled: isSyncing,
+          spinning: isSyncing,
+          menu: [
+            { label: "Sincronizar", onClick: () => handleSync(false) },
+            { label: "Sincronizar todo el historial", onClick: () => handleSync(true) },
+          ],
+        },
+        {
+          key: "campaigns",
+          icon: Megaphone01Icon,
+          label: "Campañas de correo",
+          href: "/campaigns",
+        },
+      ],
+    });
+    return () => setConfig({});
+  }, [folder, isSyncing]);
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [emails, setEmails] = useState<EmailSummary[]>([]);
@@ -540,15 +573,8 @@ function EmailsPageInner() {
         <div className="w-80 bg-white border-r border-border-subtle flex flex-col overflow-hidden shrink-0">
           {/* Header */}
           <div className="px-4 py-4 border-b border-border-subtle shrink-0">
-            <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
-              {FOLDERS.find((f) => f.key === folder)?.icon}
-              {FOLDERS.find((f) => f.key === folder)?.label}
-              {selectedCompany && (
-                <span className="text-xs font-normal text-text-secondary truncate">· {selectedCompany.name}</span>
-              )}
-            </h2>
             <p className="text-xs text-text-secondary mt-0.5">
-              {emails.length} correos
+              {selectedCompany ? `${selectedCompany.name} · ` : ""}{emails.length} correos
               {lastSyncLabel ? ` · Sync ${lastSyncLabel}` : ""}
             </p>
           </div>

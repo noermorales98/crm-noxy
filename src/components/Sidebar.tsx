@@ -16,12 +16,10 @@ import {
   CalendarCheckIn01Icon,
   Add01Icon,
   BarChartIcon,
-  Megaphone01Icon,
   Book01Icon,
   Archive01Icon,
   SentIcon,
   PencilEdit01Icon,
-  Refresh01Icon,
   Settings01Icon,
   AiChatIcon,
   Search01Icon,
@@ -34,7 +32,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { useGlobalSearch } from "@/src/context/SearchContext";
-import { useOptionalEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
+import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import VaultNav from "@/src/components/vault/VaultNav";
 import { ChevronDown, Check } from "lucide-react";
@@ -339,7 +337,6 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
   );
   const selectedCompanyId = emailCtx?.selectedCompanyId ?? null;
   const isOnEmail = pathname.startsWith("/emails");
-  const lastSyncLabel = emailCtx?.lastSyncedAt ? formatLastEmailSync(emailCtx.lastSyncedAt) : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -447,38 +444,6 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
         )}
       </div>
 
-      {isOnEmail && emailCtx && (
-        <div className="px-3 py-2 shrink-0 flex flex-col gap-1">
-          <button
-            onClick={() => emailCtx.onSync(false)}
-            disabled={emailCtx.isSyncing}
-            className={`${itemBase} ${itemIdle} ${itemHover} w-full justify-center disabled:opacity-50`}
-          >
-            <HugeiconsIcon icon={Refresh01Icon} size={ICON_SIZE} color={ICON_COLOR} />
-            {emailCtx.isSyncing ? "Sincronizando..." : "Sincronizar"}
-          </button>
-          <button
-            onClick={() => emailCtx.onSync(true)}
-            disabled={emailCtx.isSyncing}
-            className={`${itemBase} ${itemIdle} ${itemHover} w-full justify-center text-xs disabled:opacity-50`}
-          >
-            <HugeiconsIcon icon={Refresh01Icon} size={14} color={ICON_COLOR} />
-            Descargar todo el historial
-          </button>
-          {lastSyncLabel && (
-            <p className="text-[10px] text-text-secondary text-center pt-1">
-              Última sync: {lastSyncLabel}
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="px-0 pb-3 shrink-0">
-        <SectionLabel label="Marketing" />
-        <div className="px-3">
-          <NavItem href="/campaigns" icon={Megaphone01Icon} label="Campañas de Email" />
-        </div>
-      </div>
     </div>
   );
 }

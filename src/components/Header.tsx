@@ -2,7 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useHeader } from "@/src/context/HeaderContext";
+import { useHeader, type HeaderAction } from "@/src/context/HeaderContext";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -210,6 +210,11 @@ export default function Header() {
           </button>
         )}
 
+        {/* Custom icon actions */}
+        {config.actions?.map((action) => (
+          <HeaderActionButton key={action.key} action={action} />
+        ))}
+
         {/* Global search */}
         <GlobalSearchTrigger className="w-64" />
 
@@ -325,6 +330,68 @@ export default function Header() {
       </div>
 
     </header>
+  );
+}
+
+// ── Custom icon action button (optionally with a dropdown menu) ───────────────
+
+function HeaderActionButton({ action }: { action: HeaderAction }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const buttonClass = "relative w-8 h-8 flex items-center justify-center rounded-lg bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors disabled:opacity-50";
+  const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
+
+  if (action.menu?.length) {
+    return (
+      <div className="relative" ref={ref}>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          disabled={action.disabled}
+          className={buttonClass}
+          title={action.label}
+        >
+          {icon}
+        </button>
+        {open && (
+          <div className="absolute right-0 mt-2 w-56 bg-surface-elevated rounded-lg py-1 z-40">
+            {action.menu.map((item) => (
+              <button
+                key={item.label}
+                onClick={() => { item.onClick(); setOpen(false); }}
+                className="w-full px-4 py-2.5 text-sm text-left text-text-secondary hover:bg-surface-sidebar hover:text-text-primary transition-colors"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (action.href) {
+    return (
+      <Link href={action.href} className={buttonClass} title={action.label}>
+        {icon}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={action.onClick} disabled={action.disabled} className={buttonClass} title={action.label}>
+      {icon}
+    </button>
   );
 }
 
