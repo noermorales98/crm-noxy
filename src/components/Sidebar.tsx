@@ -744,10 +744,10 @@ export default function Sidebar() {
             <div className="relative ml-auto" ref={userRef}>
               <button
                 onClick={() => { setSidebarUserOpen(v => !v); setSidebarNotifOpen(false); }}
-                className="w-8 h-8 rounded-lg bg-accent-charcoal flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity"
+                className="w-8 h-8 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
                 title={session?.user?.name || "Usuario"}
               >
-                {session?.user?.name?.[0]?.toUpperCase() || "U"}
+                <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
               </button>
 
               {sidebarUserOpen && (

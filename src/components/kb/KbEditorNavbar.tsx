@@ -260,10 +260,10 @@ export default function KbEditorNavbar({
             onClick={() => {
               setUserMenuOpen(!userMenuOpen);
             }}
-            className="w-8 h-8 rounded-lg bg-accent-charcoal flex items-center justify-center text-white font-semibold text-xs hover:opacity-90 transition-opacity"
+            className="w-8 h-8 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
             title={session?.user?.name || "Usuario"}
           >
-            {session?.user?.name?.[0]?.toUpperCase() || "U"}
+            <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
           </button>
 
           {userMenuOpen && (
