@@ -9,14 +9,14 @@ interface Props {
   compact?: boolean;
 }
 
-export default function GlobalSearchTrigger({ className = "", compact = false }: Props) {
+export default function GlobalSearchTrigger({ className = "w-full", compact = false }: Props) {
   const { openSearch } = useGlobalSearch();
 
   return (
     <button
       type="button"
       onClick={openSearch}
-      className={`relative flex items-center w-full h-9 rounded-lg bg-surface-sidebar px-3 text-left transition-colors hover:bg-nav-hover focus-within:bg-surface-elevated ${className}`}
+      className={`relative flex items-center h-9 rounded-full bg-surface-sidebar px-3.5 text-left transition-colors hover:bg-nav-hover focus-within:bg-surface-elevated ${className}`}
     >
       <HugeiconsIcon icon={Search01Icon} size={15} color="#787774" />
       <span className={`flex-1 ml-2 text-sm text-text-secondary truncate ${compact ? "hidden sm:inline" : ""}`}>

@@ -31,7 +31,7 @@ function Avatar({ name }: { name: string }) {
 function ContactsContent() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder } = useHeader();
   const searchParams = useSearchParams();
   const projectId = searchParams.get("projectId");
 
@@ -45,8 +45,12 @@ function ContactsContent() {
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar contacto...",
+      title: "Contactos",
+      titleBadge: loading ? undefined : contacts.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
         { label: "Email", value: "email" },
@@ -58,7 +62,7 @@ function ContactsContent() {
       },
     });
     return () => setConfig({});
-  }, []);
+  }, [loading, contacts.length]);
 
   useEffect(() => { fetchContacts(); fetchCompanies(); }, []);
 
@@ -85,16 +89,7 @@ function ContactsContent() {
   };
 
   const displayed = useMemo(() => {
-    let result = [...contacts];
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c =>
-        `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.phone?.toLowerCase().includes(q) ||
-        c.company?.name?.toLowerCase().includes(q)
-      );
-    }
+    const result = [...contacts];
     if (sortField) {
       result.sort((a, b) => {
         let aVal = "", bVal = "";
@@ -107,7 +102,7 @@ function ContactsContent() {
       });
     }
     return result;
-  }, [contacts, searchQuery, sortField, sortOrder]);
+  }, [contacts, sortField, sortOrder]);
 
   const openEditModal = (contact: any) => {
     setEditingId(contact.id);
@@ -156,10 +151,6 @@ function ContactsContent() {
           {/* Page header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-text-primary">Contactos</h1>
-                {!loading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{contacts.length}</span>}
-              </div>
               <p className="text-sm text-text-secondary">
                 {projectId ? "Mostrando contactos del proyecto actual." : "Gestiona todos tus contactos y leads."}
               </p>
@@ -184,8 +175,8 @@ function ContactsContent() {
                 <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                   <HugeiconsIcon icon={UserMultipleIcon} size={28} color="#9ca3af" />
                 </div>
-                <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery ? "Sin resultados" : "No hay contactos"}</h3>
-                <p className="text-sm text-text-secondary">{searchQuery ? `No se encontraron resultados para "${searchQuery}".` : "Agrega tu primer contacto para comenzar."}</p>
+                <h3 className="text-base font-semibold text-text-primary mb-1">No hay contactos</h3>
+                <p className="text-sm text-text-secondary">Agrega tu primer contacto para comenzar.</p>
               </div>
             ) : (
               <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">

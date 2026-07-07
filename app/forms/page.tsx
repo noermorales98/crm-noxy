@@ -23,7 +23,7 @@ type Form = {
 export default function FormsPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder, activeFilters } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder, activeFilters } = useHeader();
 
   const [forms, setForms] = useState<Form[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -42,8 +42,12 @@ export default function FormsPage() {
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar formulario...",
+      title: "Formularios",
+      titleBadge: isLoading ? undefined : forms.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
         { label: "Fecha de creación", value: "createdAt" },
@@ -62,7 +66,7 @@ export default function FormsPage() {
       addButton: { label: "Crear formulario", onClick: () => setIsModalOpen(true) },
     });
     return () => setConfig({});
-  }, []);
+  }, [isLoading, forms.length]);
 
   useEffect(() => {
     fetchForms();
@@ -89,15 +93,6 @@ export default function FormsPage() {
   const displayed = useMemo(() => {
     let result = [...forms];
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(f =>
-        f.name?.toLowerCase().includes(q) ||
-        f.company?.name?.toLowerCase().includes(q) ||
-        f.description?.toLowerCase().includes(q)
-      );
-    }
-
     if (activeFilters.status) {
       result = result.filter(f => activeFilters.status === "active" ? f.isActive : !f.isActive);
     }
@@ -116,7 +111,7 @@ export default function FormsPage() {
     }
 
     return result;
-  }, [forms, searchQuery, sortField, sortOrder, activeFilters]);
+  }, [forms, sortField, sortOrder, activeFilters]);
 
   const handleCreateForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -169,10 +164,6 @@ export default function FormsPage() {
     <>
       <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-text-primary">Formularios</h1>
-              {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{forms.length}</span>}
-            </div>
             <p className="text-sm text-text-secondary">Crea formularios embebibles para capturar leads desde tu sitio web.</p>
           </div>
 
@@ -183,8 +174,8 @@ export default function FormsPage() {
               <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={File02Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery || activeFilters.status ? "Sin resultados" : "No hay formularios"}</h3>
-              <p className="text-sm text-text-secondary">{searchQuery || activeFilters.status ? "Prueba con otros filtros o busca un término diferente." : "Crea tu primer formulario para capturar leads."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">{activeFilters.status ? "Sin resultados" : "No hay formularios"}</h3>
+              <p className="text-sm text-text-secondary">{activeFilters.status ? "Prueba con otro filtro." : "Crea tu primer formulario para capturar leads."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

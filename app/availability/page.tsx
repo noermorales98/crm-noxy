@@ -105,7 +105,7 @@ export default function AvailabilityPage() {
   useEffect(() => {
     resetState();
     setConfig({
-      searchPlaceholder: "Buscar horario...",
+      title: "Disponibilidad",
       addButton: { label: "Nuevo horario", onClick: openCreate },
     });
     return () => setConfig({});
@@ -346,7 +346,6 @@ export default function AvailabilityPage() {
     <>
       <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-text-primary mb-1">Disponibilidad</h1>
             <p className="text-sm text-text-secondary">Configura tus horarios de atención y bloquea días no disponibles.</p>
           </div>
 

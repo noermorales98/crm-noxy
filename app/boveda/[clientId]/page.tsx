@@ -8,14 +8,11 @@ import VaultPanel from "@/src/components/vault/VaultPanel";
 export default function BovedaClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const router = useRouter();
-  const { setConfig, resetState } = useHeader();
+  const { resetState } = useHeader();
   const [clientName, setClientName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setConfig({
-      searchPlaceholder: "Buscar en bóveda…",
-    });
     return () => resetState();
   }, []); // eslint-disable-line
 

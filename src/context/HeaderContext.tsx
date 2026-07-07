@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react";
 
 export interface SortOption {
   label: string;
@@ -18,7 +18,8 @@ export interface FilterGroup {
 }
 
 export interface HeaderConfig {
-  searchPlaceholder?: string;
+  title?: ReactNode;
+  titleBadge?: string | number;
   sortOptions?: SortOption[];
   filterGroups?: FilterGroup[];
   addButton?: { label: string; onClick: () => void };
@@ -27,8 +28,6 @@ export interface HeaderConfig {
 interface HeaderContextValue {
   config: HeaderConfig;
   setConfig: (config: HeaderConfig) => void;
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
   sortField: string;
   sortOrder: "asc" | "desc";
   setSort: (field: string) => void;
@@ -41,7 +40,6 @@ const HeaderContext = createContext<HeaderContextValue | null>(null);
 
 export function HeaderProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfigState] = useState<HeaderConfig>({});
-  const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
@@ -73,14 +71,13 @@ export function HeaderProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const resetState = useCallback(() => {
-    setSearchQuery("");
     setSortField("");
     setSortOrder("asc");
     setActiveFilters({});
   }, []);
 
   return (
-    <HeaderContext.Provider value={{ config, setConfig, searchQuery, setSearchQuery, sortField, sortOrder, setSort, activeFilters, setFilter, resetState }}>
+    <HeaderContext.Provider value={{ config, setConfig, sortField, sortOrder, setSort, activeFilters, setFilter, resetState }}>
       {children}
     </HeaderContext.Provider>
   );

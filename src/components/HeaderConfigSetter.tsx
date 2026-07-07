@@ -4,21 +4,19 @@ import { useHeader, HeaderConfig } from "@/src/context/HeaderContext";
 import { useRouter } from "next/navigation";
 
 interface Props {
-  searchPlaceholder?: string;
   sortOptions?: HeaderConfig["sortOptions"];
   filterGroups?: HeaderConfig["filterGroups"];
   addButtonLabel?: string;
   addButtonHref?: string;
 }
 
-export function HeaderConfigSetter({ searchPlaceholder, sortOptions, filterGroups, addButtonLabel, addButtonHref }: Props) {
+export function HeaderConfigSetter({ sortOptions, filterGroups, addButtonLabel, addButtonHref }: Props) {
   const { setConfig, resetState } = useHeader();
   const router = useRouter();
 
   useEffect(() => {
     resetState();
     setConfig({
-      searchPlaceholder,
       sortOptions,
       filterGroups,
       addButton: addButtonLabel && addButtonHref

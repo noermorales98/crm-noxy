@@ -20,7 +20,7 @@ function CompanyAvatar({ name }: { name: string }) {
 export default function CompaniesPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder } = useHeader();
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +37,12 @@ export default function CompaniesPage() {
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar empresa...",
+      title: "Empresas",
+      titleBadge: loading ? undefined : companies.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
         { label: "Industria", value: "industry" },
@@ -47,7 +51,7 @@ export default function CompaniesPage() {
       addButton: { label: "Agregar empresa", onClick: () => { setEditingId(null); setFormData({ name: "", website: "", industry: "" }); setShowModal(true); } },
     });
     return () => setConfig({});
-  }, []);
+  }, [loading, companies.length]);
 
   useEffect(() => { fetchCompanies(); }, []);
 
@@ -60,11 +64,7 @@ export default function CompaniesPage() {
   };
 
   const displayed = useMemo(() => {
-    let result = [...companies];
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c => c.name?.toLowerCase().includes(q) || c.industry?.toLowerCase().includes(q) || c.website?.toLowerCase().includes(q));
-    }
+    const result = [...companies];
     if (sortField) {
       result.sort((a, b) => {
         let aVal: any, bVal: any;
@@ -76,7 +76,7 @@ export default function CompaniesPage() {
       });
     }
     return result;
-  }, [companies, searchQuery, sortField, sortOrder]);
+  }, [companies, sortField, sortOrder]);
 
   const openEditModal = (company: any) => {
     setEditingId(company.id);
@@ -145,12 +145,6 @@ export default function CompaniesPage() {
 
           {/* Page header */}
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-text-primary">Empresas</h1>
-              {!loading && (
-                <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{companies.length}</span>
-              )}
-            </div>
             <p className="text-sm text-text-secondary">Administra las empresas y sus configuraciones de correo (SMTP).</p>
           </div>
 
@@ -163,8 +157,8 @@ export default function CompaniesPage() {
               <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={Building04Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery ? "Sin resultados" : "No hay empresas"}</h3>
-              <p className="text-sm text-text-secondary">{searchQuery ? `No se encontraron resultados para "${searchQuery}".` : "Agrega tu primera empresa para comenzar."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">No hay empresas</h3>
+              <p className="text-sm text-text-secondary">Agrega tu primera empresa para comenzar.</p>
             </div>
           ) : (
             <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">

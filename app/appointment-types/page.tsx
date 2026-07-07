@@ -11,7 +11,7 @@ import Link from "next/link";
 export default function AppointmentTypesPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder } = useHeader();
   const [types, setTypes] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -37,7 +37,8 @@ export default function AppointmentTypesPage() {
 
   useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar tipo de cita...",
+      title: "Tipos de cita",
+      titleBadge: isLoading ? undefined : types.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
         { label: "Duración", value: "duration" },
@@ -46,7 +47,7 @@ export default function AppointmentTypesPage() {
       addButton: { label: "Nuevo tipo", onClick: openCreate },
     });
     return () => setConfig({});
-  }, [schedules.length]); // Re-run if schedules change but don't reset state
+  }, [schedules.length, isLoading, types.length]); // Re-run if schedules change but don't reset state
 
   useEffect(() => {
     fetchAll();
@@ -127,10 +128,6 @@ export default function AppointmentTypesPage() {
 
   const displayed = useMemo(() => {
     let result = [...types];
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(t => t.name?.toLowerCase().includes(q) || t.description?.toLowerCase().includes(q));
-    }
     if (sortField) {
       result = [...result].sort((a, b) => {
         let aVal: any, bVal: any;
@@ -144,17 +141,13 @@ export default function AppointmentTypesPage() {
       });
     }
     return result;
-  }, [types, searchQuery, sortField, sortOrder]);
+  }, [types, sortField, sortOrder]);
 
   return (
     <>
       <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-text-primary">Tipos de cita</h1>
-                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{types.length}</span>}
-              </div>
               <p className="text-sm text-text-secondary">Define los tipos de reunión que tus clientes pueden agendar.</p>
             </div>
             <Link href="/availability" className="flex items-center gap-2 border border-border-subtle bg-white hover:bg-surface-sidebar text-text-secondary px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
@@ -183,8 +176,8 @@ export default function AppointmentTypesPage() {
               <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
                 <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
               </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">{searchQuery ? "Sin resultados" : "Sin tipos de cita"}</h3>
-              <p className="text-sm text-text-secondary">{searchQuery ? "Prueba con otro término de búsqueda." : "Crea tu primer tipo de cita para que tus clientes puedan agendar."}</p>
+              <h3 className="text-base font-semibold text-text-primary mb-1">Sin tipos de cita</h3>
+              <p className="text-sm text-text-secondary">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

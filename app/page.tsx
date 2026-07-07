@@ -1,3 +1,4 @@
+import { WelcomeHeaderTitle } from "@/src/components/WelcomeHeaderTitle";
 import { DashboardShortcuts } from "@/src/components/DashboardShortcuts";
 import { DashboardWidgets } from "@/src/components/DashboardWidgets";
 import { SalesMetrics } from "@/src/components/SalesMetrics";
@@ -109,6 +110,7 @@ export default async function Home() {
 
   return (
     <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5 bg-surface-app">
+          <WelcomeHeaderTitle />
           <DashboardShortcuts
             contactsCount={contactsCount}
             appointmentsCount={upcomingAppointmentsCount}

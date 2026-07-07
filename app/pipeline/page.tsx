@@ -12,7 +12,6 @@ import {
   CalendarCheckIn01Icon,
   MessageIcon,
   KanbanIcon,
-  Search01Icon,
   Cancel01Icon,
   CheckmarkCircle01Icon,
   Building02Icon,
@@ -802,7 +801,6 @@ export default function PipelinePage() {
   const [showClientModal, setShowClientModal] = useState(false);
   const [defaultStageId, setDefaultStageId] = useState<string | undefined>();
   const [selectedClient, setSelectedClient] = useState<any>(null);
-  const [search, setSearch] = useState("");
   const [selectedPipelineIdx, setSelectedPipelineIdx] = useState(0);
   const [hiddenStats, setHiddenStats] = useState<Set<string>>(new Set());
 
@@ -837,7 +835,7 @@ export default function PipelinePage() {
   useEffect(() => {
     resetState();
     setConfig({
-      searchPlaceholder: activeTab === "pipeline" ? "Buscar deal..." : "Buscar cliente...",
+      title: "Pipeline de ventas",
       addButton: {
         label: activeTab === "pipeline" ? "Nuevo deal" : "Nuevo cliente",
         onClick: () => activeTab === "pipeline" ? setShowDealModal(true) : setShowClientModal(true),
@@ -1112,21 +1110,7 @@ export default function PipelinePage() {
   // ─── Filtered deals for search ────────────────────────────────────────────
 
   const activePipeline = pipelines[selectedPipelineIdx] || pipelines[0];
-  const filteredPipeline = activePipeline
-    ? {
-        ...activePipeline,
-        stages: activePipeline.stages.map((stage: any) => ({
-          ...stage,
-          deals: search
-            ? stage.deals.filter(
-                (d: any) =>
-                  d.title.toLowerCase().includes(search.toLowerCase()) ||
-                  d.company?.name?.toLowerCase().includes(search.toLowerCase())
-              )
-            : stage.deals,
-        })),
-      }
-    : null;
+  const filteredPipeline = activePipeline || null;
 
   // ─── Loading ──────────────────────────────────────────────────────────────
 
@@ -1144,12 +1128,6 @@ export default function PipelinePage() {
 
           {/* ── Page header ── */}
           <div className="px-5 pt-3 pb-0 bg-white border-b border-border-subtle">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <HugeiconsIcon icon={KanbanIcon} size={18} color="#9ca3af" />
-                <h1 className="text-lg font-bold text-text-primary">Pipeline de ventas</h1>
-              </div>
-            </div>
 
             {/* Stats row */}
             {visibleStats.length > 0 && (
@@ -1223,31 +1201,6 @@ export default function PipelinePage() {
             <div>
               {/* Toolbar */}
               <div className="px-5 py-2 flex items-center gap-3 bg-surface-app">
-                {/* Search */}
-                <div className="relative flex-1 max-w-xs">
-                  <HugeiconsIcon
-                    icon={Search01Icon}
-                    size={15}
-                    color="#9ca3af"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar deal o empresa..."
-                    className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-border-subtle rounded-lg focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all"
-                  />
-                  {search && (
-                    <button
-                      onClick={() => setSearch("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-secondary"
-                    >
-                      <HugeiconsIcon icon={Cancel01Icon} size={14} />
-                    </button>
-                  )}
-                </div>
-
                 {/* Pipeline selector */}
                 {pipelines.length > 1 && (
                   <select

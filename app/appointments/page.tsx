@@ -5,6 +5,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CalendarCheckIn01Icon, Clock01Icon, User02Icon, Mail01Icon, CallIcon, CheckmarkCircle01Icon, Cancel01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
+import { useHeader } from "@/src/context/HeaderContext";
 
 const STATUS_COLORS: Record<string, string> = {
   CONFIRMED: "bg-blue-50 text-blue-700 border border-blue-100",
@@ -31,6 +32,19 @@ export default function AppointmentsPage() {
   const [filter, setFilter] = useState("ALL");
   const { addToast } = useToast();
   const { confirm } = useConfirm();
+  const { setConfig, resetState } = useHeader();
+
+  useEffect(() => {
+    resetState();
+  }, []);
+
+  useEffect(() => {
+    setConfig({
+      title: "Citas agendadas",
+      titleBadge: isLoading ? undefined : appointments.length,
+    });
+    return () => setConfig({});
+  }, [isLoading, appointments.length]);
 
   useEffect(() => { fetchAppointments(); }, []);
 
@@ -80,10 +94,6 @@ export default function AppointmentsPage() {
 
           {/* Page header */}
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-text-primary">Citas agendadas</h1>
-              {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{appointments.length}</span>}
-            </div>
             <p className="text-sm text-text-secondary">Visualiza y gestiona todas las citas de tus clientes.</p>
           </div>
 

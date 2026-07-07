@@ -9,15 +9,19 @@ import { useHeader } from "@/src/context/HeaderContext";
 import { useRouter } from "next/navigation";
 
 export default function ProjectsPage() {
-  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder } = useHeader();
   const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar proyecto...",
+      title: "Proyectos",
+      titleBadge: isLoading ? undefined : projects.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
         { label: "Fecha de creación", value: "createdAt" },
@@ -26,7 +30,7 @@ export default function ProjectsPage() {
       addButton: { label: "Nuevo proyecto", onClick: () => router.push("/projects/create") },
     });
     return () => setConfig({});
-  }, []);
+  }, [isLoading, projects.length]);
 
   useEffect(() => {
     fetch("/api/projects")
@@ -38,14 +42,6 @@ export default function ProjectsPage() {
 
   const displayed = useMemo(() => {
     let result = [...projects];
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(p =>
-        p.name?.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q)
-      );
-    }
 
     if (sortField) {
       result = [...result].sort((a, b) => {
@@ -63,16 +59,12 @@ export default function ProjectsPage() {
     }
 
     return result;
-  }, [projects, searchQuery, sortField, sortOrder]);
+  }, [projects, sortField, sortOrder]);
 
   return (
     <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-7xl mx-auto w-full">
             <div className="mb-6">
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold tracking-tight text-text-primary">Proyectos</h1>
-                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{projects.length}</span>}
-              </div>
               <p className="text-sm text-text-secondary">Organiza tus campañas, formularios y contactos por iniciativa o cliente.</p>
             </div>
 
@@ -116,15 +108,11 @@ export default function ProjectsPage() {
                     <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-text-secondary mb-4">
                       <HugeiconsIcon icon={FolderIcon} size={32} />
                     </div>
-                    <h3 className="text-lg font-bold text-text-primary mb-2">{searchQuery ? "No se encontraron proyectos." : "No projects yet"}</h3>
-                    {!searchQuery && (
-                      <>
-                        <p className="text-text-secondary max-w-sm mb-6">Group your forms, campaigns, contacts, and companies together by creating your first project.</p>
-                        <Link href="/projects/create" className="inline-flex items-center justify-center gap-2 bg-white text-text-primary border border-border-subtle px-5 py-2.5 rounded-lg hover:bg-surface-sidebar transition-colors font-medium">
-                          <HugeiconsIcon icon={Add01Icon} size={18} /> Create your first project
-                        </Link>
-                      </>
-                    )}
+                    <h3 className="text-lg font-bold text-text-primary mb-2">No projects yet</h3>
+                    <p className="text-text-secondary max-w-sm mb-6">Group your forms, campaigns, contacts, and companies together by creating your first project.</p>
+                    <Link href="/projects/create" className="inline-flex items-center justify-center gap-2 bg-white text-text-primary border border-border-subtle px-5 py-2.5 rounded-lg hover:bg-surface-sidebar transition-colors font-medium">
+                      <HugeiconsIcon icon={Add01Icon} size={18} /> Create your first project
+                    </Link>
                   </div>
                 )}
               </div>

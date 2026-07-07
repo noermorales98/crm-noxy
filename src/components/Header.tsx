@@ -2,7 +2,6 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
@@ -49,10 +48,8 @@ function timeAgo(date: string): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function Header() {
-  const pathname = usePathname();
-  const isEmailsRoute = pathname === "/emails" || pathname.startsWith("/emails/");
   const { data: session } = useSession();
-  const { config, searchQuery, setSearchQuery, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
+  const { config, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -82,30 +79,19 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header
-      className={`h-16 px-6 flex items-center justify-between bg-surface-elevated flex-shrink-0${
-        isEmailsRoute ? " border-b border-border-subtle" : ""
-      }`}
-    >
+    <header className="h-16 px-6 flex items-center justify-between gap-4 bg-surface-app flex-shrink-0">
 
-      {/* Global CRM search + optional local list filter */}
-      <div className="flex items-center gap-2 flex-1 max-w-2xl min-w-0">
-        <GlobalSearchTrigger className="max-w-md flex-1 min-w-[180px]" />
-        {config.searchPlaceholder && (
-          <div className="relative flex items-center w-full max-w-[220px] h-9 rounded-lg bg-surface-sidebar px-3 focus-within:bg-surface-elevated transition-colors shrink-0">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={config.searchPlaceholder}
-              className="flex-1 bg-transparent border-none outline-none text-sm text-text-primary placeholder:text-text-secondary"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="ml-1 text-text-secondary hover:text-text-primary">
-                <HugeiconsIcon icon={Cancel01Icon} size={13} />
-              </button>
+      {/* Page title */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        {config.title && (
+          <>
+            <h1 className="text-lg font-bold text-text-primary truncate">{config.title}</h1>
+            {(config.titleBadge || config.titleBadge === 0) && (
+              <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full shrink-0">
+                {config.titleBadge}
+              </span>
             )}
-          </div>
+          </>
         )}
       </div>
 
@@ -224,11 +210,14 @@ export default function Header() {
           </button>
         )}
 
+        {/* Global search */}
+        <GlobalSearchTrigger className="w-64" />
+
         {/* ── Notification Bell ── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); setSortOpen(false); setFiltersOpen(false); }}
-            className="relative w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+            className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
             title="Notificaciones"
           >
             <HugeiconsIcon icon={Notification01Icon} size={17} />

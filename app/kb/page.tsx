@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
 import {
-  Plus, Clock, ChevronRight, BookOpen, Search,
+  Plus, Clock, ChevronRight, BookOpen,
   Globe, Lock, Hash, Folder,
 } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
@@ -35,14 +35,14 @@ function timeAgo(date: string) {
 export default function KbHomePage() {
   const router = useRouter();
   const kb = useOptionalKbContext();
-  const { setConfig, searchQuery, resetState } = useHeader();
+  const { setConfig, resetState } = useHeader();
   const [pages, setPages] = useState<KbPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar páginas...",
+      title: "Knowledge Base",
       addButton: {
         label: "Nueva página",
         onClick: () => createPage(false),
@@ -76,10 +76,7 @@ export default function KbHomePage() {
     setCreating(false);
   };
 
-  const filtered = pages.filter((p) =>
-    !searchQuery ||
-    p.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = pages;
 
   return (
     <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
@@ -90,10 +87,7 @@ export default function KbHomePage() {
               <div className="w-10 h-10 rounded-lg bg-accent-charcoal flex items-center justify-center">
                 <BookOpen size={18} color="white" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-text-primary tracking-tight">Knowledge Base</h1>
-                <p className="text-sm text-text-secondary">Documentación, guías y notas del equipo</p>
-              </div>
+              <p className="text-sm text-text-secondary">Documentación, guías y notas del equipo</p>
             </div>
             {/* Extra actions */}
             <div className="flex items-center gap-2">
@@ -159,40 +153,31 @@ export default function KbHomePage() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-4">
-                {searchQuery ? (
-                  <>
-                    <Search size={32} className="text-gray-200" />
-                    <p className="text-sm text-text-secondary">Sin resultados para "{searchQuery}"</p>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-lg bg-surface-sidebar flex items-center justify-center">
-                      <BookOpen size={28} className="text-gray-200" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-text-primary mb-1">Tu knowledge base está vacío</p>
-                      <p className="text-xs text-text-secondary mb-4">Crea tu primera página para documentar procesos, guías y más</p>
-                      <div className="flex items-center gap-2 justify-center">
-                        <button
-                          onClick={() => createPage(false)}
-                          disabled={creating}
-                          className="flex items-center gap-2 px-4 py-2.5 bg-accent-charcoal hover:bg-black text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <Plus size={14} />
-                          Nueva página
-                        </button>
-                        <button
-                          onClick={() => createPage(true)}
-                          disabled={creating}
-                          className="flex items-center gap-2 px-4 py-2.5 border border-border-subtle text-text-secondary hover:bg-surface-sidebar text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <Folder size={14} />
-                          Nueva carpeta
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
+                <div className="w-16 h-16 rounded-lg bg-surface-sidebar flex items-center justify-center">
+                  <BookOpen size={28} className="text-gray-200" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-text-primary mb-1">Tu knowledge base está vacío</p>
+                  <p className="text-xs text-text-secondary mb-4">Crea tu primera página para documentar procesos, guías y más</p>
+                  <div className="flex items-center gap-2 justify-center">
+                    <button
+                      onClick={() => createPage(false)}
+                      disabled={creating}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-accent-charcoal hover:bg-black text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Plus size={14} />
+                      Nueva página
+                    </button>
+                    <button
+                      onClick={() => createPage(true)}
+                      disabled={creating}
+                      className="flex items-center gap-2 px-4 py-2.5 border border-border-subtle text-text-secondary hover:bg-surface-sidebar text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Folder size={14} />
+                      Nueva carpeta
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="divide-y divide-gray-50">

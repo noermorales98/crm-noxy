@@ -26,20 +26,10 @@ export default function TasksPage() {
 
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder } = useHeader();
 
   useEffect(() => {
     resetState();
-    setConfig({
-      searchPlaceholder: "Buscar tarea...",
-      sortOptions: [
-        { label: "Título", value: "title" },
-        { label: "Fecha de creación", value: "createdAt" },
-        { label: "Categoría", value: "category" },
-      ],
-      addButton: { label: "Nueva tarea", onClick: () => setIsModalOpen(true) },
-    });
-    return () => setConfig({});
   }, []);
 
   useEffect(() => {
@@ -70,17 +60,22 @@ export default function TasksPage() {
   const pendingTasks = useMemo(() => tasks.filter(t => !t.isCompleted), [tasks]);
   const completedTasks = useMemo(() => tasks.filter(t => t.isCompleted), [tasks]);
 
+  useEffect(() => {
+    setConfig({
+      title: "Tareas",
+      titleBadge: !loading && pendingTasks.length > 0 ? `${pendingTasks.length} pendientes` : undefined,
+      sortOptions: [
+        { label: "Título", value: "title" },
+        { label: "Fecha de creación", value: "createdAt" },
+        { label: "Categoría", value: "category" },
+      ],
+      addButton: { label: "Nueva tarea", onClick: () => setIsModalOpen(true) },
+    });
+    return () => setConfig({});
+  }, [loading, pendingTasks.length]);
+
   const displayed = useMemo(() => {
     let result = activeTab === "completed" ? completedTasks : pendingTasks;
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(t =>
-        t.title?.toLowerCase().includes(q) ||
-        t.description?.toLowerCase().includes(q) ||
-        t.category?.name?.toLowerCase().includes(q)
-      );
-    }
 
     if (sortField) {
       result = [...result].sort((a, b) => {
@@ -95,7 +90,7 @@ export default function TasksPage() {
     }
 
     return result;
-  }, [tasks, activeTab, searchQuery, sortField, sortOrder, pendingTasks, completedTasks]);
+  }, [tasks, activeTab, sortField, sortOrder, pendingTasks, completedTasks]);
 
   const toggleTask = async (id: string, currentStatus: boolean) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, isCompleted: !currentStatus } : t));
@@ -140,12 +135,6 @@ export default function TasksPage() {
           {/* Page header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-text-primary">Tareas</h1>
-                {!loading && pendingTasks.length > 0 && (
-                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">{pendingTasks.length} pendientes</span>
-                )}
-              </div>
               <p className="text-sm text-text-secondary">Organiza y da seguimiento a tus actividades pendientes.</p>
             </div>
             <button
@@ -184,10 +173,10 @@ export default function TasksPage() {
                 <HugeiconsIcon icon={activeTab === "pending" ? Clock01Icon : Tick01Icon} size={28} color="#9ca3af" />
               </div>
               <h3 className="text-base font-semibold text-text-primary mb-1">
-                {searchQuery ? "Sin resultados" : activeTab === "pending" ? "Sin tareas pendientes" : "Sin tareas completadas"}
+                {activeTab === "pending" ? "Sin tareas pendientes" : "Sin tareas completadas"}
               </h3>
               <p className="text-sm text-text-secondary">
-                {searchQuery ? `No se encontraron resultados para "${searchQuery}".` : activeTab === "pending" ? "¡Todo al día! Crea una nueva tarea." : "Completa algunas tareas para verlas aquí."}
+                {activeTab === "pending" ? "¡Todo al día! Crea una nueva tarea." : "Completa algunas tareas para verlas aquí."}
               </p>
             </div>
           ) : (

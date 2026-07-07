@@ -24,7 +24,7 @@ type Campaign = {
 export default function CampaignsPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
-  const { setConfig, resetState, searchQuery, sortField, sortOrder, activeFilters } = useHeader();
+  const { setConfig, resetState, sortField, sortOrder, activeFilters } = useHeader();
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,8 +46,12 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     resetState();
+  }, []);
+
+  useEffect(() => {
     setConfig({
-      searchPlaceholder: "Buscar campaña...",
+      title: "Email Marketing",
+      titleBadge: isLoading ? undefined : campaigns.length,
       sortOptions: [
         { label: "Asunto", value: "subject" },
         { label: "Fecha de creación", value: "createdAt" },
@@ -68,7 +72,7 @@ export default function CampaignsPage() {
       addButton: { label: "Nueva campaña", onClick: () => setIsModalOpen(true) },
     });
     return () => setConfig({});
-  }, []);
+  }, [isLoading, campaigns.length]);
 
   useEffect(() => {
     fetchCampaigns();
@@ -92,14 +96,6 @@ export default function CampaignsPage() {
   const displayed = useMemo(() => {
     let result = [...campaigns];
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c =>
-        c.subject?.toLowerCase().includes(q) ||
-        c.company?.name?.toLowerCase().includes(q)
-      );
-    }
-
     if (activeFilters.status) {
       result = result.filter(c => c.status === activeFilters.status);
     }
@@ -119,7 +115,7 @@ export default function CampaignsPage() {
     }
 
     return result;
-  }, [campaigns, searchQuery, sortField, sortOrder, activeFilters]);
+  }, [campaigns, sortField, sortOrder, activeFilters]);
 
   const handleDelete = async (campaign: Campaign) => {
     const isConfirmed = await confirm({ title: "Eliminar campaña", description: `¿Estás seguro de que quieres eliminar la campaña '${campaign.subject}'? Todo el historial de envíos asociado se perderá.`, confirmText: "Eliminar", cancelText: "Cancelar", variant: "danger" });
@@ -181,10 +177,6 @@ export default function CampaignsPage() {
       <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-text-primary">Email Marketing</h1>
-                {!isLoading && <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{campaigns.length}</span>}
-              </div>
               <p className="text-sm text-text-secondary">Crea y gestiona campañas de correo para tus contactos.</p>
             </div>
             <button onClick={handleProcessQueue} disabled={isProcessingQueue} className="flex items-center gap-2 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-secondary px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">
@@ -198,8 +190,8 @@ export default function CampaignsPage() {
           ) : displayed.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
               <HugeiconsIcon icon={Mail01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-text-primary mb-1">{searchQuery || activeFilters.status ? "No se encontraron campañas." : "No campaigns yet"}</h3>
-              {!searchQuery && !activeFilters.status && <p className="text-text-secondary text-sm mb-4">Start by creating your first email newsletter draft.</p>}
+              <h3 className="text-lg font-medium text-text-primary mb-1">{activeFilters.status ? "No se encontraron campañas." : "No campaigns yet"}</h3>
+              {!activeFilters.status && <p className="text-text-secondary text-sm mb-4">Start by creating your first email newsletter draft.</p>}
             </div>
           ) : (
             <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">

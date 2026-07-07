@@ -21,7 +21,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <EmailProvider>
           <div className="flex h-screen overflow-hidden bg-surface-app">
             <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-elevated">
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-app">
               {!hideHeader && <Header />}
               <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${hideHeader ? "bg-transparent" : ""}`}>
                 {children}
