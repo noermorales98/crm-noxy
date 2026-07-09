@@ -10,16 +10,19 @@ export async function GET(req: Request) {
     }
 
     const currentOrganizationId = (session as any).currentOrganizationId;
+    const { searchParams } = new URL(req.url);
+    const projectId = searchParams.get("projectId");
 
     const tasks = await prisma.task.findMany({
       where: {
         organizationId: currentOrganizationId,
+        ...(projectId ? { projectId } : {}),
       },
       include: {
         assignedTo: { select: { name: true, email: true } },
         deal: { select: { title: true } },
         contact: { select: { firstName: true, lastName: true } },
-        category: { select: { id: true, name: true, color: true } },
+        project: { select: { id: true, name: true, icon: true } },
         company: { select: { id: true, name: true } },
         form: { select: { id: true, name: true } },
         appointment: { select: { id: true, startTime: true, guestName: true, appointmentType: { select: { name: true } } } },
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { title, description, dueDate, dealId, contactId, categoryId, companyId, formId, appointmentId } = body;
+    const { title, description, dueDate, dealId, contactId, projectId, companyId, formId, appointmentId } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
         dueDate: dueDate ? new Date(dueDate) : null,
         dealId: dealId || null,
         contactId: contactId || null,
-        categoryId: categoryId || null,
+        projectId: projectId || null,
         companyId: companyId || null,
         formId: formId || null,
         appointmentId: appointmentId || null,
@@ -76,6 +79,18 @@ export async function POST(req: Request) {
         assignedTo: { select: { name: true, email: true } },
       }
     });
+
+    if (task.projectId) {
+      await prisma.projectActivity.create({
+        data: {
+          type: "TASK_CREATED",
+          description: `Tarea creada: ${task.title}`,
+          projectId: task.projectId,
+          organizationId: currentOrganizationId,
+          createdById: user.id,
+        },
+      });
+    }
 
     return NextResponse.json(task, { status: 201 });
   } catch (error: any) {
@@ -108,6 +123,18 @@ export async function PATCH(req: Request) {
       where: { id },
       data: { isCompleted }
     });
+
+    if (isCompleted && !existingTask.isCompleted && existingTask.projectId) {
+      await prisma.projectActivity.create({
+        data: {
+          type: "TASK_COMPLETED",
+          description: `Tarea completada: ${existingTask.title}`,
+          projectId: existingTask.projectId,
+          organizationId: currentOrganizationId,
+          createdById: (session as any).user.id,
+        },
+      });
+    }
 
     return NextResponse.json(updatedTask);
   } catch (error: any) {

@@ -21,6 +21,7 @@ import {
   BrowserIcon,
   CheckmarkCircle01Icon,
   Delete01Icon,
+  ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
 
 // ── Icon map per notification type ───────────────────────────────────────────
@@ -83,6 +84,15 @@ export default function Header() {
 
       {/* Page title */}
       <div className="flex items-center gap-2.5 min-w-0">
+        {config.backHref && (
+          <Link
+            href={config.backHref}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
+            title="Regresar"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+          </Link>
+        )}
         {config.title && (
           <>
             <h1 className="text-lg font-bold text-text-primary truncate">{config.title}</h1>
@@ -348,7 +358,11 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const buttonClass = "relative w-8 h-8 flex items-center justify-center rounded-lg bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors disabled:opacity-50";
+  const buttonClass = `relative w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
+    action.active
+      ? "bg-accent-charcoal text-white hover:opacity-90"
+      : "bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover"
+  }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
 
   if (action.menu?.length) {

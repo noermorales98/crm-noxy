@@ -49,8 +49,8 @@ export default function ProjectsPage() {
         if (sortField === "name") { aVal = a.name?.toLowerCase() || ""; bVal = b.name?.toLowerCase() || ""; }
         else if (sortField === "createdAt") { aVal = a.createdAt || ""; bVal = b.createdAt || ""; }
         else if (sortField === "assets") {
-          aVal = (a._count?.forms || 0) + (a._count?.campaigns || 0) + (a._count?.contacts || 0) + (a._count?.companies || 0) + (a._count?.tasks || 0);
-          bVal = (b._count?.forms || 0) + (b._count?.campaigns || 0) + (b._count?.contacts || 0) + (b._count?.companies || 0) + (b._count?.tasks || 0);
+          aVal = (a._count?.forms || 0) + (a._count?.campaigns || 0) + (a._count?.tasks || 0);
+          bVal = (b._count?.forms || 0) + (b._count?.campaigns || 0) + (b._count?.tasks || 0);
         } else { aVal = ""; bVal = ""; }
         if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
         if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
@@ -65,7 +65,7 @@ export default function ProjectsPage() {
     <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-7xl mx-auto w-full">
             <div className="mb-6">
-              <p className="text-sm text-text-secondary">Organiza tus campañas, formularios y contactos por iniciativa o cliente.</p>
+              <p className="text-sm text-text-secondary">Organiza tareas, correo y documentación alrededor de un cliente, empresa o contacto.</p>
             </div>
 
             {isLoading ? (
@@ -75,7 +75,7 @@ export default function ProjectsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayed.map(project => {
-                  const totalAssets = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.contacts || 0) + (project._count?.companies || 0) + (project._count?.tasks || 0);
+                  const totalAssets = (project._count?.forms || 0) + (project._count?.campaigns || 0) + (project._count?.tasks || 0);
                   return (
                     <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-border-subtle rounded-lg p-6 hover:border-border-subtle transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
@@ -89,6 +89,13 @@ export default function ProjectsPage() {
                         <DeleteProjectButton projectId={project.id} projectName={project.name} />
                       </div>
                       <h3 className="text-lg font-bold text-text-primary mb-2 truncate">{project.name}</h3>
+                      {(project.clientCompany || project.client || project.contact) && (
+                        <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                          {project.clientCompany && <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{project.clientCompany.name}</span>}
+                          {project.client && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{project.client.name}</span>}
+                          {project.contact && <span className="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">{project.contact.firstName} {project.contact.lastName || ""}</span>}
+                        </div>
+                      )}
                       <p className="text-sm text-text-secondary line-clamp-2 mb-6 flex-1">{project.description || "Sin descripción."}</p>
                       <div className="flex items-center justify-between mt-auto pt-4 border-t border-border-subtle">
                         <div className="flex items-center gap-2 text-sm text-text-secondary">

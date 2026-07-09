@@ -27,12 +27,14 @@ export async function GET(req: Request) {
       },
       take: limit,
       include: {
+        clientCompany: { select: { id: true, name: true } },
+        contact: { select: { id: true, firstName: true, lastName: true } },
+        client: { select: { id: true, name: true } },
+        emailAccountCompany: { select: { id: true, name: true } },
         _count: {
           select: {
             forms: true,
             campaigns: true,
-            contacts: true,
-            companies: true,
             tasks: true
           }
         }
@@ -59,7 +61,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, description, icon, companyId } = body;
+    const { name, description, icon, companyId, contactId, clientId, emailAccountCompanyId } = body;
 
     if (!name) {
       return NextResponse.json({ error: "Project name is required" }, { status: 400 });
@@ -71,7 +73,20 @@ export async function POST(req: Request) {
         description,
         icon,
         companyId: companyId || null,
+        contactId: contactId || null,
+        clientId: clientId || null,
+        emailAccountCompanyId: emailAccountCompanyId || null,
         organizationId: currentOrganizationId,
+      },
+    });
+
+    await prisma.projectActivity.create({
+      data: {
+        type: "PROJECT_CREATED",
+        description: "Proyecto creado",
+        projectId: project.id,
+        organizationId: currentOrganizationId,
+        createdById: (session as any).user.id,
       },
     });
 

@@ -1,245 +1,106 @@
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import Link from "next/link";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, ArrowRight01Icon, FolderIcon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon, DashboardSquare02Icon, Calendar01Icon, UserMultipleIcon, Activity01Icon, BrowserIcon, CheckmarkSquare01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { notFound } from "next/navigation";
-import ProjectAssetsManager from "@/src/components/ProjectAssetsManager";
-import { HeaderConfigSetter } from "@/src/components/HeaderConfigSetter";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkSquare01Icon, FolderIcon, BrowserIcon, Mail01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import PageIcon from "@/src/components/kb/PageIcon";
 
-export default async function ProjectDetailsPage(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export default async function ProjectOverviewPage(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params;
   const session = await auth();
   if (!session?.user) return <div>Access Denied</div>;
   const currentOrganizationId = (session as any).currentOrganizationId;
 
-  const project = await prisma.project.findUnique({
-    where: {
-      id: params.id,
-      organizationId: currentOrganizationId
-    },
-    include: {
-      clientCompany: true,
-      forms: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      },
-      campaigns: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      },
-      contacts: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      },
-      companies: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      },
-      tasks: {
-        orderBy: { createdAt: "desc" },
-        take: 5
-      },
-      _count: {
-        select: { forms: true, campaigns: true, contacts: true, companies: true, tasks: true }
-      }
-    }
-  });
-
+  const project = await prisma.project.findFirst({ where: { id, organizationId: currentOrganizationId } });
   if (!project) return notFound();
 
-  const totalAssets = project._count.forms + project._count.campaigns + project._count.contacts + project._count.companies + project._count.tasks;
+  const [pendingTasksCount, tasksTotal, recentTasks, formsCount, campaignsCount, docsCount, docsRelations] = await Promise.all([
+    prisma.task.count({ where: { projectId: id, isCompleted: false } }),
+    prisma.task.count({ where: { projectId: id } }),
+    prisma.task.findMany({ where: { projectId: id }, orderBy: { createdAt: "desc" }, take: 5 }),
+    prisma.form.count({ where: { projectId: id } }),
+    prisma.emailCampaign.count({ where: { projectId: id } }),
+    prisma.kbPageRelation.count({ where: { entityType: "PROJECT", entityId: id } }),
+    prisma.kbPageRelation.findMany({
+      where: { entityType: "PROJECT", entityId: id },
+      include: { page: { select: { id: true, title: true, emoji: true, isFolder: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+  ]);
+
+  const stats = [
+    { label: "Tareas pendientes", value: pendingTasksCount, icon: CheckmarkSquare01Icon, color: "#ef4444", href: `/projects/${id}/tareas` },
+    { label: "Docs vinculados", value: docsCount, icon: FolderIcon, color: "#0891b2", href: `/projects/${id}/docs` },
+    { label: "Formularios", value: formsCount, icon: BrowserIcon, color: "#22c55e", href: `/projects/${id}/info` },
+    { label: "Campañas", value: campaignsCount, icon: Mail01Icon, color: "#f97316", href: `/projects/${id}/info` },
+  ];
 
   return (
-    <>
-        <HeaderConfigSetter
-          addButtonLabel="Nuevo proyecto"
-          addButtonHref="/projects/create"
-        />
+    <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <Link key={s.label} href={s.href} className="bg-white border border-border-subtle rounded-lg p-4 hover:bg-nav-hover transition-colors">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: `${s.color}1A` }}>
+              <HugeiconsIcon icon={s.icon} size={16} color={s.color} />
+            </div>
+            <p className="text-xl font-bold text-text-primary">{s.value}</p>
+            <p className="text-xs text-text-secondary mt-0.5">{s.label}</p>
+          </Link>
+        ))}
+      </div>
 
-        <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
-          <div className="max-w-7xl mx-auto w-full">
-            <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors mb-6">
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-              Regresar a proyectos
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white border border-border-subtle rounded-lg p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-text-primary text-sm">Últimas tareas</h3>
+            <Link href={`/projects/${id}/tareas`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+              Ver todas <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </Link>
-
-            {/* Project Header */}
-            <div className="bg-white border border-border-subtle rounded-lg p-8 mb-8 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between relative overflow-hidden">
-              <div className="flex items-start gap-5">
-                <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary shrink-0">
-                  {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={32} />}
-                  {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={32} />}
-                  {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={32} />}
-                  {project.icon === "megaphone" && <HugeiconsIcon icon={Megaphone01Icon} size={32} />}
-                  {!["zap", "trending-up", "git-branch", "megaphone"].includes(project.icon || "") && <HugeiconsIcon icon={FolderIcon} size={32} />}
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight text-text-primary mb-2">{project.name}</h1>
-                  {project.clientCompany && (
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full w-fit mb-3 border border-blue-100">
-                      <HugeiconsIcon icon={Building04Icon} size={14} />
-                      Negocio: {project.clientCompany.name}
-                    </div>
-                  )}
-                  <p className="text-text-secondary max-w-2xl">{project.description || "Sin descripción."}</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-1 bg-surface-sidebar px-6 py-4 rounded-lg border border-border-subtle shrink-0">
-                <div className="text-3xl font-bold text-text-primary">{totalAssets}</div>
-                <div className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-3">Assets conectados</div>
-                <ProjectAssetsManager projectId={project.id} initialCounts={project._count} />
-              </div>
-            </div>
-
-            {/* Project Dashboard Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-              {/* Contacts */}
-              <DashboardCard
-                title="Contactos"
-                icon={<HugeiconsIcon icon={UserMultipleIcon} size={20} color="#3b82f6" />}
-                count={project._count.contacts}
-                link={`/contacts?projectId=${project.id}`}
-              >
-                {project.contacts.length === 0 ? (
-                  <EmptyState text="Sin contactos vinculados" />
-                ) : (
-                  <ul className="divide-y divide-gray-50">
-                    {project.contacts.map((c: any) => (
-                      <li key={c.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-text-primary">{c.firstName} {c.lastName}</span>
-                        <span className="text-xs text-text-secondary">{new Date(c.createdAt).toLocaleDateString()}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardCard>
-
-              {/* Companies */}
-              <DashboardCard
-                title="Empresas"
-                icon={<HugeiconsIcon icon={Building04Icon} size={20} color="#a855f7" />}
-                count={project._count.companies}
-                link={`/companies?projectId=${project.id}`}
-              >
-                {project.companies.length === 0 ? (
-                  <EmptyState text="Sin empresas vinculadas" />
-                ) : (
-                  <ul className="divide-y divide-gray-50">
-                    {project.companies.map((c: any) => (
-                      <li key={c.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-text-primary">{c.name}</span>
-                        <span className="text-xs text-text-secondary">{new Date(c.createdAt).toLocaleDateString()}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardCard>
-
-              {/* Forms */}
-              <DashboardCard
-                title="Formularios"
-                icon={<HugeiconsIcon icon={BrowserIcon} size={20} color="#22c55e" />}
-                count={project._count.forms}
-                link={`/forms?projectId=${project.id}`}
-              >
-                {project.forms.length === 0 ? (
-                  <EmptyState text="Sin formularios vinculados" />
-                ) : (
-                  <ul className="divide-y divide-gray-50">
-                    {project.forms.map((f: any) => (
-                      <li key={f.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-text-primary">{f.name}</span>
-                        <span className="text-xs text-text-secondary">{f.isActive ? 'Activo' : 'Inactivo'}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardCard>
-
-              {/* Email Campaigns */}
-              <DashboardCard
-                title="Campañas"
-                icon={<HugeiconsIcon icon={Mail01Icon} size={20} color="#f97316" />}
-                count={project._count.campaigns}
-                link={`/campaigns?projectId=${project.id}`}
-              >
-                {project.campaigns.length === 0 ? (
-                  <EmptyState text="Sin campañas vinculadas" />
-                ) : (
-                  <ul className="divide-y divide-gray-50">
-                    {project.campaigns.map((c: any) => (
-                      <li key={c.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-text-primary truncate max-w-[160px]">{c.subject}</span>
-                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${c.status === "COMPLETED" ? "bg-green-50 text-green-700" : c.status === "SENDING" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-text-secondary"}`}>{c.status}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardCard>
-
-              {/* Tasks */}
-              <DashboardCard
-                title="Tareas"
-                icon={<HugeiconsIcon icon={CheckmarkSquare01Icon} size={20} color="#ef4444" />}
-                count={project._count.tasks}
-                link={`/tasks?projectId=${project.id}`}
-              >
-                {project.tasks.length === 0 ? (
-                  <EmptyState text="Sin tareas vinculadas" />
-                ) : (
-                  <ul className="divide-y divide-gray-50">
-                    {project.tasks.map((t: any) => (
-                      <li key={t.id} className="py-3 flex justify-between items-center">
-                        <span className="text-sm font-medium text-text-primary truncate max-w-[160px]">{t.title}</span>
-                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>{t.isCompleted ? "Hecha" : "Pendiente"}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </DashboardCard>
-
-            </div>
-
           </div>
-        </main>
-    </>
-  );
-}
+          {recentTasks.length === 0 ? (
+            <p className="text-sm text-text-secondary text-center py-8">Sin tareas vinculadas todavía</p>
+          ) : (
+            <ul className="divide-y divide-gray-50">
+              {recentTasks.map((t) => (
+                <li key={t.id} className="py-2.5 flex items-center justify-between gap-2">
+                  <span className={`text-sm truncate ${t.isCompleted ? "text-text-secondary line-through" : "text-text-primary font-medium"}`}>{t.title}</span>
+                  <span className={`shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                    {t.isCompleted ? "Hecha" : "Pendiente"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {tasksTotal > 0 && (
+            <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-border-subtle">{tasksTotal} tareas en total</p>
+          )}
+        </div>
 
-function DashboardCard({ title, icon, count, children, link }: { title: string, icon: React.ReactNode, count: number, children: React.ReactNode, link: string }) {
-  return (
-    <div className="bg-white border border-border-subtle rounded-lg p-6 flex flex-col h-full">
-      <div className="flex flex-col mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            {icon}
-            <h3 className="font-bold text-text-primary">{title}</h3>
+        <div className="bg-white border border-border-subtle rounded-lg p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-text-primary text-sm">Últimos docs</h3>
+            <Link href={`/projects/${id}/docs`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+              Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
+            </Link>
           </div>
-          <span className="bg-gray-100 text-text-secondary text-xs font-bold px-2.5 py-1 rounded-full">{count}</span>
+          {docsRelations.length === 0 ? (
+            <p className="text-sm text-text-secondary text-center py-8">Sin documentos vinculados todavía</p>
+          ) : (
+            <ul className="divide-y divide-gray-50">
+              {docsRelations.map((r) => (
+                <li key={r.id} className="py-2.5">
+                  <Link href={`/kb/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-accent-charcoal">
+                    <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
+                    <span className="truncate">{r.page.title}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto min-h-[140px]">
-        {children}
-      </div>
-      <div className="pt-4 border-t border-border-subtle mt-4">
-        <Link href={link} className="text-sm font-semibold text-text-secondary hover:text-text-primary flex items-center justify-between group">
-          Ver todos
-          <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="group-hover:translate-x-1 transition-transform" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function EmptyState({ text }: { text: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-6 text-center h-full">
-      <div className="text-gray-300 mb-2">
-        <HugeiconsIcon icon={FolderIcon} size={24} />
-      </div>
-      <p className="text-sm text-text-secondary">{text}</p>
     </div>
   );
 }

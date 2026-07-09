@@ -1,28 +1,33 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Tick01Icon, Clock01Icon, Delete01Icon, FolderGitIcon, Cancel01Icon, Task01Icon } from "@hugeicons/core-free-icons";
+import { Tick01Icon, Clock01Icon, Delete01Icon, FolderKanbanIcon, Cancel01Icon, Task01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
-import TaskCategoriesModal from "@/src/components/TaskCategoriesModal";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import DatePicker from "@/src/components/DatePicker";
 
-export default function TasksPage() {
+function TasksContent() {
+  const searchParams = useSearchParams();
+  const filterProjectId = searchParams.get("projectId");
+
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [projectId, setProjectId] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [formId, setFormId] = useState("");
   const [appointmentId, setAppointmentId] = useState("");
   const [saving, setSaving] = useState(false);
-  const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
-  const [dropdownData, setDropdownData] = useState({ categories: [], companies: [], forms: [], appointments: [] });
+  const [dropdownData, setDropdownData] = useState({ projects: [], companies: [], forms: [], appointments: [] });
 
   const { addToast } = useToast();
   const { confirm } = useConfirm();
@@ -39,13 +44,13 @@ export default function TasksPage() {
 
   const fetchDropdownData = async () => {
     try {
-      const [cats, comps, frms, appts] = await Promise.all([
-        fetch("/api/task-categories").then(r => r.json()),
+      const [projs, comps, frms, appts] = await Promise.all([
+        fetch("/api/projects").then(r => r.json()),
         fetch("/api/companies").then(r => r.json()),
         fetch("/api/forms").then(r => r.json()),
         fetch("/api/appointments").then(r => r.json()),
       ]);
-      setDropdownData({ categories: cats, companies: comps, forms: frms, appointments: appts });
+      setDropdownData({ projects: projs, companies: comps, forms: frms, appointments: appts });
     } catch { console.error("Error loading dropdown data"); }
   };
 
@@ -67,7 +72,7 @@ export default function TasksPage() {
       sortOptions: [
         { label: "Título", value: "title" },
         { label: "Fecha de creación", value: "createdAt" },
-        { label: "Categoría", value: "category" },
+        { label: "Proyecto", value: "project" },
       ],
       addButton: { label: "Nueva tarea", onClick: () => setIsModalOpen(true) },
     });
@@ -77,12 +82,16 @@ export default function TasksPage() {
   const displayed = useMemo(() => {
     let result = activeTab === "completed" ? completedTasks : pendingTasks;
 
+    if (filterProjectId) {
+      result = result.filter((t) => t.project?.id === filterProjectId);
+    }
+
     if (sortField) {
       result = [...result].sort((a, b) => {
         let aVal = "", bVal = "";
         if (sortField === "title") { aVal = a.title?.toLowerCase() || ""; bVal = b.title?.toLowerCase() || ""; }
         else if (sortField === "createdAt") { aVal = a.createdAt || ""; bVal = b.createdAt || ""; }
-        else if (sortField === "category") { aVal = a.category?.name?.toLowerCase() || ""; bVal = b.category?.name?.toLowerCase() || ""; }
+        else if (sortField === "project") { aVal = a.project?.name?.toLowerCase() || ""; bVal = b.project?.name?.toLowerCase() || ""; }
         if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
         if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
         return 0;
@@ -90,7 +99,7 @@ export default function TasksPage() {
     }
 
     return result;
-  }, [tasks, activeTab, sortField, sortOrder, pendingTasks, completedTasks]);
+  }, [tasks, activeTab, sortField, sortOrder, pendingTasks, completedTasks, filterProjectId]);
 
   const toggleTask = async (id: string, currentStatus: boolean) => {
     setTasks(tasks.map(t => t.id === id ? { ...t, isCompleted: !currentStatus } : t));
@@ -116,11 +125,11 @@ export default function TasksPage() {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, categoryId: categoryId || null, companyId: companyId || null, formId: formId || null, appointmentId: appointmentId || null }),
+        body: JSON.stringify({ title, description, dueDate: dueDate || null, projectId: projectId || null, companyId: companyId || null, formId: formId || null, appointmentId: appointmentId || null }),
       });
       if (res.ok) {
         setIsModalOpen(false);
-        setTitle(""); setDescription(""); setCategoryId(""); setCompanyId(""); setFormId(""); setAppointmentId("");
+        setTitle(""); setDescription(""); setDueDate(""); setProjectId(""); setCompanyId(""); setFormId(""); setAppointmentId("");
         fetchTasks();
         addToast("Tarea creada.", "success");
       }
@@ -136,14 +145,22 @@ export default function TasksPage() {
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-sm text-text-secondary">Organiza y da seguimiento a tus actividades pendientes.</p>
+              {filterProjectId && (
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-xs font-semibold text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full">
+                    Proyecto: {(dropdownData.projects.find((p: any) => p.id === filterProjectId) as any)?.name ?? "…"}
+                  </span>
+                  <Link href="/tasks" className="text-xs text-text-secondary hover:text-text-primary underline">Quitar filtro</Link>
+                </div>
+              )}
             </div>
-            <button
-              onClick={() => setIsCategoriesModalOpen(true)}
+            <Link
+              href="/projects"
               className="flex items-center gap-2 px-4 py-2.5 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-secondary text-sm font-semibold rounded-lg transition-colors"
             >
-              <HugeiconsIcon icon={FolderGitIcon} size={15} />
-              Categorías
-            </button>
+              <HugeiconsIcon icon={FolderKanbanIcon} size={15} />
+              Proyectos
+            </Link>
           </div>
 
           {/* Tabs */}
@@ -193,9 +210,14 @@ export default function TasksPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className={`text-sm font-semibold ${task.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}>{task.title}</span>
-                        {task.category && (
-                          <span className="text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full" style={{ backgroundColor: `${task.category.color}20`, color: task.category.color }}>
-                            {task.category.name}
+                        {task.project && (
+                          <span className="text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full bg-violet-50 text-violet-600">
+                            {task.project.name}
+                          </span>
+                        )}
+                        {task.dueDate && !task.isCompleted && (
+                          <span className={`text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full ${new Date(task.dueDate) < new Date() ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
+                            📅 {new Date(task.dueDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
                           </span>
                         )}
                       </div>
@@ -248,12 +270,15 @@ export default function TasksPage() {
                 <label className="text-sm font-semibold text-text-primary">Notas adicionales</label>
                 <textarea rows={3} value={description} onChange={e => setDescription(e.target.value)} className={inputCls + " resize-none"} placeholder="Detalles opcionales..." />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-text-primary">Categoría</label>
-                <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className={inputCls}>
-                  <option value="">— Sin categoría —</option>
-                  {dropdownData.categories.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-semibold text-text-primary">Proyecto</label>
+                  <select value={projectId} onChange={e => setProjectId(e.target.value)} className={inputCls}>
+                    <option value="">— Sin proyecto —</option>
+                    {dropdownData.projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <DatePicker label="Fecha de vencimiento" value={dueDate} onChange={setDueDate} placeholder="Sin fecha" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
@@ -286,8 +311,14 @@ export default function TasksPage() {
           </div>
         </div>
       )}
-
-      <TaskCategoriesModal isOpen={isCategoriesModalOpen} onClose={() => setIsCategoriesModalOpen(false)} onCategoriesChange={fetchDropdownData} />
     </>
+  );
+}
+
+export default function TasksPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen bg-surface-app"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" /></div>}>
+      <TasksContent />
+    </Suspense>
   );
 }

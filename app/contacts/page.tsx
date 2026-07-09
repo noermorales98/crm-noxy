@@ -1,6 +1,5 @@
 "use client";
-import { useState, useEffect, useMemo, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
@@ -32,8 +31,6 @@ function ContactsContent() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState, sortField, sortOrder } = useHeader();
-  const searchParams = useSearchParams();
-  const projectId = searchParams.get("projectId");
 
   const [contacts, setContacts] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -74,8 +71,7 @@ function ContactsContent() {
 
   const fetchContacts = async () => {
     try {
-      const url = projectId ? `/api/contacts?projectId=${projectId}` : "/api/contacts";
-      const res = await fetch(url);
+      const res = await fetch("/api/contacts");
       if (res.ok) setContacts(await res.json());
     } catch { console.error("Error loading contacts"); }
     finally { setLoading(false); }
@@ -152,7 +148,7 @@ function ContactsContent() {
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-sm text-text-secondary">
-                {projectId ? "Mostrando contactos del proyecto actual." : "Gestiona todos tus contactos y leads."}
+                Gestiona todos tus contactos y leads.
               </p>
             </div>
             <div className="flex items-center bg-gray-100 p-1 rounded-lg gap-1">
@@ -314,9 +310,5 @@ function ContactsContent() {
 }
 
 export default function ContactsPage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen bg-surface-app"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" /></div>}>
-      <ContactsContent />
-    </Suspense>
-  );
+  return <ContactsContent />;
 }

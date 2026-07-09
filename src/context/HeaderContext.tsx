@@ -30,12 +30,14 @@ export interface HeaderAction {
   onClick?: () => void;
   disabled?: boolean;
   spinning?: boolean;
+  active?: boolean;
   menu?: HeaderActionMenuItem[];
 }
 
 export interface HeaderConfig {
   title?: ReactNode;
   titleBadge?: string | number;
+  backHref?: string;
   sortOptions?: SortOption[];
   filterGroups?: FilterGroup[];
   addButton?: { label: string; onClick: () => void };

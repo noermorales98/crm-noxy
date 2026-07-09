@@ -16,6 +16,7 @@ import {
   CalendarCheckIn01Icon,
   Add01Icon,
   BarChartIcon,
+  FolderKanbanIcon,
   Book01Icon,
   Archive01Icon,
   SentIcon,
@@ -35,7 +36,7 @@ import { useGlobalSearch } from "@/src/context/SearchContext";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import VaultNav from "@/src/components/vault/VaultNav";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, ChevronRight, Check } from "lucide-react";
 
 type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault";
 
@@ -266,6 +267,59 @@ function NavItem({ icon, label, href, badge }: { icon: any; label: string; href:
   );
 }
 
+// ─── Expandable nav group (parent toggles a submenu of child links) ───────────
+
+function NavGroup({
+  icon,
+  label,
+  items,
+}: {
+  icon: any;
+  label: string;
+  items: { href: string; label: string }[];
+}) {
+  const pathname = usePathname();
+  // Pick the most specific (longest) matching href, since sibling routes can share a prefix
+  // (e.g. "/pipeline" and "/pipeline/clientes" would otherwise both match "/pipeline/clientes").
+  const activeHref = items
+    .filter((c) => pathname === c.href || pathname.startsWith(c.href + "/"))
+    .reduce<string | null>((best, c) => (best === null || c.href.length > best.length ? c.href : best), null);
+  const isChildActive = activeHref !== null;
+  const [expanded, setExpanded] = useState(isChildActive);
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setExpanded((e) => !e)}
+        className={`${navItemClass(isChildActive && !expanded)} w-full justify-between`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <HugeiconsIcon icon={icon} size={ICON_SIZE} color={ICON_COLOR} />
+          <span className="truncate">{label}</span>
+        </div>
+        <ChevronRight
+          size={13}
+          className={`text-text-secondary shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
+        />
+      </button>
+      {expanded && (
+        <div className="flex flex-col gap-1 mt-1 pl-4 border-l border-border-subtle ml-4">
+          {items.map((child) => {
+            const isActive = child.href === activeHref;
+            return (
+              <Link key={child.href} href={child.href} className={`${navItemClass(isActive)} justify-between`}>
+                <span className="truncate">{child.label}</span>
+                {isActive && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Section label ─────────────────────────────────────────────────────────────
 
 function SectionLabel({ label }: { label: string }) {
@@ -282,8 +336,16 @@ function HomeNav() {
         <NavItem href="/companies" icon={Building04Icon} label="Empresas" />
         <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" />
         <NavItem href="/tasks" icon={Task01Icon} label="Tareas" />
-        <NavItem href="/pipeline" icon={BarChartIcon} label="Ventas" />
+        <NavGroup
+          icon={BarChartIcon}
+          label="Ventas"
+          items={[
+            { href: "/pipeline", label: "Pipeline de ventas" },
+            { href: "/pipeline/clientes", label: "Clientes" },
+          ]}
+        />
         <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />
+        <NavItem href="/projects" icon={FolderKanbanIcon} label="Proyectos" />
       </div>
 
       <div className="px-0">

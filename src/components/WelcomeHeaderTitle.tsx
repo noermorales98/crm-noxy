@@ -3,8 +3,14 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useHeader } from "@/src/context/HeaderContext";
+import { PencilEdit01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 
-export function WelcomeHeaderTitle() {
+interface WelcomeHeaderTitleProps {
+  editMode?: boolean;
+  onToggleEditMode?: () => void;
+}
+
+export function WelcomeHeaderTitle({ editMode = false, onToggleEditMode }: WelcomeHeaderTitleProps) {
   const { data: session } = useSession();
   const { setConfig, resetState } = useHeader();
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "";
@@ -22,9 +28,20 @@ export function WelcomeHeaderTitle() {
           {firstName}
         </span>
       ),
+      actions: onToggleEditMode
+        ? [
+            {
+              key: "personalize",
+              icon: editMode ? CheckmarkCircle01Icon : PencilEdit01Icon,
+              label: editMode ? "Listo" : "Personalizar",
+              onClick: onToggleEditMode,
+              active: editMode,
+            },
+          ]
+        : undefined,
     });
     return () => setConfig({});
-  }, [firstName]);
+  }, [firstName, editMode, onToggleEditMode]);
 
   return null;
 }
