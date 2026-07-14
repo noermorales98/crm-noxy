@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useCallback, ReactNode } from "react";
 import { sileo, Toaster } from "sileo";
+import { play } from "cuelume";
 import "sileo/styles.css";
 
 export type ToastType = "success" | "error" | "warning" | "info";
@@ -22,6 +23,8 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const addToast = useCallback((message: string, type: ToastType = "info") => {
     SILEO_METHODS[type]({ title: message });
+    if (type === "success") play("success");
+    else if (type === "error") play("droplet");
   }, []);
 
   return (
