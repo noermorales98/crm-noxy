@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSoundSettings } from "@/src/context/SoundContext";
 
 type GoogleStatus = {
   connected: boolean;
@@ -54,6 +55,9 @@ export default function SettingsPage() {
   const [googleStatus, setGoogleStatus] = useState<GoogleStatus | null>(null);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleMsg, setGoogleMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Sound settings
+  const { enabled: soundEnabled, toggle: toggleSound } = useSoundSettings();
 
   useEffect(() => {
     async function fetchSettings() {
@@ -157,6 +161,25 @@ export default function SettingsPage() {
           </div>
 
           <div className="bg-white rounded-lg border border-border-subtle p-8 max-w-2xl flex flex-col gap-8">
+
+            {/* Sonidos de interacción */}
+            <div>
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <h2 className="text-lg font-bold text-text-primary mb-1">Sonidos de interacción</h2>
+                  <p className="text-sm text-text-secondary">Reproduce sonidos sutiles al pulsar botones, navegar y recibir notificaciones.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleSound}
+                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${soundEnabled ? "bg-emerald-500" : "bg-nav-active"}`}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${soundEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                </button>
+              </label>
+            </div>
+
+            <hr className="border-border-subtle" />
 
             {/* Google Calendar */}
             <div>
