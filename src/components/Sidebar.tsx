@@ -37,6 +37,7 @@ import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import VaultNav from "@/src/components/vault/VaultNav";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
+import { play } from "cuelume";
 
 type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault";
 
@@ -640,6 +641,7 @@ export default function Sidebar() {
   const [sidebarUserOpen, setSidebarUserOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
 
   const unreadEmailCount = notifications.filter(n => n.type === "NEW_EMAIL" && !n.isRead).length;
 
@@ -667,11 +669,45 @@ export default function Sidebar() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Hover sound for sidebar nav links only (scoped to this container)
+  useEffect(() => {
+    const container = asideRef.current;
+    if (!container) return;
+
+    let lastLink: HTMLElement | null = null;
+
+    function handlePointerOver(e: PointerEvent) {
+      if (e.pointerType !== "mouse") return;
+      const link = (e.target as HTMLElement).closest("a");
+      if (link && link !== lastLink && container!.contains(link)) {
+        lastLink = link;
+        play("tick");
+      } else if (!link) {
+        lastLink = null;
+      }
+    }
+
+    function handlePointerOut(e: PointerEvent) {
+      const link = (e.target as HTMLElement).closest("a");
+      if (link && link === lastLink) {
+        const related = e.relatedTarget as HTMLElement | null;
+        if (!related || !link.contains(related)) lastLink = null;
+      }
+    }
+
+    container.addEventListener("pointerover", handlePointerOver);
+    container.addEventListener("pointerout", handlePointerOut);
+    return () => {
+      container.removeEventListener("pointerover", handlePointerOver);
+      container.removeEventListener("pointerout", handlePointerOut);
+    };
+  }, []);
+
   const isAssistant = activeTab === "assistant";
 
   return (
     <>
-      <aside className={`${SIDEBAR_W} bg-white border-r border-border-subtle h-screen flex flex-col flex-shrink-0 overflow-hidden`}>
+      <aside ref={asideRef} className={`${SIDEBAR_W} bg-white border-r border-border-subtle h-screen flex flex-col flex-shrink-0 overflow-hidden`}>
         <SectionSwitcher
           activeTab={activeTab}
           onChange={setActiveTab}
