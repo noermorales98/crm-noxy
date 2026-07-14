@@ -5,6 +5,7 @@ import { ConfirmProvider } from "@/src/context/ConfirmContext";
 import { HeaderProvider } from "@/src/context/HeaderContext";
 import { NotificationProvider } from "@/src/context/NotificationContext";
 import { AiProvider } from "@/src/components/ai/AiProvider";
+import { SoundProvider } from "@/src/context/SoundContext";
 import AppShell from "@/src/components/AppShell";
 import "@/src/lib/fonts";
 import "./globals.css";
@@ -32,7 +33,9 @@ export default function RootLayout({
               <HeaderProvider>
                 <NotificationProvider>
                   <AiProvider>
-                    <AppShell>{children}</AppShell>
+                    <SoundProvider>
+                      <AppShell>{children}</AppShell>
+                    </SoundProvider>
                   </AiProvider>
                 </NotificationProvider>
               </HeaderProvider>
