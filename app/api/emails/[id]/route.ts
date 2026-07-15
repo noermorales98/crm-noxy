@@ -61,11 +61,16 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     }
 
     const body = await req.json();
-    const { isRead, isArchived } = body;
+    const { isRead, isArchived, isSpam } = body;
 
     const dataToUpdate: any = {};
     if (typeof isRead === "boolean") dataToUpdate.isRead = isRead;
     if (typeof isArchived === "boolean") dataToUpdate.isArchived = isArchived;
+    if (typeof isSpam === "boolean") {
+      dataToUpdate.isSpam = isSpam;
+      // "No es spam" always lands in Inbox — never try to restore a previous archived state.
+      if (isSpam === false) dataToUpdate.isArchived = false;
+    }
 
     const updated = await prisma.email.update({ where: { id }, data: dataToUpdate });
     return NextResponse.json(updated, { status: 200 });
