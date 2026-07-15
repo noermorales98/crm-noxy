@@ -20,6 +20,7 @@ import {
   Book01Icon,
   Archive01Icon,
   SentIcon,
+  SpamIcon,
   PencilEdit01Icon,
   Settings01Icon,
   AiChatIcon,
@@ -369,6 +370,7 @@ const EMAIL_FOLDERS = [
   { key: "inbox" as const, label: "Bandeja de entrada", icon: InboxIcon },
   { key: "sent" as const, label: "Enviados", icon: SentIcon },
   { key: "archived" as const, label: "Archivados", icon: Archive01Icon },
+  { key: "spam" as const, label: "Spam", icon: SpamIcon },
 ];
 
 const composeBtnClass = "w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors";
@@ -396,7 +398,8 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
 
   const activeFolder: string = emailCtx?.folder ?? (
     pathname.includes("box=sent") ? "sent" :
-    pathname.includes("box=archived") ? "archived" : "inbox"
+    pathname.includes("box=archived") ? "archived" :
+    pathname.includes("box=spam") ? "spam" : "inbox"
   );
   const selectedCompanyId = emailCtx?.selectedCompanyId ?? null;
   const isOnEmail = pathname.startsWith("/emails");
