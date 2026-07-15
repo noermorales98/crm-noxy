@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Mail01Icon, SentIcon, Archive01Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { Mail01Icon, SentIcon, Archive01Icon, ArrowLeft01Icon, SpamIcon } from "@hugeicons/core-free-icons";
 
 interface EmailListItem {
   id: string;
@@ -25,10 +25,11 @@ const FOLDERS = [
   { key: "inbox", label: "Bandeja de entrada", icon: Mail01Icon },
   { key: "sent", label: "Enviados", icon: SentIcon },
   { key: "archived", label: "Archivados", icon: Archive01Icon },
+  { key: "spam", label: "Spam", icon: SpamIcon },
 ] as const;
 
 export default function ProjectInboxView({ companyId }: { companyId: string }) {
-  const [folder, setFolder] = useState<"inbox" | "sent" | "archived">("inbox");
+  const [folder, setFolder] = useState<"inbox" | "sent" | "archived" | "spam">("inbox");
   const [emails, setEmails] = useState<EmailListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<EmailDetail | null>(null);
