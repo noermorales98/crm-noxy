@@ -20,6 +20,7 @@ export async function GET() {
         type: "RECEIVED",
         isRead: false,
         isArchived: false,
+        isSpam: false,
       },
     });
 

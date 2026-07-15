@@ -38,11 +38,15 @@ export async function GET(req: Request) {
     if (folder === "inbox") {
       where.type = "RECEIVED";
       where.isArchived = false;
+      where.isSpam = false;
     } else if (folder === "sent") {
       where.type = "SENT";
       where.isArchived = false;
     } else if (folder === "archived") {
       where.isArchived = true;
+      where.isSpam = false;
+    } else if (folder === "spam") {
+      where.isSpam = true;
     }
 
     const [emails, total] = await Promise.all([
@@ -60,6 +64,7 @@ export async function GET(req: Request) {
           type: true,
           isRead: true,
           isArchived: true,
+          isSpam: true,
           receivedAt: true,
           companyId: true,
           company: { select: { id: true, name: true } },
