@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { createNotification } from "@/src/lib/notifications";
+import { detectSpam } from "@/src/lib/spam-detector";
 import { auth } from "@/auth";
 
 export async function GET(req: Request) {
@@ -175,6 +176,8 @@ export async function GET(req: Request) {
               if (existing) continue;
             }
 
+            const isSpam = detectSpam({ subject, bodyText, fromAddress, fromName });
+
             await prisma.email.create({
               data: {
                 messageId,
@@ -187,21 +190,24 @@ export async function GET(req: Request) {
                 bodyText,
                 type: "RECEIVED",
                 isRead: false,
+                isSpam,
                 companyId: company.id,
                 organizationId: company.organizationId,
                 receivedAt,
               },
             });
 
-            // In-app notification for new email
-            createNotification({
-              organizationId: company.organizationId,
-              type: "NEW_EMAIL",
-              title: subject,
-              body: `De: ${fromName || fromAddress}`,
-              link: "/emails",
-              entityId: undefined,
-            });
+            // In-app notification for new email (skip for detected spam — no notification noise)
+            if (!isSpam) {
+              createNotification({
+                organizationId: company.organizationId,
+                type: "NEW_EMAIL",
+                title: subject,
+                body: `De: ${fromName || fromAddress}`,
+                link: "/emails",
+                entityId: undefined,
+              });
+            }
 
             totalFetched++;
           }
