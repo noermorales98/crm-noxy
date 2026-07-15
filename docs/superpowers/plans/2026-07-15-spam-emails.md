@@ -956,3 +956,85 @@ Run: `npm run dev` (if not already running).
 git add src/components/Sidebar.tsx
 git commit -m "feat: add Spam item to sidebar mail navigation"
 ```
+
+---
+
+### Task 9: Spam tab in `ProjectInboxView` (second consumer of the folder API)
+
+**Files:**
+- Modify: `src/components/ProjectInboxView.tsx`
+
+**Interfaces:**
+- Consumes: `GET /api/emails?companyId=...&folder=spam` (Task 4's filtering already supports this — no backend change needed).
+
+Found during the final whole-branch review: `ProjectInboxView` (rendered at `/projects/[id]/correo`, a company-scoped, read-only email browser with no archive/unarchive or any other action buttons — just three tabs to view emails) calls the same `GET /api/emails?folder=...` route that Task 4 changed. Since Task 4 made the `inbox` filter exclude `isSpam: true` emails, any email in this company's inbox that the cron auto-flags as spam now silently disappears from this view's "Bandeja de entrada" tab, with no Spam tab here to see it — it's only recoverable via the main `/emails` page (not company-scoped). This task adds a fourth, view-only "Spam" tab here, matching this component's existing minimal/read-only style (no move-to/from-spam buttons — this view has no archive/unarchive buttons either, it's browse-only).
+
+- [ ] **Step 1: Read the current file**
+
+Read `src/components/ProjectInboxView.tsx` in full (it's ~127 lines) to confirm it matches what's shown below before editing.
+
+- [ ] **Step 2: Add the `SpamIcon` import and widen the folder type**
+
+Change:
+
+```tsx
+import { Mail01Icon, SentIcon, Archive01Icon, ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+```
+
+to:
+
+```tsx
+import { Mail01Icon, SentIcon, Archive01Icon, ArrowLeft01Icon, SpamIcon } from "@hugeicons/core-free-icons";
+```
+
+Change:
+
+```tsx
+const FOLDERS = [
+  { key: "inbox", label: "Bandeja de entrada", icon: Mail01Icon },
+  { key: "sent", label: "Enviados", icon: SentIcon },
+  { key: "archived", label: "Archivados", icon: Archive01Icon },
+] as const;
+```
+
+to:
+
+```tsx
+const FOLDERS = [
+  { key: "inbox", label: "Bandeja de entrada", icon: Mail01Icon },
+  { key: "sent", label: "Enviados", icon: SentIcon },
+  { key: "archived", label: "Archivados", icon: Archive01Icon },
+  { key: "spam", label: "Spam", icon: SpamIcon },
+] as const;
+```
+
+Change:
+
+```tsx
+  const [folder, setFolder] = useState<"inbox" | "sent" | "archived">("inbox");
+```
+
+to:
+
+```tsx
+  const [folder, setFolder] = useState<"inbox" | "sent" | "archived" | "spam">("inbox");
+```
+
+- [ ] **Step 3: Type-check**
+
+Run: `npx tsc --noEmit`
+Expected: no errors.
+
+- [ ] **Step 4: Manual browser verification**
+
+Run: `npm run dev`, navigate to a project's "Correo" tab (`/projects/[id]/correo`) for a company that has synced emails.
+- Confirm a fourth "Spam" tab appears after "Archivados".
+- Click it — confirm it fetches `/api/emails?companyId=...&folder=spam` (Network tab) and shows only that company's spam-flagged emails (or the empty state "Sin correos en esta carpeta" if none).
+- Confirm the other three tabs still work exactly as before.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/ProjectInboxView.tsx
+git commit -m "feat: add read-only Spam tab to project inbox view"
+```
