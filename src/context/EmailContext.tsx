@@ -18,7 +18,7 @@ type Company = {
   imapHost: string | null;
 };
 
-export type EmailFolder = "inbox" | "sent" | "archived";
+export type EmailFolder = "inbox" | "sent" | "archived" | "spam";
 
 const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
