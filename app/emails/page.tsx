@@ -22,6 +22,8 @@ import {
   Clock01Icon,
   SparklesIcon,
   Megaphone01Icon,
+  SpamIcon,
+  CheckmarkCircle02Icon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -52,6 +54,7 @@ type EmailSummary = {
   type: "RECEIVED" | "SENT";
   isRead: boolean;
   isArchived: boolean;
+  isSpam: boolean;
   receivedAt: string;
   companyId: string;
   company: { id: string; name: string };
@@ -64,12 +67,13 @@ type EmailDetail = EmailSummary & {
   messageId: string | null;
 };
 
-type Folder = "inbox" | "sent" | "archived";
+type Folder = "inbox" | "sent" | "archived" | "spam";
 
 const FOLDERS: { key: Folder; label: string; icon: React.ReactNode }[] = [
   { key: "inbox", label: "Entrada", icon: <HugeiconsIcon icon={InboxIcon} size={15} /> },
   { key: "sent", label: "Enviados", icon: <HugeiconsIcon icon={SentIcon} size={15} /> },
   { key: "archived", label: "Archivados", icon: <HugeiconsIcon icon={Archive01Icon} size={15} /> },
+  { key: "spam", label: "Spam", icon: <HugeiconsIcon icon={SpamIcon} size={15} /> },
 ];
 
 export default function EmailsPage() {
@@ -198,7 +202,7 @@ function EmailsPageInner() {
     urlInitialized.current = true;
     const box = searchParams.get("box");
     const company = searchParams.get("company");
-    if (box === "sent" || box === "archived") {
+    if (box === "sent" || box === "archived" || box === "spam") {
       emailCtx.setFolder(box);
     }
     if (company) {
@@ -319,6 +323,23 @@ function EmailsPageInner() {
       }
     } catch (e) {
       addToast("Error al archivar.", "error");
+    }
+  };
+
+  const handleToggleSpam = async (emailId: string, isSpam: boolean) => {
+    try {
+      const res = await fetch(`/api/emails/${emailId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isSpam }),
+      });
+      if (res.ok) {
+        setEmails((prev) => prev.filter((e) => e.id !== emailId));
+        if (selectedEmail?.id === emailId) setSelectedEmail(null);
+        addToast(isSpam ? "Correo marcado como spam." : "Correo movido a la bandeja de entrada.", "success");
+      }
+    } catch (e) {
+      addToast(isSpam ? "Error al marcar como spam." : "Error al mover a la bandeja de entrada.", "error");
     }
   };
 
@@ -754,14 +775,33 @@ function EmailsPageInner() {
                     >
                       {selectedEmail.isRead ? <HugeiconsIcon icon={ViewOffIcon} size={15} /> : <HugeiconsIcon icon={ViewIcon} size={15} />}
                     </button>
-                    {!selectedEmail.isArchived && (
+                    {selectedEmail.type === "RECEIVED" && !selectedEmail.isSpam && (
                       <button
-                        onClick={() => handleArchive(selectedEmail.id)}
+                        onClick={() => handleToggleSpam(selectedEmail.id, true)}
                         className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
-                        title="Archivar"
+                        title="Marcar como spam"
                       >
-                        <HugeiconsIcon icon={ArchiveIcon} size={15} />
+                        <HugeiconsIcon icon={SpamIcon} size={15} />
                       </button>
+                    )}
+                    {selectedEmail.isSpam ? (
+                      <button
+                        onClick={() => handleToggleSpam(selectedEmail.id, false)}
+                        className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                        title="No es spam"
+                      >
+                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={15} />
+                      </button>
+                    ) : (
+                      !selectedEmail.isArchived && (
+                        <button
+                          onClick={() => handleArchive(selectedEmail.id)}
+                          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                          title="Archivar"
+                        >
+                          <HugeiconsIcon icon={ArchiveIcon} size={15} />
+                        </button>
+                      )
                     )}
                     <button
                       onClick={() => handleDelete(selectedEmail.id)}
