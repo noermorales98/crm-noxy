@@ -108,10 +108,14 @@ model Email {
 }
 ```
 
-- [ ] **Step 3: Generate and apply the migration**
+- [ ] **Step 3: Apply the schema change**
 
-Run: `npm run db:migrate -- --name add_email_is_spam`
-Expected: prompts complete without errors, a new folder appears under `prisma/migrations/` containing `add_email_is_spam` in its name, with a `migration.sql` that adds an `isSpam` column and an index. Prisma Client is regenerated automatically as part of this command.
+`prisma migrate dev` requires creating a shadow database, which this project's hosted MySQL user does not have permission to do (confirmed: fails with P3014 "User was denied access" on shadow DB creation). Use `db:push` instead, which applies the schema directly without a migration file or shadow DB:
+
+Run: `npm run db:push`
+Expected: completes without errors, reports the `isSpam` column and its index were added to the database. This also regenerates Prisma Client automatically (same as `prisma migrate dev` would).
+
+No new folder appears under `prisma/migrations/` — this project's schema changes go through `db:push`, not versioned migrations (confirmed by the single pre-existing `add_ai_conversations` migration despite many later schema-touching commits).
 
 - [ ] **Step 4: Type-check**
 
@@ -121,7 +125,7 @@ Expected: no errors (this step only adds a field, nothing yet references it).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add prisma/schema.prisma prisma/migrations
+git add prisma/schema.prisma
 git commit -m "feat: add isSpam column to Email model"
 ```
 
