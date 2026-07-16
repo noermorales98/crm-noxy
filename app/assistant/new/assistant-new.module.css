@@ -705,33 +705,33 @@
 @keyframes cardEntrance1 {
   from {
     opacity: 0;
-    transform: translate(77px, 116px) scale(0.226);
+    transform: translate(77px, 116px) scaleX(0.2258610954263128) scaleY(0.2921413964361671);
   }
   to {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scaleX(1) scaleY(1);
   }
 }
 
 @keyframes cardEntrance2 {
   from {
     opacity: 0;
-    transform: translate(-33px, 91px) scale(0.19);
+    transform: translate(-33px, 91px) scaleX(0.1904761904761905) scaleY(0.2298850574712644);
   }
   to {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scaleX(1) scaleY(1);
   }
 }
 
 @keyframes cardEntrance3 {
   from {
     opacity: 0;
-    transform: translate(0, 121px) scale(0.19);
+    transform: translate(0, 121px) scaleX(0.1904761904761905) scaleY(0.2083333333333333);
   }
   to {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+    transform: translate(0, 0) scaleX(1) scaleY(1);
   }
 }
 
@@ -844,6 +844,14 @@
   100% {
     opacity: 1;
     transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .experience .modelSelector > div > div {
+    right: auto;
+    left: 0;
+    width: min(288px, calc(100vw - 256px - 48px));
   }
 }
 
