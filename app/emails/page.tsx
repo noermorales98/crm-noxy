@@ -45,6 +45,14 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function withExternalLinks(html: string): string {
+  if (!html) return html;
+  if (/<head[\s>]/i.test(html)) {
+    return html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}<base target="_blank">`);
+  }
+  return `<head><base target="_blank"></head>${html}`;
+}
+
 type Company = {
   id: string;
   name: string;
@@ -841,8 +849,8 @@ function EmailsPageInner() {
                 <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
                   {selectedEmail.bodyHtml ? (
                     <iframe
-                      srcDoc={selectedEmail.bodyHtml}
-                      sandbox="allow-same-origin"
+                      srcDoc={withExternalLinks(selectedEmail.bodyHtml)}
+                      sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                       className="w-full border-0"
                       style={{ minHeight: "500px", height: "600px" }}
                       title="Email body"
@@ -1143,8 +1151,8 @@ function EmailsPageInner() {
                   <div className="w-full rounded-lg border border-border-subtle overflow-hidden bg-white" style={{ minHeight: "200px" }}>
                     {composeData.bodyHtml.trim() ? (
                       <iframe
-                        srcDoc={composeData.bodyHtml}
-                        sandbox="allow-same-origin"
+                        srcDoc={withExternalLinks(composeData.bodyHtml)}
+                        sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                         className="w-full border-0"
                         style={{ minHeight: "200px", height: "200px" }}
                         title="Previsualización del correo"
