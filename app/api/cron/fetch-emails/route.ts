@@ -131,9 +131,25 @@ async function syncMailbox(
       if (messageId) {
         const existing = await prisma.email.findFirst({
           where: { messageId, companyId: company.id },
-          select: { id: true },
+          select: { id: true, _count: { select: { attachments: true } } },
         });
-        if (existing) continue;
+        if (existing) {
+          // Backfill: this email was synced before attachment support existed (or its attachments
+          // were previously skipped/oversized) — attach anything real we can see now, without
+          // creating a duplicate Email row.
+          if (existing._count.attachments === 0 && parsedAttachments.length > 0) {
+            await prisma.emailAttachment.createMany({
+              data: parsedAttachments.map((a) => ({
+                emailId: existing.id,
+                filename: a.filename,
+                contentType: a.contentType,
+                size: a.size,
+                content: a.content,
+              })),
+            });
+          }
+          continue;
+        }
       }
 
       const isSpam = options.forceSpam || detectSpam({ subject, bodyText, fromAddress, fromName });
