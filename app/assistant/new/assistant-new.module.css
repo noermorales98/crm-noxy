@@ -1,0 +1,991 @@
+.experience {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #eef1f7;
+  color: #17243b;
+  font-family: "Google Sans Flex Variable", system-ui, sans-serif;
+}
+
+.experience .content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 76px;
+  text-align: center;
+}
+
+.experience .pixelGrid {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.experience .left {
+  left: 0;
+  transform: translate(-54%, -50%);
+}
+
+.experience .right {
+  right: 0;
+  transform: translate(54%, -50%);
+}
+
+.experience .visualStage {
+  position: relative;
+  width: 320px;
+  height: 220px;
+  flex: 0 0 auto;
+}
+
+.experience .folderComposition {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 113.67px;
+  height: 220px;
+  transform: translateX(-50%);
+}
+
+.experience .layer {
+  position: absolute;
+  display: block;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.experience .blueLight2 {
+  width: 104px;
+  height: 170px;
+  bottom: 50px;
+  left: 54.6px;
+  transform: translateX(-50%);
+  animation: layerFade 0.8s ease-out 1s both;
+}
+
+.experience .blueLight {
+  width: 104px;
+  height: 170px;
+  bottom: 28px;
+  left: 54.6px;
+  transform: translateX(-50%);
+  animation: layerFade 0.8s ease-out 1s both;
+}
+
+.experience .light1 {
+  width: 180.5px;
+  height: 124.5px;
+  bottom: 35px;
+  left: 57.2px;
+  transform: translateX(-50%);
+  animation: layerFade 1s ease-out 1s both;
+}
+
+.experience .folder3 {
+  width: 69.71px;
+  height: 45px;
+  bottom: 60px;
+  left: 23.4px;
+  animation: layerRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.8s both;
+}
+
+.experience .smallLight2 {
+  width: 39px;
+  height: 17px;
+  bottom: 55px;
+  left: 67.6px;
+  transform: translateX(-50%);
+  animation: layerFade 0.6s ease-out 1.4s both;
+}
+
+.experience .smallLight {
+  width: 39px;
+  height: 25px;
+  bottom: 50px;
+  left: 44.2px;
+  transform: translateX(-50%);
+  animation: layerFade 0.6s ease-out 1.4s both;
+}
+
+.experience .folder2 {
+  width: 79px;
+  height: 51px;
+  bottom: 45px;
+  left: 18.98px;
+  animation: layerRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+}
+
+.experience .light2 {
+  width: 109px;
+  height: 162.5px;
+  bottom: 20px;
+  left: 57.2px;
+  transform: translateX(-50%);
+  animation: layerFade 1s ease-out 1.1s both;
+}
+
+.experience .folder1 {
+  width: 91px;
+  height: 58px;
+  bottom: 30px;
+  left: 13px;
+  animation: layerRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+.experience .folder0 {
+  width: 113.67px;
+  height: 76.5px;
+  bottom: 0;
+  left: 0;
+  animation: layerRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.experience .cards {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.experience .referenceCard {
+  position: absolute;
+  left: 50%;
+  display: block;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(-50%);
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), filter 240ms ease;
+}
+
+.experience .referenceCard:hover,
+.experience .referenceCardActive {
+  z-index: 4;
+  filter: drop-shadow(0 14px 17px rgb(44 83 133 / 0.2));
+  transform: translateX(-50%) scale(1.08);
+}
+
+.experience .referenceCard:focus-visible {
+  z-index: 5;
+  outline: 3px solid #2563a9;
+  outline-offset: 4px;
+  transform: translateX(-50%) scale(1.08);
+}
+
+.experience .card1 {
+  bottom: 123px;
+  width: 88.55px;
+  height: 68.46px;
+  margin-left: -82px;
+}
+
+.experience .card2 {
+  bottom: 124px;
+  width: 105px;
+  height: 87px;
+  margin-left: 68px;
+}
+
+.experience .card3 {
+  bottom: 148px;
+  width: 105px;
+  height: 96px;
+  margin-left: -4px;
+}
+
+.experience .cardEntrance,
+.experience .cardImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.experience .cardEntrance {
+  transform-origin: 50% 100%;
+}
+
+.experience .cardImage {
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 12px 26px rgb(55 89 135 / 0.16);
+  will-change: transform;
+}
+
+.experience .cardEntranceOne {
+  animation: cardEntrance1 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+.experience .cardEntranceTwo {
+  animation: cardEntrance2 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.85s both;
+}
+
+.experience .cardEntranceThree {
+  animation: cardEntrance3 1.4s cubic-bezier(0.16, 1, 0.3, 1) 1.1s both;
+}
+
+.experience .cardFloatOne {
+  transform: rotate(-16deg);
+  animation: floatCard1 6s ease-in-out 2s infinite;
+}
+
+.experience .cardFloatTwo {
+  transform: rotate(24deg);
+  animation: floatCard2 7s ease-in-out 2.25s infinite;
+}
+
+.experience .cardFloatThree {
+  transform: rotate(-4deg);
+  animation: floatCard3 8s ease-in-out 2.5s infinite;
+}
+
+.experience .cardsPaused .cardImage {
+  animation-play-state: paused;
+}
+
+.experience .heading {
+  margin: 5px 0 0;
+  color: #18243a;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 33px;
+  animation: headingEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+.experience .heading span {
+  display: block;
+}
+
+.experience .subtitle {
+  margin: 10px 0 22px;
+  color: #65758e;
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 20px;
+  animation: subtitleEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both;
+}
+
+.experience .promptOuter {
+  width: min(702px, 100%);
+  padding: 4px;
+  border: 1px solid rgb(255 255 255 / 0.82);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 0.42);
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.82),
+    0 20px 60px rgb(73 98 132 / 0.12);
+  animation: promptEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.62s both;
+}
+
+.experience .promptInner {
+  min-height: 116px;
+  padding: 14px 12px 10px 17px;
+  border: 1px solid rgb(209 220 235 / 0.9);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 0.95);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 7px 18px rgb(63 85 115 / 0.08);
+}
+
+.experience .textareaArea {
+  position: relative;
+  min-height: 45px;
+  text-align: left;
+}
+
+.experience .textarea {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  max-height: 58px;
+  resize: none;
+  overflow-y: auto;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #263852;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 450;
+  line-height: 22px;
+  caret-color: #3d82de;
+}
+
+.experience .textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.experience .textarea:focus-visible {
+  outline: 3px solid #2563a9;
+  outline-offset: 5px;
+  border-radius: 6px;
+}
+
+.experience .typewriter {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 450;
+  line-height: 22px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.experience .typewriterVisible {
+  opacity: 1;
+}
+
+.experience .promptCaret {
+  display: inline-block;
+  width: 2px;
+  height: 18px;
+  margin-left: 2px;
+  border-radius: 2px;
+  background: #3d82de;
+  animation: promptCaretBlink 1s steps(1, end) infinite;
+}
+
+.experience .promptToolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.experience .toolbarLeft {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.experience .modelSelector {
+  min-width: 0;
+}
+
+.experience .modelSelector > div > button {
+  min-height: 34px;
+  max-width: 175px;
+  border: 1px solid #dce5f0;
+  border-radius: 999px;
+  background: #f5f8fc;
+  color: #465a74;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.experience .modelSelector > div > button:hover {
+  border-color: #bdd3ee;
+  background: #edf4fc;
+  color: #263852;
+}
+
+.experience .modelSelector > div > button:focus-visible {
+  outline: 3px solid #2563a9;
+  outline-offset: 2px;
+}
+
+.experience .keyToggle,
+.experience .secondaryControl,
+.experience .addButton,
+.experience .tag {
+  display: inline-flex;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  color: #60718a;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.experience .keyToggle,
+.experience .secondaryControl,
+.experience .addButton {
+  width: 32px;
+  padding: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.experience .keyToggle {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.experience .keyToggleSecondary {
+  border-color: #c8dbf3;
+  background: #edf4fc;
+  color: #2563a9;
+}
+
+.experience .keyToggle:hover,
+.experience .secondaryControl:hover,
+.experience .addButton:hover {
+  border-color: #d6e1ee;
+  background: #eef4fa;
+  color: #29405e;
+}
+
+.experience .keyToggle:active,
+.experience .secondaryControl:active,
+.experience .addButton:active,
+.experience .tag:active,
+.experience .sendButton:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.experience .keyToggle:focus-visible,
+.experience .secondaryControl:focus-visible,
+.experience .addButton:focus-visible,
+.experience .tag:focus-visible,
+.experience .sendButton:focus-visible,
+.experience .footer a:focus-visible {
+  outline: 3px solid #2563a9;
+  outline-offset: 2px;
+}
+
+.experience .keyToggle:disabled,
+.experience .secondaryControl:disabled,
+.experience .addButton:disabled,
+.experience .tag:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.experience .divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: #dce4ee;
+}
+
+.experience .tag {
+  padding: 0 12px;
+  border-color: #d9e5f2;
+  border-radius: 999px;
+  background: #f4f8fc;
+  color: #45617f;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.experience .tag:hover {
+  border-color: #bcd2eb;
+  background: #eaf3fb;
+  color: #294d75;
+}
+
+.experience .sendButton {
+  position: relative;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+}
+
+.experience .sendButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.experience .sendHalo,
+.experience .sendFallbackBorder,
+.experience .sendRing,
+.experience .sendInner {
+  position: absolute;
+  pointer-events: none;
+}
+
+.experience .sendHalo {
+  inset: -8px;
+  border-radius: 20px;
+  background: radial-gradient(circle, rgb(73 151 255 / 0.24), transparent 66%);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 260ms ease, transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.experience .sendButton:hover:not(:disabled) .sendHalo,
+.experience .sendButton:focus-visible:not(:disabled) .sendHalo {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.experience .sendFallbackBorder,
+.experience .sendRing {
+  inset: 2px;
+  border-radius: 14px;
+}
+
+.experience .sendFallbackBorder {
+  border: 1px solid #a8c8ee;
+  background: #f7faff;
+}
+
+.experience .sendRing {
+  --ring-angle: 0deg;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--ring-angle),
+    transparent 0deg,
+    #a9cffb 95deg,
+    #3d82de 178deg,
+    #d9edff 260deg,
+    transparent 340deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.experience .sendInner {
+  inset: 5px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.42);
+  border-radius: 11px;
+  background: #3d82de;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 7px 14px rgb(61 130 222 / 0.25);
+}
+
+.experience .sendDots {
+  position: absolute;
+  inset: 0;
+  width: 36px;
+  height: 36px;
+  opacity: 0.55;
+}
+
+.experience .sendShine {
+  position: absolute;
+  z-index: 1;
+  top: -10px;
+  bottom: -10px;
+  left: -20px;
+  width: 14px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.72), transparent);
+  filter: blur(1px);
+  transform: translateX(0) rotate(18deg);
+  animation: sendShine 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.experience .arrowRest,
+.experience .arrowCycle {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+}
+
+.experience .arrowOutgoing,
+.experience .arrowIncoming {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%);
+}
+
+.experience .arrowOutgoing {
+  opacity: 0;
+}
+
+.experience .arrowIncoming {
+  opacity: 1;
+}
+
+.experience .arrowCycle .arrowOutgoing {
+  animation: arrowOut 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.experience .arrowCycle .arrowIncoming {
+  animation: arrowIn 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.experience .footer {
+  position: absolute;
+  z-index: 2;
+  right: 20px;
+  bottom: 17px;
+  left: 20px;
+  color: #78879c;
+  font-size: 10.5px;
+  font-weight: 450;
+  line-height: 16px;
+  text-align: center;
+}
+
+.experience .footer a {
+  border-radius: 3px;
+  color: #50637d;
+  text-decoration: underline;
+  text-decoration-color: #9aabc0;
+  text-underline-offset: 2px;
+}
+
+.experience .footer a:hover {
+  color: #294d75;
+}
+
+.experience .srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes layerFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes layerRise {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardEntrance1 {
+  from {
+    opacity: 0;
+    transform: translate(77px, 116px) scale(0.226);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes cardEntrance2 {
+  from {
+    opacity: 0;
+    transform: translate(-33px, 91px) scale(0.19);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes cardEntrance3 {
+  from {
+    opacity: 0;
+    transform: translate(0, 121px) scale(0.19);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes floatCard1 {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-16deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(-13deg);
+  }
+}
+
+@keyframes floatCard2 {
+  0%,
+  100% {
+    transform: translateY(0) rotate(24deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(20deg);
+  }
+}
+
+@keyframes floatCard3 {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(-7deg);
+  }
+}
+
+@keyframes headingEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtitleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes promptEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes promptCaretBlink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes sendShine {
+  from {
+    opacity: 0;
+    transform: translateX(0) rotate(18deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(72px) rotate(18deg);
+  }
+}
+
+@keyframes arrowOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  58%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -130%);
+  }
+}
+
+@keyframes arrowIn {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translate(-50%, 30%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (max-width: 767px) {
+  .experience {
+    padding-inline: 16px;
+  }
+
+  .experience .content {
+    padding-inline: 0;
+  }
+
+  .experience .right {
+    display: none;
+  }
+
+  .experience .left {
+    opacity: 0.4;
+    transform: translate(-69%, -50%) scale(0.84);
+  }
+
+  .experience .heading {
+    font-size: 28px;
+    line-height: 29px;
+  }
+
+  .experience .visualStage {
+    transform: scale(0.88);
+    margin-block: -13px;
+  }
+
+  .experience .secondaryControl,
+  .experience .divider,
+  .experience .tag {
+    display: none;
+  }
+
+  .experience .promptInner {
+    padding-left: 13px;
+  }
+
+  .experience .modelSelector > div > button {
+    max-width: 145px;
+  }
+
+  .experience .modelSelector > div > div {
+    right: auto;
+    left: 0;
+    width: min(288px, calc(100vw - 48px));
+  }
+}
+
+@media (max-width: 374px) {
+  .experience .content {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .experience .subtitle {
+    max-width: 270px;
+  }
+
+  .experience .modelSelector > div > button {
+    max-width: 122px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .experience .addButton {
+    display: none;
+  }
+}
+
+@media (max-height: 720px) {
+  .experience {
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
+
+  .experience .content {
+    padding-top: 20px;
+    padding-bottom: 0;
+  }
+
+  .experience .footer {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    flex: 0 0 auto;
+    margin-top: 28px;
+    padding-bottom: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience *,
+  .experience *::before,
+  .experience *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .experience .cardFloatOne {
+    animation: none !important;
+    transform: rotate(-16deg);
+  }
+
+  .experience .cardFloatTwo {
+    animation: none !important;
+    transform: rotate(24deg);
+  }
+
+  .experience .cardFloatThree {
+    animation: none !important;
+    transform: rotate(-4deg);
+  }
+
+  .experience .sendShine {
+    display: none;
+  }
+
+  .experience .arrowOutgoing {
+    display: none;
+  }
+
+  .experience .arrowIncoming {
+    animation: none !important;
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .experience .promptOuter {
+    background: #e4ebf5;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
