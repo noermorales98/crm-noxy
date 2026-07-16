@@ -863,12 +863,28 @@ model Email {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  attachments EmailAttachment[]
+
   @@index([companyId])
   @@index([organizationId])
   @@index([type])
   @@index([isArchived])
   @@index([isSpam])
   @@index([scheduledAt])
+}
+
+model EmailAttachment {
+  id          String   @id @default(cuid())
+  filename    String
+  contentType String
+  size        Int
+  content     Bytes    @db.LongBlob
+  createdAt   DateTime @default(now())
+
+  emailId String
+  email   Email  @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
 }
 
 model Client {
