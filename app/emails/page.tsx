@@ -846,6 +846,24 @@ function EmailsPageInner() {
 
               {/* Email body */}
               <div className="flex-1 overflow-y-auto p-6">
+                {selectedEmail.attachments.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {selectedEmail.attachments.map((att) => (
+                      <a
+                        key={att.id}
+                        href={`/api/emails/${selectedEmail.id}/attachments/${att.id}`}
+                        download={att.filename}
+                        className="flex items-center gap-2 px-3 py-2 bg-white border border-border-subtle rounded-lg text-xs text-text-primary hover:bg-surface-sidebar transition-colors"
+                      >
+                        <HugeiconsIcon icon={FileAttachmentIcon} size={14} color="#9ca3af" />
+                        <span className="max-w-[200px] truncate">{att.filename}</span>
+                        <span className="text-text-secondary">· {formatFileSize(att.size)}</span>
+                        <HugeiconsIcon icon={Download01Icon} size={13} color="#9ca3af" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
                   {selectedEmail.bodyHtml ? (
                     <iframe
@@ -866,24 +884,6 @@ function EmailsPageInner() {
                     </div>
                   )}
                 </div>
-
-                {selectedEmail.attachments.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {selectedEmail.attachments.map((att) => (
-                      <a
-                        key={att.id}
-                        href={`/api/emails/${selectedEmail.id}/attachments/${att.id}`}
-                        download={att.filename}
-                        className="flex items-center gap-2 px-3 py-2 bg-white border border-border-subtle rounded-lg text-xs text-text-primary hover:bg-surface-sidebar transition-colors"
-                      >
-                        <HugeiconsIcon icon={FileAttachmentIcon} size={14} color="#9ca3af" />
-                        <span className="max-w-[200px] truncate">{att.filename}</span>
-                        <span className="text-text-secondary">· {formatFileSize(att.size)}</span>
-                        <HugeiconsIcon icon={Download01Icon} size={13} color="#9ca3af" />
-                      </a>
-                    ))}
-                  </div>
-                )}
               </div>
             </>
           ) : (
