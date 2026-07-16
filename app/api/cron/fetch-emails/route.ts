@@ -136,17 +136,27 @@ async function syncMailbox(
         if (existing) {
           // Backfill: this email was synced before attachment support existed (or its attachments
           // were previously skipped/oversized) — attach anything real we can see now, without
-          // creating a duplicate Email row.
+          // creating a duplicate Email row. A failure here (e.g. combined attachments still over
+          // MySQL's max_allowed_packet, even though each is under MAX_ATTACHMENT_BYTES) must not
+          // stall the whole sync the way a failed primary create would — just skip this backfill
+          // and move on; the email row itself is untouched and lastUid still advances normally.
           if (existing._count.attachments === 0 && parsedAttachments.length > 0) {
-            await prisma.emailAttachment.createMany({
-              data: parsedAttachments.map((a) => ({
-                emailId: existing.id,
-                filename: a.filename,
-                contentType: a.contentType,
-                size: a.size,
-                content: a.content,
-              })),
-            });
+            try {
+              await prisma.emailAttachment.createMany({
+                data: parsedAttachments.map((a) => ({
+                  emailId: existing.id,
+                  filename: a.filename,
+                  contentType: a.contentType,
+                  size: a.size,
+                  content: a.content,
+                })),
+              });
+            } catch (backfillErr: any) {
+              console.error(
+                `Failed to backfill attachments for existing email (messageId ${messageId}):`,
+                backfillErr?.message || backfillErr
+              );
+            }
           }
           continue;
         }
