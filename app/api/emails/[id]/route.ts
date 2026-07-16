@@ -18,7 +18,10 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
     const email = await prisma.email.findUnique({
       where: { id },
-      include: { company: { select: { id: true, name: true } } },
+      include: {
+        company: { select: { id: true, name: true } },
+        attachments: { select: { id: true, filename: true, contentType: true, size: true } },
+      },
     });
 
     if (!email || email.organizationId !== currentOrganizationId) {
