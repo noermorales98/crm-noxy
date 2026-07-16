@@ -24,6 +24,8 @@ import {
   Megaphone01Icon,
   SpamIcon,
   CheckmarkCircle02Icon,
+  FileAttachmentIcon,
+  Download01Icon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -35,6 +37,12 @@ function sanitizeEmail(address: string | null | undefined, fallback = "desconoci
   if (!address) return fallback;
   if (address.includes("undefined") || address.includes("null")) return fallback;
   return address;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 type Company = {
@@ -60,11 +68,19 @@ type EmailSummary = {
   company: { id: string; name: string };
 };
 
+type EmailAttachmentInfo = {
+  id: string;
+  filename: string;
+  contentType: string;
+  size: number;
+};
+
 type EmailDetail = EmailSummary & {
   bodyHtml: string | null;
   bodyText: string | null;
   ccAddress: string | null;
   messageId: string | null;
+  attachments: EmailAttachmentInfo[];
 };
 
 type Folder = "inbox" | "sent" | "archived" | "spam";
@@ -842,6 +858,24 @@ function EmailsPageInner() {
                     </div>
                   )}
                 </div>
+
+                {selectedEmail.attachments.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {selectedEmail.attachments.map((att) => (
+                      <a
+                        key={att.id}
+                        href={`/api/emails/${selectedEmail.id}/attachments/${att.id}`}
+                        download={att.filename}
+                        className="flex items-center gap-2 px-3 py-2 bg-white border border-border-subtle rounded-lg text-xs text-text-primary hover:bg-surface-sidebar transition-colors"
+                      >
+                        <HugeiconsIcon icon={FileAttachmentIcon} size={14} color="#9ca3af" />
+                        <span className="max-w-[200px] truncate">{att.filename}</span>
+                        <span className="text-text-secondary">· {formatFileSize(att.size)}</span>
+                        <HugeiconsIcon icon={Download01Icon} size={13} color="#9ca3af" />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           ) : (
