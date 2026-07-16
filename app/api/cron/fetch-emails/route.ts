@@ -59,6 +59,7 @@ async function syncMailbox(
       let parsedSubject: string | null = null;
       let parsedDate: Date | null = null;
       let parsedMessageId: string | null = null;
+      let parsedAttachments: any[] = [];
 
       if (msg.source) {
         try {
@@ -72,6 +73,15 @@ async function syncMailbox(
           parsedSubject = parsed.subject || null;
           parsedDate = parsed.date ?? null;
           parsedMessageId = parsed.messageId || null;
+          // Only real attachments — exclude "inline" cid:-embedded images used by the HTML body itself
+          parsedAttachments = (parsed.attachments || [])
+            .filter((att: any) => att.contentDisposition === "attachment")
+            .map((att: any) => ({
+              filename: att.filename || "adjunto",
+              contentType: att.contentType || "application/octet-stream",
+              size: att.size ?? att.content?.length ?? 0,
+              content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
+            }));
         } catch {
           bodyText = msg.source.toString("utf-8").substring(0, 50000);
         }
@@ -130,6 +140,9 @@ async function syncMailbox(
           companyId: company.id,
           organizationId: company.organizationId,
           receivedAt,
+          attachments: parsedAttachments.length > 0
+            ? { create: parsedAttachments.map((a) => ({ filename: a.filename, contentType: a.contentType, size: a.size, content: a.content })) }
+            : undefined,
         },
       });
 
