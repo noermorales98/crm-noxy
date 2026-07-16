@@ -9,5 +9,11 @@ export default async function AssistantNewPage() {
   const orgId = (session as { currentOrganizationId?: string }).currentOrganizationId;
   if (!orgId) redirect("/");
 
-  return <ChatView conversationId="new" initialMessages={[]} />;
+  return (
+    <ChatView
+      conversationId="new"
+      initialMessages={[]}
+      emptyExperience="references"
+    />
+  );
 }

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
+import AssistantNewExperience from "@/app/assistant/new/_components/AssistantNewExperience";
 import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
 
 interface Message {
@@ -16,6 +17,7 @@ interface Message {
 interface Props {
   conversationId: string;
   initialMessages: Message[];
+  emptyExperience?: "references";
 }
 
 const SUGGESTIONS = [
@@ -46,7 +48,7 @@ function defaultKeyUsed(modelId: string, preferKey: "1" | "2"): string | undefin
   return preferKey === "2" ? "secundaria" : "primaria";
 }
 
-export default function ChatView({ conversationId, initialMessages }: Props) {
+export default function ChatView({ conversationId, initialMessages, emptyExperience }: Props) {
   const [activeConversationId, setActiveConversationId] = useState(conversationId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streaming, setStreaming] = useState(false);
@@ -238,6 +240,19 @@ export default function ChatView({ conversationId, initialMessages }: Props) {
   };
 
   const isEmpty = messages.length === 0;
+
+  if (isEmpty && emptyExperience === "references") {
+    return (
+      <AssistantNewExperience
+        onSend={sendMessage}
+        disabled={streaming}
+        model={model}
+        onModelChange={switchModel}
+        preferredKey={preferredKey}
+        onKeyChange={switchKey}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
