@@ -868,3 +868,84 @@ Expected: zero errors/warnings.
 git add app/api/cron/fetch-emails/route.ts app/api/emails/[id]/attachments/[attachmentId]/route.ts
 git commit -m "fix: prevent oversized attachments from stalling IMAP sync"
 ```
+
+---
+
+### Task 7: Backfill attachments for already-synced emails
+
+**Files:**
+- Modify: `app/api/cron/fetch-emails/route.ts:130-137`
+
+**Interfaces:**
+- No new exports. Internal fix only.
+
+Found after shipping Tasks 1-6 to production and testing against real mail accounts: emails that were already synced BEFORE this attachments feature existed never get their attachments captured, even after a full `?reset=true` history resync. The dedup-by-`messageId` check runs before the attachment-parsing logic ever gets a chance to matter for that message — if `existing` is found, the loop does `continue` immediately, so the freshly-parsed `parsedAttachments` for that message (which mailparser computed just fine) are simply thrown away. This task adds a one-time backfill: when a message's email row already exists in the database AND that existing row currently has zero attachments AND the freshly re-parsed message actually has real attachments, create those attachment rows for the existing email before skipping — so a user can fix this by clicking "Sincronizar todo el historial" once, without needing a new UI element or endpoint.
+
+- [ ] **Step 1: Read the current file**
+
+Read `app/api/cron/fetch-emails/route.ts` around lines 130-137 to confirm the dedup block matches what's shown below.
+
+- [ ] **Step 2: Add the backfill to the dedup check**
+
+Change:
+
+```ts
+      // Dedup by messageId to avoid storing the same email twice
+      if (messageId) {
+        const existing = await prisma.email.findFirst({
+          where: { messageId, companyId: company.id },
+          select: { id: true },
+        });
+        if (existing) continue;
+      }
+```
+
+to:
+
+```ts
+      // Dedup by messageId to avoid storing the same email twice
+      if (messageId) {
+        const existing = await prisma.email.findFirst({
+          where: { messageId, companyId: company.id },
+          select: { id: true, _count: { select: { attachments: true } } },
+        });
+        if (existing) {
+          // Backfill: this email was synced before attachment support existed (or its attachments
+          // were previously skipped/oversized) — attach anything real we can see now, without
+          // creating a duplicate Email row.
+          if (existing._count.attachments === 0 && parsedAttachments.length > 0) {
+            await prisma.emailAttachment.createMany({
+              data: parsedAttachments.map((a) => ({
+                emailId: existing.id,
+                filename: a.filename,
+                contentType: a.contentType,
+                size: a.size,
+                content: a.content,
+              })),
+            });
+          }
+          continue;
+        }
+      }
+```
+
+- [ ] **Step 3: Type-check**
+
+Run: `npx tsc --noEmit`
+Expected: no errors.
+
+- [ ] **Step 4: Production build**
+
+Run: `npm run build`
+Expected: zero errors/warnings.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add app/api/cron/fetch-emails/route.ts
+git commit -m "fix: backfill attachments for emails synced before attachment support existed"
+```
+
+- [ ] **Step 6: Note for the user (not an automated step)**
+
+After this ships, the user needs to click "Sincronizar" → "Sincronizar todo el historial" in `/emails` once (this resets `imapLastUid`/`imapSpamLastUid` to 0, so already-synced old messages are re-fetched from the server and reach this backfill check — an incremental sync alone won't re-visit them, since their UID is already below the stored `lastUid`).
