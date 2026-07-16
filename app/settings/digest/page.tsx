@@ -39,6 +39,7 @@ export default function DigestSettingsPage() {
   const [hour, setHour] = useState(8);
   const [minute, setMinute] = useState(0);
   const [includeGoogleCalendar, setIncludeGoogleCalendar] = useState(true);
+  const [includeUnreadEmails, setIncludeUnreadEmails] = useState(true);
   const [calendarRemindDayBefore, setCalendarRemindDayBefore] = useState(true);
   const [calendarRemindMinutesBefore, setCalendarRemindMinutesBefore] = useState(15);
   const [aiModelId, setAiModelId] = useState("chatbase");
@@ -67,6 +68,7 @@ export default function DigestSettingsPage() {
         setHour(d.hour ?? 8);
         setMinute(d.minute ?? 0);
         setIncludeGoogleCalendar(d.includeGoogleCalendar ?? true);
+        setIncludeUnreadEmails(d.includeUnreadEmails ?? true);
         setCalendarRemindDayBefore(d.calendarRemindDayBefore ?? true);
         setCalendarRemindMinutesBefore(d.calendarRemindMinutesBefore ?? 15);
         setAiModelId(d.aiModelId ?? "chatbase");
@@ -101,6 +103,7 @@ export default function DigestSettingsPage() {
           hour,
           minute,
           includeGoogleCalendar,
+          includeUnreadEmails,
           calendarRemindDayBefore,
           calendarRemindMinutesBefore,
           aiModelId,
@@ -293,6 +296,22 @@ export default function DigestSettingsPage() {
               </p>
               <ModelSelector value={aiModelId} onChange={setAiModelId} />
             </div>
+
+            <hr className="border-border-subtle" />
+
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-semibold text-text-primary">Correos sin leer</p>
+                <p className="text-xs text-text-secondary">Incluye el total de correos sin leer de tu organización en el resumen</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIncludeUnreadEmails((v) => !v)}
+                className={`w-11 h-6 rounded-full transition-colors relative ${includeUnreadEmails ? "bg-emerald-500" : "bg-nav-active"}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${includeUnreadEmails ? "translate-x-5" : "translate-x-0.5"}`} />
+              </button>
+            </label>
 
             <hr className="border-border-subtle" />
 
