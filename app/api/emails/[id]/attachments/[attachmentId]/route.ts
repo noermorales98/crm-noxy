@@ -42,7 +42,7 @@ export async function GET(
       headers: {
         "Content-Type": attachment.contentType,
         "Content-Disposition": `attachment; filename="${safeName}"; filename*=UTF-8''${encodedName}`,
-        "Content-Length": String(attachment.size),
+        "Content-Length": String(attachment.content.length),
       },
     });
   } catch (error: any) {

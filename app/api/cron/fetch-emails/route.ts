@@ -10,6 +10,10 @@ import { auth } from "@/auth";
 // belong here — a nested path like "INBOX.Spam" still matches via its leaf "Spam".
 const SPAM_FOLDER_NAMES = ["spam", "junk", "junk e-mail"];
 
+// Conservative cap well under typical shared-hosting MySQL max_allowed_packet values (often 4-16MB) —
+// an attachment over this is skipped (not stored) rather than risking a failed INSERT for the whole email.
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB
+
 async function findSpamMailboxPath(client: any): Promise<string | null> {
   const mailboxes = await client.list();
   const bySpecialUse = mailboxes.find((mb: any) => mb.specialUse === "\\Junk");
@@ -23,7 +27,7 @@ async function syncMailbox(
   client: any,
   mailboxPath: string,
   lastUid: number,
-  company: { id: string; organizationId: string; imapUser: string },
+  company: { id: string; name: string; organizationId: string; imapUser: string },
   simpleParser: any,
   options: { forceSpam: boolean; notifyOnNew: boolean }
 ): Promise<{ fetched: number; newMaxUid: number }> {
@@ -73,7 +77,10 @@ async function syncMailbox(
           parsedSubject = parsed.subject || null;
           parsedDate = parsed.date ?? null;
           parsedMessageId = parsed.messageId || null;
-          // Only real attachments — exclude "inline" cid:-embedded images used by the HTML body itself
+          // Only real attachments — exclude "inline" cid:-embedded images used by the HTML body itself.
+          // Skip anything over MAX_ATTACHMENT_BYTES: this shared-hosting MySQL's max_allowed_packet is
+          // commonly well under what mail providers allow per attachment (~25MB), and a single oversized
+          // INSERT would otherwise throw and permanently stall this company's sync (see Step 3 below).
           parsedAttachments = (parsed.attachments || [])
             .filter((att: any) => att.contentDisposition === "attachment")
             .map((att: any) => ({
@@ -81,7 +88,14 @@ async function syncMailbox(
               contentType: att.contentType || "application/octet-stream",
               size: att.size ?? att.content?.length ?? 0,
               content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
-            }));
+            }))
+            .filter((att: { filename: string; contentType: string; size: number; content: Buffer }) => {
+              if (att.size > MAX_ATTACHMENT_BYTES) {
+                console.error(`Skipping oversized attachment "${att.filename}" (${att.size} bytes, over ${MAX_ATTACHMENT_BYTES} cap)`);
+                return false;
+              }
+              return true;
+            });
         } catch {
           bodyText = msg.source.toString("utf-8").substring(0, 50000);
         }
@@ -124,27 +138,43 @@ async function syncMailbox(
 
       const isSpam = options.forceSpam || detectSpam({ subject, bodyText, fromAddress, fromName });
 
-      await prisma.email.create({
-        data: {
-          messageId,
-          uid,
-          subject,
-          fromAddress,
-          fromName,
-          toAddress,
-          bodyHtml,
-          bodyText,
-          type: "RECEIVED",
-          isRead: false,
-          isSpam,
-          companyId: company.id,
-          organizationId: company.organizationId,
-          receivedAt,
-          attachments: parsedAttachments.length > 0
-            ? { create: parsedAttachments.map((a) => ({ filename: a.filename, contentType: a.contentType, size: a.size, content: a.content })) }
-            : undefined,
-        },
-      });
+      const emailData = {
+        messageId,
+        uid,
+        subject,
+        fromAddress,
+        fromName,
+        toAddress,
+        bodyHtml,
+        bodyText,
+        type: "RECEIVED" as const,
+        isRead: false,
+        isSpam,
+        companyId: company.id,
+        organizationId: company.organizationId,
+        receivedAt,
+      };
+
+      try {
+        await prisma.email.create({
+          data: {
+            ...emailData,
+            attachments: parsedAttachments.length > 0
+              ? { create: parsedAttachments.map((a) => ({ filename: a.filename, contentType: a.contentType, size: a.size, content: a.content })) }
+              : undefined,
+          },
+        });
+      } catch (createErr: any) {
+        if (parsedAttachments.length === 0) throw createErr;
+        // The insert failed with attachments attached (most likely MySQL's max_allowed_packet) —
+        // retry without them so the email itself still lands and lastUid still advances, instead
+        // of permanently stalling this company's sync on the same message every run.
+        console.error(
+          `Failed to store email with attachments for ${company.name} (uid ${uid}), retrying without attachments:`,
+          createErr?.message || createErr
+        );
+        await prisma.email.create({ data: emailData });
+      }
 
       // In-app notification for new email (skip for spam — no notification noise)
       if (options.notifyOnNew && !isSpam) {
@@ -258,7 +288,7 @@ export async function GET(req: Request) {
 
         await client.connect();
 
-        const companyRef = { id: company.id, organizationId: company.organizationId, imapUser: company.imapUser! };
+        const companyRef = { id: company.id, name: company.name, organizationId: company.organizationId, imapUser: company.imapUser! };
 
         const inboxLastUid = company.imapLastUid ?? 0;
         const inboxResult = await syncMailbox(client, "INBOX", inboxLastUid, companyRef, simpleParser, {
