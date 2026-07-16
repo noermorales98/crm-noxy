@@ -684,3 +684,187 @@ Run: `npm run dev`, open `/emails`, open a received email that has an HTML body 
 git add app/emails/page.tsx
 git commit -m "feat: open links inside email body/preview in a new tab"
 ```
+
+---
+
+### Task 6: Guard against oversized attachments stalling sync + accurate `Content-Length`
+
+**Files:**
+- Modify: `app/api/cron/fetch-emails/route.ts:62-147`
+- Modify: `app/api/emails/[id]/attachments/[attachmentId]/route.ts:40-46`
+
+**Interfaces:**
+- No new exports. Internal hardening only.
+
+Found during the final whole-branch review of Tasks 1-5: `prisma.email.create` (with its nested attachment `create`) is not wrapped in its own try/catch. If the INSERT throws — the realistic trigger being MySQL's `max_allowed_packet` limit on this shared hosting (commonly 4-16MB, while mail providers allow attachments up to ~25MB) — the error escapes the message loop and is only caught by the outer per-company handler. Since `imapLastUid`/`imapSpamLastUid` are only persisted when `syncMailbox` returns normally, a single oversized message that trips this permanently stalls that company's sync: every subsequent run re-fetches from the same UID, re-hits the same message, and fails again forever. This is worse than the pre-attachments behavior (where the email row was small and this failure mode was unreachable). Fix with two layers: skip storing content for attachments over a size cap (so the common case never risks the packet limit), and a retry-without-attachments fallback if the insert still fails for any other reason (so the email itself always lands and `lastUid` always advances). Also fixes a related Minor finding: the download route's `Content-Length` header used the stored `size` field instead of the actual serialized byte length.
+
+- [ ] **Step 1: Read both current files**
+
+Read `app/api/cron/fetch-emails/route.ts` (lines 62-147) and `app/api/emails/[id]/attachments/[attachmentId]/route.ts` (full file, 53 lines) to confirm they match the before-blocks below.
+
+- [ ] **Step 2: Cap attachment size at capture time**
+
+In `app/api/cron/fetch-emails/route.ts`, change:
+
+```ts
+          // Only real attachments — exclude "inline" cid:-embedded images used by the HTML body itself
+          parsedAttachments = (parsed.attachments || [])
+            .filter((att: any) => att.contentDisposition === "attachment")
+            .map((att: any) => ({
+              filename: att.filename || "adjunto",
+              contentType: att.contentType || "application/octet-stream",
+              size: att.size ?? att.content?.length ?? 0,
+              content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
+            }));
+```
+
+to:
+
+```ts
+          // Only real attachments — exclude "inline" cid:-embedded images used by the HTML body itself.
+          // Skip anything over MAX_ATTACHMENT_BYTES: this shared-hosting MySQL's max_allowed_packet is
+          // commonly well under what mail providers allow per attachment (~25MB), and a single oversized
+          // INSERT would otherwise throw and permanently stall this company's sync (see Step 3 below).
+          parsedAttachments = (parsed.attachments || [])
+            .filter((att: any) => att.contentDisposition === "attachment")
+            .map((att: any) => ({
+              filename: att.filename || "adjunto",
+              contentType: att.contentType || "application/octet-stream",
+              size: att.size ?? att.content?.length ?? 0,
+              content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
+            }))
+            .filter((att) => {
+              if (att.size > MAX_ATTACHMENT_BYTES) {
+                console.error(`Skipping oversized attachment "${att.filename}" (${att.size} bytes, over ${MAX_ATTACHMENT_BYTES} cap)`);
+                return false;
+              }
+              return true;
+            });
+```
+
+Then add the constant near the top of the file, right after the existing `SPAM_FOLDER_NAMES` constant:
+
+```ts
+const SPAM_FOLDER_NAMES = ["spam", "junk", "junk e-mail"];
+
+// Conservative cap well under typical shared-hosting MySQL max_allowed_packet values (often 4-16MB) —
+// an attachment over this is skipped (not stored) rather than risking a failed INSERT for the whole email.
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024; // 10MB
+```
+
+(Read the file first to confirm the exact current text around `SPAM_FOLDER_NAMES` before this edit — it's a few lines, shown in Task 2/3's earlier edits.)
+
+- [ ] **Step 3: Add a retry-without-attachments fallback around the create**
+
+In `app/api/cron/fetch-emails/route.ts`, change:
+
+```ts
+      await prisma.email.create({
+        data: {
+          messageId,
+          uid,
+          subject,
+          fromAddress,
+          fromName,
+          toAddress,
+          bodyHtml,
+          bodyText,
+          type: "RECEIVED",
+          isRead: false,
+          isSpam,
+          companyId: company.id,
+          organizationId: company.organizationId,
+          receivedAt,
+          attachments: parsedAttachments.length > 0
+            ? { create: parsedAttachments.map((a) => ({ filename: a.filename, contentType: a.contentType, size: a.size, content: a.content })) }
+            : undefined,
+        },
+      });
+```
+
+to:
+
+```ts
+      const emailData = {
+        messageId,
+        uid,
+        subject,
+        fromAddress,
+        fromName,
+        toAddress,
+        bodyHtml,
+        bodyText,
+        type: "RECEIVED" as const,
+        isRead: false,
+        isSpam,
+        companyId: company.id,
+        organizationId: company.organizationId,
+        receivedAt,
+      };
+
+      try {
+        await prisma.email.create({
+          data: {
+            ...emailData,
+            attachments: parsedAttachments.length > 0
+              ? { create: parsedAttachments.map((a) => ({ filename: a.filename, contentType: a.contentType, size: a.size, content: a.content })) }
+              : undefined,
+          },
+        });
+      } catch (createErr: any) {
+        if (parsedAttachments.length === 0) throw createErr;
+        // The insert failed with attachments attached (most likely MySQL's max_allowed_packet) —
+        // retry without them so the email itself still lands and lastUid still advances, instead
+        // of permanently stalling this company's sync on the same message every run.
+        console.error(
+          `Failed to store email with attachments for ${company.name} (uid ${uid}), retrying without attachments:`,
+          createErr?.message || createErr
+        );
+        await prisma.email.create({ data: emailData });
+      }
+```
+
+- [ ] **Step 4: Fix `Content-Length` in the download route**
+
+In `app/api/emails/[id]/attachments/[attachmentId]/route.ts`, change:
+
+```ts
+    return new NextResponse(new Uint8Array(attachment.content), {
+      status: 200,
+      headers: {
+        "Content-Type": attachment.contentType,
+        "Content-Disposition": `attachment; filename="${safeName}"; filename*=UTF-8''${encodedName}`,
+        "Content-Length": String(attachment.size),
+      },
+    });
+```
+
+to:
+
+```ts
+    return new NextResponse(new Uint8Array(attachment.content), {
+      status: 200,
+      headers: {
+        "Content-Type": attachment.contentType,
+        "Content-Disposition": `attachment; filename="${safeName}"; filename*=UTF-8''${encodedName}`,
+        "Content-Length": String(attachment.content.length),
+      },
+    });
+```
+
+- [ ] **Step 5: Type-check**
+
+Run: `npx tsc --noEmit`
+Expected: no errors.
+
+- [ ] **Step 6: Production build**
+
+Run: `npm run build`
+Expected: zero errors/warnings.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add app/api/cron/fetch-emails/route.ts app/api/emails/[id]/attachments/[attachmentId]/route.ts
+git commit -m "fix: prevent oversized attachments from stalling IMAP sync"
+```
