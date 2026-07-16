@@ -66,6 +66,7 @@ model DigestSchedule {
   minute         Int       @default(0)
   lastSentAt     DateTime?
   includeGoogleCalendar       Boolean @default(true)
+  includeUnreadEmails         Boolean @default(true)
   calendarRemindDayBefore     Boolean @default(true)
   calendarRemindMinutesBefore Int     @default(15) // 0 = desactivado
   aiModelId                   String  @default("chatbase")
