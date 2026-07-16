@@ -253,12 +253,13 @@ model Company {
   smtpSecure    Boolean? @default(true)
 
   // Custom IMAP settings for receiving emails
-  imapHost      String?
-  imapPort      Int?
-  imapUser      String?
-  imapPass      String?
-  imapSecure    Boolean? @default(true)
-  imapLastUid   Int?     @default(0)
+  imapHost        String?
+  imapPort        Int?
+  imapUser        String?
+  imapPass        String?
+  imapSecure      Boolean? @default(true)
+  imapLastUid     Int?     @default(0)
+  imapSpamLastUid Int?     @default(0)
 
   contacts       Contact[]
   deals          Deal[]
