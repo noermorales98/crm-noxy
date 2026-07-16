@@ -106,12 +106,22 @@ export default function AssistantNewExperience({
   const [value, setValue] = useState("");
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [promptFocused, setPromptFocused] = useState(false);
+  const [showRightGrid, setShowRightGrid] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const placeholderRef = useRef<HTMLSpanElement>(null);
   const typewriterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const phraseIndexRef = useRef(0);
   const characterIndexRef = useRef(0);
   const deletingRef = useRef(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 768px)");
+    const updateRightGridVisibility = () => setShowRightGrid(query.matches);
+
+    updateRightGridVisibility();
+    query.addEventListener("change", updateRightGridVisibility);
+    return () => query.removeEventListener("change", updateRightGridVisibility);
+  }, []);
 
   useEffect(() => {
     const clearTypewriterTimeout = () => {
@@ -212,7 +222,7 @@ export default function AssistantNewExperience({
   return (
     <main className={styles.experience}>
       <PixelGrid side="left" />
-      <PixelGrid side="right" />
+      {showRightGrid && <PixelGrid side="right" />}
 
       <div className={styles.content}>
         <div className={styles.visualStage} aria-label="Design reference previews">

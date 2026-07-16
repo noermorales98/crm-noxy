@@ -14,13 +14,20 @@ function isHideHeaderRoute(pathname: string) {
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
+  const hideAssistantNewSidebarOnMobile = pathname === "/assistant/new";
 
   return (
     <SearchProvider>
       <KbProvider>
         <EmailProvider>
           <div className="flex h-screen overflow-hidden bg-surface-app">
-            <Sidebar />
+            {hideAssistantNewSidebarOnMobile ? (
+              <div className="flex h-screen flex-shrink-0 max-[639px]:hidden">
+                <Sidebar />
+              </div>
+            ) : (
+              <Sidebar />
+            )}
             <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-app">
               {!hideHeader && <Header />}
               <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${hideHeader ? "bg-transparent" : ""}`}>

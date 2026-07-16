@@ -1,9 +1,21 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
-import AssistantNewExperience from "@/app/assistant/new/_components/AssistantNewExperience";
 import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
+
+function AssistantNewExperienceFallback() {
+  return <div className="h-full w-full bg-[#EEF1F7]" aria-hidden="true" />;
+}
+
+const AssistantNewExperience = dynamic(
+  () => import("@/app/assistant/new/_components/AssistantNewExperience"),
+  {
+    ssr: false,
+    loading: AssistantNewExperienceFallback,
+  },
+);
 
 interface Message {
   id: string;

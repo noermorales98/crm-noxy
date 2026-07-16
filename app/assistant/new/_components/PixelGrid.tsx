@@ -66,9 +66,9 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
     canvas.style.height = `${HEIGHT}px`;
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const base = Array.from({ length: TOTAL }, () => Math.random() < 0.35);
-    const visible = reducedMotion ? [...base] : Array<boolean>(TOTAL).fill(false);
+    const visible = motionQuery.matches ? [...base] : Array<boolean>(TOTAL).fill(false);
     const tileVariants = Uint8Array.from(
       { length: TOTAL },
       () => 1 + Math.floor(Math.random() * 5),
@@ -81,6 +81,7 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
     const hoverValues = new Map<number, boolean>();
     let sprites: HTMLCanvasElement[] = [];
     let disposed = false;
+    let interactive = false;
     let revealFrame = 0;
     let pointerFrame = 0;
     let ambientTimer: ReturnType<typeof setTimeout> | undefined;
@@ -102,7 +103,31 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
       }
     };
 
+    const stopHover = () => {
+      if (!hoverTimer) return;
+      clearTimeout(hoverTimer);
+      hoverTimer = undefined;
+    };
+
+    const scheduleHover = () => {
+      if (!interactive || hoverTimer || hoverSet.size === 0) return;
+      hoverTimer = setTimeout(() => {
+        hoverTimer = undefined;
+        if (!interactive || hoverSet.size === 0) return;
+
+        const hovered = shuffleIndices(hoverSet.size).map((offset) => [...hoverSet][offset]);
+        const count = Math.round(hovered.length * 0.18);
+        for (const index of hovered.slice(0, count)) {
+          hoverValues.set(index, Math.random() < 0.7);
+          hoverVariants[index] = 1 + Math.floor(Math.random() * 5);
+        }
+        paint();
+        scheduleHover();
+      }, 70 + Math.random() * 90);
+    };
+
     const reconcileHover = (time: number) => {
+      const hadHoveredCells = hoverSet.size > 0;
       const nextHoverSet = new Set<number>();
       const rect = canvas.getBoundingClientRect();
       const localX = ((pointer.x - rect.left) / rect.width) * WIDTH / (TILE + GAP);
@@ -129,10 +154,17 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
         }
         hoverSet.add(index);
       }
+
+      if (hoverSet.size === 0) {
+        stopHover();
+      } else if (!hadHoveredCells) {
+        scheduleHover();
+      }
       paint();
     };
 
     const onPointerMove = (event: PointerEvent) => {
+      if (!interactive) return;
       pointer = { x: event.clientX, y: event.clientY };
       if (pointerFrame) return;
 
@@ -143,7 +175,11 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
     };
 
     const scheduleAmbient = () => {
+      if (!interactive || ambientTimer) return;
       ambientTimer = setTimeout(() => {
+        ambientTimer = undefined;
+        if (!interactive) return;
+
         const candidates = shuffleIndices(TOTAL).filter((index) => !hoverSet.has(index));
         for (const index of candidates.slice(0, 3)) {
           base[index] = Math.random() < 0.35;
@@ -155,50 +191,87 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
       }, 120 + Math.random() * 180);
     };
 
-    const scheduleHover = () => {
-      hoverTimer = setTimeout(() => {
-        const hovered = shuffleIndices(hoverSet.size).map((offset) => [...hoverSet][offset]);
-        const count = Math.round(hovered.length * 0.18);
-        for (const index of hovered.slice(0, count)) {
-          hoverValues.set(index, Math.random() < 0.7);
-          hoverVariants[index] = 1 + Math.floor(Math.random() * 5);
+    const stopInteractive = () => {
+      interactive = false;
+      window.removeEventListener("pointermove", onPointerMove);
+
+      if (revealFrame) cancelAnimationFrame(revealFrame);
+      revealFrame = 0;
+      if (pointerFrame) cancelAnimationFrame(pointerFrame);
+      pointerFrame = 0;
+      if (ambientTimer) clearTimeout(ambientTimer);
+      ambientTimer = undefined;
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hoverTimer = undefined;
+
+      pointer = { x: Number.NEGATIVE_INFINITY, y: Number.NEGATIVE_INFINITY };
+      hoverSet.clear();
+      hoverValues.clear();
+      for (let index = 0; index < TOTAL; index += 1) {
+        visible[index] = base[index];
+      }
+      paint();
+    };
+
+    const startInteractive = () => {
+      if (
+        disposed
+        || interactive
+        || motionQuery.matches
+        || sprites.length !== SPRITE_PATHS.length
+      ) {
+        return;
+      }
+
+      interactive = true;
+      visible.fill(false);
+      paint();
+
+      const order = shuffleIndices(TOTAL);
+      let cursor = 0;
+      const reveal = () => {
+        if (!interactive || disposed) {
+          revealFrame = 0;
+          return;
+        }
+
+        for (
+          let count = 0;
+          count < Math.ceil(TOTAL / 18) && cursor < TOTAL;
+          count += 1
+        ) {
+          const index = order[cursor++];
+          visible[index] = base[index];
         }
         paint();
-        scheduleHover();
-      }, 70 + Math.random() * 90);
+        if (cursor < TOTAL) {
+          revealFrame = requestAnimationFrame(reveal);
+        } else {
+          revealFrame = 0;
+          scheduleAmbient();
+        }
+      };
+
+      revealFrame = requestAnimationFrame(reveal);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
     };
+
+    const updateMotionPreference = () => {
+      if (motionQuery.matches) {
+        stopInteractive();
+      } else {
+        startInteractive();
+      }
+    };
+
+    motionQuery.addEventListener("change", updateMotionPreference);
+    updateMotionPreference();
 
     void loadSprites()
       .then((loaded) => {
         if (disposed) return;
         sprites = loaded;
-        if (reducedMotion) {
-          paint();
-          return;
-        }
-
-        const order = shuffleIndices(TOTAL);
-        let cursor = 0;
-        const reveal = () => {
-          for (
-            let count = 0;
-            count < Math.ceil(TOTAL / 18) && cursor < TOTAL;
-            count += 1
-          ) {
-            const index = order[cursor++];
-            visible[index] = base[index];
-          }
-          paint();
-          if (cursor < TOTAL) {
-            revealFrame = requestAnimationFrame(reveal);
-          } else {
-            revealFrame = 0;
-            scheduleAmbient();
-          }
-        };
-        revealFrame = requestAnimationFrame(reveal);
-        window.addEventListener("pointermove", onPointerMove, { passive: true });
-        scheduleHover();
+        updateMotionPreference();
       })
       .catch(() => {
         if (disposed) return;
@@ -207,11 +280,8 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
 
     return () => {
       disposed = true;
-      window.removeEventListener("pointermove", onPointerMove);
-      if (revealFrame) cancelAnimationFrame(revealFrame);
-      if (pointerFrame) cancelAnimationFrame(pointerFrame);
-      if (ambientTimer) clearTimeout(ambientTimer);
-      if (hoverTimer) clearTimeout(hoverTimer);
+      motionQuery.removeEventListener("change", updateMotionPreference);
+      stopInteractive();
     };
   }, []);
 
