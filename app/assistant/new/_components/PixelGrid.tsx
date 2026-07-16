@@ -25,7 +25,7 @@ let spritePromise: Promise<HTMLCanvasElement[]> | null = null;
 function loadSprites(): Promise<HTMLCanvasElement[]> {
   if (spritePromise) return spritePromise;
 
-  spritePromise = Promise.all(
+  const pendingSprites = Promise.all(
     SPRITE_PATHS.map(
       (src) =>
         new Promise<HTMLCanvasElement>((resolve, reject) => {
@@ -42,6 +42,10 @@ function loadSprites(): Promise<HTMLCanvasElement[]> {
         }),
     ),
   );
+  spritePromise = pendingSprites.catch((error: unknown) => {
+    spritePromise = null;
+    throw error;
+  });
   return spritePromise;
 }
 
@@ -69,6 +73,10 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
       { length: TOTAL },
       () => 1 + Math.floor(Math.random() * 5),
     );
+    const hoverVariants = Uint8Array.from(
+      { length: TOTAL },
+      () => 1 + Math.floor(Math.random() * 5),
+    );
     const hoverSet = new Set<number>();
     const hoverValues = new Map<number, boolean>();
     let sprites: HTMLCanvasElement[] = [];
@@ -88,14 +96,14 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
         const y = Math.floor(index / COLS);
         const hoveredValue = hoverValues.get(index);
         const isOn = hoveredValue ?? visible[index];
-        const sprite = sprites[isOn ? tileVariants[index] : 0];
+        const variant = hoveredValue === undefined ? tileVariants[index] : hoverVariants[index];
+        const sprite = sprites[isOn ? variant : 0];
         context.drawImage(sprite, x * (TILE + GAP), y * (TILE + GAP), TILE, TILE);
       }
     };
 
     const reconcileHover = (time: number) => {
-      hoverSet.clear();
-      hoverValues.clear();
+      const nextHoverSet = new Set<number>();
       const rect = canvas.getBoundingClientRect();
       const localX = ((pointer.x - rect.left) / rect.width) * WIDTH / (TILE + GAP);
       const localY = ((pointer.y - rect.top) / rect.height) * HEIGHT / (TILE + GAP);
@@ -105,9 +113,21 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
         const y = Math.floor(index / COLS);
         const noise = (Math.sin(index * 91.771 + 17.13) + 1) * 0.5;
         if (isInsideHoverBlob(x, y, localX, localY, time, noise)) {
-          hoverSet.add(index);
-          hoverValues.set(index, Math.random() < 0.7);
+          nextHoverSet.add(index);
         }
+      }
+
+      for (const index of hoverSet) {
+        if (nextHoverSet.has(index)) continue;
+        hoverSet.delete(index);
+        hoverValues.delete(index);
+      }
+      for (const index of nextHoverSet) {
+        if (!hoverSet.has(index)) {
+          hoverValues.set(index, Math.random() < 0.7);
+          hoverVariants[index] = 1 + Math.floor(Math.random() * 5);
+        }
+        hoverSet.add(index);
       }
       paint();
     };
@@ -141,7 +161,7 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
         const count = Math.round(hovered.length * 0.18);
         for (const index of hovered.slice(0, count)) {
           hoverValues.set(index, Math.random() < 0.7);
-          tileVariants[index] = 1 + Math.floor(Math.random() * 5);
+          hoverVariants[index] = 1 + Math.floor(Math.random() * 5);
         }
         paint();
         scheduleHover();
@@ -169,14 +189,19 @@ export default function PixelGrid({ side }: { side: "left" | "right" }) {
             visible[index] = base[index];
           }
           paint();
-          if (cursor < TOTAL) revealFrame = requestAnimationFrame(reveal);
+          if (cursor < TOTAL) {
+            revealFrame = requestAnimationFrame(reveal);
+          } else {
+            revealFrame = 0;
+            scheduleAmbient();
+          }
         };
         revealFrame = requestAnimationFrame(reveal);
         window.addEventListener("pointermove", onPointerMove, { passive: true });
-        scheduleAmbient();
         scheduleHover();
       })
       .catch(() => {
+        if (disposed) return;
         context.clearRect(0, 0, WIDTH, HEIGHT);
       });
 
