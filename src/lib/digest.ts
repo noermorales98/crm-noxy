@@ -84,7 +84,7 @@ export function isDigestDue(
 export async function buildDigestContext(
   orgId: string,
   userId: string,
-  options?: { includeGoogleCalendar?: boolean }
+  options?: { includeGoogleCalendar?: boolean; includeUnreadEmails?: boolean }
 ): Promise<string> {
   const now = new Date();
   const todayStart = new Date(now);
@@ -232,6 +232,13 @@ export async function buildDigestContext(
     }
   }
 
+  if (options?.includeUnreadEmails !== false) {
+    const unreadCount = await prisma.email.count({
+      where: { organizationId: orgId, isRead: false, isSpam: false, isArchived: false },
+    });
+    lines.push(``, `CORREOS SIN LEER: ${unreadCount}`);
+  }
+
   return lines.join("\n");
 }
 
@@ -244,7 +251,7 @@ Reglas:
 - Máximo 1200 caracteres
 - Usa emojis con moderación (2-4 en total)
 - Secciones cortas con títulos en mayúsculas
-- Incluye: pipelines, deals pendientes/vencidos, ventas y pagos pendientes, ingresos MRR, cobros próximos, tareas, citas del CRM y eventos de Google Calendar si aparecen en los datos
+- Incluye: pipelines, deals pendientes/vencidos, ventas y pagos pendientes, ingresos MRR, cobros próximos, tareas, citas del CRM, correos sin leer y eventos de Google Calendar si aparecen en los datos
 - Sé conciso y accionable
 - NO uses markdown ni asteriscos
 - Solo el texto del mensaje, sin introducción`;
@@ -302,8 +309,9 @@ export async function runDigestForUser(
   }
 
   const includeGoogleCalendar = schedule?.includeGoogleCalendar ?? true;
+  const includeUnreadEmails = schedule?.includeUnreadEmails ?? true;
   const aiModelId = schedule?.aiModelId ?? DEFAULT_MODEL_ID;
-  const context = await buildDigestContext(orgId, userId, { includeGoogleCalendar });
+  const context = await buildDigestContext(orgId, userId, { includeGoogleCalendar, includeUnreadEmails });
   const message = await generateDigestMessage(context, { orgId, modelId: aiModelId });
 
   let sent = false;

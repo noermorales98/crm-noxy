@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
   });
   const includeGoogleCalendar = schedule?.includeGoogleCalendar ?? true;
+  const includeUnreadEmails = schedule?.includeUnreadEmails ?? true;
   const aiModelId = schedule?.aiModelId ?? "chatbase";
 
   try {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const context = await buildDigestContext(orgId, session.user.id, { includeGoogleCalendar });
+    const context = await buildDigestContext(orgId, session.user.id, { includeGoogleCalendar, includeUnreadEmails });
     const message = await generateDigestMessage(context, { orgId, modelId: aiModelId });
     return NextResponse.json({ message, context });
   } catch (e: any) {
