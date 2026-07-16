@@ -4,9 +4,11 @@ import { createNotification } from "@/src/lib/notifications";
 import { detectSpam } from "@/src/lib/spam-detector";
 import { auth } from "@/auth";
 
-// Common Spam/Junk folder names used as a fallback when the server doesn't
-// advertise the IMAP SPECIAL-USE "\Junk" flag (RFC 6154).
-const SPAM_FOLDER_NAMES = ["spam", "junk", "junk e-mail", "[gmail]/spam", "inbox.spam", "inbox.junk"];
+// Common Spam/Junk folder leaf names used as a fallback when the server doesn't
+// advertise the IMAP SPECIAL-USE "\Junk" flag (RFC 6154). imapflow's `mb.name` is
+// the folder's leaf name (e.g. "Spam"), not its full path, so only leaf names
+// belong here — a nested path like "INBOX.Spam" still matches via its leaf "Spam".
+const SPAM_FOLDER_NAMES = ["spam", "junk", "junk e-mail"];
 
 async function findSpamMailboxPath(client: any): Promise<string | null> {
   const mailboxes = await client.list();
