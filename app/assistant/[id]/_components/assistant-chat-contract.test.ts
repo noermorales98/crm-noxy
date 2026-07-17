@@ -25,6 +25,13 @@ test("the redesign preserves message capabilities", () => {
   assert.match(bubbleSource, /handleCopy/);
   assert.match(bubbleSource, /setFullscreen/);
   assert.match(viewSource, /PixelGrid/);
+  assert.match(viewSource, /presentation="soft-card"/);
+});
+
+test("the fullscreen response has modal semantics", () => {
+  assert.match(bubbleSource, /role="dialog"/);
+  assert.match(bubbleSource, /aria-modal="true"/);
+  assert.match(bubbleSource, /aria-label="Respuesta del asistente en pantalla completa"/);
 });
 
 test("the animated send button owns its styles in every assistant experience", () => {
@@ -58,4 +65,11 @@ test("portaled and retry controls retain scoped accessibility styles", () => {
   );
   assert.match(bubbleSource, /styles\.retryOption/);
   assert.match(chatStyles, /\.retryOption:focus-visible[\s\S]*#2563A9/);
+});
+
+test("soft-card metadata keeps readable contrast and accessible targets", () => {
+  assert.match(chatStyles, /\.emptyCopy\s*\{[^}]*color:\s*#536986/i);
+  assert.match(chatStyles, /\.metaLabel,[\s\S]*?color:\s*#445975/i);
+  assert.match(chatStyles, /\.metaButton\s*\{[^}]*min-height:\s*24px[^}]*min-width:\s*24px/i);
+  assert.match(chatStyles, /\.iconButton\s*\{[^}]*min-width:\s*24px[^}]*min-height:\s*24px/i);
 });

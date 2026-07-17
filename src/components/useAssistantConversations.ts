@@ -1,43 +1,39 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import {
   assistantConversationListReducer,
   INITIAL_ASSISTANT_CONVERSATION_LIST_STATE,
   type AiConversation,
 } from "./assistant-conversation-list-state";
+import { createAssistantConversationLoader } from "./assistant-conversation-loader";
 
 export function useAssistantConversations(enabled: boolean) {
   const [state, dispatch] = useReducer(
     assistantConversationListReducer,
     INITIAL_ASSISTANT_CONVERSATION_LIST_STATE,
   );
-  const controllerRef = useRef<AbortController | null>(null);
-
-  const refresh = useCallback(async () => {
-    if (!enabled) return;
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
-    dispatch({ type: "request" });
-    try {
+  const [loader] = useState(() => createAssistantConversationLoader(
+    dispatch,
+    async (signal) => {
       const response = await fetch("/api/assistant/conversations", {
-        signal: controller.signal,
+        signal,
         cache: "no-store",
       });
       if (!response.ok) throw new Error(`Conversation request failed: ${response.status}`);
-      const conversations = (await response.json()) as AiConversation[];
-      dispatch({ type: "success", conversations });
-    } catch (error: unknown) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      dispatch({ type: "error" });
-    }
-  }, [enabled]);
+      return (await response.json()) as AiConversation[];
+    },
+  ));
+
+  const refresh = useCallback(async () => {
+    if (!enabled) return;
+    await loader.refresh();
+  }, [enabled, loader]);
 
   useEffect(() => {
     void refresh();
-    return () => controllerRef.current?.abort();
-  }, [refresh]);
+    return () => loader.dispose();
+  }, [loader, refresh]);
 
   useEffect(() => {
     const onChanged = () => void refresh();

@@ -543,6 +543,7 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
   const {
     status: conversationStatus,
     conversations,
+    hasSnapshot: hasConversationSnapshot,
     refresh: refreshConversations,
   } = useAssistantConversations(Boolean(session?.user));
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -583,16 +584,24 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 pb-4 min-h-0">
+      <div
+        role="region"
+        className="flex-1 overflow-y-auto px-3 pb-4 min-h-0"
+        aria-label="Historial de conversaciones"
+        aria-busy={conversationStatus === "loading" || conversationStatus === "refreshing"}
+      >
         {conversationStatus === "loading" ? (
-          <div className="flex flex-col gap-1">
-            {[1, 2, 3].map((row) => (
-              <div key={row} className="h-8 rounded-lg bg-nav-hover animate-pulse" />
-            ))}
-          </div>
-        ) : conversationStatus === "error" && conversations.length === 0 ? (
+          <>
+            <span role="status" className="sr-only">Cargando historial de conversaciones</span>
+            <div className="flex flex-col gap-1" aria-hidden="true">
+              {[1, 2, 3].map((row) => (
+                <div key={row} className="h-8 rounded-lg bg-nav-hover animate-pulse" />
+              ))}
+            </div>
+          </>
+        ) : conversationStatus === "error" && !hasConversationSnapshot ? (
           <div className="px-1 py-2">
-            <p className="text-xs text-text-secondary italic">No se pudo cargar el historial</p>
+            <p role="status" className="text-xs text-text-secondary italic">No se pudo cargar el historial</p>
             <button
               type="button"
               onClick={() => void refreshConversations()}
@@ -603,51 +612,63 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
           </div>
         ) : conversationStatus === "ready" && conversations.length === 0 ? (
           <p className="text-xs text-text-secondary px-1 py-2 italic">Sin conversaciones</p>
-        ) : conversations.length > 0 ? (
-          <div className="flex flex-col gap-0.5">
-            {conversations.map((conv) => {
-              const isActive = pathname === `/assistant/${conv.id}`;
-              return (
-                <div key={conv.id} className="group relative">
-                  <Link
-                    href={`/assistant/${conv.id}`}
-                    onClick={onNavigate}
-                    className={`${navItemClass(isActive)} pr-8 w-full`}
-                  >
-                    <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
-                    <span className="truncate text-sm">{conv.title}</span>
-                  </Link>
-                  {deletingId === conv.id ? (
-                    <div className="absolute inset-0 flex items-center justify-end gap-1 pr-1 bg-surface-elevated rounded-lg">
-                      <button
-                        onClick={() => setDeletingId(null)}
-                        className="text-[10px] px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
+        ) : (
+          <>
+            {conversationStatus === "refreshing" && (
+              <span role="status" className="sr-only">Actualizando historial de conversaciones</span>
+            )}
+            {conversationStatus === "error" && hasConversationSnapshot && (
+              <p role="status" className="px-1 pb-1.5 text-[11px] text-text-secondary">
+                No se pudo actualizar el historial. Se muestran los datos anteriores.
+              </p>
+            )}
+            {conversations.length > 0 && (
+              <div className="flex flex-col gap-0.5">
+                {conversations.map((conv) => {
+                  const isActive = pathname === `/assistant/${conv.id}`;
+                  return (
+                    <div key={conv.id} className="group relative">
+                      <Link
+                        href={`/assistant/${conv.id}`}
+                        onClick={onNavigate}
+                        className={`${navItemClass(isActive)} pr-8 w-full`}
                       >
-                        Cancelar
-                      </button>
-                      <button
-                        onClick={() => deleteConv(conv.id)}
-                        className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
-                      >
-                        Eliminar
-                      </button>
+                        <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
+                        <span className="truncate text-sm">{conv.title}</span>
+                      </Link>
+                      {deletingId === conv.id ? (
+                        <div className="absolute inset-0 flex items-center justify-end gap-1 pr-1 bg-surface-elevated rounded-lg">
+                          <button
+                            onClick={() => setDeletingId(null)}
+                            className="text-[10px] px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => deleteConv(conv.id)}
+                            className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setDeletingId(conv.id)}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-nav-active rounded-md transition-all"
+                          title="Eliminar conversación"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-secondary">
+                            <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setDeletingId(conv.id)}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-nav-active rounded-md transition-all"
-                      title="Eliminar conversación"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-secondary">
-                        <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

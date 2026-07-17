@@ -65,3 +65,11 @@ test("user-menu destinations and sign out close the floating panel", () => {
   );
   assert.match(sidebarComponentSource, /onClick=\{handleSignOut\}/);
 });
+
+test("assistant history exposes accessible loading and refresh feedback", () => {
+  assert.match(assistantNavSource, /role="region"/);
+  assert.match(assistantNavSource, /aria-busy=/);
+  assert.match(assistantNavSource, /aria-hidden="true"/);
+  assert.match(assistantNavSource, /role="status"/);
+  assert.match(assistantNavSource, /No se pudo actualizar el historial/);
+});

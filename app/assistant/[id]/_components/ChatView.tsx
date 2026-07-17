@@ -8,9 +8,9 @@ import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
-  beginConversationTransition,
   completeConversationTransition,
-  type PendingConversationTransition,
+  createAssistantStreamOperationManager,
+  ensureConversationTransition,
 } from "@/src/lib/assistant-stream-lifecycle";
 
 function AssistantNewExperienceFallback() {
@@ -82,13 +82,21 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const bottomRef = useRef<HTMLDivElement>(null);
   const streamingIdRef = useRef<string | null>(null);
   const messagesRef = useRef(messages);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const activeConversationIdRef = useRef(conversationId);
+  const [streamManager] = useState(createAssistantStreamOperationManager);
 
   useEffect(() => {
+    streamManager.abortCurrent();
     activeConversationIdRef.current = conversationId;
+    streamingIdRef.current = null;
+    setStreaming(false);
+  }, [conversationId, streamManager]);
+
+  useEffect(() => {
     setMessages(initialMessages);
   }, [conversationId, initialMessages]);
+
+  useEffect(() => () => streamManager.dispose(), [streamManager]);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
@@ -103,18 +111,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   };
 
   const stopStreaming = () => {
-    abortControllerRef.current?.abort();
-  };
-
-  const ensureConversation = async (): Promise<PendingConversationTransition | null> => {
-    if (activeConversationIdRef.current !== "new") {
-      return beginConversationTransition(activeConversationIdRef.current);
-    }
-    const res = await fetch("/api/assistant/conversations", { method: "POST" });
-    if (!res.ok) return null;
-    const conv = (await res.json()) as { id: string };
-    activeConversationIdRef.current = conv.id;
-    return beginConversationTransition("new", conv.id);
+    streamManager.abortCurrent();
   };
 
   const showAssistantError = (assistantId: string, status?: number) => {
@@ -134,23 +131,31 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     activeKey: "1" | "2",
     onKeyDetected?: (key: string) => void,
   ) => {
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+    const operation = streamManager.start();
+    const operationConversationId = activeConversationIdRef.current;
 
     try {
-      const conversation = await ensureConversation();
+      const conversation = await ensureConversationTransition(
+        operationConversationId,
+        operation.signal,
+      );
+      if (!operation.isCurrent()) return;
       if (!conversation) {
         showAssistantError(assistantId);
         return;
+      }
+      if (operationConversationId === "new") {
+        activeConversationIdRef.current = conversation.id;
       }
 
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey }),
-        signal: controller.signal,
+        signal: operation.signal,
       });
 
+      if (!operation.isCurrent()) return;
       if (!res.ok || !res.body) {
         showAssistantError(assistantId, res.status);
         return;
@@ -164,6 +169,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       try {
         while (true) {
           const { done, value } = await reader.read();
+          if (!operation.isCurrent()) break;
           if (done) {
             streamCompleted = true;
             break;
@@ -174,7 +180,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
             keyChecked = true;
             if (chunk.charCodeAt(0) === 0x1b && chunk.length >= 2) {
               const key = MARKER_MAP[chunk[1]];
-              if (key) onKeyDetected?.(key);
+              if (key && operation.isCurrent()) onKeyDetected?.(key);
               chunk = chunk.slice(2);
             }
           }
@@ -190,7 +196,11 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         reader.releaseLock();
       }
 
-      if (streamCompleted) {
+      if (
+        streamCompleted
+        && operation.isCurrent()
+        && activeConversationIdRef.current === conversation.id
+      ) {
         const completion = completeConversationTransition(conversation);
         if (completion) {
           window.history.replaceState(null, "", completion.url);
@@ -200,13 +210,14 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         }
       }
     } catch (error: unknown) {
-      if (!isAbortError(error)) {
+      if (!isAbortError(error) && operation.isCurrent()) {
         showAssistantError(assistantId);
       }
     } finally {
-      abortControllerRef.current = null;
-      setStreaming(false);
-      streamingIdRef.current = null;
+      if (operation.finish()) {
+        setStreaming(false);
+        streamingIdRef.current = null;
+      }
     }
   };
 
@@ -325,6 +336,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
             messages.map((m) => (
               <MessageBubble
                 key={m.id}
+                presentation="soft-card"
                 role={m.role}
                 content={m.content}
                 streaming={streaming && m.id === streamingIdRef.current}
