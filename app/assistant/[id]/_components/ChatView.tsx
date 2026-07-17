@@ -4,6 +4,12 @@ import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
+import {
+  assistantRequestErrorMessage,
+  beginConversationTransition,
+  completeConversationTransition,
+  type PendingConversationTransition,
+} from "@/src/lib/assistant-stream-lifecycle";
 
 function AssistantNewExperienceFallback() {
   return <div className="h-full w-full bg-[#EEF1F7]" aria-hidden="true" />;
@@ -55,13 +61,18 @@ function setStored(key: string, value: string) {
   try { localStorage.setItem(key, value); } catch {}
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException
+    ? error.name === "AbortError"
+    : typeof error === "object" && error !== null && "name" in error && error.name === "AbortError";
+}
+
 function defaultKeyUsed(modelId: string, preferKey: "1" | "2"): string | undefined {
   if (getModelById(modelId).provider !== "openrouter") return undefined;
   return preferKey === "2" ? "secundaria" : "primaria";
 }
 
 export default function ChatView({ conversationId, initialMessages, emptyExperience }: Props) {
-  const [activeConversationId, setActiveConversationId] = useState(conversationId);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streaming, setStreaming] = useState(false);
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
@@ -73,7 +84,6 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const activeConversationIdRef = useRef(conversationId);
 
   useEffect(() => {
-    setActiveConversationId(conversationId);
     activeConversationIdRef.current = conversationId;
     setMessages(initialMessages);
   }, [conversationId, initialMessages]);
@@ -99,18 +109,25 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     abortControllerRef.current?.abort();
   };
 
-  const ensureConversation = async (): Promise<string | null> => {
+  const ensureConversation = async (): Promise<PendingConversationTransition | null> => {
     if (activeConversationIdRef.current !== "new") {
-      return activeConversationIdRef.current;
+      return beginConversationTransition(activeConversationIdRef.current);
     }
     const res = await fetch("/api/assistant/conversations", { method: "POST" });
     if (!res.ok) return null;
     const conv = (await res.json()) as { id: string };
-    setActiveConversationId(conv.id);
     activeConversationIdRef.current = conv.id;
-    window.history.replaceState(null, "", `/assistant/${conv.id}`);
-    window.dispatchEvent(new CustomEvent("assistant:conversations-changed"));
-    return conv.id;
+    return beginConversationTransition("new", conv.id);
+  };
+
+  const showAssistantError = (assistantId: string, status?: number) => {
+    setMessages((prev) =>
+      prev.map((message) =>
+        message.id === assistantId
+          ? { ...message, content: assistantRequestErrorMessage(status) }
+          : message,
+      ),
+    );
   };
 
   const streamIntoMessage = async (
@@ -124,32 +141,36 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     abortControllerRef.current = controller;
 
     try {
-      const convId = await ensureConversation();
-      if (!convId) {
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      const conversation = await ensureConversation();
+      if (!conversation) {
+        showAssistantError(assistantId);
         return;
       }
 
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: convId, content: userContent, model: activeModel, preferKey: activeKey }),
+        body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey }),
         signal: controller.signal,
       });
 
       if (!res.ok || !res.body) {
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        showAssistantError(assistantId, res.status);
         return;
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let keyChecked = false;
+      let streamCompleted = false;
 
       try {
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            streamCompleted = true;
+            break;
+          }
           let chunk = decoder.decode(value, { stream: true });
 
           if (!keyChecked) {
@@ -166,14 +187,24 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
             prev.map((m) => m.id === assistantId ? { ...m, content: m.content + chunk } : m),
           );
         }
-      } catch (err: any) {
-        if (err?.name !== "AbortError") throw err;
+      } catch (error: unknown) {
+        if (!isAbortError(error)) throw error;
       } finally {
         reader.releaseLock();
       }
-    } catch (err: any) {
-      if (err?.name !== "AbortError") {
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+
+      if (streamCompleted) {
+        const completion = completeConversationTransition(conversation);
+        if (completion) {
+          window.history.replaceState(null, "", completion.url);
+          if (completion.notifySidebar) {
+            window.dispatchEvent(new CustomEvent("assistant:conversations-changed"));
+          }
+        }
+      }
+    } catch (error: unknown) {
+      if (!isAbortError(error)) {
+        showAssistantError(assistantId);
       }
     } finally {
       abortControllerRef.current = null;

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
+import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 
 const ACTION_CARDS_PROMPT = `
 === CAPACIDADES DE ACCIÓN ===
@@ -393,21 +394,24 @@ function buildStream(
           fullResponse = fallback;
         }
 
-        controller.close();
-
-        try {
-          if (fullResponse.trim()) {
-            await prisma.aiMessage.create({
-              data: { conversationId, role: "assistant", content: fullResponse.trim() },
-            });
-            await prisma.aiConversation.update({
-              where: { id: conversationId },
-              data: { updatedAt: new Date() },
-            });
-          }
-        } catch (dbErr) {
-          console.error("[assistant/chat] Failed to save assistant message:", dbErr);
-        }
+        await persistBeforeClosingStream(
+          async () => {
+            try {
+              if (fullResponse.trim()) {
+                await prisma.aiMessage.create({
+                  data: { conversationId, role: "assistant", content: fullResponse.trim() },
+                });
+                await prisma.aiConversation.update({
+                  where: { id: conversationId },
+                  data: { updatedAt: new Date() },
+                });
+              }
+            } catch (dbErr) {
+              console.error("[assistant/chat] Failed to save assistant message:", dbErr);
+            }
+          },
+          () => controller.close(),
+        );
       }
     },
   });
