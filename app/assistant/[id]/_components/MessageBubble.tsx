@@ -248,7 +248,7 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
                             key={m.id}
                             type="button"
                             onClick={() => handleSelect(m)}
-                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
+                            className={`${styles.retryOption} w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
                               isCurrent
                                 ? "bg-[#EEF2FF] text-[#6366F1]"
                                 : "hover:bg-surface-sidebar text-text-primary"
