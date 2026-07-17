@@ -128,10 +128,12 @@ function SectionSwitcher({
   activeTab,
   onChange,
   unreadCount,
+  onNavigate,
 }: {
   activeTab: SidebarTab;
   onChange: (tab: SidebarTab) => void;
   unreadCount: number;
+  onNavigate?: () => void;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -155,6 +157,7 @@ function SectionSwitcher({
 
   const selectSection = (section: (typeof SECTIONS)[number]) => {
     onChange(section.id);
+    onNavigate?.();
     router.push(section.href);
     setOpen(false);
   };
@@ -560,7 +563,10 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
     try {
       await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
       setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (pathname === `/assistant/${id}`) router.push("/assistant/new");
+      if (pathname === `/assistant/${id}`) {
+        onNavigate?.();
+        router.push("/assistant/new");
+      }
     } finally {
       setDeletingId(null);
     }
@@ -657,6 +663,16 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
 
   const unreadEmailCount = notifications.filter(n => n.type === "NEW_EMAIL" && !n.isRead).length;
 
+  const closeUserMenuForNavigation = () => {
+    setSidebarUserOpen(false);
+    onNavigate?.();
+  };
+
+  const handleSignOut = () => {
+    onNavigate?.();
+    void signOut();
+  };
+
   const getTabForPath = (p: string): SidebarTab => {
     if (p.startsWith("/kb")) return "kb";
     if (p.startsWith("/emails") || p.startsWith("/campaigns")) return "mail";
@@ -728,6 +744,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
           activeTab={activeTab}
           onChange={setActiveTab}
           unreadCount={unreadEmailCount}
+          onNavigate={onNavigate}
         />
 
         <div className="flex-1 overflow-y-auto min-h-0 relative">
@@ -837,7 +854,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                   </div>
                   <Link
                     href="/profile"
-                    onClick={() => setSidebarUserOpen(false)}
+                    onClick={closeUserMenuForNavigation}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                   >
                     <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
@@ -845,7 +862,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                   </Link>
                   <Link
                     href="/settings"
-                    onClick={() => setSidebarUserOpen(false)}
+                    onClick={closeUserMenuForNavigation}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                   >
                     <HugeiconsIcon icon={Settings01Icon} size={14} color="#9ca3af" />
@@ -853,7 +870,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                   </Link>
                   <Link
                     href="/settings/digest"
-                    onClick={() => setSidebarUserOpen(false)}
+                    onClick={closeUserMenuForNavigation}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                   >
                     <HugeiconsIcon icon={Notification01Icon} size={14} color="#9ca3af" />
@@ -861,7 +878,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                   </Link>
                   <Link
                     href="/settings/ai-models"
-                    onClick={() => setSidebarUserOpen(false)}
+                    onClick={closeUserMenuForNavigation}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                   >
                     <HugeiconsIcon icon={AiChatIcon} size={14} color="#9ca3af" />
@@ -869,7 +886,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                   </Link>
                   <div className="border-t border-border-subtle mt-1 pt-1">
                     <button
-                      onClick={() => signOut()}
+                      onClick={handleSignOut}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
                     >
                       <HugeiconsIcon icon={Logout01Icon} size={14} color="#ef4444" />
