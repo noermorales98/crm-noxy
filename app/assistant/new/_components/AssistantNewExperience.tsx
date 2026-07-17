@@ -277,14 +277,6 @@ export default function AssistantNewExperience({
           </div>
         </div>
       </div>
-
-      <footer className={styles.footer}>
-        {ASSISTANT_NEW_COPY.legalPrefix}{" "}
-        {/* Reemplazar los fragmentos cuando existan rutas legales en el CRM. */}
-        <a href="#terms">{ASSISTANT_NEW_COPY.terms}</a>{" "}
-        {ASSISTANT_NEW_COPY.legalJoin}{" "}
-        <a href="#privacy">{ASSISTANT_NEW_COPY.privacy}</a>.
-      </footer>
     </main>
   );
 }
