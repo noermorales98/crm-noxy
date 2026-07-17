@@ -63,7 +63,6 @@ export default function AssistantNewSidebar() {
             id="assistant-new-sidebar"
             className="fixed bottom-3 left-3 top-3 z-[70] w-64 max-w-[calc(100vw-24px)]"
           >
-            <Sidebar variant="floating" />
             <button
               type="button"
               autoFocus
@@ -71,10 +70,11 @@ export default function AssistantNewSidebar() {
               aria-expanded={true}
               aria-controls="assistant-new-sidebar"
               onClick={closeAndRestoreFocus}
-              className="absolute -right-4 top-3 flex size-9 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#385577] shadow-[0_8px_24px_rgba(44,78,118,0.16)] transition-[transform,background-color,border-color] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-[#F7FAFF] active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9] max-sm:right-3 motion-reduce:transition-none"
+              className="absolute -right-4 top-3 z-10 flex size-9 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#385577] shadow-[0_8px_24px_rgba(44,78,118,0.16)] transition-[transform,background-color,border-color] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-[#F7FAFF] active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9] motion-reduce:transition-none"
             >
               <X size={17} strokeWidth={1.8} aria-hidden="true" />
             </button>
+            <Sidebar variant="floating" />
           </div>
         </>
       )}
