@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
@@ -37,6 +37,7 @@ import { useGlobalSearch } from "@/src/context/SearchContext";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import VaultNav from "@/src/components/vault/VaultNav";
+import { useAssistantConversations } from "@/src/components/useAssistantConversations";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import { play } from "cuelume";
 
@@ -530,8 +531,6 @@ function KbNav() {
 
 // ─── Tab 5: Asistente ─────────────────────────────────────────────────────────
 
-type AiConversation = { id: string; title: string; updatedAt: string };
-
 interface AssistantNavProps {
   onSearchOpen: () => void;
   onNavigate?: () => void;
@@ -541,28 +540,17 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [conversations, setConversations] = useState<AiConversation[]>([]);
+  const {
+    status: conversationStatus,
+    conversations,
+    refresh: refreshConversations,
+  } = useAssistantConversations(Boolean(session?.user));
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const fetchConversations = useCallback(async () => {
-    const res = await fetch("/api/assistant/conversations");
-    if (res.ok) setConversations(await res.json());
-  }, []);
-
-  useEffect(() => {
-    if (session?.user) fetchConversations();
-  }, [session, fetchConversations]);
-
-  useEffect(() => {
-    const onChanged = () => { void fetchConversations(); };
-    window.addEventListener("assistant:conversations-changed", onChanged);
-    return () => window.removeEventListener("assistant:conversations-changed", onChanged);
-  }, [fetchConversations]);
 
   const deleteConv = async (id: string) => {
     try {
       await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
-      setConversations((prev) => prev.filter((c) => c.id !== id));
+      void refreshConversations();
       if (pathname === `/assistant/${id}`) {
         onNavigate?.();
         router.push("/assistant/new");
@@ -596,9 +584,26 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 min-h-0">
-        {conversations.length === 0 ? (
+        {conversationStatus === "loading" ? (
+          <div className="flex flex-col gap-1">
+            {[1, 2, 3].map((row) => (
+              <div key={row} className="h-8 rounded-lg bg-nav-hover animate-pulse" />
+            ))}
+          </div>
+        ) : conversationStatus === "error" && conversations.length === 0 ? (
+          <div className="px-1 py-2">
+            <p className="text-xs text-text-secondary italic">No se pudo cargar el historial</p>
+            <button
+              type="button"
+              onClick={() => void refreshConversations()}
+              className="mt-2 text-xs font-medium text-text-primary hover:underline"
+            >
+              Reintentar
+            </button>
+          </div>
+        ) : conversationStatus === "ready" && conversations.length === 0 ? (
           <p className="text-xs text-text-secondary px-1 py-2 italic">Sin conversaciones</p>
-        ) : (
+        ) : conversations.length > 0 ? (
           <div className="flex flex-col gap-0.5">
             {conversations.map((conv) => {
               const isActive = pathname === `/assistant/${conv.id}`;
@@ -642,7 +647,7 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
               );
             })}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
