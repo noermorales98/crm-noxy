@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { RotateCcw, Check, Copy, Maximize2, Minimize2, X } from "lucide-react";
 import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
 import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
+import styles from "../assistant-chat.module.css";
 
 function buildGroups(builtins: AiModel[], customs: AiModel[]): { group: string; models: AiModel[] }[] {
   const all = [...builtins, ...customs];
@@ -27,6 +28,15 @@ interface Props {
   currentModelId?: string;
   keyUsed?: string;
   onRetry?: (modelId: string) => void;
+}
+
+interface CustomModelPayload {
+  enabled?: boolean;
+  modelId?: string;
+  name?: string;
+  group?: string;
+  description?: string;
+  tags?: string;
 }
 
 /* Shared prose classes for consistent markdown rendering */
@@ -72,11 +82,16 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
       try {
         const res = await fetch("/api/settings/ai-models", { cache: "no-store" });
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as {
+            hiddenBuiltins?: unknown;
+            models?: CustomModelPayload[];
+          };
           const hidden: string[] = Array.isArray(data.hiddenBuiltins) ? data.hiddenBuiltins : [];
           const customs: AiModel[] = (data.models ?? [])
-            .filter((m: any) => m.enabled)
-            .map((m: any) => ({
+            .filter((m): m is CustomModelPayload & { modelId: string; name: string } => (
+              Boolean(m.enabled && m.modelId && m.name)
+            ))
+            .map((m) => ({
               id: m.modelId,
               name: m.name,
               provider: "openrouter" as const,
@@ -102,33 +117,29 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
   };
 
   return (
-    <div className={`flex w-full mb-4 ${isUser ? "justify-end" : "justify-start"}`}>
+    <div
+      className={`${styles.messageRow} ${isUser ? styles.userMessage : styles.assistantMessage}`}
+    >
       {!isUser && (
-        <div className="shrink-0 w-7 h-7 rounded-full bg-[#EEF2FF] flex items-center justify-center mr-3 mt-0.5">
-          <span className="text-[#6366F1] text-xs font-bold">AI</span>
+        <div className={styles.assistantAvatar} aria-hidden="true">
+          <span>AI</span>
         </div>
       )}
 
       {/* min-w-0 prevents the flex item from growing past max-w-[85%] */}
-      <div className={`min-w-0 max-w-[85%] flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+      <div className={styles.messageStack}>
         {isUser ? (
           /* User bubble */
-          <div
-            className="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-accent-charcoal text-white rounded-br-sm"
-            style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-          >
-            <p style={{ whiteSpace: "pre-wrap" }}>{content}</p>
+          <div className={styles.userCard}>
+            <p>{content}</p>
           </div>
         ) : (
           /* Assistant bubble — full height, horizontal scroll only for code/tables */
-          <div className="w-full flex flex-col rounded-2xl border border-border-subtle bg-surface-elevated text-text-primary rounded-bl-sm overflow-hidden">
+          <div className={styles.assistantCard}>
 
             {/* Content — no vertical scroll, only horizontal clipping */}
-            <div
-              className="px-4 py-3 text-sm leading-relaxed overflow-x-hidden"
-              style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-            >
-              <div className={PROSE}>
+            <div className={styles.messageContent}>
+              <div className={`${styles.prose} ${PROSE}`}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -151,20 +162,21 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
                 </ReactMarkdown>
               </div>
               {streaming && (
-                <span className="inline-block w-0.5 h-4 bg-text-primary ml-0.5 animate-pulse" />
+                <span className={styles.streamingCaret} aria-hidden="true" />
               )}
             </div>
 
             {/* Maximize button — below content, aligned right inside the bubble */}
             {!streaming && (
-              <div className="flex justify-end px-2 pb-1.5">
+              <div className={styles.cardActions}>
                 <button
                   type="button"
                   onClick={() => setFullscreen(true)}
                   title="Ver en pantalla completa"
-                  className="p-1 rounded-md text-text-secondary/30 hover:text-text-secondary/70 hover:bg-black/5 transition-colors"
+                  aria-label="Ver respuesta en pantalla completa"
+                  className={`${styles.iconButton} ${styles.metaButton}`}
                 >
-                  <Maximize2 size={11} />
+                  <Maximize2 size={11} aria-hidden="true" />
                 </button>
               </div>
             )}
@@ -173,23 +185,24 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
 
         {/* Meta row: model · reintentar · key · copiar */}
         {!isUser && !streaming && (modelName || keyUsed || onRetry) && (
-          <div ref={containerRef} className="relative flex items-center gap-1.5 mt-1 ml-1 flex-wrap">
+          <div ref={containerRef} className={styles.metaRow}>
             {modelName && (
-              <span className="text-[10px] text-text-secondary/60 select-none">{modelName}</span>
+              <span className={styles.metaLabel}>{modelName}</span>
             )}
             {onRetry && (
               <button
                 type="button"
                 onClick={openRetry}
-                className="flex items-center gap-1 text-[10px] text-text-secondary/40 hover:text-text-secondary transition-colors"
+                className={styles.metaButton}
                 title="Reintentar con otro modelo"
+                aria-label="Reintentar con otro modelo"
               >
-                <RotateCcw size={9} strokeWidth={2} />
+                <RotateCcw size={9} strokeWidth={2} aria-hidden="true" />
                 <span>reintentar</span>
               </button>
             )}
             {keyUsed && (
-              <span className="text-[10px] text-text-secondary/50 select-none">
+              <span className={styles.keyLabel}>
                 ·{" "}
                 {keyUsed === "fallback"
                   ? "key 1 → key 2"
@@ -203,19 +216,20 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
             <button
               type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1 text-[10px] text-text-secondary/40 hover:text-text-secondary transition-colors"
+              className={styles.metaButton}
               title="Copiar respuesta"
+              aria-label="Copiar respuesta"
             >
               {copied ? (
-                <Check size={9} strokeWidth={2.5} className="text-green-500" />
+                <Check size={9} strokeWidth={2.5} className="text-green-500" aria-hidden="true" />
               ) : (
-                <Copy size={9} strokeWidth={2} />
+                <Copy size={9} strokeWidth={2} aria-hidden="true" />
               )}
               <span>{copied ? "copiado" : "copiar"}</span>
             </button>
 
             {retryOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-60 bg-white rounded-xl border border-border-subtle shadow-xl overflow-hidden z-50">
+              <div className={styles.retryMenu}>
                 <div className="px-3 py-2 border-b border-border-subtle bg-surface-sidebar">
                   <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">
                     Reintentar con…
@@ -260,31 +274,29 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
       {fullscreen &&
         createPortal(
           <div
-            className="fixed inset-0 z-100 bg-black/60 backdrop-blur-sm flex items-start justify-center p-6 overflow-y-auto"
+            className={styles.fullscreenBackdrop}
             onClick={(e) => {
               if (e.target === e.currentTarget) setFullscreen(false);
             }}
           >
-            <div className="w-full max-w-4xl my-auto">
+            <div className={styles.fullscreenContainer}>
               {/* Fullscreen bubble — same visual style as inline bubble */}
-              <div className="rounded-2xl px-4 py-3 text-sm leading-relaxed bg-surface-elevated border border-border-subtle text-text-primary rounded-bl-sm relative overflow-hidden">
+              <div className={styles.fullscreenCard}>
 
                 {/* Close button inside fullscreen bubble (top-right corner) */}
                 <button
                   type="button"
                   onClick={() => setFullscreen(false)}
                   title="Minimizar"
-                  className="absolute top-2.5 right-2.5 p-1.5 rounded-lg text-text-secondary/40 hover:text-text-secondary hover:bg-black/5 transition-colors z-10"
+                  aria-label="Cerrar pantalla completa"
+                  className={`${styles.iconButton} ${styles.fullscreenClose}`}
                 >
-                  <Minimize2 size={14} />
+                  <Minimize2 size={14} aria-hidden="true" />
                 </button>
 
                 {/* Full content with extra right padding to avoid overlap with close button */}
-                <div
-                  className="pr-8"
-                  style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
-                >
-                  <div className={PROSE}>
+                <div className={styles.fullscreenContent}>
+                  <div className={`${styles.prose} ${PROSE}`}>
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
@@ -309,13 +321,13 @@ export default function MessageBubble({ role, content, streaming, modelName, cur
                 </div>
 
                 {/* Minimize footer button */}
-                <div className="flex justify-end px-0 pt-3 pb-0">
+                <div className={styles.fullscreenFooter}>
                   <button
                     type="button"
                     onClick={() => setFullscreen(false)}
-                    className="flex items-center gap-1.5 text-[11px] text-text-secondary/50 hover:text-text-secondary transition-colors"
+                    className={styles.metaButton}
                   >
-                    <X size={11} />
+                    <X size={11} aria-hidden="true" />
                     Cerrar pantalla completa
                   </button>
                 </div>

@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
+import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
 import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
+import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
   beginConversationTransition,
@@ -98,11 +100,6 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const switchModel = (newModelId: string) => {
     setModel(newModelId);
     setStored("assistant-model", newModelId);
-  };
-
-  const switchKey = (k: "1" | "2") => {
-    setPreferredKey(k);
-    setStored("assistant-preferred-key", k);
   };
 
   const stopStreaming = () => {
@@ -296,25 +293,28 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 min-h-0">
-        <div className="max-w-[720px] mx-auto">
+    <div className={styles.experience}>
+      <PixelGrid side="left" />
+      <PixelGrid side="right" />
+      <div className={styles.scrollArea}>
+        <div className={styles.messageColumn}>
           {isEmpty ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-6 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#EEF2FF] flex items-center justify-center">
-                <span className="text-[#6366F1] text-2xl font-bold">AI</span>
+            <div className={styles.emptyState}>
+              <div className={styles.emptyMark} aria-hidden="true">
+                AI
               </div>
               <div>
-                <h2 className="text-xl font-bold text-text-primary mb-1">¿En qué puedo ayudarte?</h2>
-                <p className="text-sm text-text-secondary">Puedo consultar tu CRM, crear registros, redactar emails y más.</p>
+                <h2 className={styles.emptyTitle}>¿En qué puedo ayudarte?</h2>
+                <p className={styles.emptyCopy}>Puedo consultar tu CRM, crear registros, redactar emails y más.</p>
               </div>
-              <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+              <div className={styles.suggestionGrid}>
                 {SUGGESTIONS.map((s) => (
                   <button
+                    type="button"
                     key={s}
                     onClick={() => sendMessage(s)}
                     disabled={streaming}
-                    className="text-left text-xs text-text-secondary bg-white border border-border-subtle rounded-lg px-3 py-2.5 hover:bg-surface-elevated hover:text-text-primary transition-colors leading-snug"
+                    className={styles.suggestion}
                   >
                     {s}
                   </button>
@@ -344,8 +344,6 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         disabled={streaming}
         model={model}
         onModelChange={switchModel}
-        preferredKey={preferredKey}
-        onKeyChange={switchKey}
       />
     </div>
   );
