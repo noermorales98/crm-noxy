@@ -2,8 +2,8 @@
 
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
-import AssistantNewSidebar from "@/src/components/AssistantNewSidebar";
-import { isAssistantNewRoute } from "@/src/components/assistant-new-sidebar-state";
+import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
+import { isAssistantRoute } from "@/src/components/assistant-new-sidebar-state";
 import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
 import { SearchProvider } from "@/src/context/SearchContext";
@@ -16,14 +16,14 @@ function isHideHeaderRoute(pathname: string) {
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
-  const useFloatingAssistantSidebar = isAssistantNewRoute(pathname ?? "");
+  const useFloatingAssistantSidebar = isAssistantRoute(pathname ?? "");
 
   return (
     <SearchProvider>
       <KbProvider>
         <EmailProvider>
           <div className="flex h-screen overflow-hidden bg-surface-app">
-            {useFloatingAssistantSidebar ? <AssistantNewSidebar /> : <Sidebar />}
+            {useFloatingAssistantSidebar ? <AssistantSidebarShell /> : <Sidebar />}
             <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-app">
               {!hideHeader && <Header />}
               <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${hideHeader ? "bg-transparent" : ""}`}>

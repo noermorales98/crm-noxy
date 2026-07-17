@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { assistantNewSidebarReducer, getSidebarFocusTarget, isAssistantNewRoute } from "./assistant-new-sidebar-state.ts";
+import { assistantNewSidebarReducer, getSidebarFocusTarget, isAssistantRoute } from "./assistant-new-sidebar-state.ts";
 
-test("floating sidebar is exclusive to the exact assistant new route", () => {
-  assert.equal(isAssistantNewRoute("/assistant/new"), true);
-  assert.equal(isAssistantNewRoute("/assistant"), false);
-  assert.equal(isAssistantNewRoute("/assistant/abc"), false);
-  assert.equal(isAssistantNewRoute("/assistant/new/extra"), false);
+test("floating sidebar is available on supported assistant routes", () => {
+  assert.equal(isAssistantRoute("/assistant"), true);
+  assert.equal(isAssistantRoute("/assistant/new"), true);
+  assert.equal(isAssistantRoute("/assistant/conversation-123"), true);
+  assert.equal(isAssistantRoute("/assistant/conversation-123/extra"), false);
+  assert.equal(isAssistantRoute("/contacts"), false);
 });
 
 test("assistant new sidebar supports explicit open, close, and toggle actions", () => {
@@ -15,6 +16,8 @@ test("assistant new sidebar supports explicit open, close, and toggle actions", 
   assert.equal(assistantNewSidebarReducer("open", { type: "close" }), "closed");
   assert.equal(assistantNewSidebarReducer("closed", { type: "toggle" }), "open");
   assert.equal(assistantNewSidebarReducer("open", { type: "toggle" }), "closed");
+  assert.equal(assistantNewSidebarReducer("open", { type: "navigate" }), "closed");
+  assert.equal(assistantNewSidebarReducer("closed", { type: "navigate" }), "closed");
 });
 
 test("mobile sidebar focus wraps at its boundaries", () => {

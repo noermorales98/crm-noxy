@@ -4,10 +4,11 @@ export type SidebarFocusDirection = "forward" | "backward";
 export type AssistantNewSidebarAction =
   | { type: "open" }
   | { type: "close" }
-  | { type: "toggle" };
+  | { type: "toggle" }
+  | { type: "navigate" };
 
-export function isAssistantNewRoute(pathname: string): boolean {
-  return pathname === "/assistant/new";
+export function isAssistantRoute(pathname: string): boolean {
+  return /^\/assistant(?:\/new|\/[^/]+)?$/.test(pathname);
 }
 
 export function assistantNewSidebarReducer(
@@ -15,7 +16,7 @@ export function assistantNewSidebarReducer(
   action: AssistantNewSidebarAction,
 ): AssistantNewSidebarState {
   if (action.type === "open") return "open";
-  if (action.type === "close") return "closed";
+  if (action.type === "close" || action.type === "navigate") return "closed";
   return state === "open" ? "closed" : "open";
 }
 
