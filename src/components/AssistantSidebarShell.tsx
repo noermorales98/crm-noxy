@@ -38,6 +38,7 @@ export default function AssistantSidebarShell() {
   }, [pathname]);
 
   const closeForNavigation = useCallback(() => {
+    restoreFocusRef.current = true;
     dispatch({ type: "navigate" });
   }, []);
 
@@ -144,7 +145,7 @@ export default function AssistantSidebarShell() {
         >
           <X size={17} strokeWidth={1.8} aria-hidden="true" />
         </button>
-        <Sidebar variant="floating" {...{ onNavigate: closeForNavigation }} />
+        <Sidebar variant="floating" onNavigate={closeForNavigation} />
       </div>
     </>
   );

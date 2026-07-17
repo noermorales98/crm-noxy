@@ -57,6 +57,7 @@ const sectionLabelClass = "text-[11px] font-medium italic text-text-secondary up
 
 interface SidebarProps {
   variant?: "docked" | "floating";
+  onNavigate?: () => void;
 }
 
 // ─── Notification helpers (mirrored from Header) ───────────────────────────────
@@ -528,7 +529,12 @@ function KbNav() {
 
 type AiConversation = { id: string; title: string; updatedAt: string };
 
-function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
+interface AssistantNavProps {
+  onSearchOpen: () => void;
+  onNavigate?: () => void;
+}
+
+function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -550,10 +556,6 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
     return () => window.removeEventListener("assistant:conversations-changed", onChanged);
   }, [fetchConversations]);
 
-  const createNew = () => {
-    router.push("/assistant/new");
-  };
-
   const deleteConv = async (id: string) => {
     try {
       await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
@@ -567,13 +569,15 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
   return (
     <div className="flex flex-col h-full">
       <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
-        <button
-          onClick={createNew}
-          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+        <Link
+          href="/assistant/new"
+          prefetch
+          onClick={onNavigate}
+          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-[transform,background-color] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9]"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           Nueva conversación
-        </button>
+        </Link>
         <button
           type="button"
           onClick={onSearchOpen}
@@ -596,6 +600,7 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
                 <div key={conv.id} className="group relative">
                   <Link
                     href={`/assistant/${conv.id}`}
+                    onClick={onNavigate}
                     className={`${navItemClass(isActive)} pr-8 w-full`}
                   >
                     <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
@@ -639,7 +644,7 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
 
 // ─── Main Sidebar ──────────────────────────────────────────────────────────────
 
-export default function Sidebar({ variant = "docked" }: SidebarProps) {
+export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { notifications, unreadCount: notifUnread, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
@@ -739,7 +744,7 @@ export default function Sidebar({ variant = "docked" }: SidebarProps) {
             <VaultNav />
           </div>
           <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
-            <AssistantNav onSearchOpen={openSearch} />
+            <AssistantNav onSearchOpen={openSearch} onNavigate={onNavigate} />
           </div>
         </div>
 
