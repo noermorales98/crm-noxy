@@ -55,6 +55,10 @@ const itemIdle = "text-text-primary";
 
 const sectionLabelClass = "text-[11px] font-medium italic text-text-secondary uppercase tracking-wider px-3 pt-6 pb-2";
 
+interface SidebarProps {
+  variant?: "docked" | "floating";
+}
+
 // ─── Notification helpers (mirrored from Header) ───────────────────────────────
 
 const NOTIF_ICONS: Record<NotificationType, typeof UserMultipleIcon> = {
@@ -635,7 +639,7 @@ function AssistantNav({ onSearchOpen }: { onSearchOpen: () => void }) {
 
 // ─── Main Sidebar ──────────────────────────────────────────────────────────────
 
-export default function Sidebar() {
+export default function Sidebar({ variant = "docked" }: SidebarProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { notifications, unreadCount: notifUnread, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
@@ -707,10 +711,14 @@ export default function Sidebar() {
   }, []);
 
   const isAssistant = activeTab === "assistant";
+  const shellClass =
+    variant === "floating"
+      ? "flex h-full w-full flex-col overflow-hidden rounded-[20px] border border-blue-100/90 bg-white shadow-[0_24px_70px_rgba(38,65,102,0.22)]"
+      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-white`;
 
   return (
     <>
-      <aside ref={asideRef} className={`${SIDEBAR_W} bg-white border-r border-border-subtle h-screen flex flex-col flex-shrink-0 overflow-hidden`}>
+      <aside ref={asideRef} aria-label="Barra lateral principal" className={shellClass}>
         <SectionSwitcher
           activeTab={activeTab}
           onChange={setActiveTab}
