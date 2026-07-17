@@ -1,0 +1,25 @@
+export const ASSISTANT_NEW_COPY = {
+  heading: "Encontremos las referencias adecuadas para tu trabajo",
+  headingLines: ["Encontremos las referencias adecuadas", "para tu trabajo"],
+  subtitle: "¿Qué tipo de referencias estás buscando?",
+  promptLabel: "Describe las referencias que estás buscando",
+  promptHint: "Presiona Enter para enviar o Shift + Enter para una nueva línea.",
+  sendLabel: "Enviar mensaje",
+  visualLabel: "Previsualizaciones de referencias de diseño",
+  prompts: [
+    "Crea el diseño de un dashboard financiero",
+    "Diseña una identidad de marca con la letra M",
+    "Crea un efecto de cristal líquido",
+    "Diseña una animación de carga",
+    "Crea una landing page para SaaS",
+  ],
+  cards: [
+    "Referencia de composición editorial",
+    "Referencia de interfaz de producto",
+    "Referencia de identidad de marca",
+  ],
+  legalPrefix: "Al enviar un mensaje a ChatBot, aceptas nuestros",
+  terms: "Términos",
+  legalJoin: "y confirmas que leíste nuestra",
+  privacy: "Política de privacidad",
+} as const;

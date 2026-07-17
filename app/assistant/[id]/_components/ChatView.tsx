@@ -260,8 +260,6 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         disabled={streaming}
         model={model}
         onModelChange={switchModel}
-        preferredKey={preferredKey}
-        onKeyChange={switchKey}
       />
     );
   }

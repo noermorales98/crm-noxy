@@ -2,37 +2,21 @@
 
 /* eslint-disable @next/next/no-img-element -- The approved remote reference assets must use native img elements. */
 
-import {
-  type ChangeEvent,
-  type FocusEvent,
-  type KeyboardEvent,
-  type MouseEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { Image as ImageIcon, Layers3, Plus } from "lucide-react";
+import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import AnimatedSendButton from "./AnimatedSendButton";
+import { ASSISTANT_NEW_COPY } from "./assistant-new-copy";
 import PixelGrid from "./PixelGrid";
 import styles from "../assistant-new.module.css";
 
 const A = "https://qclay.design/lovable/sixsense";
-const TYPEWRITER_PHRASES = [
-  "Create a finance dashboard design",
-  "Branding with M letter",
-  "Liquid glass effect",
-  "Loader animation",
-  "SaaS landing page",
-] as const;
+const TYPEWRITER_PHRASES = ASSISTANT_NEW_COPY.prompts;
 
 interface AssistantNewExperienceProps {
   onSend: (content: string) => void;
   disabled: boolean;
   model: string;
   onModelChange: (id: string) => void;
-  preferredKey: "1" | "2";
-  onKeyChange: (key: "1" | "2") => void;
 }
 
 interface LayerAsset {
@@ -68,7 +52,7 @@ const LAYERS: readonly LayerAsset[] = [
 const CARDS: readonly CardAsset[] = [
   {
     src: "image-1.png",
-    label: "Editorial layout reference",
+    label: ASSISTANT_NEW_COPY.cards[0],
     className: styles.card1,
     entranceClassName: styles.cardEntranceOne,
     floatClassName: styles.cardFloatOne,
@@ -77,7 +61,7 @@ const CARDS: readonly CardAsset[] = [
   },
   {
     src: "image-2.png",
-    label: "Product interface reference",
+    label: ASSISTANT_NEW_COPY.cards[1],
     className: styles.card2,
     entranceClassName: styles.cardEntranceTwo,
     floatClassName: styles.cardFloatTwo,
@@ -86,7 +70,7 @@ const CARDS: readonly CardAsset[] = [
   },
   {
     src: "image-3.png",
-    label: "Brand identity reference",
+    label: ASSISTANT_NEW_COPY.cards[2],
     className: styles.card3,
     entranceClassName: styles.cardEntranceThree,
     floatClassName: styles.cardFloatThree,
@@ -100,11 +84,8 @@ export default function AssistantNewExperience({
   disabled,
   model,
   onModelChange,
-  preferredKey,
-  onKeyChange,
 }: AssistantNewExperienceProps) {
   const [value, setValue] = useState("");
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [promptFocused, setPromptFocused] = useState(false);
   const [showRightGrid, setShowRightGrid] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -202,22 +183,7 @@ export default function AssistantNewExperience({
     setValue(event.target.value);
   };
 
-  const retainCardOnMouseLeave = (event: MouseEvent<HTMLButtonElement>) => {
-    if (document.activeElement === event.currentTarget) return;
-    const focusedIndex = Number(
-      document.activeElement?.getAttribute("data-reference-card-index") ?? Number.NaN,
-    );
-    setHoveredCard(Number.isInteger(focusedIndex) ? focusedIndex : null);
-  };
-
-  const retainCardOnBlur = (event: FocusEvent<HTMLButtonElement>, index: number) => {
-    if (!event.currentTarget.matches(":hover")) {
-      setHoveredCard((active) => (active === index ? null : active));
-    }
-  };
-
   const showTypewriter = !value && !promptFocused;
-  const isOpenRouter = model !== "chatbase";
 
   return (
     <main className={styles.experience}>
@@ -225,7 +191,7 @@ export default function AssistantNewExperience({
       {showRightGrid && <PixelGrid side="right" />}
 
       <div className={styles.content}>
-        <div className={styles.visualStage} aria-label="Design reference previews">
+        <div className={styles.visualStage} aria-label={ASSISTANT_NEW_COPY.visualLabel}>
           <div className={styles.folderComposition} aria-hidden="true">
             {LAYERS.map((layer) => (
               <img
@@ -239,48 +205,37 @@ export default function AssistantNewExperience({
             ))}
           </div>
 
-          <div
-            className={`${styles.cards} ${hoveredCard !== null ? styles.cardsPaused : ""}`}
-          >
-            {CARDS.map((card, index) => (
-              <button
+          <div className={styles.cards}>
+            {CARDS.map((card) => (
+              <figure
                 key={card.src}
-                type="button"
-                className={`${styles.referenceCard} ${card.className} ${
-                  hoveredCard === index ? styles.referenceCardActive : ""
-                }`}
-                aria-label={card.label}
-                data-reference-card-index={index}
-                onMouseEnter={() => setHoveredCard(index)}
-                onMouseLeave={retainCardOnMouseLeave}
-                onFocus={() => setHoveredCard(index)}
-                onBlur={(event) => retainCardOnBlur(event, index)}
+                className={`${styles.referenceCard} ${card.className}`}
               >
                 <span className={`${styles.cardEntrance} ${card.entranceClassName}`}>
                   <img
                     className={`${styles.cardImage} ${card.floatClassName}`}
                     src={`${A}/${card.src}`}
-                    alt=""
+                    alt={card.label}
                     width={card.width}
                     height={card.height}
                   />
                 </span>
-              </button>
+              </figure>
             ))}
           </div>
         </div>
 
-        <h1 className={styles.heading}>
-          Let&apos;s find the right
-          <span>references for your work</span>
+        <h1 className={styles.heading} aria-label={ASSISTANT_NEW_COPY.heading}>
+          {ASSISTANT_NEW_COPY.headingLines[0]}
+          <span>{ASSISTANT_NEW_COPY.headingLines[1]}</span>
         </h1>
-        <p className={styles.subtitle}>What type of references are you looking for?</p>
+        <p className={styles.subtitle}>{ASSISTANT_NEW_COPY.subtitle}</p>
 
         <div className={styles.promptOuter}>
           <div className={styles.promptInner}>
             <div className={styles.textareaArea}>
               <label className={styles.srOnly} htmlFor="assistant-new-prompt">
-                Describe the references you are looking for
+                {ASSISTANT_NEW_COPY.promptLabel}
               </label>
               <textarea
                 ref={textareaRef}
@@ -303,64 +258,18 @@ export default function AssistantNewExperience({
                 <span className={styles.promptCaret} />
               </span>
               <span id="assistant-new-prompt-hint" className={styles.srOnly}>
-                Press Enter to send or Shift and Enter for a new line.
+                {ASSISTANT_NEW_COPY.promptHint}
               </span>
             </div>
 
             <div className={styles.promptToolbar}>
-              <div className={styles.toolbarLeft}>
-                <div className={styles.modelSelector}>
-                  <ModelSelector
-                    value={model}
-                    onChange={onModelChange}
-                    disabled={disabled}
-                    placement="top-right"
-                  />
-                </div>
-
-                {isOpenRouter && (
-                  <button
-                    type="button"
-                    className={`${styles.keyToggle} ${
-                      preferredKey === "2" ? styles.keyToggleSecondary : ""
-                    }`}
-                    onClick={() => onKeyChange(preferredKey === "1" ? "2" : "1")}
-                    disabled={disabled}
-                    aria-label={`Use API key ${preferredKey === "1" ? "2" : "1"}`}
-                    title={`Using key ${preferredKey}`}
-                  >
-                    K{preferredKey}
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  className={styles.secondaryControl}
-                  aria-label="Add an image reference"
+              <div className={styles.modelSelector}>
+                <ModelSelector
+                  value={model}
+                  onChange={onModelChange}
                   disabled={disabled}
-                >
-                  <ImageIcon size={16} strokeWidth={1.8} />
-                </button>
-                <button
-                  type="button"
-                  className={styles.secondaryControl}
-                  aria-label="Add a layered reference"
-                  disabled={disabled}
-                >
-                  <Layers3 size={16} strokeWidth={1.8} />
-                </button>
-                <span className={styles.divider} aria-hidden="true" />
-                <button
-                  type="button"
-                  className={styles.addButton}
-                  aria-label="Add a reference"
-                  disabled={disabled}
-                >
-                  <Plus size={16} strokeWidth={1.8} />
-                </button>
-                <button type="button" className={styles.tag} disabled={disabled}>
-                  UI Design
-                </button>
+                  placement="top-right"
+                />
               </div>
 
               <AnimatedSendButton disabled={disabled || !value.trim()} onClick={submit} />
@@ -370,9 +279,11 @@ export default function AssistantNewExperience({
       </div>
 
       <footer className={styles.footer}>
-        By sending a message to ChatBot, you agree to our{" "}
-        {/* Replace fragment destinations when legal routes are available. */}
-        <a href="#terms">Terms</a> and have read our <a href="#privacy">Privacy Policy</a>.
+        {ASSISTANT_NEW_COPY.legalPrefix}{" "}
+        {/* Reemplazar los fragmentos cuando existan rutas legales en el CRM. */}
+        <a href="#terms">{ASSISTANT_NEW_COPY.terms}</a>{" "}
+        {ASSISTANT_NEW_COPY.legalJoin}{" "}
+        <a href="#privacy">{ASSISTANT_NEW_COPY.privacy}</a>.
       </footer>
     </main>
   );

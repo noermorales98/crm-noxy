@@ -170,24 +170,9 @@
   border: 0;
   border-radius: 13px;
   background: transparent;
-  cursor: pointer;
-  pointer-events: auto;
+  cursor: default;
+  pointer-events: none;
   transform: translateX(-50%);
-  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1), filter 240ms ease;
-}
-
-.experience .referenceCard:hover,
-.experience .referenceCardActive {
-  z-index: 4;
-  filter: drop-shadow(0 14px 17px rgb(44 83 133 / 0.2));
-  transform: translateX(-50%) scale(1.08);
-}
-
-.experience .referenceCard:focus-visible {
-  z-index: 5;
-  outline: 3px solid #2563a9;
-  outline-offset: 4px;
-  transform: translateX(-50%) scale(1.08);
 }
 
 .experience .card1 {
@@ -254,10 +239,6 @@
 .experience .cardFloatThree {
   transform: rotate(-4deg);
   animation: floatCard3 8s ease-in-out 2.5s infinite;
-}
-
-.experience .cardsPaused .cardImage {
-  animation-play-state: paused;
 }
 
 .experience .heading {
@@ -382,13 +363,6 @@
   gap: 12px;
 }
 
-.experience .toolbarLeft {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 5px;
-}
-
 .experience .modelSelector {
   min-width: 0;
 }
@@ -415,100 +389,14 @@
   outline-offset: 2px;
 }
 
-.experience .keyToggle,
-.experience .secondaryControl,
-.experience .addButton,
-.experience .tag {
-  display: inline-flex;
-  height: 32px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  color: #60718a;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background-color 160ms ease,
-    color 160ms ease;
-}
-
-.experience .keyToggle,
-.experience .secondaryControl,
-.experience .addButton {
-  width: 32px;
-  padding: 0;
-  border-radius: 10px;
-  background: transparent;
-}
-
-.experience .keyToggle {
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.experience .keyToggleSecondary {
-  border-color: #c8dbf3;
-  background: #edf4fc;
-  color: #2563a9;
-}
-
-.experience .keyToggle:hover,
-.experience .secondaryControl:hover,
-.experience .addButton:hover {
-  border-color: #d6e1ee;
-  background: #eef4fa;
-  color: #29405e;
-}
-
-.experience .keyToggle:active,
-.experience .secondaryControl:active,
-.experience .addButton:active,
-.experience .tag:active,
 .experience .sendButton:active:not(:disabled) {
   transform: scale(0.96);
 }
 
-.experience .keyToggle:focus-visible,
-.experience .secondaryControl:focus-visible,
-.experience .addButton:focus-visible,
-.experience .tag:focus-visible,
 .experience .sendButton:focus-visible,
 .experience .footer a:focus-visible {
   outline: 3px solid #2563a9;
   outline-offset: 2px;
-}
-
-.experience .keyToggle:disabled,
-.experience .secondaryControl:disabled,
-.experience .addButton:disabled,
-.experience .tag:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-}
-
-.experience .divider {
-  width: 1px;
-  height: 20px;
-  margin: 0 3px;
-  background: #dce4ee;
-}
-
-.experience .tag {
-  padding: 0 12px;
-  border-color: #d9e5f2;
-  border-radius: 999px;
-  background: #f4f8fc;
-  color: #45617f;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.experience .tag:hover {
-  border-color: #bcd2eb;
-  background: #eaf3fb;
-  color: #294d75;
 }
 
 .experience .sendButton {
@@ -851,7 +739,7 @@
   .experience .modelSelector > div > div {
     right: auto;
     left: 0;
-    width: min(288px, calc(100vw - 256px - 48px));
+    width: min(288px, calc(100vw - 48px));
   }
 }
 
@@ -883,12 +771,6 @@
     margin-block: -13px;
   }
 
-  .experience .secondaryControl,
-  .experience .divider,
-  .experience .tag {
-    display: none;
-  }
-
   .experience .promptInner {
     padding-left: 13px;
   }
@@ -918,10 +800,6 @@
     max-width: 122px;
     padding-right: 8px;
     padding-left: 8px;
-  }
-
-  .experience .addButton {
-    display: none;
   }
 }
 

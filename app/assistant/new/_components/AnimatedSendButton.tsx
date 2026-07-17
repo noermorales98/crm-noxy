@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- The approved remote SVG assets must use native img elements. */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ASSISTANT_NEW_COPY } from "./assistant-new-copy";
 import styles from "../assistant-new.module.css";
 
 const A = "https://qclay.design/lovable/sixsense";
@@ -122,7 +123,7 @@ export default function AnimatedSendButton({
         updateActive();
       }}
       disabled={disabled}
-      aria-label="Send message"
+      aria-label={ASSISTANT_NEW_COPY.sendLabel}
     >
       <span className={styles.sendHalo} aria-hidden="true" />
       <span className={styles.sendFallbackBorder} aria-hidden="true" />
