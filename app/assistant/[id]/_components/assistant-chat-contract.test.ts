@@ -69,6 +69,7 @@ test("portaled and retry controls retain scoped accessibility styles", () => {
 
 test("soft-card metadata keeps readable contrast and accessible targets", () => {
   assert.match(chatStyles, /\.emptyCopy\s*\{[^}]*color:\s*#536986/i);
+  assert.match(chatStyles, /\.disclaimer\s*\{[^}]*color:\s*#536986/i);
   assert.match(chatStyles, /\.metaLabel,[\s\S]*?color:\s*#445975/i);
   assert.match(chatStyles, /\.metaButton\s*\{[^}]*min-height:\s*24px[^}]*min-width:\s*24px/i);
   assert.match(chatStyles, /\.iconButton\s*\{[^}]*min-width:\s*24px[^}]*min-height:\s*24px/i);

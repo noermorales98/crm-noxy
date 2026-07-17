@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { assistantRequestErrorMessage, beginConversationTransition, completeConversationTransition, createAssistantStreamOperationManager, ensureConversationTransition, persistBeforeClosingStream } from "./assistant-stream-lifecycle.ts";
+import { assistantRequestErrorMessage, beginConversationTransition, completeConversationTransition, createAssistantStreamOperationManager, createPendingConversationTransitionStore, ensureConversationTransition, persistBeforeClosingStream } from "./assistant-stream-lifecycle.ts";
 
 test("a new conversation publishes its route only after the stream completes", () => {
   const pending = beginConversationTransition("new", "conversation-123");
@@ -132,4 +132,48 @@ test("existing conversations do not call the creation request", async () => {
     id: "existing-conversation",
     publishAfterStream: false,
   });
+});
+
+test("a stopped first stream keeps its created conversation pending for a successful retry", () => {
+  const transitions = createPendingConversationTransitionStore();
+  const firstScope = transitions.captureScope();
+  const created = beginConversationTransition("new", "created-after-stop");
+
+  assert.equal(transitions.remember(created, firstScope), true);
+  // Stopping the stream does not publish or discard the pending transition.
+  const retryTransition = transitions.currentFor("created-after-stop");
+
+  assert.equal(retryTransition, created);
+  assert.deepEqual(transitions.publish(retryTransition!, firstScope), {
+    url: "/assistant/created-after-stop",
+    notifySidebar: true,
+  });
+});
+
+test("a failed first stream keeps its created conversation pending for a successful retry", () => {
+  const transitions = createPendingConversationTransitionStore();
+  const firstScope = transitions.captureScope();
+  const created = beginConversationTransition("new", "created-after-error");
+
+  assert.equal(transitions.remember(created, firstScope), true);
+  // Rendering an error leaves the route transition available to the next retry.
+  const retryTransition = transitions.currentFor("created-after-error");
+
+  assert.equal(retryTransition, created);
+  assert.deepEqual(transitions.publish(retryTransition!, firstScope), {
+    url: "/assistant/created-after-error",
+    notifySidebar: true,
+  });
+});
+
+test("navigation discards a pending conversation and stale work cannot revive it", () => {
+  const transitions = createPendingConversationTransitionStore();
+  const staleScope = transitions.captureScope();
+  const created = beginConversationTransition("new", "stale-conversation");
+
+  transitions.discard();
+
+  assert.equal(transitions.remember(created, staleScope), false);
+  assert.equal(transitions.currentFor("stale-conversation"), null);
+  assert.equal(transitions.publish(created, staleScope), null);
 });

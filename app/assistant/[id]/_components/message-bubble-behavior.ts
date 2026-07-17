@@ -52,3 +52,35 @@ export function createReplaceableTimer<T = ReturnType<typeof setTimeout>>(
     },
   };
 }
+
+export function createAbortableRequestLifecycle() {
+  let current: { controller: AbortController; token: object } | null = null;
+  let disposed = false;
+
+  return {
+    start() {
+      current?.controller.abort();
+      const request = { controller: new AbortController(), token: {} };
+      current = request;
+
+      return {
+        signal: request.controller.signal,
+        isCurrent: () => (
+          !disposed
+          && current?.token === request.token
+          && !request.controller.signal.aborted
+        ),
+        finish: () => {
+          if (disposed || current?.token !== request.token) return false;
+          current = null;
+          return true;
+        },
+      };
+    },
+    dispose() {
+      disposed = true;
+      current?.controller.abort();
+      current = null;
+    },
+  };
+}

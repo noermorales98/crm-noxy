@@ -10,6 +10,7 @@ import {
   assistantRequestErrorMessage,
   completeConversationTransition,
   createAssistantStreamOperationManager,
+  createPendingConversationTransitionStore,
   ensureConversationTransition,
 } from "@/src/lib/assistant-stream-lifecycle";
 
@@ -84,19 +85,24 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const messagesRef = useRef(messages);
   const activeConversationIdRef = useRef(conversationId);
   const [streamManager] = useState(createAssistantStreamOperationManager);
+  const [conversationTransitions] = useState(createPendingConversationTransitionStore);
 
   useEffect(() => {
     streamManager.abortCurrent();
+    conversationTransitions.discard();
     activeConversationIdRef.current = conversationId;
     streamingIdRef.current = null;
     setStreaming(false);
-  }, [conversationId, streamManager]);
+  }, [conversationId, conversationTransitions, streamManager]);
 
   useEffect(() => {
     setMessages(initialMessages);
   }, [conversationId, initialMessages]);
 
-  useEffect(() => () => streamManager.dispose(), [streamManager]);
+  useEffect(() => () => {
+    conversationTransitions.discard();
+    streamManager.dispose();
+  }, [conversationTransitions, streamManager]);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
@@ -133,9 +139,11 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   ) => {
     const operation = streamManager.start();
     const operationConversationId = activeConversationIdRef.current;
+    const transitionScope = conversationTransitions.captureScope();
 
     try {
-      const conversation = await ensureConversationTransition(
+      const pendingConversation = conversationTransitions.currentFor(operationConversationId);
+      const conversation = pendingConversation ?? await ensureConversationTransition(
         operationConversationId,
         operation.signal,
       );
@@ -144,7 +152,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         showAssistantError(assistantId);
         return;
       }
-      if (operationConversationId === "new") {
+      if (operationConversationId === "new" && !pendingConversation) {
+        if (!conversationTransitions.remember(conversation, transitionScope)) return;
         activeConversationIdRef.current = conversation.id;
       }
 
@@ -201,7 +210,9 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         && operation.isCurrent()
         && activeConversationIdRef.current === conversation.id
       ) {
-        const completion = completeConversationTransition(conversation);
+        const completion = conversation.publishAfterStream
+          ? conversationTransitions.publish(conversation, transitionScope)
+          : completeConversationTransition(conversation);
         if (completion) {
           window.history.replaceState(null, "", completion.url);
           if (completion.notifySidebar) {

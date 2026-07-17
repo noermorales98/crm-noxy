@@ -29,6 +29,53 @@ export interface AssistantStreamOperationManager {
   dispose: () => void;
 }
 
+export interface PendingConversationTransitionStore {
+  captureScope: () => number;
+  currentFor: (activeConversationId: string) => PendingConversationTransition | null;
+  remember: (transition: PendingConversationTransition, scope: number) => boolean;
+  publish: (
+    transition: PendingConversationTransition,
+    scope: number,
+  ) => CompletedConversationTransition | null;
+  discard: () => void;
+}
+
+export function createPendingConversationTransitionStore(): PendingConversationTransitionStore {
+  let pending: PendingConversationTransition | null = null;
+  let scope = 0;
+
+  return {
+    captureScope: () => scope,
+    currentFor(activeConversationId) {
+      if (!pending) return null;
+      return activeConversationId === "new" || activeConversationId === pending.id
+        ? pending
+        : null;
+    },
+    remember(transition, transitionScope) {
+      if (transitionScope !== scope || !transition.publishAfterStream) return false;
+      pending = transition;
+      return true;
+    },
+    publish(transition, transitionScope) {
+      if (
+        transitionScope !== scope
+        || pending !== transition
+        || !transition.publishAfterStream
+      ) {
+        return null;
+      }
+      pending = null;
+      scope += 1;
+      return completeConversationTransition(transition);
+    },
+    discard() {
+      pending = null;
+      scope += 1;
+    },
+  };
+}
+
 export function createAssistantStreamOperationManager(): AssistantStreamOperationManager {
   let current: { controller: AbortController; token: object } | null = null;
   let disposed = false;

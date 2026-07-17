@@ -8,6 +8,7 @@ import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
 import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
 import styles from "../assistant-chat.module.css";
 import {
+  createAbortableRequestLifecycle,
   createReplaceableTimer,
   getDialogTabTarget,
   resolveMessageBubblePresentation,
@@ -74,6 +75,7 @@ export default function MessageBubble({
   const fullscreenCloseRef = useRef<HTMLButtonElement>(null);
   const copyResetTimerRef = useRef<ReturnType<typeof createReplaceableTimer> | null>(null);
   const copyLifecycleActiveRef = useRef(false);
+  const modelRequestLifecycleRef = useRef<ReturnType<typeof createAbortableRequestLifecycle> | null>(null);
 
   useEffect(() => {
     if (!retryOpen) return;
@@ -152,6 +154,8 @@ export default function MessageBubble({
       copyLifecycleActiveRef.current = false;
       copyResetTimerRef.current?.dispose();
       copyResetTimerRef.current = null;
+      modelRequestLifecycleRef.current?.dispose();
+      modelRequestLifecycleRef.current = null;
     };
   }, []);
 
@@ -162,13 +166,20 @@ export default function MessageBubble({
 
   const openRetry = async () => {
     if (!groupsLoaded) {
+      modelRequestLifecycleRef.current ??= createAbortableRequestLifecycle();
+      const request = modelRequestLifecycleRef.current.start();
       try {
-        const res = await fetch("/api/settings/ai-models", { cache: "no-store" });
+        const res = await fetch("/api/settings/ai-models", {
+          cache: "no-store",
+          signal: request.signal,
+        });
+        if (!request.isCurrent()) return;
         if (res.ok) {
           const data = (await res.json()) as {
             hiddenBuiltins?: unknown;
             models?: CustomModelPayload[];
           };
+          if (!request.isCurrent()) return;
           const hidden: string[] = Array.isArray(data.hiddenBuiltins) ? data.hiddenBuiltins : [];
           const customs: AiModel[] = (data.models ?? [])
             .filter((m): m is CustomModelPayload & { modelId: string; name: string } => (
@@ -186,6 +197,7 @@ export default function MessageBubble({
           setGroups(buildGroups(visibleBuiltins, customs));
         }
       } catch {}
+      if (!request.finish()) return;
       setGroupsLoaded(true);
     }
     setRetryOpen((v) => !v);

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { createReplaceableTimer, getDialogTabTarget, resolveMessageBubblePresentation } from "./message-bubble-behavior.ts";
+import { createAbortableRequestLifecycle, createReplaceableTimer, getDialogTabTarget, resolveMessageBubblePresentation } from "./message-bubble-behavior.ts";
 
 test("message bubbles keep the global presentation unless soft cards are requested", () => {
   assert.equal(resolveMessageBubblePresentation(undefined), "default");
@@ -60,4 +60,26 @@ test("a disposed copy reset timer cannot schedule work after unmount", () => {
   timer.schedule(() => undefined, 2_000);
 
   assert.equal(callbacks.size, 0);
+});
+
+test("model request lifecycle aborts active work and blocks post-unmount updates", () => {
+  const lifecycle = createAbortableRequestLifecycle();
+  const request = lifecycle.start();
+
+  lifecycle.dispose();
+
+  assert.equal(request.signal.aborted, true);
+  assert.equal(request.isCurrent(), false);
+  assert.equal(request.finish(), false);
+});
+
+test("a newer model request invalidates the previous response", () => {
+  const lifecycle = createAbortableRequestLifecycle();
+  const first = lifecycle.start();
+  const second = lifecycle.start();
+
+  assert.equal(first.signal.aborted, true);
+  assert.equal(first.isCurrent(), false);
+  assert.equal(second.isCurrent(), true);
+  assert.equal(second.finish(), true);
 });
