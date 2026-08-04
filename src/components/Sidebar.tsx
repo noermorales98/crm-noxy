@@ -24,6 +24,7 @@ import {
   PencilEdit01Icon,
   Settings01Icon,
   AiChatIcon,
+  Invoice01Icon,
   Search01Icon,
   Notification01Icon,
   Logout01Icon,
@@ -356,6 +357,7 @@ function HomeNav() {
           ]}
         />
         <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />
+        <NavItem href="/cotizaciones" icon={Invoice01Icon} label="Cotizaciones" />
         <NavItem href="/projects" icon={FolderKanbanIcon} label="Proyectos" />
       </div>
 

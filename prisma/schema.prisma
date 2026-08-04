@@ -139,6 +139,9 @@ model Organization {
   googleCalendarReminderLogs GoogleCalendarReminderLog[]
   dashboardPreferences  DashboardPreference[]
   projectActivities     ProjectActivity[]
+  quotes                Quote[]
+  quoteEvents           QuoteEvent[]
+  quoteSettings         QuoteSettings?
 }
 
 enum Role {
@@ -279,6 +282,10 @@ model Company {
   emails           Email[]
   appointmentTypes AppointmentType[]
 
+  // Cotizaciones donde esta empresa es la remitente
+  quotesAsSender         Quote[]         @relation("QuoteSenderCompany")
+  quoteSettingsAsDefault QuoteSettings[] @relation("QuoteSettingsSenderCompany")
+
   @@index([organizationId])
 }
 
@@ -302,6 +309,7 @@ model Contact {
   emailLogs    EmailLog[]
   appointments Appointment[]
   clients      Client[]
+  quotes       Quote[]
 
   source String? // E.g., "Manual", "Form: Contact Us"
 
@@ -1179,5 +1187,158 @@ model CustomAiModel {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, modelId])
+  @@index([organizationId])
+}
+
+
+// ─── Cotizaciones ─────────────────────────────────────────────────────────────
+
+enum QuoteStatus {
+  BORRADOR
+  ENVIADA
+  ACEPTADA
+  PAGADA
+  VENCIDA
+  RECHAZADA
+}
+
+enum QuoteEventType {
+  CREADA
+  EDITADA
+  ENVIADA
+  VISTA
+  ACEPTADA
+  RECHAZADA
+  PAGO_STRIPE
+  COMPROBANTE_SUBIDO
+  PAGO_CONFIRMADO
+  VENCIDA
+  NOTA
+}
+
+model QuoteSettings {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Datos fiscales / de contacto del remitente
+  businessName String?
+  logoUrl      String?
+  taxId        String? // RFC o identificador fiscal
+  address      String? @db.Text
+  phone        String?
+  email        String?
+  website      String?
+
+  // Datos bancarios para pago por transferencia
+  bankName        String?
+  bankBeneficiary String?
+  bankClabe       String? // CLABE / IBAN
+  bankReference   String?
+
+  // Defaults para nuevas cotizaciones
+  defaultTaxRate  Float   @default(16)
+  defaultCurrency String  @default("MXN")
+  defaultTerms    String? @db.Text
+
+  // Empresa remitente por defecto (opcional; alternable por cotización)
+  defaultSenderCompanyId String?
+  defaultSenderCompany   Company? @relation("QuoteSettingsSenderCompany", fields: [defaultSenderCompanyId], references: [id], onDelete: SetNull)
+
+  // Consecutivo de folios
+  quoteCounter Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  folioNumber Int
+  folio       String // p. ej. COT-2026-0042
+  status      QuoteStatus @default(BORRADOR)
+
+  currency   String    @default("MXN")
+  issuedAt   DateTime  @default(now())
+  validUntil DateTime?
+
+  // Cliente: contacto existente del CRM o captura directa
+  contactId     String?
+  contact       Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  clientName    String
+  clientCompany String?
+  clientEmail   String?
+  clientPhone   String?
+  clientAddress String?  @db.Text
+
+  taxRate   Float @default(16)
+  subtotal  Float @default(0)
+  taxAmount Float @default(0)
+  total     Float @default(0)
+
+  notes String? @db.Text
+  terms String? @db.Text
+
+  // Empresa remitente (Company del CRM, con su SMTP). Opcional.
+  senderCompanyId String?
+  senderCompany   Company? @relation("QuoteSenderCompany", fields: [senderCompanyId], references: [id], onDelete: SetNull)
+
+  // Vista pública y cobro
+  publicToken          String @unique @default(cuid())
+  stripePaymentLinkId  String?
+  stripePaymentLinkUrl String?
+  paymentMethod        String? // "stripe" | "transferencia"
+  acceptedAt           DateTime?
+  paidAt               DateTime?
+  transferReference    String? @db.Text
+
+  notifyEmail String? // correo del remitente a notificar (creador)
+  createdById String?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  items  QuoteItem[]
+  events QuoteEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, folio])
+  @@index([organizationId])
+  @@index([contactId])
+  @@index([senderCompanyId])
+  @@index([status])
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  description String @db.Text
+  quantity    Float  @default(1)
+  unitPrice   Float  @default(0)
+  discount    Float  @default(0) // porcentaje 0–100 por ítem
+  total       Float  @default(0)
+  order       Int    @default(0)
+
+  quoteId String
+  quote   Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+}
+
+model QuoteEvent {
+  id          String         @id @default(cuid())
+  type        QuoteEventType
+  description String?        @db.Text
+  actor       String? // "crm" | "cliente"
+  createdAt   DateTime       @default(now())
+
+  quoteId String
+  quote   Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
   @@index([organizationId])
 }

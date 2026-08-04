@@ -12,7 +12,7 @@ export const authConfig = {
       const pathname = nextUrl.pathname;
 
       const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
-      const isPublicPage = pathname.startsWith("/form/") || pathname.startsWith("/schedule/") || pathname.startsWith("/book/") || pathname.startsWith("/docs/");
+      const isPublicPage = pathname.startsWith("/form/") || pathname.startsWith("/schedule/") || pathname.startsWith("/book/") || pathname.startsWith("/docs/") || pathname.startsWith("/cotizar/");
 
       if (isAuthPage) {
         if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
