@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, BankIcon, Building04Icon, Settings01Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft01Icon, BankIcon, Building04Icon, Settings01Icon, DollarCircleIcon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
 
 const EMPTY = {
@@ -21,6 +21,14 @@ function ConfiguracionContent() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Claves de Stripe (nunca se muestran completas)
+  const [stripeSecretMasked, setStripeSecretMasked] = useState<string | null>(null);
+  const [stripeWebhookMasked, setStripeWebhookMasked] = useState<string | null>(null);
+  const [stripeSecretInput, setStripeSecretInput] = useState("");
+  const [stripeWebhookInput, setStripeWebhookInput] = useState("");
+  const [clearStripeSecret, setClearStripeSecret] = useState(false);
+  const [clearStripeWebhook, setClearStripeWebhook] = useState(false);
 
   useEffect(() => {
     resetState();
@@ -54,6 +62,8 @@ function ConfiguracionContent() {
           defaultTerms: s.defaultTerms || "",
           defaultSenderCompanyId: s.defaultSenderCompanyId || "",
         });
+        setStripeSecretMasked(s.stripeSecretKeyMasked || null);
+        setStripeWebhookMasked(s.stripeWebhookSecretMasked || null);
       })
       .catch(() => addToast("Error al cargar la configuración", "error"))
       .finally(() => setLoading(false));
@@ -66,13 +76,35 @@ function ConfiguracionContent() {
     e.preventDefault();
     setSaving(true);
     try {
+      const payload: Record<string, unknown> = {
+        ...form,
+        defaultTaxRate: parseFloat(form.defaultTaxRate) || 0,
+      };
+      // Claves de Stripe: omitido = conservar; solo enviar si hay cambios
+      if (clearStripeSecret) payload.stripeSecretKey = null;
+      else if (stripeSecretInput.trim()) payload.stripeSecretKey = stripeSecretInput.trim();
+      if (clearStripeWebhook) payload.stripeWebhookSecret = null;
+      else if (stripeWebhookInput.trim()) payload.stripeWebhookSecret = stripeWebhookInput.trim();
+
       const res = await fetch("/api/quote-settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, defaultTaxRate: parseFloat(form.defaultTaxRate) || 0 }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al guardar");
+
+      // Refrescar las máscaras y limpiar los inputs
+      const refresh = await fetch("/api/quote-settings");
+      if (refresh.ok) {
+        const s = await refresh.json();
+        setStripeSecretMasked(s.stripeSecretKeyMasked || null);
+        setStripeWebhookMasked(s.stripeWebhookSecretMasked || null);
+      }
+      setStripeSecretInput("");
+      setStripeWebhookInput("");
+      setClearStripeSecret(false);
+      setClearStripeWebhook(false);
       addToast("Configuración guardada.", "success");
     } catch (err: any) {
       addToast(err.message || "Error al guardar", "error");
@@ -197,6 +229,91 @@ function ConfiguracionContent() {
               </div>
             </section>
 
+            {/* Stripe */}
+            <section className="bg-white border border-border-subtle rounded-lg p-6">
+              <div className="flex items-center gap-2 mb-1">
+                <HugeiconsIcon icon={DollarCircleIcon} size={16} color="#37352F" />
+                <h2 className="text-sm font-bold text-text-primary">Cobro con Stripe</h2>
+              </div>
+              <p className="text-xs text-text-secondary mb-4">
+                Usa primero tus claves de <strong>modo test</strong> (<code>sk_test_…</code>). Se guardan en la base de datos
+                y nunca se muestran completas. El webhook debe apuntar a{" "}
+                <code>{typeof window !== "undefined" ? window.location.origin : "https://tu-dominio"}/api/webhooks/stripe</code>{" "}
+                con el evento <code>checkout.session.completed</code>.
+              </p>
+              <div className="grid grid-cols-1 gap-4">
+                {/* Clave secreta */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Clave secreta (Secret key)</label>
+                  {clearStripeSecret ? (
+                    <div className="flex items-center justify-between bg-red-50 rounded-lg px-3 py-2.5">
+                      <span className="text-sm text-red-600">La clave secreta se eliminará al guardar.</span>
+                      <button type="button" onClick={() => setClearStripeSecret(false)} className="text-xs font-medium text-text-secondary hover:text-text-primary">
+                        Deshacer
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        value={stripeSecretInput}
+                        onChange={(e) => setStripeSecretInput(e.target.value)}
+                        placeholder={stripeSecretMasked ? `Guardada: ${stripeSecretMasked} — escribe para reemplazar` : "sk_test_…"}
+                        className={inputCls}
+                      />
+                      {stripeSecretMasked && (
+                        <button
+                          type="button"
+                          onClick={() => setClearStripeSecret(true)}
+                          className="shrink-0 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          Quitar
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Webhook secret */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-text-secondary">Secreto del webhook (Signing secret)</label>
+                  {clearStripeWebhook ? (
+                    <div className="flex items-center justify-between bg-red-50 rounded-lg px-3 py-2.5">
+                      <span className="text-sm text-red-600">El secreto del webhook se eliminará al guardar.</span>
+                      <button type="button" onClick={() => setClearStripeWebhook(false)} className="text-xs font-medium text-text-secondary hover:text-text-primary">
+                        Deshacer
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        value={stripeWebhookInput}
+                        onChange={(e) => setStripeWebhookInput(e.target.value)}
+                        placeholder={stripeWebhookMasked ? `Guardado: ${stripeWebhookMasked} — escribe para reemplazar` : "whsec_…"}
+                        className={inputCls}
+                      />
+                      {stripeWebhookMasked && (
+                        <button
+                          type="button"
+                          onClick={() => setClearStripeWebhook(true)}
+                          className="shrink-0 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          Quitar
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="text-[11px] text-text-secondary mt-3">
+                Sin clave secreta, el cobro con tarjeta se desactiva y las cotizaciones se pagan por transferencia.
+                Si estos campos están vacíos se usan las variables de entorno <code>STRIPE_SECRET_KEY</code> y{" "}
+                <code>STRIPE_WEBHOOK_SECRET</code> como respaldo.
+              </p>
+            </section>
+
             <div className="flex justify-end">
               <button type="submit" disabled={saving} className={btnPrimary}>
                 {saving ? "Guardando…" : "Guardar configuración"}
@@ -207,10 +324,6 @@ function ConfiguracionContent() {
               <strong>Correos:</strong> se envían desde el SMTP de la empresa remitente (configúralo en la sección Empresas).
               Si la cotización no tiene empresa, se usan las variables <code>SMTP_HOST</code>, <code>SMTP_PORT</code>,
               <code> SMTP_USER</code>, <code>SMTP_PASS</code> y <code>SMTP_FROM_EMAIL</code> del entorno como respaldo.
-              <br />
-              <strong>Cobro con Stripe:</strong> configura <code>STRIPE_SECRET_KEY</code> (usa una clave de modo test),
-              <code> STRIPE_WEBHOOK_SECRET</code> y <code>NEXT_PUBLIC_BASE_URL</code> en <code>.env.local</code>.
-              El webhook debe apuntar a <code>/api/webhooks/stripe</code> con el evento <code>checkout.session.completed</code>.
             </p>
           </form>
         )}

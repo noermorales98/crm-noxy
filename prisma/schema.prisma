@@ -1245,6 +1245,11 @@ model QuoteSettings {
   defaultSenderCompanyId String?
   defaultSenderCompany   Company? @relation("QuoteSettingsSenderCompany", fields: [defaultSenderCompanyId], references: [id], onDelete: SetNull)
 
+  // Claves de Stripe (modo test o live). Si están vacías se usan las
+  // variables de entorno STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET.
+  stripeSecretKey     String? @db.Text
+  stripeWebhookSecret String? @db.Text
+
   // Consecutivo de folios
   quoteCounter Int @default(0)
 

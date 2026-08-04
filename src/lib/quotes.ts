@@ -156,6 +156,31 @@ export async function sendQuoteEmail(opts: {
 
 // ─── Stripe ───────────────────────────────────────────────────────────────────
 
+/** Clave secreta de Stripe de la organización: BD primero, variable de entorno como respaldo. */
+export async function getStripeSecretKey(organizationId: string): Promise<string | null> {
+  const settings = await prisma.quoteSettings.findUnique({
+    where: { organizationId },
+    select: { stripeSecretKey: true },
+  });
+  return settings?.stripeSecretKey || process.env.STRIPE_SECRET_KEY || null;
+}
+
+/** Secretos de webhook configurados (BD de todas las orgs + env), para verificar firmas. */
+export async function getStripeWebhookSecrets(): Promise<string[]> {
+  const secrets: string[] = [];
+  if (process.env.STRIPE_WEBHOOK_SECRET) secrets.push(process.env.STRIPE_WEBHOOK_SECRET);
+  const rows = await prisma.quoteSettings.findMany({
+    where: { stripeWebhookSecret: { not: null } },
+    select: { stripeWebhookSecret: true },
+  });
+  for (const row of rows) {
+    if (row.stripeWebhookSecret && !secrets.includes(row.stripeWebhookSecret)) {
+      secrets.push(row.stripeWebhookSecret);
+    }
+  }
+  return secrets;
+}
+
 /** Crea (o reutiliza) un Payment Link de Stripe por el total de la cotización. */
 export async function createQuoteStripeLink(quoteId: string): Promise<string> {
   const quote = await prisma.quote.findUnique({ where: { id: quoteId } });
@@ -163,14 +188,15 @@ export async function createQuoteStripeLink(quoteId: string): Promise<string> {
 
   if (quote.stripePaymentLinkUrl) return quote.stripePaymentLinkUrl;
 
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error("Stripe no está configurado (falta STRIPE_SECRET_KEY)");
+  const secretKey = await getStripeSecretKey(quote.organizationId);
+  if (!secretKey) {
+    throw new Error("Stripe no está configurado. Agrega tu clave en Cotizaciones → Configuración.");
   }
   if (!Number.isFinite(quote.total) || quote.total <= 0) {
     throw new Error("La cotización no tiene un monto total válido");
   }
 
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-03-31.basil" });
+  const stripe = new Stripe(secretKey, { apiVersion: "2025-03-31.basil" });
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const paymentLink = await stripe.paymentLinks.create({

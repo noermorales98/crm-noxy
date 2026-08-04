@@ -21,10 +21,14 @@ export async function GET() {
     });
     if (!settings) return NextResponse.json({});
 
-    // No exponer credenciales SMTP; solo si la empresa tiene SMTP configurado
-    const { defaultSenderCompany, ...rest } = settings as any;
+    // No exponer credenciales: ni SMTP ni las claves de Stripe (solo enmascaradas)
+    const { defaultSenderCompany, stripeSecretKey, stripeWebhookSecret, ...rest } = settings as any;
+    const mask = (key: string | null) =>
+      key ? `${key.slice(0, 8)}…${key.slice(-4)}` : null;
     return NextResponse.json({
       ...rest,
+      stripeSecretKeyMasked: mask(stripeSecretKey),
+      stripeWebhookSecretMasked: mask(stripeWebhookSecret),
       defaultSenderCompany: defaultSenderCompany
         ? { id: defaultSenderCompany.id, name: defaultSenderCompany.name, hasSmtp: !!defaultSenderCompany.smtpHost }
         : null,
@@ -70,13 +74,27 @@ export async function PUT(req: Request) {
       }
     }
 
+    // Claves de Stripe: string no vacío = guardar, null = quitar, omitido = conservar
+    for (const keyField of ["stripeSecretKey", "stripeWebhookSecret"] as const) {
+      if (keyField in body) {
+        const value = body[keyField];
+        if (value === null) {
+          data[keyField] = null;
+        } else if (typeof value === "string" && value.trim()) {
+          data[keyField] = value.trim();
+        }
+      }
+    }
+
     const settings = await prisma.quoteSettings.upsert({
       where: { organizationId },
       update: data,
       create: { organizationId, ...data },
     });
 
-    return NextResponse.json(settings);
+    // Responder sin las claves en claro
+    const { stripeSecretKey, stripeWebhookSecret, ...safe } = settings as any;
+    return NextResponse.json(safe);
   } catch (error) {
     console.error("PUT /api/quote-settings error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
