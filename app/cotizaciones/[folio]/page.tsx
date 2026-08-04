@@ -139,15 +139,18 @@ function QuoteDetailContent() {
 
   const handleDelete = () =>
     runAction("delete", async () => {
+      const isPaid = quote.status === "PAGADA";
       const ok = await confirm({
-        title: "Eliminar cotización",
-        description: `¿Eliminar ${quote.folio}? Esta acción no se puede deshacer.`,
-        confirmText: "Eliminar",
+        title: isPaid ? "Eliminar cotización pagada" : "Eliminar cotización",
+        description: isPaid
+          ? `${quote.folio} está marcada como PAGADA (${formatQuoteMoney(quote.total, quote.currency)}). ¿Seguro que quieres eliminarla? Esta acción no se puede deshacer.`
+          : `¿Eliminar ${quote.folio}? Esta acción no se puede deshacer.`,
+        confirmText: isPaid ? "Sí, eliminar pagada" : "Eliminar",
         cancelText: "Cancelar",
         variant: "danger",
       });
       if (!ok) return;
-      const res = await fetch(`/api/quotes/${quote.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/quotes/${quote.id}${isPaid ? "?force=true" : ""}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) return addToast(data.error || "Error al eliminar", "error");
       addToast("Cotización eliminada.", "success");
@@ -295,16 +298,14 @@ function QuoteDetailContent() {
                 Registrar pago
               </button>
             )}
-            {quote.status !== "PAGADA" && (
-              <button
-                onClick={handleDelete}
-                disabled={actionLoading === "delete"}
-                className="ml-auto flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-              >
-                <HugeiconsIcon icon={Delete01Icon} size={15} color="#ef4444" />
-                Eliminar
-              </button>
-            )}
+            <button
+              onClick={handleDelete}
+              disabled={actionLoading === "delete"}
+              className="ml-auto flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              <HugeiconsIcon icon={Delete01Icon} size={15} color="#ef4444" />
+              Eliminar
+            </button>
           </div>
         </div>
 

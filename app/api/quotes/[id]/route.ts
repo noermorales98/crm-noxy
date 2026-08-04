@@ -124,7 +124,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -134,8 +134,16 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const existing = await findQuote(id, organizationId);
     if (!existing) return NextResponse.json({ error: "Cotización no encontrada" }, { status: 404 });
+
+    // Las cotizaciones pagadas requieren confirmación explícita (?force=true)
     if (existing.status === "PAGADA") {
-      return NextResponse.json({ error: "No se puede eliminar una cotización pagada" }, { status: 409 });
+      const force = new URL(req.url).searchParams.get("force") === "true";
+      if (!force) {
+        return NextResponse.json(
+          { error: "La cotización está pagada. Confirma explícitamente para eliminarla.", requiresForce: true },
+          { status: 409 }
+        );
+      }
     }
 
     await prisma.quote.delete({ where: { id: existing.id } });
