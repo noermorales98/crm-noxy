@@ -8,6 +8,7 @@ import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Invoice01Icon, Add01Icon, Search01Icon, Settings01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import DatePicker from "@/src/components/DatePicker";
 import { QUOTE_STATUS_META, QuoteStatusBadge, formatQuoteMoney } from "@/src/components/quotes/shared";
 
 function CotizacionesContent() {
@@ -59,9 +60,9 @@ function CotizacionesContent() {
 
   return (
     <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-3 mb-5">
-        <div className="relative flex-1 min-w-[220px] max-w-sm">
+      {/* Filtros: todo en una sola línea */}
+      <div className="flex items-center gap-2 mb-5 flex-nowrap">
+        <div className="relative flex-1 min-w-[120px]">
           <HugeiconsIcon icon={Search01Icon} size={15} color="#9ca3af" className="absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -71,23 +72,36 @@ function CotizacionesContent() {
             className={`${inputCls} pl-9`}
           />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`${inputCls} w-auto`}>
-          <option value="">Todos los estados</option>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="shrink-0 w-[118px] pl-2.5 pr-1 py-2 rounded-lg bg-surface-sidebar text-text-primary text-[13px] outline-none focus:bg-surface-elevated focus:ring-1 focus:ring-border-subtle transition-colors cursor-pointer"
+        >
+          <option value="">Estado: Todos</option>
           {Object.entries(QUOTE_STATUS_META).map(([value, meta]) => (
             <option key={value} value={value}>{meta.label}</option>
           ))}
         </select>
-        <div className="flex items-center gap-2">
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className={`${inputCls} w-auto`} title="Desde" />
-          <span className="text-text-secondary text-xs">a</span>
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className={`${inputCls} w-auto`} title="Hasta" />
-        </div>
+        <DatePicker
+          value={fromDate}
+          onChange={setFromDate}
+          placeholder="Desde"
+          className="w-[152px] shrink-0"
+        />
+        <span className="text-text-secondary text-xs shrink-0">–</span>
+        <DatePicker
+          value={toDate}
+          onChange={setToDate}
+          placeholder="Hasta"
+          align="right"
+          className="w-[152px] shrink-0"
+        />
         <Link
           href="/cotizaciones/configuracion"
-          className="ml-auto flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary px-3 py-2 rounded-lg hover:bg-nav-hover transition-colors"
+          className="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+          title="Configuración de cotizaciones"
         >
-          <HugeiconsIcon icon={Settings01Icon} size={15} />
-          Configuración
+          <HugeiconsIcon icon={Settings01Icon} size={17} />
         </Link>
       </div>
 

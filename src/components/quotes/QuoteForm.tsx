@@ -6,6 +6,7 @@ import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
+import DatePicker from "@/src/components/DatePicker";
 
 interface ItemRow {
   description: string;
@@ -374,7 +375,11 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-text-secondary">Vigencia (fecha de expiración)</label>
-            <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className={inputCls} />
+            <DatePicker
+              value={validUntil}
+              onChange={setValidUntil}
+              placeholder="Sin fecha de expiración"
+            />
           </div>
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-text-secondary">Notas</label>
