@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 
 const FIELDS = [
   "businessName", "logoUrl", "taxId", "address", "phone", "email", "website",
-  "bankName", "bankBeneficiary", "bankClabe", "bankReference",
+  "bankName", "bankBeneficiary", "bankClabe", "bankSwift", "bankReference",
   "defaultTaxRate", "defaultCurrency", "defaultTerms",
 ] as const;
 

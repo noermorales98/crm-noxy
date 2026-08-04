@@ -1234,6 +1234,7 @@ model QuoteSettings {
   bankName        String?
   bankBeneficiary String?
   bankClabe       String? // CLABE / IBAN
+  bankSwift       String? // Código SWIFT/BIC (transferencias internacionales)
   bankReference   String?
 
   // Defaults para nuevas cotizaciones

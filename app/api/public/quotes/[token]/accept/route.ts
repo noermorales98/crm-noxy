@@ -86,6 +86,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
             bankName: settings.bankName,
             bankBeneficiary: settings.bankBeneficiary,
             bankClabe: settings.bankClabe,
+            bankSwift: settings.bankSwift,
             bankReference: settings.bankReference || quote.folio,
           }
         : null,

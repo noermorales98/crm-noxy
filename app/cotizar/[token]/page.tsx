@@ -36,6 +36,7 @@ interface BankData {
   bankName: string | null;
   bankBeneficiary: string | null;
   bankClabe: string | null;
+  bankSwift: string | null;
   bankReference: string | null;
 }
 
@@ -387,6 +388,7 @@ function CotizarContent() {
                   {bank.bankName && (<><dt className="text-gray-400">Banco</dt><dd className="text-gray-900 font-medium">{bank.bankName}</dd></>)}
                   {bank.bankBeneficiary && (<><dt className="text-gray-400">Beneficiario</dt><dd className="text-gray-900 font-medium">{bank.bankBeneficiary}</dd></>)}
                   {bank.bankClabe && (<><dt className="text-gray-400">CLABE/IBAN</dt><dd className="text-gray-900 font-medium font-mono">{bank.bankClabe}</dd></>)}
+                  {bank.bankSwift && (<><dt className="text-gray-400">SWIFT/BIC</dt><dd className="text-gray-900 font-medium font-mono">{bank.bankSwift}</dd></>)}
                   {bank.bankReference && (<><dt className="text-gray-400">Referencia</dt><dd className="text-gray-900 font-medium font-mono">{bank.bankReference}</dd></>)}
                   <dt className="text-gray-400">Monto</dt><dd className="text-gray-900 font-bold">{money(quote.total)}</dd>
                 </dl>

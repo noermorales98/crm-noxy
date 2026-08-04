@@ -63,6 +63,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
             bankName: sender.bankName,
             bankBeneficiary: sender.bankBeneficiary,
             bankClabe: sender.bankClabe,
+            bankSwift: sender.bankSwift,
             bankReference: sender.bankReference || quote.folio,
           }
         : null,

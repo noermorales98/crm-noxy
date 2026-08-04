@@ -28,6 +28,7 @@ interface PdfQuote {
   total: number;
   notes: string | null;
   terms: string | null;
+  stripePaymentLinkUrl: string | null;
   items: PdfItem[];
 }
 
@@ -42,6 +43,7 @@ interface PdfSender {
   bankName?: string | null;
   bankBeneficiary?: string | null;
   bankClabe?: string | null;
+  bankSwift?: string | null;
   bankReference?: string | null;
 }
 
@@ -229,6 +231,28 @@ export default function QuotePdfButton({ quote, sender }: Props) {
       doc.text(money(quote.total), colTotal, y + 4.5, { align: "right" });
       y += 16;
 
+      // ── Pago en línea (Stripe) ────────────────────────────────────────
+      if (quote.stripePaymentLinkUrl) {
+        newPageIfNeeded(24);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.text("PAGO EN LÍNEA", margin, y);
+        y += 5;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(8.5);
+        doc.text(`Paga con tarjeta de forma segura por ${money(quote.total)} en:`, margin, y);
+        y += 4.5;
+        doc.setTextColor(37, 99, 235);
+        doc.textWithLink(quote.stripePaymentLinkUrl, margin, y, { url: quote.stripePaymentLinkUrl });
+        doc.setDrawColor(37, 99, 235);
+        doc.setLineWidth(0.2);
+        const linkW = doc.getTextWidth(quote.stripePaymentLinkUrl);
+        doc.line(margin, y + 1, margin + Math.min(linkW, contentW), y + 1);
+        y += 8;
+      }
+
       // ── Datos bancarios ───────────────────────────────────────────────
       if (sender?.bankClabe || sender?.bankName) {
         newPageIfNeeded(30);
@@ -244,6 +268,7 @@ export default function QuotePdfButton({ quote, sender }: Props) {
           sender.bankName ? `Banco: ${sender.bankName}` : null,
           sender.bankBeneficiary ? `Beneficiario: ${sender.bankBeneficiary}` : null,
           sender.bankClabe ? `CLABE/IBAN: ${sender.bankClabe}` : null,
+          sender.bankSwift ? `SWIFT/BIC: ${sender.bankSwift}` : null,
           `Referencia: ${sender.bankReference || quote.folio}`,
         ].filter(Boolean) as string[];
         for (const line of bankLines) {

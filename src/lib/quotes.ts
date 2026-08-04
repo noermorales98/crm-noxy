@@ -94,7 +94,7 @@ export function resolveQuoteSender(
   settings: {
     businessName: string | null; logoUrl: string | null; taxId: string | null;
     address: string | null; phone: string | null; email: string | null; website: string | null;
-    bankName: string | null; bankBeneficiary: string | null; bankClabe: string | null; bankReference: string | null;
+    bankName: string | null; bankBeneficiary: string | null; bankClabe: string | null; bankSwift: string | null; bankReference: string | null;
   } | null,
   company: QuoteSenderCompany | null
 ) {
@@ -109,6 +109,7 @@ export function resolveQuoteSender(
     bankName: settings?.bankName || null,
     bankBeneficiary: settings?.bankBeneficiary || null,
     bankClabe: settings?.bankClabe || null,
+    bankSwift: settings?.bankSwift || null,
     bankReference: settings?.bankReference || null,
     companyId: company?.id || null,
     hasSmtp: !!(company?.smtpHost && company?.smtpUser && company?.smtpPass),

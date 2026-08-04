@@ -10,7 +10,7 @@ import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
 
 const EMPTY = {
   businessName: "", logoUrl: "", taxId: "", address: "", phone: "", email: "", website: "",
-  bankName: "", bankBeneficiary: "", bankClabe: "", bankReference: "",
+  bankName: "", bankBeneficiary: "", bankClabe: "", bankSwift: "", bankReference: "",
   defaultTaxRate: "16", defaultCurrency: "MXN", defaultTerms: "", defaultSenderCompanyId: "",
 };
 
@@ -56,6 +56,7 @@ function ConfiguracionContent() {
           bankName: s.bankName || "",
           bankBeneficiary: s.bankBeneficiary || "",
           bankClabe: s.bankClabe || "",
+          bankSwift: s.bankSwift || "",
           bankReference: s.bankReference || "",
           defaultTaxRate: String(s.defaultTaxRate ?? 16),
           defaultCurrency: s.defaultCurrency || "MXN",
@@ -199,6 +200,7 @@ function ConfiguracionContent() {
                 {field("Banco", "bankName")}
                 {field("Beneficiario", "bankBeneficiary")}
                 {field("CLABE / IBAN", "bankClabe")}
+                {field("Código SWIFT / BIC (opcional)", "bankSwift", { placeholder: "Para transferencias internacionales" })}
                 {field("Referencia por defecto", "bankReference", { placeholder: "Si se deja vacío se usa el folio" })}
               </div>
             </section>
