@@ -38,6 +38,43 @@ function isAuthorized(req: Request, apiKey: string, organizationId: string): boo
   return oauth !== null && oauth.org === organizationId;
 }
 
+// Stream SSE "dummy" para GET /mcp. El protocolo permite responder 405 en
+// servidores stateless, pero el cliente de ChatGPT (openai-mcp/1.0.0) abre un
+// GET periódicamente y trata el 405 como conexión rota ("pide reconectar").
+// Devolvemos un stream 200 con heartbeats que se cierra antes del maxDuration.
+function sseListener(): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(": connected\n\n"));
+      const interval = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        } catch {
+          clearInterval(interval);
+        }
+      }, 15000);
+      setTimeout(() => {
+        clearInterval(interval);
+        try {
+          controller.close();
+        } catch {
+          // stream ya cerrado
+        }
+      }, 55000);
+    },
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      ...OAUTH_CORS,
+    },
+  });
+}
+
 function withAuth(req: Request) {
   const apiKey = process.env.MCP_API_KEY;
   const organizationId = process.env.MCP_ORGANIZATION_ID;
@@ -59,6 +96,9 @@ function withAuth(req: Request) {
         "WWW-Authenticate": `Bearer realm="noxthy-crm", resource_metadata="${origin}/.well-known/oauth-protected-resource"`,
       },
     });
+  }
+  if (req.method === "GET") {
+    return sseListener();
   }
   return handler(req);
 }
