@@ -312,7 +312,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         body: JSON.stringify({ instruction: aiInstruction, month: monthParam }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error de IA");
+      if (!res.ok) throw new Error(data.detail ? `${data.error}\n${data.detail}` : data.error || "Error de IA");
       setAiIdeas(data.ideas ?? []);
       if ((data.ideas ?? []).length === 0) setAiError("La IA no propuso ideas. Prueba con otra instrucción.");
     } catch (e: any) {
@@ -489,7 +489,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 {aiBusy ? "Generando…" : "Generar ideas"}
               </button>
             </div>
-            {aiError && <p className="text-xs text-red-600 mb-2">{aiError}</p>}
+            {aiError && <p className="text-xs text-red-600 mb-2 whitespace-pre-line">{aiError}</p>}
             {aiIdeas.length > 0 && (
               <div className="flex flex-col gap-2">
                 {aiIdeas.map((idea, idx) => (

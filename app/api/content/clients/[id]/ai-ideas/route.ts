@@ -6,24 +6,42 @@ import { DEFAULT_MODEL_ID } from "@/src/lib/ai-models";
 
 const SYSTEM_PROMPT = `Eres un estratega de contenido para redes sociales (Facebook, Instagram y TikTok) hispanohablante.
 Generas ideas de contenido concretas y accionables para calendarios mensuales.
-Respondes ÚNICAMENTE con un JSON válido, sin markdown ni texto extra, con esta forma exacta:
+Respondes ÚNICAMENTE con un JSON válido y completo. PROHIBIDO usar bloques de código markdown, explicaciones, saludos o cualquier texto fuera del JSON.
+Forma exacta:
 {"ideas":[{"date":"YYYY-MM-DD","type":"video|reel|flyer|historia|entrega","title":"...","time":"11:00 am","hook":"...","script":"...","caption":"...","cta":"...","tips":"..."}]}
-- "hook": frase de los primeros 3 segundos que detiene el scroll.
-- "script": guion breve de lo que se dice (3-5 líneas).
-- "caption": texto listo para publicar en Facebook/Instagram, con pregunta de engagement al final.
-- "tips": 2-3 sugerencias prácticas para grabar ese contenido.
+- "hook": frase de los primeros 3 segundos que detiene el scroll (1 línea).
+- "script": guion breve de lo que se dice (3 líneas máximo).
+- "caption": texto listo para publicar, con pregunta de engagement al final (3 líneas máximo).
+- "tips": 2 sugerencias prácticas para grabar, separadas por punto y coma.
 - Usa "entrega" para los días en que el cliente debe GRABAR y entregar material crudo; en esos, script y tips son las instrucciones de grabación.
-Máximo 5 ideas por respuesta, textos concisos.`;
+Genera entre 3 y 4 ideas por respuesta. Sé conciso: es más importante que el JSON esté completo que tener muchas ideas.`;
 
+// Extrae el JSON de ideas aunque la IA lo envuelva en markdown o texto extra,
+// e intenta rescatarlo si la respuesta se cortó a la mitad.
 function extractJson(text: string): any {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1 || end <= start) return null;
-  try {
-    return JSON.parse(text.slice(start, end + 1));
-  } catch {
-    return null;
+  const t = text.replace(/```(?:json)?/gi, "");
+  const start = t.indexOf("{");
+  if (start === -1) return null;
+
+  const candidates: string[] = [];
+  const end = t.lastIndexOf("}");
+  if (end > start) candidates.push(t.slice(start, end + 1));
+
+  // Rescate: si se cortó a la mitad, cerrar en la última idea completa
+  const lastCompleteIdea = t.lastIndexOf("},");
+  if (lastCompleteIdea > start) {
+    candidates.push(t.slice(start, lastCompleteIdea + 1) + "]}");
   }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && Array.isArray(parsed.ideas)) return parsed;
+    } catch {
+      // probar siguiente candidato
+    }
+  }
+  return null;
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -90,13 +108,21 @@ ${instruction ? `Instrucción del usuario: ${clip(instruction, 600)}` : "Genera 
       modelId: schedule?.aiModelId ?? DEFAULT_MODEL_ID,
       systemPrompt: SYSTEM_PROMPT,
       userPrompt,
-      maxTokens: 2000,
-      maxOutputChars: 4000,
+      maxTokens: 2500,
+      maxOutputChars: 8000,
     });
 
     const parsed = extractJson(raw);
-    if (!parsed || !Array.isArray(parsed.ideas)) {
-      return NextResponse.json({ error: "La IA no devolvió ideas válidas. Intenta de nuevo." }, { status: 502 });
+    if (!parsed) {
+      // Guardar qué respondió realmente la IA para poder diagnosticar
+      console.error("[content/ai-ideas] Respuesta no interpretable de la IA:\n", raw.slice(0, 2000));
+      return NextResponse.json(
+        {
+          error: "La IA no devolvió ideas válidas. Intenta de nuevo.",
+          detail: `La IA respondió texto sin formato de ideas. Inicio de su respuesta: "${raw.slice(0, 180)}…"`,
+        },
+        { status: 502 }
+      );
     }
 
     const ideas = parsed.ideas
