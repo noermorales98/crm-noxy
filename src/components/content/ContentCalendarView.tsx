@@ -24,7 +24,7 @@ type ClientData = {
 type AiIdea = {
   date: string; type: string; title: string; time: string | null;
   hook: string | null; script: string | null; caption: string | null;
-  cta: string | null; tips: string | null;
+  cta: string | null; tips: string | null; week?: number;
 };
 
 const TYPE_OPTIONS = [
@@ -221,8 +221,12 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [aiInstruction, setAiInstruction] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
+  const [aiWarning, setAiWarning] = useState("");
   const [aiIdeas, setAiIdeas] = useState<AiIdea[]>([]);
   const [addedIdeas, setAddedIdeas] = useState<Set<number>>(new Set());
+  const [aiPerWeek, setAiPerWeek] = useState(2);
+  const [aiWeeks, setAiWeeks] = useState<number[]>([1, 2, 3, 4]);
+  const [addAllBusy, setAddAllBusy] = useState(false);
 
   const monthParam = `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}`;
 
@@ -304,17 +308,20 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   };
 
   const generateIdeas = async () => {
-    setAiBusy(true); setAiError(""); setAddedIdeas(new Set());
+    setAiBusy(true); setAiError(""); setAiWarning(""); setAddedIdeas(new Set());
     try {
       const res = await fetch(`/api/content/clients/${client.id}/ai-ideas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ instruction: aiInstruction, month: monthParam }),
+        body: JSON.stringify({ instruction: aiInstruction, month: monthParam, weeks: aiWeeks, perWeek: aiPerWeek }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ? `${data.error}\n${data.detail}` : data.error || "Error de IA");
       setAiIdeas(data.ideas ?? []);
       if ((data.ideas ?? []).length === 0) setAiError("La IA no propuso ideas. Prueba con otra instrucción.");
+      if (Array.isArray(data.failedWeeks) && data.failedWeeks.length > 0) {
+        setAiWarning(`No se pudieron generar las semanas: ${data.failedWeeks.map((f: any) => f.week).join(", ")}. Puedes reintentar solo esas semanas.`);
+      }
     } catch (e: any) {
       setAiError(e.message);
     } finally {
@@ -322,7 +329,9 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     }
   };
 
-  const addIdea = async (idea: AiIdea, idx: number) => {
+  const addIdeaByIndex = async (idx: number): Promise<boolean> => {
+    const idea = aiIdeas[idx];
+    if (!idea) return false;
     const res = await fetch(`/api/content/clients/${client.id}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -330,8 +339,24 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     });
     if (res.ok) {
       setAddedIdeas((s) => new Set(s).add(idx));
-      loadItems();
+      return true;
     }
+    return false;
+  };
+
+  const addIdea = async (_idea: AiIdea, idx: number) => {
+    if (await addIdeaByIndex(idx)) loadItems();
+  };
+
+  const addAllIdeas = async () => {
+    setAddAllBusy(true);
+    let any = false;
+    for (let i = 0; i < aiIdeas.length; i++) {
+      if (addedIdeas.has(i)) continue;
+      if (await addIdeaByIndex(i)) any = true;
+    }
+    if (any) loadItems();
+    setAddAllBusy(false);
   };
 
   const doDelete = async () => {
@@ -463,61 +488,123 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         {/* Panel: IA */}
         {panel === "ai" && (
           <div className="mb-5 bg-white border border-[#E4DCD0] rounded-xl p-4" style={{ fontFamily: '"Work Sans",sans-serif' }}>
-            <p className="text-sm font-semibold text-[#2B2140] mb-1">Ideas de contenido con IA</p>
+            <p className="text-sm font-semibold text-[#2B2140] mb-1">Calendario del mes con IA</p>
             {client.context ? (
               <p className="text-xs text-[#8A7F8F] mb-3">
-                La IA conoce el contexto de {client.name}. Pídele ideas sueltas o un calendario para {monthLabel(cursor.year, cursor.month)}.
+                La IA conoce el contexto de {client.name} y generará el calendario de {monthLabel(cursor.year, cursor.month)} semana por semana.
               </p>
             ) : (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
                 Este cliente aún no tiene contexto de marca. Edítalo desde la lista de clientes para que las ideas sean más precisas.
               </p>
             )}
+
+            {/* Configuración: piezas por semana + semanas */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-3">
+              <label className="flex items-center gap-2 text-xs text-[#2B2140]">
+                <span className="font-medium">Piezas por semana</span>
+                <select
+                  className="px-2 py-1.5 text-sm border border-border-subtle rounded-lg bg-white"
+                  value={aiPerWeek}
+                  onChange={(e) => setAiPerWeek(Number(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-medium text-[#2B2140] mr-1">Semanas</span>
+                {[1, 2, 3, 4, 5].map((w) => {
+                  const active = aiWeeks.includes(w);
+                  return (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() =>
+                        setAiWeeks((prev) =>
+                          active ? prev.filter((x) => x !== w) : [...prev, w].sort()
+                        )
+                      }
+                      className={`w-8 h-8 text-xs rounded-lg border font-medium transition-colors ${
+                        active
+                          ? "border-[#B75C3E] bg-[#F9E8E1] text-[#B75C3E]"
+                          : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
+                      }`}
+                      title={`Semana ${w} (días ${(w - 1) * 7 + 1}–${Math.min(w * 7, 31)})`}
+                    >
+                      S{w}
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="text-xs text-[#8A7F8F]">
+                = {aiPerWeek * aiWeeks.length} pieza(s) en total
+              </span>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2 mb-3">
               <input
                 className={`${inputClass} flex-1`}
-                placeholder={`Ej. Dame un video semanal y un flyer para ${monthLabel(cursor.year, cursor.month)}, tema: esperanza`}
+                placeholder={`Instrucción opcional. Ej. videos miércoles y flyers viernes, tema: esperanza`}
                 value={aiInstruction}
                 onChange={(e) => setAiInstruction(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !aiBusy) generateIdeas(); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && !aiBusy && aiWeeks.length > 0) generateIdeas(); }}
               />
               <button
                 onClick={generateIdeas}
-                disabled={aiBusy}
+                disabled={aiBusy || aiWeeks.length === 0}
                 className="px-4 py-2 text-sm rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60 whitespace-nowrap"
               >
-                {aiBusy ? "Generando…" : "Generar ideas"}
+                {aiBusy ? "Generando semana por semana…" : "Generar calendario"}
               </button>
             </div>
+            {aiBusy && (
+              <p className="text-[11px] text-[#8A7F8F] mb-2">
+                Generando {aiWeeks.length} semana(s) × {aiPerWeek} pieza(s)… puede tardar un momento.
+              </p>
+            )}
             {aiError && <p className="text-xs text-red-600 mb-2 whitespace-pre-line">{aiError}</p>}
+            {aiWarning && <p className="text-xs text-amber-700 mb-2">{aiWarning}</p>}
+
             {aiIdeas.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {aiIdeas.map((idea, idx) => (
-                  <div key={idx} className="border border-[#E4DCD0] rounded-lg p-3 bg-[#FBF7F1]">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-[#2B2140]">{idea.title}</p>
-                        <p className="text-xs text-[#8A7F8F]">
-                          {idea.date} · {TYPE_OPTIONS.find((t) => t.v === idea.type)?.label ?? idea.type}
-                          {idea.time ? ` · ${idea.time}` : ""}
-                        </p>
-                        {idea.hook && <p className="text-xs text-[#2B2140] mt-1 italic">&quot;{idea.hook}&quot;</p>}
+              <>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-medium text-[#2B2140]">{aiIdeas.length} ideas propuestas</p>
+                  <button
+                    onClick={addAllIdeas}
+                    disabled={addAllBusy || aiIdeas.every((_, i) => addedIdeas.has(i))}
+                    className="px-3 py-1.5 text-xs rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60"
+                  >
+                    {addAllBusy ? "Agregando…" : "Agregar todas al calendario"}
+                  </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {aiIdeas.map((idea, idx) => (
+                    <div key={idx} className="border border-[#E4DCD0] rounded-lg p-3 bg-[#FBF7F1]">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[#2B2140]">{idea.title}</p>
+                          <p className="text-xs text-[#8A7F8F]">
+                            {idea.week ? `S${idea.week} · ` : ""}{idea.date} · {TYPE_OPTIONS.find((t) => t.v === idea.type)?.label ?? idea.type}
+                            {idea.time ? ` · ${idea.time}` : ""}
+                          </p>
+                          {idea.hook && <p className="text-xs text-[#2B2140] mt-1 italic">&quot;{idea.hook}&quot;</p>}
+                        </div>
+                        <button
+                          onClick={() => addIdea(idea, idx)}
+                          disabled={addedIdeas.has(idx)}
+                          className={`shrink-0 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+                            addedIdeas.has(idx)
+                              ? "bg-[#6E7F5C] text-white"
+                              : "bg-[#2D2D2D] text-white hover:bg-[#1a1a1a]"
+                          }`}
+                        >
+                          {addedIdeas.has(idx) ? "✓ En calendario" : "+ Agregar"}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => addIdea(idea, idx)}
-                        disabled={addedIdeas.has(idx)}
-                        className={`shrink-0 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
-                          addedIdeas.has(idx)
-                            ? "bg-[#6E7F5C] text-white"
-                            : "bg-[#2D2D2D] text-white hover:bg-[#1a1a1a]"
-                        }`}
-                      >
-                        {addedIdeas.has(idx) ? "✓ En calendario" : "+ Agregar"}
-                      </button>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
