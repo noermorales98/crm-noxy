@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import DashboardShell from "@/src/components/DashboardShell";
 
-const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/"];
+const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/", "/calendario/"];
 
 function isPublicRoute(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/register") return true;

@@ -130,6 +130,7 @@ export async function completeWithAi(options: {
   systemPrompt: string;
   userPrompt: string;
   maxTokens?: number;
+  maxOutputChars?: number;
 }): Promise<string> {
   const model = await resolveAiModelForOrg(options.orgId, options.modelId);
   const text =
@@ -137,5 +138,5 @@ export async function completeWithAi(options: {
       ? await completeChatbase(options.systemPrompt, options.userPrompt)
       : await completeOpenRouter(model.id, options.systemPrompt, options.userPrompt, options.maxTokens);
 
-  return text.slice(0, 1500);
+  return text.slice(0, options.maxOutputChars ?? 1500);
 }

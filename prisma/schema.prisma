@@ -142,6 +142,8 @@ model Organization {
   quotes                Quote[]
   quoteEvents           QuoteEvent[]
   quoteSettings         QuoteSettings?
+  contentClients        ContentClient[]
+  contentItems          ContentItem[]
 }
 
 enum Role {
@@ -1347,4 +1349,66 @@ model QuoteEvent {
 
   @@index([quoteId])
   @@index([organizationId])
+}
+
+// ─── Gestión de contenido (calendarios por cliente / marca) ───────────────────
+
+model ContentClient {
+  id          String   @id @default(cuid())
+  name        String
+  kind        String   @default("marca") // "cliente" | "marca"
+  description String?  @db.Text
+  context     String?  @db.Text // voz de marca, audiencia, productos, tono — usado por la IA
+  publicToken String   @unique @default(cuid())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  phones ContentPhone[]
+  items  ContentItem[]
+
+  @@index([organizationId])
+}
+
+model ContentPhone {
+  id        String   @id @default(cuid())
+  label     String?
+  phone     String
+  apiKey    String
+  createdAt DateTime @default(now())
+
+  clientId String
+  client   ContentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+}
+
+model ContentItem {
+  id       String   @id @default(cuid())
+  date     DateTime // día (medianoche UTC)
+  type     String   @default("video") // video | reel | flyer | historia | entrega | edicion
+  title    String
+  time     String? // "11:00 am"
+  hook     String?  @db.Text
+  hooksAlt String?  @db.Text // JSON array de strings
+  script   String?  @db.Text
+  caption  String?  @db.Text
+  cta      String?  @db.Text
+  tips     String?  @db.Text // sugerencias para grabar
+  note     String?  @db.Text
+  notifiedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clientId       String
+  client         ContentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([organizationId])
+  @@index([date])
 }

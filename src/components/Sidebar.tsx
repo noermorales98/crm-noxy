@@ -32,6 +32,7 @@ import {
   CheckmarkCircle01Icon,
   Delete01Icon,
   LockPasswordIcon,
+  MegaphoneIcon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { useGlobalSearch } from "@/src/context/SearchContext";
@@ -42,7 +43,7 @@ import { useAssistantConversations } from "@/src/components/useAssistantConversa
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import { play } from "cuelume";
 
-type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault";
+type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
 
 // ─── Design tokens (Notion-style premium) ─────────────────────────────────────
 
@@ -101,6 +102,7 @@ const SECTIONS: {
   { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#9B7EDE", accentBg: "#F0E6F9" },
   { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#6366F1", accentBg: "#EEF2FF" },
   { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#10B981", accentBg: "#D1FAE5" },
+  { id: "content", label: "Gestión de contenido", href: "/contenido", icon: MegaphoneIcon, accent: "#B75C3E", accentBg: "#F9E8E1" },
 ];
 
 // ─── Section switcher (unified dropdown) ───────────────────────────────────────
@@ -212,6 +214,7 @@ function SectionSwitcher({
                     {section.id === "kb" && "Documentación interna"}
                     {section.id === "assistant" && "Asistente de IA"}
                     {section.id === "vault" && "Contraseñas de clientes"}
+                    {section.id === "content" && "Calendarios por marca"}
                   </span>
                 </span>
                 {section.id === "mail" && unreadCount > 0 && (
@@ -531,6 +534,69 @@ function KbNav() {
   return <KbSidebarTree />;
 }
 
+// ─── Tab 6: Gestión de contenido ───────────────────────────────────────────────
+
+type ContentClientEntry = { id: string; name: string; kind: string };
+
+function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const [clients, setClients] = useState<ContentClientEntry[]>([]);
+
+  useEffect(() => {
+    fetch("/api/content/clients")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: any[]) => {
+        if (Array.isArray(data)) setClients(data.map((c) => ({ id: c.id, name: c.name, kind: c.kind })));
+      })
+      .catch(() => {});
+  }, [pathname]);
+
+  return (
+    <div className="flex flex-col h-full py-1 pb-4">
+      <div className="px-3 pt-1 pb-2 shrink-0">
+        <Link
+          href="/contenido?new=1"
+          onClick={onNavigate}
+          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+        >
+          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
+          Nuevo cliente / marca
+        </Link>
+      </div>
+
+      <div className="px-3 pb-2 shrink-0">
+        <NavItem href="/contenido" icon={MegaphoneIcon} label="Todos los calendarios" />
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
+        <p className={sectionLabelClass}>Clientes y marcas</p>
+        <div className="flex flex-col gap-1">
+          {clients.map((c) => {
+            const isActive = pathname === `/contenido/${c.id}`;
+            return (
+              <Link key={c.id} href={`/contenido/${c.id}`} onClick={onNavigate} className={navItemClass(isActive, "justify-between")}>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
+                    style={{ backgroundColor: c.kind === "cliente" ? "#B75C3E" : "#6E7F5C" }}
+                  >
+                    {c.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="truncate">{c.name}</span>
+                </div>
+                {isActive && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
+              </Link>
+            );
+          })}
+          {clients.length === 0 && (
+            <p className="text-xs text-text-secondary px-3 py-2 italic">Aún no hay clientes ni marcas</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab 5: Asistente ─────────────────────────────────────────────────────────
 
 interface AssistantNavProps {
@@ -706,6 +772,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
     if (p.startsWith("/emails") || p.startsWith("/campaigns")) return "mail";
     if (p.startsWith("/assistant")) return "assistant";
     if (p.startsWith("/boveda")) return "vault";
+    if (p.startsWith("/contenido")) return "content";
     return "home";
   };
 
@@ -790,6 +857,9 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
           </div>
           <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
             <AssistantNav onSearchOpen={openSearch} onNavigate={onNavigate} />
+          </div>
+          <div className={activeTab === "content" ? "flex flex-col h-full" : "hidden"}>
+            <ContentNav onNavigate={onNavigate} />
           </div>
         </div>
 
