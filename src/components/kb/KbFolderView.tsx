@@ -254,7 +254,7 @@ export default function KbFolderView({
             type="button"
             disabled={creating}
             onClick={() => createChild(false)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
           >
             <Plus size={14} /> Página
           </button>

@@ -175,7 +175,7 @@ function TasksContent() {
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
               </button>
             ))}
           </div>
@@ -305,7 +305,7 @@ function TasksContent() {
               </div>
               <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
+                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>

@@ -98,7 +98,7 @@ export default function AddClientModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando…" : "Crear cliente"}
             </button>

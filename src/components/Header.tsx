@@ -213,7 +213,7 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className="flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
+            className="flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             {config.addButton.label}
@@ -360,7 +360,7 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
 
   const buttonClass = `relative w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
     action.active
-      ? "bg-action-primary text-white hover:opacity-90"
+      ? "bg-action-primary text-action-primary-foreground hover:opacity-90"
       : "bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover"
   }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;

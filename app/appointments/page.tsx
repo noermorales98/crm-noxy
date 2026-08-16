@@ -106,7 +106,7 @@ export default function AppointmentsPage() {
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${filter === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${filter === tab.key ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary"}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${filter === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>
                   {counts[tab.key as keyof typeof counts]}
                 </span>
               </button>

@@ -195,7 +195,7 @@ export default function CreateProjectPage() {
                         type="button"
                         onClick={() => setIcon(item.id)}
                         className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${icon === item.id
-                          ? "border-action-primary bg-action-primary text-white transform scale-105"
+                          ? "border-action-primary bg-action-primary text-action-primary-foreground transform scale-105"
                           : "border-border-subtle bg-surface-sidebar text-text-secondary hover:border-border-subtle hover:bg-white"
                           }`}
                       >
@@ -216,7 +216,7 @@ export default function CreateProjectPage() {
                   <button
                     type="submit"
                     disabled={isLoading || !name.trim()}
-                    className="flex items-center gap-2 bg-action-primary text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 bg-action-primary text-action-primary-foreground px-6 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading && <HugeiconsIcon icon={Loading01Icon} size={18} className="animate-spin" />}
                     {isLoading ? "Creando..." : "Crear proyecto"}

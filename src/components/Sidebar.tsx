@@ -387,7 +387,7 @@ const EMAIL_FOLDERS = [
   { key: "spam" as const, label: "Spam", icon: SpamIcon },
 ];
 
-const composeBtnClass = "w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none";
+const composeBtnClass = "w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none";
 
 function MailNav({ unreadCount }: { unreadCount: number }) {
   const emailCtx = useOptionalEmailContext();
@@ -557,7 +557,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/contenido?new=1"
           onClick={onNavigate}
-          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           Nuevo cliente / marca
@@ -636,7 +636,7 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
           href="/assistant/new"
           prefetch
           onClick={onNavigate}
-          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           Nueva conversación

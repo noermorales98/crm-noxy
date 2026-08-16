@@ -88,7 +88,7 @@ export default function VaultPasswordRow({
           </button>
           <button
             onClick={save}
-            className="flex-1 py-2 text-xs font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors"
+            className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors"
           >
             Guardar
           </button>

@@ -107,7 +107,7 @@ export default function ProjectAssociationsEditor({ projectId, initial, open: is
                 <button onClick={() => setIsOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">
                   Cancelar
                 </button>
-                <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
+                <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>

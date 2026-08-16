@@ -102,7 +102,7 @@ export default function KbHomePage() {
               <button
                 onClick={() => createPage(false)}
                 disabled={creating}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-white text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
               >
                 <Plus size={14} />
                 Nueva página
@@ -163,7 +163,7 @@ export default function KbHomePage() {
                     <button
                       onClick={() => createPage(false)}
                       disabled={creating}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-action-primary hover:bg-black text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                     >
                       <Plus size={14} />
                       Nueva página

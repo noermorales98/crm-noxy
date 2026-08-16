@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 bg-action-primary hover:opacity-90 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-action-primary hover:opacity-90 text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   {loading ? "Guardando..." : "Guardar configuración"}
                 </button>

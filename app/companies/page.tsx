@@ -246,7 +246,7 @@ export default function CompaniesPage() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
+                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
                   </div>
                 </form>
               </div>
@@ -303,7 +303,7 @@ export default function CompaniesPage() {
 
                   <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle mt-2">
                     <button type="button" onClick={() => setShowSmtpModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
+                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
                   </div>
                 </form>
               </div>

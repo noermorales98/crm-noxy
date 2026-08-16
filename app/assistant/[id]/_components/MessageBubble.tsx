@@ -243,7 +243,7 @@ export default function MessageBubble({
           <div
             className={usesSoftCards
               ? styles.userCard
-              : "rounded-surface px-4 py-3 text-sm leading-relaxed bg-action-primary text-white rounded-br-sm"}
+              : "rounded-surface px-4 py-3 text-sm leading-relaxed bg-action-primary text-action-primary-foreground rounded-br-sm"}
             style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
           >
             <p style={{ whiteSpace: "pre-wrap" }}>{content}</p>

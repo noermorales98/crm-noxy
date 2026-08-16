@@ -446,7 +446,7 @@ export default function BookPage() {
                               onClick={() => available && handleDateSelect(date)}
                               disabled={!available}
                               className={`aspect-square rounded-full text-sm font-medium transition-colors
-                                ${isSelected ? "bg-action-primary text-white" : ""}
+                                ${isSelected ? "bg-action-primary text-action-primary-foreground" : ""}
                                 ${available && !isSelected ? "hover:bg-nav-hover text-text-primary" : ""}
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
@@ -474,7 +474,7 @@ export default function BookPage() {
                               <button
                                 key={slot}
                                 onClick={() => handleSlotSelect(slot)}
-                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-action-primary hover:bg-action-primary hover:text-white text-sm font-medium text-text-primary transition-colors text-center"
+                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-action-primary hover:bg-action-primary hover:text-action-primary-foreground text-sm font-medium text-text-primary transition-colors text-center"
                               >
                                 {formatSlot(slot)}
                               </button>
@@ -572,7 +572,7 @@ export default function BookPage() {
                       <label className="text-sm font-semibold text-text-primary">Notas adicionales</label>
                       <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm resize-none" placeholder="¿Algún tema que quieras tratar?" />
                     </div>
-                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-lg font-bold text-white bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50 mt-2">
+                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-lg font-bold text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50 mt-2">
                       {isBooking ? "Agendando..." : "Confirmar Cita"}
                     </button>
                   </form>

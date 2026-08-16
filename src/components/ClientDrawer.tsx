@@ -204,7 +204,7 @@ export default function ClientDrawer({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setEditing(e => !e)}
-              className={`p-2 rounded-lg transition-colors ${editing ? "bg-action-primary text-white" : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"}`}
+              className={`p-2 rounded-lg transition-colors ${editing ? "bg-action-primary text-action-primary-foreground" : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"}`}
             >
               <HugeiconsIcon icon={Edit01Icon} size={16} />
             </button>
@@ -280,7 +280,7 @@ export default function ClientDrawer({
                         <div className="flex rounded-lg border border-border-subtle overflow-hidden">
                           {["USD", "MXN"].map(c => (
                             <button key={c} type="button" onClick={() => setForm(f => ({ ...f, currency: c }))}
-                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-action-primary text-white" : "text-text-secondary hover:bg-surface-sidebar"}`}>
+                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-action-primary text-action-primary-foreground" : "text-text-secondary hover:bg-surface-sidebar"}`}>
                               {c}
                             </button>
                           ))}
@@ -326,7 +326,7 @@ export default function ClientDrawer({
 
                   <div className="flex gap-3 pt-2 border-t border-border-subtle">
                     <button onClick={() => setEditing(false)} className="flex-1 py-2.5 text-sm font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
-                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
+                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
                       {saving ? "Guardando..." : "Guardar cambios"}
                     </button>
                   </div>
@@ -437,7 +437,7 @@ export default function ClientDrawer({
                 {!isPaidThisMonth && (
                   <button
                     onClick={() => markPaid(currentPayment?.id)}
-                    className="w-full py-2.5 text-sm font-semibold bg-action-primary text-white rounded-lg hover:bg-black transition-colors"
+                    className="w-full py-2.5 text-sm font-semibold bg-action-primary text-action-primary-foreground rounded-lg hover:bg-black transition-colors"
                   >
                     Marcar como pagado
                   </button>

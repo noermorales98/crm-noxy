@@ -119,7 +119,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
                   onClick={() => setCurrency("USD")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "USD"
-                      ? "bg-action-primary text-white"
+                      ? "bg-action-primary text-action-primary-foreground"
                       : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
@@ -130,7 +130,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
                   onClick={() => setCurrency("MXN")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "MXN"
-                      ? "bg-action-primary text-white"
+                      ? "bg-action-primary text-action-primary-foreground"
                       : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
@@ -198,7 +198,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Creando..." : "Crear deal"}
             </button>

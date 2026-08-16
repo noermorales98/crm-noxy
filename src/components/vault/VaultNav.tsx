@@ -80,7 +80,7 @@ export default function VaultNav() {
         <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+            className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
             Nuevo cliente

@@ -118,7 +118,7 @@ function CotizacionesContent() {
           <p className="text-sm text-text-secondary mb-5">Crea tu primera cotización para comenzar.</p>
           <Link
             href="/cotizaciones/nueva"
-            className="inline-flex items-center gap-2 bg-action-primary text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 bg-action-primary text-action-primary-foreground px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             Nueva cotización

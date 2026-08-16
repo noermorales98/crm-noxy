@@ -226,7 +226,7 @@ export default function CampaignsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           {camp.status === "DRAFT" ? (
-                            <button onClick={() => handleSendCampaign(camp.id)} className="text-white bg-action-primary hover:bg-action-secondary px-3 py-1.5 rounded-control text-xs font-semibold transition-colors">Enviar</button>
+                            <button onClick={() => handleSendCampaign(camp.id)} className="text-action-primary-foreground bg-action-primary hover:bg-action-secondary px-3 py-1.5 rounded-control text-xs font-semibold transition-colors">Enviar</button>
                           ) : (
                             <span className="text-text-secondary text-[11px] font-semibold bg-gray-100 px-2 py-1 rounded-lg">Bloqueado</span>
                           )}
@@ -348,7 +348,7 @@ export default function CampaignsPage() {
             </div>
             <div className="p-6 border-t border-border-subtle flex justify-end gap-3 shrink-0 bg-surface-sidebar/50">
               <button type="button" onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cancelar</button>
-              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
+              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
             </div>
           </div>
         </div>

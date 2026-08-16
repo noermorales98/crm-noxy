@@ -96,7 +96,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
               {tab.count(data) > 0 && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${
-                    activeTabData.id === tab.id ? "bg-action-primary text-white" : "bg-nav-active text-text-secondary"
+                    activeTabData.id === tab.id ? "bg-action-primary text-action-primary-foreground" : "bg-nav-active text-text-secondary"
                   }`}
                 >
                   {tab.count(data)}

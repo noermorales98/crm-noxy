@@ -389,7 +389,7 @@ export default function AppointmentTypesPage() {
                 type="submit"
                 form="typeForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : editingType ? "Actualizar" : "Crear"}
               </button>

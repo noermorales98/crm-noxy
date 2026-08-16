@@ -140,7 +140,7 @@ export default function ProjectActivityView({ projectId }: { projectId: string }
               type="button"
               onClick={() => setSelectedIcon(opt.key)}
               className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                selectedIcon === opt.key ? "bg-action-primary text-white" : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
+                selectedIcon === opt.key ? "bg-action-primary text-action-primary-foreground" : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
               }`}
             >
               <HugeiconsIcon icon={opt.icon} size={14} />
@@ -163,7 +163,7 @@ export default function ProjectActivityView({ projectId }: { projectId: string }
           <button
             onClick={handleAddNote}
             disabled={saving || !note.trim()}
-            className="px-4 py-2 bg-action-primary text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
           >
             {saving ? "Guardando..." : "Agregar nota"}
           </button>

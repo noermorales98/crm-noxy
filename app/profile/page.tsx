@@ -203,7 +203,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingInfo}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-action-primary hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         {savingInfo ? "Guardando..." : "Guardar cambios"}
                       </button>

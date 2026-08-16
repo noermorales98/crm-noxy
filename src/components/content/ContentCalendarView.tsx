@@ -407,7 +407,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           <button
             onClick={() => setNewForDate(`${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-01`)}
-            className="flex min-h-10 items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+            className="flex min-h-10 items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={14} color="white" />
             Agregar pieza
@@ -429,7 +429,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <div className="flex gap-2">
                 <button
                   onClick={copyLink}
-                  className="flex-1 sm:flex-none flex min-h-10 items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+                  className="flex-1 sm:flex-none flex min-h-10 items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
                 >
                   <HugeiconsIcon icon={copied ? CheckmarkCircle01Icon : Copy01Icon} size={14} color="white" />
                   {copied ? "¡Copiado!" : "Copiar"}
@@ -477,7 +477,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <button
                 onClick={addPhone}
                 disabled={phoneBusy || !phoneForm.phone.trim() || !phoneForm.apiKey.trim()}
-                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50 motion-reduce:transition-none"
+                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50 motion-reduce:transition-none"
               >
                 Agregar
               </button>
@@ -552,7 +552,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <button
                 onClick={generateIdeas}
                 disabled={aiBusy || aiWeeks.length === 0}
-                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 whitespace-nowrap motion-reduce:transition-none"
+                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 whitespace-nowrap motion-reduce:transition-none"
               >
                 {aiBusy ? "Generando semana por semana…" : "Generar calendario"}
               </button>
@@ -572,7 +572,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                   <button
                     onClick={addAllIdeas}
                     disabled={addAllBusy || aiIdeas.every((_, i) => addedIdeas.has(i))}
-                    className="px-3 py-1.5 text-xs rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 motion-reduce:transition-none"
+                    className="px-3 py-1.5 text-xs rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 motion-reduce:transition-none"
                   >
                     {addAllBusy ? "Agregando…" : "Agregar todas al calendario"}
                   </button>
@@ -595,7 +595,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                           className={`shrink-0 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
                             addedIdeas.has(idx)
                               ? "bg-[#6E7F5C] text-white"
-                              : "bg-action-primary text-white hover:bg-action-secondary"
+                              : "bg-action-primary text-action-primary-foreground hover:bg-action-secondary"
                           }`}
                         >
                           {addedIdeas.has(idx) ? "✓ En calendario" : "+ Agregar"}
@@ -679,7 +679,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               </button>
               <button
                 onClick={() => { setEditing(selected); setSelected(null); }}
-                className="flex min-h-10 items-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-white font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+                className="flex min-h-10 items-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
               >
                 <HugeiconsIcon icon={PencilEdit01Icon} size={14} color="white" />
                 Editar

@@ -257,7 +257,7 @@ export default function FormsPage() {
             </div>
             <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
               <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover">Cancelar</button>
-              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
+              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
             </div>
           </div>
         </div>

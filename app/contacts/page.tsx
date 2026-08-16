@@ -299,7 +299,7 @@ function ContactsContent() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear contacto"}</button>
+                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear contacto"}</button>
                   </div>
                 </form>
               </div>

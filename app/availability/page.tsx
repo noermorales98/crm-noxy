@@ -611,7 +611,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="scheduleForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : editingSchedule ? "Actualizar" : "Crear"}
               </button>
@@ -686,7 +686,7 @@ export default function AvailabilityPage() {
                         type="button"
                         onClick={addAllDayDate}
                         disabled={!allDayInput}
-                        className="px-3 py-2 rounded-lg bg-action-primary text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-colors"
+                        className="px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-colors"
                       >
                         Agregar
                       </button>
@@ -733,7 +733,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="blockedForm"
                 disabled={isSubmittingBlocked}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
               </button>
@@ -812,7 +812,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="extendedForm"
                 disabled={isSubmittingExtended}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmittingExtended ? "Guardando..." : "Agregar"}
               </button>

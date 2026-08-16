@@ -106,7 +106,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center gap-2 bg-action-primary text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium shrink-0"
+        className="flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground px-5 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium shrink-0"
       >
         <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
         Vincular tareas
@@ -210,7 +210,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                     <button
                       disabled={saving}
                       onClick={handleSave}
-                      className="px-5 py-2.5 font-semibold text-white bg-action-primary hover:bg-action-secondary rounded-control transition-colors text-sm disabled:opacity-50"
+                      className="px-5 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-action-secondary rounded-control transition-colors text-sm disabled:opacity-50"
                     >
                       {saving ? "Guardando..." : "Guardar vínculos"}
                     </button>

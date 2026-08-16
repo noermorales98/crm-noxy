@@ -355,7 +355,7 @@ export default function FormBuilderPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex min-h-10 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-white px-4 py-2 rounded-control text-xs font-semibold disabled:opacity-50"
+                className="flex min-h-10 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-action-primary-foreground px-4 py-2 rounded-control text-xs font-semibold disabled:opacity-50"
               >
                 <HugeiconsIcon icon={SaveIcon} size={14} />
                 {isSaving ? "Guardando..." : "Guardar"}
@@ -550,7 +550,7 @@ export default function FormBuilderPage() {
                     </div>
                     <button
                       onClick={openNewVariantModal}
-                      className="shrink-0 flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-white px-3 py-2 rounded-lg text-xs font-semibold"
+                      className="shrink-0 flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-3 py-2 rounded-lg text-xs font-semibold"
                     >
                       <HugeiconsIcon icon={Add01Icon} size={14} />
                       Nueva variante
@@ -709,7 +709,7 @@ export default function FormBuilderPage() {
                           <button
                             key={opt.value}
                             onClick={() => setSuccessAction(opt.value)}
-                            className={`flex-1 py-2.5 rounded-lg border text-xs font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-white" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
+                            className={`flex-1 py-2.5 rounded-lg border text-xs font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-action-primary-foreground" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
                           >
                             {opt.label}
                           </button>

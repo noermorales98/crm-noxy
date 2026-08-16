@@ -79,7 +79,7 @@ export default function ProjectsPage() {
                   return (
                     <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-border-subtle rounded-lg p-6 hover:border-border-subtle transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary group-hover:bg-action-primary group-hover:text-white transition-all">
+                        <div className="w-12 h-12 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary group-hover:bg-action-primary group-hover:text-action-primary-foreground transition-all">
                           {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}
                           {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={24} />}
                           {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={24} />}
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
                           <HugeiconsIcon icon={Activity01Icon} size={16} />
                           <span>{totalAssets} assets connected</span>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-surface-sidebar flex items-center justify-center group-hover:bg-action-primary group-hover:text-white transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-surface-sidebar flex items-center justify-center group-hover:bg-action-primary group-hover:text-action-primary-foreground transition-colors">
                           <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                         </div>
                       </div>

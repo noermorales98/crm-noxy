@@ -157,7 +157,7 @@ export default function AiModelsPage() {
           </div>
           <button
             onClick={openAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:bg-black transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:bg-black transition-colors"
           >
             <Plus size={14} />
             Agregar modelo
@@ -192,7 +192,7 @@ export default function AiModelsPage() {
                 <button
                   type="submit"
                   disabled={saving || !form.modelId.trim() || !form.name.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-40"
+                  className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-40"
                 >
                   <Check size={13} />
                   {saving ? "Guardando…" : "Guardar"}

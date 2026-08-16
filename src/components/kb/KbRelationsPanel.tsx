@@ -112,7 +112,7 @@ function AddRelationModal({
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterType("")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
             >
               Todos
             </button>
@@ -120,7 +120,7 @@ function AddRelationModal({
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
               >
                 {ENTITY_CONFIG[t].label}
               </button>

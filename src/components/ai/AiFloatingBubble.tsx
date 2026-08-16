@@ -66,7 +66,7 @@ function BubbleInput({
         {disabled ? (
           <button
             onClick={onStop}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-action-primary text-white hover:bg-red-600 transition-all shrink-0"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-action-primary text-action-primary-foreground hover:bg-red-600 transition-all shrink-0"
           >
             <Square size={10} fill="currentColor" />
           </button>
@@ -271,7 +271,7 @@ export function AiFloatingBubble() {
         onClick={toggle}
         aria-label={isOpen ? "Cerrar asistente IA" : "Abrir asistente IA"}
         aria-expanded={isOpen}
-        className="fixed bottom-6 right-6 z-50 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-action-primary text-white shadow-md hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+        className="fixed bottom-6 right-6 z-50 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-action-primary text-action-primary-foreground shadow-md hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
       >
         <HugeiconsIcon icon={AiChatIcon} size={22} color="white" />
       </button>

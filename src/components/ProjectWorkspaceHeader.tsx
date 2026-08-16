@@ -92,7 +92,7 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount 
               >
                 {tab.label}
                 {"count" in tab && tab.count! > 0 && (
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary"}`}>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>
                     {tab.count! > 99 ? "99+" : tab.count}
                   </span>
                 )}

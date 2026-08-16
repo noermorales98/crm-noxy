@@ -152,7 +152,7 @@ function NewClientModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando..." : "Crear cliente"}
             </button>
@@ -294,7 +294,7 @@ function ClientCard({
         {isPending && client.isActive && (
           <button
             onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
-            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-action-primary text-white hover:bg-black transition-colors"
+            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-action-primary text-action-primary-foreground hover:bg-black transition-colors"
           >
             Marcar pagado
           </button>
@@ -534,7 +534,7 @@ export default function ClientesPage() {
               </p>
               <button
                 onClick={() => setShowClientModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-action-primary text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:bg-black transition-colors"
               >
                 <HugeiconsIcon icon={Add01Icon} size={15} />
                 Agregar primer cliente

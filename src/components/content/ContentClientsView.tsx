@@ -185,7 +185,7 @@ export default function ContentClientsView() {
         </div>
         <button
           onClick={() => { setEditing(null); setModalOpen(true); }}
-          className="shrink-0 min-h-11 flex items-center gap-2 bg-action-primary text-white px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+          className="shrink-0 min-h-11 flex items-center gap-2 bg-action-primary text-action-primary-foreground px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
           <span className="hidden sm:inline">Nuevo cliente / marca</span>
@@ -210,7 +210,7 @@ export default function ContentClientsView() {
           </p>
           <button
             onClick={() => { setEditing(null); setModalOpen(true); }}
-            className="inline-flex min-h-11 items-center gap-2 bg-action-primary text-white px-5 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+            className="inline-flex min-h-11 items-center gap-2 bg-action-primary text-action-primary-foreground px-5 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             Crear el primero

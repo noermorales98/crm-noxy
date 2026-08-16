@@ -224,7 +224,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
               <button type="button" onClick={() => setCreatingFolder(false)} className="px-4 py-2 text-sm font-semibold text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">
                 Cancelar
               </button>
-              <button type="submit" disabled={saving || !newFolderName.trim()} className="px-4 py-2 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
+              <button type="submit" disabled={saving || !newFolderName.trim()} className="px-4 py-2 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
                 {saving ? "Creando..." : "Crear y vincular"}
               </button>
             </div>

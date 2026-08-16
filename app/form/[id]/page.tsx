@@ -394,7 +394,7 @@ export default function PublicFormPage() {
                               onClick={() => available && handleDateSelect(date)}
                               disabled={!available}
                               className={`aspect-square rounded-control text-sm font-bold relative flex items-center justify-center
-                                ${isSelected ? "bg-action-primary text-white" : ""}
+                                ${isSelected ? "bg-action-primary text-action-primary-foreground" : ""}
                                 ${available && !isSelected ? "hover:bg-nav-hover text-text-primary" : ""}
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
@@ -430,7 +430,7 @@ export default function PublicFormPage() {
                                 onClick={() => setSelectedSlot(slot)}
                                 className={`min-h-11 py-3 px-2 rounded-control border-2 text-[13px] font-bold
                                   ${selectedSlot === slot
-                                    ? "bg-action-primary text-white border-action-primary"
+                                    ? "bg-action-primary text-action-primary-foreground border-action-primary"
                                     : "border-border-subtle hover:border-action-primary text-text-primary bg-surface-sidebar/50"
                                   }`}
                               >

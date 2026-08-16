@@ -24,6 +24,7 @@
   --color-nav-hover: #F0F2FE;
   --color-border-subtle: #DCDFE6;
   --color-action-primary: #3545D6;
+  --color-action-primary-foreground: #FFFFFF;
   --color-action-secondary: #5363EE;
   --color-focus: #3545D6;
   --color-highlight: #C8FE37;
@@ -53,6 +54,7 @@
   --nav-hover: #F0F2FE;
   --border-subtle: #DCDFE6;
   --action-primary: #3545D6;
+  --action-primary-foreground: #FFFFFF;
   --action-secondary: #5363EE;
   --focus: #3545D6;
   --highlight: #C8FE37;
@@ -95,7 +97,7 @@ body {
   }
 
   .crm-btn-primary {
-    @apply inline-flex min-h-10 items-center justify-center rounded-control bg-action-primary px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center rounded-control bg-action-primary px-4 py-2 text-sm font-semibold text-action-primary-foreground transition-colors duration-200 hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .crm-btn-ghost {
@@ -132,7 +134,7 @@ body {
   }
 
   .noxy-form-button {
-    @apply inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-5 py-2.5 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 

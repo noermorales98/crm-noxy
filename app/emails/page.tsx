@@ -661,7 +661,7 @@ function EmailsPageInner() {
                           const company = targetCompany || companies.find((c) => !c.imapHost);
                           if (company) openConfig(company);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-xs font-medium rounded-lg hover:opacity-90 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-xs font-medium rounded-lg hover:opacity-90 transition-colors"
                       >
                         <HugeiconsIcon icon={Settings01Icon} size={13} />
                         Configurar IMAP
@@ -1207,7 +1207,7 @@ function EmailsPageInner() {
                   <button
                     type="submit"
                     disabled={isSending}
-                    className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
                   >
                     <HugeiconsIcon icon={SentIcon} size={14} />
                     {isSending ? "Guardando..." : composeData.scheduledAt ? "Programar" : "Enviar"}
@@ -1386,7 +1386,7 @@ function EmailsPageInner() {
                 <button
                   type="submit"
                   disabled={isSavingConfig}
-                  className="px-5 py-2 text-sm font-medium text-white bg-action-primary hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2 text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
                 >
                   {isSavingConfig ? "Guardando..." : "Guardar configuración"}
                 </button>

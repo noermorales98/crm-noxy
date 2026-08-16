@@ -926,7 +926,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <button
               onClick={saveInfo}
               disabled={savingNotes}
-              className="px-3 py-1.5 text-xs font-semibold bg-action-primary text-white rounded-lg hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-semibold bg-action-primary text-action-primary-foreground rounded-lg hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               {savingNotes ? "Guardando..." : "Guardar"}
             </button>
@@ -999,7 +999,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   <button
                     onClick={addActivity}
                     disabled={savingActivity || !activityDesc.trim()}
-                    className="px-4 py-2 bg-action-primary text-white rounded-lg text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
+                    className="px-4 py-2 bg-action-primary text-action-primary-foreground rounded-lg text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
                   >
                     {savingActivity ? "..." : "Agregar"}
                   </button>
@@ -1215,7 +1215,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       ) : (
                         <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
                           {availableSlots.map((slot) => (
-                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-border-subtle rounded-lg hover:bg-action-primary hover:text-white hover:border-action-primary transition-all">
+                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-border-subtle rounded-lg hover:bg-action-primary hover:text-action-primary-foreground hover:border-action-primary transition-all">
                               {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             </button>
                           ))}
@@ -1246,7 +1246,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       <textarea value={bookingGuest.notes} onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))} className={`${inputCls} text-xs resize-none`} rows={2} placeholder="Notas (opcional)" />
                       <div className="flex gap-2">
                         <button onClick={() => setBookingStep("slots")} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">← Atrás</button>
-                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-white bg-action-primary hover:bg-black rounded-lg disabled:opacity-40 transition-colors">
+                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg disabled:opacity-40 transition-colors">
                           {savingBooking ? "Reservando..." : "Confirmar cita"}
                         </button>
                       </div>
@@ -1364,7 +1364,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 />
                 <button
                   onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`); setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-action-primary text-white hover:bg-black"}`}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-action-primary text-action-primary-foreground hover:bg-black"}`}
                 >
                   {copiedLink ? "✓ Copiado" : "Copiar"}
                 </button>
@@ -1469,7 +1469,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               <button onClick={() => setShowProposalModal(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">
                 Cancelar
               </button>
-              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
+              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
                 {savingProposal ? "Creando..." : "Crear propuesta"}
               </button>
             </div>
