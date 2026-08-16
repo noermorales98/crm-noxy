@@ -72,7 +72,7 @@ La clave local incluirá el identificador del usuario para evitar que dos cuenta
 
 ### Persistencia
 
-El modelo `User` recibirá un campo `crmTheme` con valor por defecto `noxy-indigo`. Una migración Prisma añadirá la columna sin transformar usuarios existentes.
+El modelo `User` recibirá un campo `crmTheme` con valor por defecto `noxy-indigo`. El cambio aditivo se aplicará mediante `npm run db:push`, la convención del proyecto para el MySQL alojado que no permite una base sombra de `prisma migrate dev`. Antes de aplicarlo se inspeccionará el diff SQL para confirmar que la única operación sea añadir esa columna con su valor por defecto.
 
 Un endpoint dedicado `/api/settings/theme` ofrecerá:
 
@@ -131,9 +131,8 @@ La implementación seguirá TDD y añadirá pruebas para:
 - contrato de tokens CSS y foreground dinámico de botones;
 - exclusión de rutas públicas del tema personal.
 
-La verificación final incluirá la suite existente, lint de archivos modificados, build de producción y revisión visual del dashboard, Configuración, asistente y un formulario interno a 390, 768 y 1440 px. También se comprobarán teclado, foco, estados de guardado, ausencia de desbordamiento y contraste automatizado.
+La verificación final incluirá la suite existente, lint de archivos modificados, build de producción y revisión visual del dashboard, Configuración, asistente y un formulario interno a 390, 768 y 1440 px. También se comprobarán teclado, foco, estados de guardado, ausencia de desbordamiento y contraste automatizado. El diff de esquema y la aplicación mediante `db:push` quedarán registrados en la validación.
 
 ## Migración y compatibilidad
 
 Los usuarios actuales recibirán `noxy-indigo` por defecto. No se modificarán APIs de negocio ni datos guardados. El valor será un identificador estable, no un objeto de colores, lo que permite ajustar tokens internamente sin migrar cada cuenta.
-
