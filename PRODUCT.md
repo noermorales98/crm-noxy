@@ -31,6 +31,7 @@ Precisa, confiable y ágil. La voz es directa, profesional y contemporánea; com
 3. **Densidad con respiración.** La información puede ser compacta, pero las relaciones se expresan con ritmo, alineación y espacio, no con capas de tarjetas.
 4. **Contraste con intención.** El color saturado es escaso y funcional. Obsidiana estructura; Índigo dirige; Lima destaca momentos puntuales.
 5. **Respuesta sin espectáculo.** El movimiento comunica cambios de estado y respeta movimiento reducido. Los formularios públicos funcionan sin animaciones.
+6. **Personalización con límites.** Cada usuario puede elegir una paleta clara para su espacio privado; la preferencia se sincroniza entre dispositivos sin alterar la identidad de superficies públicas ni los colores de los datos.
 
 ## Accessibility & Inclusion
 

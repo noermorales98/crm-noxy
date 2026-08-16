@@ -3,6 +3,7 @@ name: Noxy CRM
 description: Sistema operativo preciso, confiable y ágil para la gestión diaria de Noxy Digital.
 colors:
   action-primary: "#3545D6"
+  action-primary-foreground: "#FFFFFF"
   action-secondary: "#5363EE"
   selection-soft: "#7F96F9"
   highlight-lime: "#C8FE37"
@@ -51,7 +52,7 @@ spacing:
 components:
   button-primary:
     backgroundColor: "{colors.action-primary}"
-    textColor: "{colors.surface-elevated}"
+    textColor: "{colors.action-primary-foreground}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     padding: "10px 16px"
@@ -134,6 +135,14 @@ La paleta Noxy combina un núcleo frío y luminoso con Obsidiana para estructura
 
 **The Contrast Pair Rule.** Índigo y Discord aceptan texto blanco; Azul Recuerdo y Lima siempre utilizan Obsidiana.
 
+### Personal Themes
+
+La interfaz privada ofrece diez combinaciones claras con identificadores estables: `noxy-indigo`, `noxy-obsidian`, `noxy-discord`, `noxy-memory`, `noxy-lime`, `noxy-lavender`, `noxy-jasmine`, `noxy-silver`, `noxy-soft-indigo` y `noxy-monochrome`. La preferencia pertenece al usuario y se sincroniza entre dispositivos.
+
+Cada tema redefine únicamente roles semánticos de superficie, navegación, texto, acción y foco. `action-primary-foreground` cambia entre blanco y Obsidiana para mantener WCAG AA. Éxito, advertencia, error, integraciones, gráficas, categorías, colores guardados, documentos y rutas públicas quedan fuera de la personalización.
+
+**The Private-Scope Rule.** Los temas personales envuelven solo el shell autenticado. Formularios, agendas, cotizaciones y documentos compartidos conservan Noxy Índigo para ofrecer una experiencia consistente a clientes externos.
+
 ## Typography
 
 **Display Font:** Open Sauce Two (with system-ui fallback)  
@@ -171,8 +180,8 @@ Los componentes son familiares, sobrios y consistentes; cada estado responde con
 ### Buttons
 
 - **Shape:** esquinas modernas y contenidas (10px); altura mínima de 40px en escritorio y 44px en móvil.
-- **Primary:** Índigo con blanco, peso 600 y padding horizontal de 16px.
-- **Hover / Focus:** Discord en hover; foco exterior de 2px en Índigo con offset de 2px; transición funcional de 180ms.
+- **Primary:** usa `action-primary` con su `action-primary-foreground` accesible, peso 600 y padding horizontal de 16px.
+- **Hover / Focus:** el hover usa la variante secundaria del tema; el foco exterior mantiene 2px con offset de 2px y transición funcional de 180ms.
 - **Secondary / Ghost:** Lavanda u origen transparente con Obsidiana; nunca simulan una acción primaria.
 
 ### Chips
