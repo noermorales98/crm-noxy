@@ -88,7 +88,7 @@ export default function VaultPasswordRow({
           </button>
           <button
             onClick={save}
-            className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors"
+            className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors"
           >
             Guardar
           </button>
@@ -99,7 +99,7 @@ export default function VaultPasswordRow({
 
   return (
     <div className="group/vault flex items-start gap-3 bg-white border border-border-subtle rounded-lg p-4 hover:border-border-subtle transition-colors">
-      <div className="w-9 h-9 rounded-lg bg-accent-charcoal flex items-center justify-center shrink-0">
+      <div className="w-9 h-9 rounded-lg bg-action-primary flex items-center justify-center shrink-0">
         <HugeiconsIcon icon={LockPasswordIcon} size={16} color="white" />
       </div>
       <div className="flex-1 min-w-0">

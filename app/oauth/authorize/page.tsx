@@ -27,7 +27,7 @@ export default async function OAuthAuthorizePage({
   if (errors.length > 0) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6 dark:bg-zinc-950">
-        <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="w-full max-w-md rounded-surface border border-border-subtle bg-white p-8 shadow-sm">
           <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Solicitud OAuth inválida</h1>
           <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-red-600 dark:text-red-400">
             {errors.map((e) => (
@@ -41,7 +41,7 @@ export default async function OAuthAuthorizePage({
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6 dark:bg-zinc-950">
-      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="w-full max-w-md rounded-surface border border-border-subtle bg-white p-8 shadow-sm">
         <p className="text-xs font-medium uppercase tracking-widest text-zinc-500 dark:text-zinc-400">CRM Noxy · MCP</p>
         <h1 className="mt-2 text-xl font-semibold text-zinc-900 dark:text-zinc-50">
           Autorizar a {client!.name}

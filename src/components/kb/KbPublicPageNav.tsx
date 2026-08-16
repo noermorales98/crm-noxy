@@ -60,7 +60,7 @@ export default function KbPublicPageNav({
     <>
       {/* Mobile navbar — fixed at viewport top */}
       <nav
-        className="md:hidden fixed top-0 inset-x-0 z-50 border-b border-black/5 bg-white/95 backdrop-blur-md"
+        className="md:hidden fixed top-0 inset-x-0 z-50 border-b border-border-subtle bg-white"
         aria-label="Navegación entre documentos"
       >
         <div className="flex items-center gap-1 px-2 py-2.5">
@@ -107,7 +107,7 @@ export default function KbPublicPageNav({
       {nav.prev && (
         <Link
           href={prevHref!}
-          className={`hidden md:flex fixed top-1/2 -translate-y-1/2 z-40 w-11 h-11 items-center justify-center rounded-full bg-white/92 border border-black/8 shadow-md text-text-primary hover:bg-white hover:shadow-lg transition-all ${desktopPrevLeft}`}
+          className={`hidden md:flex fixed top-1/2 -translate-y-1/2 z-40 w-11 h-11 items-center justify-center rounded-full bg-white border border-border-subtle shadow-sm text-text-primary hover:bg-nav-hover transition-colors ${desktopPrevLeft}`}
           title={`Anterior: ${nav.prev.title}`}
           aria-label={`Anterior: ${nav.prev.title}`}
         >
@@ -117,7 +117,7 @@ export default function KbPublicPageNav({
       {nav.next && (
         <Link
           href={nextHref!}
-          className="hidden md:flex fixed top-1/2 -translate-y-1/2 right-6 z-40 w-11 h-11 items-center justify-center rounded-full bg-white/92 border border-black/8 shadow-md text-text-primary hover:bg-white hover:shadow-lg transition-all"
+          className="hidden md:flex fixed top-1/2 -translate-y-1/2 right-6 z-40 w-11 h-11 items-center justify-center rounded-full bg-white border border-border-subtle shadow-sm text-text-primary hover:bg-nav-hover transition-colors"
           title={`Siguiente: ${nav.next.title}`}
           aria-label={`Siguiente: ${nav.next.title}`}
         >

@@ -57,14 +57,14 @@ test("the animated send button owns its styles in every assistant experience", (
 test("portaled and retry controls retain scoped accessibility styles", () => {
   assert.match(
     chatStyles,
-    /\.fullscreen(?:Backdrop|Card)\s*\{[^}]*font-family:\s*"Google Sans Flex Variable"/,
+    /\.fullscreen(?:Backdrop|Card)\s*\{[^}]*font-family:\s*"Open Sauce Two"/,
   );
   assert.match(
     chatStyles,
     /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.fullscreenBackdrop/,
   );
   assert.match(bubbleSource, /styles\.retryOption/);
-  assert.match(chatStyles, /\.retryOption:focus-visible[\s\S]*#2563A9/);
+  assert.match(chatStyles, /\.retryOption:focus-visible[\s\S]*#3545D6/);
 });
 
 test("soft-card metadata keeps readable contrast and accessible targets", () => {

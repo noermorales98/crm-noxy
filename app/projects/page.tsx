@@ -79,7 +79,7 @@ export default function ProjectsPage() {
                   return (
                     <Link key={project.id} href={`/projects/${project.id}`} className="group bg-white border border-border-subtle rounded-lg p-6 hover:border-border-subtle transition-all cursor-pointer flex flex-col h-full relative overflow-hidden">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary group-hover:bg-accent-charcoal group-hover:text-white transition-all">
+                        <div className="w-12 h-12 bg-surface-sidebar rounded-lg flex items-center justify-center text-text-primary group-hover:bg-action-primary group-hover:text-action-primary-foreground transition-all">
                           {project.icon === "zap" && <HugeiconsIcon icon={ZapIcon} size={24} />}
                           {project.icon === "trending-up" && <HugeiconsIcon icon={AnalyticsUpIcon} size={24} />}
                           {project.icon === "git-branch" && <HugeiconsIcon icon={GitBranchIcon} size={24} />}
@@ -91,7 +91,7 @@ export default function ProjectsPage() {
                       <h3 className="text-lg font-bold text-text-primary mb-2 truncate">{project.name}</h3>
                       {(project.clientCompany || project.client || project.contact) && (
                         <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                          {project.clientCompany && <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{project.clientCompany.name}</span>}
+                          {project.clientCompany && <span className="text-xs font-bold text-action-primary bg-nav-hover px-2 py-0.5 rounded-full">{project.clientCompany.name}</span>}
                           {project.client && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{project.client.name}</span>}
                           {project.contact && <span className="text-[10px] font-bold text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-full">{project.contact.firstName} {project.contact.lastName || ""}</span>}
                         </div>
@@ -102,7 +102,7 @@ export default function ProjectsPage() {
                           <HugeiconsIcon icon={Activity01Icon} size={16} />
                           <span>{totalAssets} assets connected</span>
                         </div>
-                        <div className="w-8 h-8 rounded-full bg-surface-sidebar flex items-center justify-center group-hover:bg-accent-charcoal group-hover:text-white transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-surface-sidebar flex items-center justify-center group-hover:bg-action-primary group-hover:text-action-primary-foreground transition-colors">
                           <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                         </div>
                       </div>
@@ -111,7 +111,7 @@ export default function ProjectsPage() {
                 })}
 
                 {displayed.length === 0 && (
-                  <div className="col-span-full bg-surface-sidebar rounded-3xl border border-dashed border-border-subtle p-12 flex flex-col items-center justify-center text-center">
+                  <div className="col-span-full bg-surface-sidebar rounded-surface border border-dashed border-border-subtle p-12 flex flex-col items-center justify-center text-center">
                     <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-text-secondary mb-4">
                       <HugeiconsIcon icon={FolderIcon} size={32} />
                     </div>

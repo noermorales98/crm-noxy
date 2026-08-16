@@ -340,7 +340,7 @@ export default function BookPage() {
             <div className="md:w-72 p-8 border-b md:border-b-0 md:border-r border-border-subtle">
               {selectedType ? (
                 <>
-                  <div className="w-10 h-10 rounded-full mb-4" style={{ backgroundColor: selectedType.color || "#3B82F6" }} />
+                  <div className="w-10 h-10 rounded-full mb-4" style={{ backgroundColor: selectedType.color || "#3545D6" }} />
                   <h1 className="text-xl font-bold text-text-primary mb-2">{selectedType.name}</h1>
                   {selectedType.description && (
                     <p className="text-text-secondary text-sm mb-4">{selectedType.description}</p>
@@ -366,7 +366,7 @@ export default function BookPage() {
                 </>
               ) : (
                 <>
-                  <div className="w-10 h-10 rounded-full bg-accent-charcoal mb-4" />
+                  <div className="w-10 h-10 rounded-full bg-action-primary mb-4" />
                   <h1 className="text-xl font-bold text-text-primary mb-2">Agendar cita</h1>
                   <p className="text-text-secondary text-sm">Selecciona el tipo de cita para agendar.</p>
                 </>
@@ -402,7 +402,7 @@ export default function BookPage() {
                           onClick={() => { setSelectedType(t); setStep("calendar"); }}
                           className="flex items-center gap-4 w-full text-left px-5 py-4 rounded-lg border border-border-subtle hover:border-border-subtle transition-all group"
                         >
-                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3B82F6" }} />
+                          <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3545D6" }} />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-text-primary group-hover:text-text-primary">{t.name}</p>
                             {t.description && <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{t.description}</p>}
@@ -446,7 +446,7 @@ export default function BookPage() {
                               onClick={() => available && handleDateSelect(date)}
                               disabled={!available}
                               className={`aspect-square rounded-full text-sm font-medium transition-colors
-                                ${isSelected ? "bg-accent-charcoal text-white" : ""}
+                                ${isSelected ? "bg-action-primary text-action-primary-foreground" : ""}
                                 ${available && !isSelected ? "hover:bg-nav-hover text-text-primary" : ""}
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
@@ -474,7 +474,7 @@ export default function BookPage() {
                               <button
                                 key={slot}
                                 onClick={() => handleSlotSelect(slot)}
-                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-accent-charcoal hover:bg-accent-charcoal hover:text-white text-sm font-medium text-text-primary transition-colors text-center"
+                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-action-primary hover:bg-action-primary hover:text-action-primary-foreground text-sm font-medium text-text-primary transition-colors text-center"
                               >
                                 {formatSlot(slot)}
                               </button>
@@ -518,7 +518,7 @@ export default function BookPage() {
                                   className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-sidebar transition-colors flex items-center justify-between ${timezone === t.tz ? "text-text-primary font-semibold" : "text-text-secondary"}`}
                                 >
                                   <span>{t.label}</span>
-                                  {timezone === t.tz && <div className="w-2 h-2 rounded-full bg-accent-charcoal" />}
+                                  {timezone === t.tz && <div className="w-2 h-2 rounded-full bg-action-primary" />}
                                 </button>
                               ))}
                             </div>
@@ -572,7 +572,7 @@ export default function BookPage() {
                       <label className="text-sm font-semibold text-text-primary">Notas adicionales</label>
                       <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm resize-none" placeholder="¿Algún tema que quieras tratar?" />
                     </div>
-                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-lg font-bold text-white bg-accent-charcoal hover:opacity-90 transition-colors disabled:opacity-50 mt-2">
+                    <button type="submit" disabled={isBooking} className="w-full py-3 rounded-lg font-bold text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50 mt-2">
                       {isBooking ? "Agendando..." : "Confirmar Cita"}
                     </button>
                   </form>

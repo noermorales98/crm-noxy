@@ -173,7 +173,7 @@ function QuoteDetailContent() {
         <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
           <HugeiconsIcon icon={Invoice01Icon} size={28} color="#9ca3af" className="mx-auto mb-3" />
           <h3 className="text-base font-semibold text-text-primary mb-1">Cotización no encontrada</h3>
-          <Link href="/cotizaciones" className="text-sm text-blue-600 hover:underline">
+          <Link href="/cotizaciones" className="text-sm text-action-primary hover:underline">
             Volver al listado
           </Link>
         </div>
@@ -368,7 +368,7 @@ function QuoteDetailContent() {
               {quote.clientPhone && <p className="text-sm text-text-secondary">{quote.clientPhone}</p>}
               {quote.clientAddress && <p className="text-sm text-text-secondary">{quote.clientAddress}</p>}
               {quote.contact && (
-                <Link href="/contacts" className="inline-block mt-2 text-xs text-blue-600 hover:underline">
+                <Link href="/contacts" className="inline-block mt-2 text-xs text-action-primary hover:underline">
                   Vinculado al contacto {quote.contact.firstName} {quote.contact.lastName || ""}
                 </Link>
               )}

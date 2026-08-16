@@ -90,16 +90,16 @@ export default function ProjectTasksView({ projectId }: { projectId: string }) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
             >
               {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
             </button>
           ))}
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:opacity-90 transition-colors shrink-0"
         >
           <HugeiconsIcon icon={Add01Icon} size={14} />
           Nueva tarea
@@ -159,7 +159,7 @@ export default function ProjectTasksView({ projectId }: { projectId: string }) {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
@@ -184,7 +184,7 @@ export default function ProjectTasksView({ projectId }: { projectId: string }) {
               <DatePicker label="Fecha de vencimiento" value={dueDate} onChange={setDueDate} placeholder="Sin fecha" />
               <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
+                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>

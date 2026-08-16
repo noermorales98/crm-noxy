@@ -1,4 +1,9 @@
-import "@fontsource-variable/google-sans-flex/wght.css";
+import "@fontsource/open-sauce-two/latin-300.css";
+import "@fontsource/open-sauce-two/latin-400.css";
+import "@fontsource/open-sauce-two/latin-500.css";
+import "@fontsource/open-sauce-two/latin-600.css";
+import "@fontsource/open-sauce-two/latin-700.css";
+import "@fontsource/open-sauce-two/latin-800.css";
 import "@fontsource/lora/latin-400.css";
 import "@fontsource/lora/latin-400-italic.css";
 import "@fontsource/lora/latin-600.css";
@@ -16,4 +21,4 @@ import "@fontsource/playfair-display/latin-400.css";
 import "@fontsource/playfair-display/latin-600.css";
 import "@fontsource/playfair-display/latin-400-italic.css";
 
-export const GOOGLE_SANS_FAMILY = "'Google Sans Flex Variable', system-ui, sans-serif";
+export const OPEN_SAUCE_TWO_FAMILY = "'Open Sauce Two', system-ui, sans-serif";

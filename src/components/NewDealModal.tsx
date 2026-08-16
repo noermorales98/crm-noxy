@@ -74,7 +74,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
 
   return (
     /* Sin overflow-hidden en el contenedor del modal para que el DatePicker se vea */
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+    <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
       <div className="bg-white rounded-lg w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
@@ -119,7 +119,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
                   onClick={() => setCurrency("USD")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "USD"
-                      ? "bg-accent-charcoal text-white"
+                      ? "bg-action-primary text-action-primary-foreground"
                       : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
@@ -130,7 +130,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
                   onClick={() => setCurrency("MXN")}
                   className={`px-3 py-2.5 text-sm font-bold transition-all ${
                     currency === "MXN"
-                      ? "bg-accent-charcoal text-white"
+                      ? "bg-action-primary text-action-primary-foreground"
                       : "text-text-secondary hover:bg-nav-hover"
                   }`}
                 >
@@ -198,7 +198,7 @@ export default function NewDealModal({ pipelines, defaultStageId, onSuccess, onC
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Creando..." : "Crear deal"}
             </button>

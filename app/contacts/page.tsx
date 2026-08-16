@@ -204,7 +204,7 @@ function ContactsContent() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                            <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Editar">
                               <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
                             </button>
                             <button onClick={() => handleDelete(c)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
@@ -242,7 +242,7 @@ function ContactsContent() {
                             <td className="px-6 py-3.5 text-text-secondary">{c.phone || "—"}</td>
                             <td className="px-6 py-3.5">
                               <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={15} /></button>
+                                <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={15} /></button>
                                 <button onClick={() => handleDelete(c)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><HugeiconsIcon icon={Delete01Icon} size={15} /></button>
                               </div>
                             </td>
@@ -263,7 +263,7 @@ function ContactsContent() {
           )}
 
           {showModal && (
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
                   <h2 className="text-base font-bold text-text-primary">{editingId ? "Editar contacto" : "Agregar contacto"}</h2>
@@ -299,7 +299,7 @@ function ContactsContent() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear contacto"}</button>
+                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear contacto"}</button>
                   </div>
                 </form>
               </div>

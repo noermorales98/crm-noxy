@@ -67,7 +67,7 @@ function NewClientModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+    <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
       <div className="bg-white rounded-lg w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <h2 className="text-base font-bold text-text-primary">Nuevo cliente</h2>
@@ -152,7 +152,7 @@ function NewClientModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando..." : "Crear cliente"}
             </button>
@@ -294,7 +294,7 @@ function ClientCard({
         {isPending && client.isActive && (
           <button
             onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
-            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-accent-charcoal text-white hover:bg-black transition-colors"
+            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-action-primary text-action-primary-foreground hover:bg-black transition-colors"
           >
             Marcar pagado
           </button>
@@ -534,7 +534,7 @@ export default function ClientesPage() {
               </p>
               <button
                 onClick={() => setShowClientModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:bg-black transition-colors"
               >
                 <HugeiconsIcon icon={Add01Icon} size={15} />
                 Agregar primer cliente

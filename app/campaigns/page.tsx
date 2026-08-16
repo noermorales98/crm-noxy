@@ -212,13 +212,13 @@ export default function CampaignsPage() {
                       <td className="px-6 py-4 font-semibold text-text-primary max-w-[220px] truncate">{camp.subject}</td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-semibold text-text-primary">{camp.company?.name || "—"}</div>
-                        {camp.project ? <div className="text-[11px] text-blue-600 font-medium mt-0.5">💼 {camp.project.name}</div>
+                        {camp.project ? <div className="text-xs text-action-primary font-medium mt-0.5">💼 {camp.project.name}</div>
                           : camp.targetForm ? <div className="text-[11px] text-purple-600 font-medium mt-0.5">📝 {camp.targetForm.name}</div>
                           : <div className="text-[11px] text-text-secondary mt-0.5">Toda la empresa</div>}
                       </td>
                       <td className="px-6 py-4">
                         {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
-                        {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
+                        {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-nav-hover text-action-primary"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
                         {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> Completada</span>}
                       </td>
                       <td className="px-6 py-4 text-sm text-text-secondary font-medium">{camp._count.logs > 0 ? camp._count.logs.toLocaleString() : "—"}</td>
@@ -226,11 +226,11 @@ export default function CampaignsPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           {camp.status === "DRAFT" ? (
-                            <button onClick={() => handleSendCampaign(camp.id)} className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">Enviar</button>
+                            <button onClick={() => handleSendCampaign(camp.id)} className="text-action-primary-foreground bg-action-primary hover:bg-action-secondary px-3 py-1.5 rounded-control text-xs font-semibold transition-colors">Enviar</button>
                           ) : (
                             <span className="text-text-secondary text-[11px] font-semibold bg-gray-100 px-2 py-1 rounded-lg">Bloqueado</span>
                           )}
-                          <button onClick={() => setPreviewCampaign(camp)} className="p-1.5 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Previsualizar"><HugeiconsIcon icon={ViewIcon} size={15} /></button>
+                          <button onClick={() => setPreviewCampaign(camp)} className="p-1.5 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Previsualizar"><HugeiconsIcon icon={ViewIcon} size={15} /></button>
                           <button onClick={() => handleDelete(camp)} className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><HugeiconsIcon icon={Delete01Icon} size={15} /></button>
                         </div>
                       </td>
@@ -244,7 +244,7 @@ export default function CampaignsPage() {
 
       {/* PREVIEW MODAL */}
       {previewCampaign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border-subtle flex items-start justify-between shrink-0">
               <div className="flex flex-col gap-1">
@@ -272,7 +272,7 @@ export default function CampaignsPage() {
 
       {/* CREATE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-border-subtle flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-text-primary">Crear campaña de correo</h3>
@@ -348,7 +348,7 @@ export default function CampaignsPage() {
             </div>
             <div className="p-6 border-t border-border-subtle flex justify-end gap-3 shrink-0 bg-surface-sidebar/50">
               <button type="button" onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cancelar</button>
-              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
+              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
             </div>
           </div>
         </div>

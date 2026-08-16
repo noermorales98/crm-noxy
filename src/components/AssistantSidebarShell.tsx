@@ -60,7 +60,7 @@ export default function AssistantSidebarShell() {
   }, [isOpen]);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 639px)");
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
     const updateViewport = () => setIsMobile(mediaQuery.matches);
 
     updateViewport();
@@ -108,7 +108,7 @@ export default function AssistantSidebarShell() {
           aria-expanded={false}
           aria-controls="assistant-sidebar"
           onClick={() => dispatch({ type: "open" })}
-          className="fixed left-4 top-5 z-50 flex size-11 items-center justify-center rounded-xl border border-blue-100/80 bg-white/90 text-[#385577] shadow-[0_12px_32px_rgba(44,78,118,0.16)] backdrop-blur-md transition-[transform,background-color,border-color] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9] motion-reduce:transition-none"
+          className="fixed left-4 top-5 z-50 flex size-11 items-center justify-center rounded-control border border-border-subtle bg-white text-action-primary shadow-sm transition-colors duration-200 hover:border-brand-memory hover:bg-nav-hover motion-reduce:transition-none"
         >
           <PanelLeftOpen size={19} strokeWidth={1.8} aria-hidden="true" />
         </button>
@@ -120,7 +120,7 @@ export default function AssistantSidebarShell() {
           tabIndex={-1}
           aria-label="Ocultar barra lateral"
           onClick={closeAndRestoreFocus}
-          className="fixed inset-0 z-[60] hidden bg-[#112846]/20 backdrop-blur-[1px] max-sm:block"
+          className="fixed inset-0 z-[60] hidden bg-brand-obsidian/35 max-lg:block"
         />
       )}
 
@@ -141,7 +141,7 @@ export default function AssistantSidebarShell() {
           aria-expanded={true}
           aria-controls="assistant-sidebar"
           onClick={closeAndRestoreFocus}
-          className="absolute -right-4 top-3 z-10 flex size-9 items-center justify-center rounded-xl border border-blue-100 bg-white text-[#385577] shadow-[0_8px_24px_rgba(44,78,118,0.16)] transition-[transform,background-color,border-color] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-[#F7FAFF] active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9] motion-reduce:transition-none"
+          className="absolute -right-4 top-3 z-10 flex size-9 items-center justify-center rounded-control border border-border-subtle bg-white text-action-primary shadow-sm transition-colors duration-200 hover:border-brand-memory hover:bg-nav-hover motion-reduce:transition-none"
         >
           <X size={17} strokeWidth={1.8} aria-hidden="true" />
         </button>

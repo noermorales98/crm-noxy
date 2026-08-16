@@ -136,7 +136,7 @@ export default function ProfilePage() {
 
                 {/* Avatar Card */}
                 <div className="bg-white rounded-lg border border-border-subtle p-6 flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-full bg-accent-charcoal flex items-center justify-center shrink-0">
+                  <div className="w-16 h-16 rounded-full bg-action-primary flex items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-white">
                       {name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || "U"}
                     </span>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingInfo}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-accent-charcoal hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         {savingInfo ? "Guardando..." : "Guardar cambios"}
                       </button>

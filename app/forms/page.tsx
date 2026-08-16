@@ -189,7 +189,7 @@ export default function FormsPage() {
                         <h3 className="text-lg font-bold text-text-primary">{form.name}</h3>
                         <div className="text-xs text-text-secondary font-medium mt-1 flex flex-col gap-0.5">
                           <span>Empresa: {form.company?.name || "Unknown Company"}</span>
-                          {form.project && <span className="text-blue-600">Proyecto: {form.project.name}</span>}
+                          {form.project && <span className="text-action-primary">Proyecto: {form.project.name}</span>}
                         </div>
                       </div>
                       {form.isActive ? (
@@ -206,12 +206,12 @@ export default function FormsPage() {
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-auto">
                       <div className="flex gap-2">
-                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Copy Public Link"><HugeiconsIcon icon={LinkSquare01Icon} size={16} /></button>
+                        <button onClick={() => copyToClipboard(formUrl, "Public Link")} className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Copy Public Link"><HugeiconsIcon icon={LinkSquare01Icon} size={16} /></button>
                         <button onClick={() => copyToClipboard(iframeCode, "Iframe Embed Code")} className="p-2 text-text-secondary hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Copy Iframe Code"><HugeiconsIcon icon={CodeIcon} size={16} /></button>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => handleDelete(form.id, form.name)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Form"><HugeiconsIcon icon={Delete01Icon} size={16} /></button>
-                        <button onClick={() => handleViewContacts(form)} title="Ver Registrados" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"><HugeiconsIcon icon={UserMultipleIcon} size={14} /> Registrados</button>
+                        <button onClick={() => handleViewContacts(form)} title="Ver Registrados" className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-action-primary bg-nav-hover hover:bg-nav-active rounded-control transition-colors"><HugeiconsIcon icon={UserMultipleIcon} size={14} /> Registrados</button>
                         <Link href={`/forms/${form.id}`} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"><HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Builder</Link>
                       </div>
                     </div>
@@ -223,7 +223,7 @@ export default function FormsPage() {
         </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">Crear formulario</h3>
@@ -257,14 +257,14 @@ export default function FormsPage() {
             </div>
             <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
               <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover">Cancelar</button>
-              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
+              <button type="submit" form="createForm" disabled={isSubmitting} className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50">{isSubmitting ? "Creando..." : "Crear formulario"}</button>
             </div>
           </div>
         </div>
       )}
 
       {isContactsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between shrink-0">
               <div>

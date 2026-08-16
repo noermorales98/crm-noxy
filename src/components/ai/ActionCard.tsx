@@ -60,34 +60,34 @@ interface TypeConfig {
 const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   // Contacts
   create_contact:        { icon: UserAddIcon,        color: "#10B981", title: "Crear contacto" },
-  edit_contact:          { icon: UserEditIcon,        color: "#6366F1", title: "Editar contacto" },
+  edit_contact:          { icon: UserEditIcon,        color: "#3545D6", title: "Editar contacto" },
   delete_contact:        { icon: UserRemoveIcon,      color: "#EF4444", title: "Eliminar contacto" },
   // Deals
   create_deal:           { icon: SaleTagIcon,         color: "#F59E0B", title: "Crear deal" },
-  edit_deal:             { icon: PencilEditIcon,      color: "#6366F1", title: "Editar deal" },
+  edit_deal:             { icon: PencilEditIcon,      color: "#3545D6", title: "Editar deal" },
   delete_deal:           { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar deal" },
   // Tasks
   create_task:           { icon: TaskAddIcon,         color: "#10B981", title: "Crear tarea" },
   complete_task:         { icon: CheckmarkCircleIcon, color: "#10B981", title: "Completar tarea" },
   // Email
-  draft_email:           { icon: MailIcon,            color: "#6366F1", title: "Redactar email" },
+  draft_email:           { icon: MailIcon,            color: "#3545D6", title: "Redactar email" },
   // Appointments
-  update_appointment:    { icon: PencilEditIcon,      color: "#6366F1", title: "Actualizar cita" },
+  update_appointment:    { icon: PencilEditIcon,      color: "#3545D6", title: "Actualizar cita" },
   delete_appointment:    { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar cita" },
   // Availability
   create_availability:   { icon: AiBrainIcon,         color: "#10B981", title: "Crear disponibilidad" },
-  edit_availability:     { icon: PencilEditIcon,      color: "#6366F1", title: "Editar disponibilidad" },
+  edit_availability:     { icon: PencilEditIcon,      color: "#3545D6", title: "Editar disponibilidad" },
   delete_availability:   { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar disponibilidad" },
   // Appointment types
   create_appointment_type: { icon: AiBrainIcon,       color: "#10B981", title: "Crear tipo de cita" },
-  edit_appointment_type:   { icon: PencilEditIcon,    color: "#6366F1", title: "Editar tipo de cita" },
+  edit_appointment_type:   { icon: PencilEditIcon,    color: "#3545D6", title: "Editar tipo de cita" },
   delete_appointment_type: { icon: Delete01Icon,      color: "#EF4444", title: "Eliminar tipo de cita" },
   // Forms
   create_form:           { icon: AiBrainIcon,         color: "#10B981", title: "Crear formulario" },
-  edit_form:             { icon: PencilEditIcon,      color: "#6366F1", title: "Editar formulario" },
+  edit_form:             { icon: PencilEditIcon,      color: "#3545D6", title: "Editar formulario" },
   delete_form:           { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar formulario" },
   // Query
-  query_result:          { icon: AiBrainIcon,         color: "#6366F1", title: "Resultados" },
+  query_result:          { icon: AiBrainIcon,         color: "#3545D6", title: "Resultados" },
 };
 
 const CONFIRM_ONLY_TYPES: ActionCardData["type"][] = [
@@ -164,7 +164,7 @@ function getWarningText(action: ActionCardData): string {
 }
 
 const inputClass =
-  "w-full text-sm border border-border-subtle rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#6366F1]";
+  "w-full text-sm border border-border-subtle rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#3545D6]";
 const selectClass = `${inputClass} text-text-primary`;
 
 function FormFields({
@@ -675,7 +675,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               <button
                 onClick={executeAction}
                 disabled={status === "loading"}
-                className="bg-[#6366F1] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#4F46E5] disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                className="bg-[#3545D6] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#5363EE] disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {status === "loading" && (
                   <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />

@@ -33,7 +33,7 @@ const TYPE_ICONS: Record<NotificationType, any> = {
 };
 
 const TYPE_COLORS: Record<NotificationType, string> = {
-  NEW_EMAIL: "bg-blue-50 text-blue-600",
+  NEW_EMAIL: "bg-nav-hover text-action-primary",
   NEW_CONTACT: "bg-green-50 text-green-600",
   NEW_FORM_LEAD: "bg-violet-50 text-violet-600",
 };
@@ -80,7 +80,7 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="h-16 px-6 flex items-center justify-between gap-4 bg-surface-app flex-shrink-0">
+    <header className="h-16 pl-20 pr-4 sm:pl-20 sm:pr-6 lg:px-6 flex items-center justify-between gap-3 sm:gap-4 bg-surface-app flex-shrink-0">
 
       {/* Page title */}
       <div className="flex items-center gap-2.5 min-w-0">
@@ -213,7 +213,7 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className="flex items-center gap-1.5 bg-accent-charcoal hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
+            className="flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             {config.addButton.label}
@@ -226,7 +226,7 @@ export default function Header() {
         ))}
 
         {/* Global search */}
-        <GlobalSearchTrigger className="w-64" />
+        <GlobalSearchTrigger compact className="w-64 max-xl:w-40 max-sm:w-9 max-sm:px-2.5" />
 
         {/* ── Notification Bell ── */}
         <div className="relative" ref={notifRef}>
@@ -360,7 +360,7 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
 
   const buttonClass = `relative w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
     action.active
-      ? "bg-accent-charcoal text-white hover:opacity-90"
+      ? "bg-action-primary text-action-primary-foreground hover:opacity-90"
       : "bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover"
   }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
@@ -439,7 +439,7 @@ function NotificationItem({
   const content = (
     <div
       className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-surface-sidebar cursor-pointer group relative ${
-        !notification.isRead ? "bg-blue-50/40" : ""
+        !notification.isRead ? "bg-nav-hover" : ""
       }`}
       onClick={handleClick}
     >
@@ -457,7 +457,7 @@ function NotificationItem({
       </div>
       <div className="flex items-center gap-1 shrink-0 mt-1">
         {!notification.isRead && (
-          <span className="w-2 h-2 bg-blue-500 rounded-full" />
+          <span className="w-2 h-2 bg-action-primary rounded-full" />
         )}
         <button
           onClick={handleDelete}

@@ -279,7 +279,7 @@ export default function KbEditorNavbar({
                 onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-nav-hover transition-colors"
               >
-                <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#787774" />
+                <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#6B7184" />
                 Mi perfil
               </Link>
               <Link
@@ -287,7 +287,7 @@ export default function KbEditorNavbar({
                 onClick={() => setUserMenuOpen(false)}
                 className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-nav-hover transition-colors"
               >
-                <HugeiconsIcon icon={Settings01Icon} size={15} color="#787774" />
+                <HugeiconsIcon icon={Settings01Icon} size={15} color="#6B7184" />
                 Configuración
               </Link>
               <div className="border-t border-border-subtle mt-1 pt-1">

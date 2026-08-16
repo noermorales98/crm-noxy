@@ -102,9 +102,9 @@ function AddRelationPopover({
     >
       {/* Filter chips */}
       <div className="flex gap-1 flex-wrap p-3 border-b border-border-subtle">
-        <button onClick={() => setFilterType("")} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === "" ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>Todo</button>
+        <button onClick={() => setFilterType("")} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>Todo</button>
         {types.map(t => (
-          <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === t ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>
+          <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>
             {ENTITY_CFG[t].label}
           </button>
         ))}

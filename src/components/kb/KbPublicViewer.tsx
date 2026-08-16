@@ -87,7 +87,7 @@ function GuestNameModal({ onDone }: { onDone: (name: string, email: string) => v
           type="button"
           disabled={!name.trim()}
           onClick={() => onDone(name.trim(), email.trim())}
-          className="w-full py-2.5 rounded-lg bg-accent-charcoal text-white text-sm font-medium disabled:opacity-40"
+          className="w-full py-2.5 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium disabled:opacity-40"
         >
           Continuar
         </button>
@@ -99,7 +99,7 @@ function GuestNameModal({ onDone }: { onDone: (name: string, email: string) => v
 function CommentatorOnboardingModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-white rounded-surface border border-border-subtle p-6 sm:p-8 w-full max-w-md shadow-md">
         <h2 className="text-xl font-semibold text-text-primary mb-1">Modo comentarista</h2>
         <p className="text-sm text-text-secondary mb-6">
           Puedes revisar este documento y proponer cambios. Nada se modifica directamente: tus aportes
@@ -143,7 +143,7 @@ function CommentatorOnboardingModal({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           onClick={onClose}
-          className="w-full py-2.5 rounded-lg bg-accent-charcoal text-white text-sm font-medium"
+          className="w-full py-2.5 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium"
         >
           Entendido, empezar
         </button>
@@ -200,7 +200,7 @@ function SuggestionModal({
       onClick={() => !submitting && onClose()}
     >
       <div
-        className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-surface border border-border-subtle p-6 sm:p-8 w-full max-w-2xl shadow-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold mb-3">{title}</h3>
@@ -251,7 +251,7 @@ function SuggestionModal({
             type="button"
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-1 py-2.5 text-sm rounded-lg bg-accent-charcoal text-white font-medium disabled:opacity-60 inline-flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 text-sm rounded-lg bg-action-primary text-action-primary-foreground font-medium disabled:opacity-60 inline-flex items-center justify-center gap-2"
           >
             {submitting && (
               <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

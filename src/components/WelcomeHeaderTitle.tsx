@@ -23,8 +23,8 @@ export function WelcomeHeaderTitle({ editMode = false, onToggleEditMode }: Welco
     setConfig({
       title: (
         <span className="flex items-center gap-2">
-          Bienvenido,
-          <img src="/avt.webp" alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+          <span className="max-sm:hidden">Bienvenido,</span>
+          <img src="/avt.webp" alt="" className="hidden sm:block w-7 h-7 rounded-control object-cover shrink-0" />
           {firstName}
         </span>
       ),

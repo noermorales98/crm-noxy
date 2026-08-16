@@ -60,7 +60,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     size: "sm",
     dataKeys: ["contactsCount"],
     render: (d) => (
-      <KpiWidget icon={UserMultipleIcon} iconBg="#E1F0FF" iconColor="#337EA9" value={String(d.contactsCount ?? 0)} label="Leads registrados" href="/contacts" />
+      <KpiWidget icon={UserMultipleIcon} iconBg="#EBEDFA" iconColor="#3545D6" value={String(d.contactsCount ?? 0)} label="Leads registrados" href="/contacts" />
     ),
   },
   {
@@ -71,7 +71,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     size: "sm",
     dataKeys: ["newContactsCount"],
     render: (d) => (
-      <KpiWidget icon={UserMultipleIcon} iconBg="#E1F0FF" iconColor="#337EA9" value={String(d.newContactsCount ?? 0)} label="Leads nuevos (mes)" href="/contacts" />
+      <KpiWidget icon={UserMultipleIcon} iconBg="#EBEDFA" iconColor="#3545D6" value={String(d.newContactsCount ?? 0)} label="Leads nuevos (mes)" href="/contacts" />
     ),
   },
   {
@@ -126,7 +126,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     size: "sm",
     dataKeys: ["pipelineValue"],
     render: (d) => (
-      <KpiWidget icon={DollarCircleIcon} iconBg="#E1F0FF" iconColor="#337EA9" value={formatCurrency(d.pipelineValue ?? 0)} label="Pipeline activo" href="/pipeline" />
+      <KpiWidget icon={DollarCircleIcon} iconBg="#EBEDFA" iconColor="#3545D6" value={formatCurrency(d.pipelineValue ?? 0)} label="Pipeline activo" href="/pipeline" />
     ),
   },
   {
@@ -175,7 +175,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
         <KpiWidget
           icon={CalendarCheckIn01Icon}
           iconBg={count > 0 ? "#FFE2E2" : "#F7F7F5"}
-          iconColor={count > 0 ? "#D44020" : "#787774"}
+          iconColor={count > 0 ? "#D44020" : "#6B7184"}
           value={String(count)}
           label="Follow-ups vencidos"
           href="/pipeline"
@@ -451,7 +451,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
         <KpiWidget
           icon={Money02Icon}
           iconBg={count > 0 ? "#FFECD2" : "#F7F7F5"}
-          iconColor={count > 0 ? "#D9730D" : "#787774"}
+          iconColor={count > 0 ? "#D9730D" : "#6B7184"}
           value={String(count)}
           label="Clientes con pago pendiente"
           href="/pipeline/clientes"
@@ -547,6 +547,6 @@ export function widgetSizeClass(size: WidgetSize) {
     case "md":
       return "col-span-2";
     case "lg":
-      return "col-span-2 md:col-span-4";
+      return "col-span-2 xl:col-span-4";
   }
 }

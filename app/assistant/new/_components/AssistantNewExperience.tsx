@@ -191,7 +191,7 @@ export default function AssistantNewExperience({
       {showRightGrid && <PixelGrid side="right" />}
 
       <div className={styles.content}>
-        <div className={styles.visualStage} aria-label={ASSISTANT_NEW_COPY.visualLabel}>
+        <div className={styles.visualStage} role="img" aria-label={ASSISTANT_NEW_COPY.visualLabel}>
           <div className={styles.folderComposition} aria-hidden="true">
             {LAYERS.map((layer) => (
               <img

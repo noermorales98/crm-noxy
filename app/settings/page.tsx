@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSoundSettings } from "@/src/context/SoundContext";
+import ThemeSelector from "@/src/components/settings/ThemeSelector";
 
 type GoogleStatus = {
   connected: boolean;
@@ -72,7 +73,7 @@ export default function SettingsPage() {
             setTimezone(data.timezone || "America/Cancun");
           }
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to load settings");
       }
     }
@@ -147,20 +148,24 @@ export default function SettingsPage() {
         throw new Error("Failed to save settings");
       }
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">Configuración / Integraciones</h1>
           </div>
 
-          <div className="bg-white rounded-lg border border-border-subtle p-8 max-w-2xl flex flex-col gap-8">
+          <div className="bg-surface-elevated rounded-surface border border-border-subtle p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
+
+            <ThemeSelector />
+
+            <hr className="border-border-subtle" />
 
             {/* Sonidos de interacción */}
             <div>
@@ -247,8 +252,9 @@ export default function SettingsPage() {
                 Define la zona horaria de tu organización. Se usará para guardar horarios bloqueados y disponibilidad correctamente.
               </p>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">Zona horaria</label>
+                <label htmlFor="timezone" className="text-sm font-semibold text-text-primary">Zona horaria</label>
                 <select
+                  id="timezone"
                   value={timezone}
                   onChange={e => setTimezone(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
@@ -303,7 +309,7 @@ export default function SettingsPage() {
             <div>
               <h2 className="text-lg font-bold text-text-primary mb-1">Notificaciones por WhatsApp</h2>
               <p className="text-sm text-text-secondary mb-5">
-                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-blue-600 hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
+                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-action-primary hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
               </p>
             </div>
 
@@ -329,7 +335,7 @@ export default function SettingsPage() {
                   onChange={(e) => setCallMeBotApiKey(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
                 />
-                <p className="text-xs text-text-secondary">Get this by sending "I allow callmebot to send me messages" to the CallMeBot WhatsApp number.</p>
+                <p className="text-xs text-text-secondary">Get this by sending &quot;I allow callmebot to send me messages&quot; to the CallMeBot WhatsApp number.</p>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -339,7 +345,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 bg-accent-charcoal hover:opacity-90 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-action-primary hover:opacity-90 text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   {loading ? "Guardando..." : "Guardar configuración"}
                 </button>

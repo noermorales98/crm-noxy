@@ -7,7 +7,7 @@
   overflow: hidden;
   background: #eef1f7;
   color: #11315d;
-  font-family: "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  font-family: "Open Sauce Two", system-ui, sans-serif;
 }
 
 .experience > canvas {
@@ -64,7 +64,7 @@
   border-radius: 18px 18px 18px 6px;
   background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 16px 42px rgba(50, 84, 126, 0.09);
-  color: #2563a9;
+  color: #3545D6;
   font-size: 14px;
   font-weight: 700;
 }
@@ -188,7 +188,7 @@
   border: 1px solid rgba(34, 106, 205, 0.08);
   border-radius: 10px 10px 10px 4px;
   background: rgba(255, 255, 255, 0.82);
-  color: #2563a9;
+  color: #3545D6;
   font-size: 10px;
   font-weight: 700;
   box-shadow: 0 8px 20px rgba(50, 84, 126, 0.08);
@@ -453,7 +453,7 @@
   background: rgba(17, 35, 61, 0.62);
   padding: 24px;
   backdrop-filter: blur(10px);
-  font-family: "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  font-family: "Open Sauce Two", system-ui, sans-serif;
 }
 
 .fullscreenContainer {
@@ -473,7 +473,7 @@
   color: #263e5f;
   box-shadow: 0 30px 80px rgba(17, 49, 93, 0.22);
   font-size: 14px;
-  font-family: "Google Sans Flex Variable", "Google Sans Flex", sans-serif;
+  font-family: "Open Sauce Two", system-ui, sans-serif;
   line-height: 1.65;
 }
 
@@ -504,7 +504,7 @@
 .sendControl > button:focus-visible,
 .retryOption:focus-visible,
 .modelControl button:focus-visible {
-  outline: 2px solid #2563A9;
+  outline: 2px solid #3545D6;
   outline-offset: 3px;
 }
 

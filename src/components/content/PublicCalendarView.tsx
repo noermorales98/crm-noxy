@@ -49,8 +49,8 @@ export default function PublicCalendarView({
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBF7F1] px-6">
-        <p className="text-sm text-[#8A7F8F]" style={{ fontFamily: '"Work Sans",sans-serif' }}>
+      <div className="min-h-screen flex items-center justify-center bg-surface-app px-6">
+        <p className="text-sm text-text-secondary" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           No se pudo cargar el calendario. Verifica el enlace.
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function PublicCalendarView({
         </div>
         <h1
           style={{
-            fontFamily: '"Fraunces",serif', fontWeight: 500,
+            fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500,
             fontSize: "clamp(28px,5vw,44px)", margin: "8px 0 6px",
           }}
         >
@@ -108,7 +108,7 @@ export default function PublicCalendarView({
         </button>
         <span
           style={{
-            fontFamily: '"Fraunces",serif', fontWeight: 500,
+            fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500,
             fontSize: "clamp(18px,4vw,24px)", textTransform: "capitalize", minWidth: 160, textAlign: "center",
           }}
         >

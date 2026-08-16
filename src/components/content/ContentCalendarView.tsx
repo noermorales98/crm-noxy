@@ -37,7 +37,7 @@ const TYPE_OPTIONS = [
 ];
 
 const inputClass =
-  "w-full px-3 py-2 text-sm border border-border-subtle rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#B75C3E]/30 focus:border-[#B75C3E]";
+  "noxy-form-control";
 const labelClass = "block text-xs font-medium text-text-secondary mb-1";
 
 // ─── Modal editor de pieza ────────────────────────────────────────────────────
@@ -103,9 +103,9 @@ function ItemEditor({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-brand-obsidian/35" />
       <div
-        className="relative bg-white w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
+        className="relative bg-white w-full sm:max-w-xl rounded-t-surface sm:rounded-surface border border-border-subtle p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -178,7 +178,7 @@ function ItemEditor({
           <button
             onClick={save}
             disabled={saving}
-            className="flex-1 py-2.5 text-sm rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60"
+            className="noxy-form-button flex-1 text-sm"
           >
             {saving ? "Guardando…" : "Guardar"}
           </button>
@@ -374,40 +374,40 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       onClick={() => setPanel((p) => (p === id ? null : id))}
       className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg border transition-colors ${
         panel === id
-          ? "border-[#B75C3E] bg-[#F9E8E1] text-[#B75C3E] font-medium"
+          ? "border-action-primary bg-nav-active text-action-primary font-semibold"
           : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
       }`}
     >
-      <HugeiconsIcon icon={icon} size={14} color={panel === id ? "#B75C3E" : "#37352F"} />
+      <HugeiconsIcon icon={icon} size={14} color={panel === id ? "#3545D6" : "#0B0B18"} />
       {label}
     </button>
   );
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 bg-[#FBF7F1]">
+    <div className="flex-1 overflow-y-auto min-h-0 bg-surface-app">
       {CALENDAR_FONTS}
       <style>{CALENDAR_CSS}</style>
 
       <div className="ncc-root max-w-5xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
         {/* Encabezado */}
-        <div className="mb-5" style={{ fontFamily: '"Work Sans",sans-serif' }}>
-          <p className="text-[11px] sm:text-xs uppercase tracking-[0.14em] font-semibold text-[#B75C3E]">
+        <div className="mb-5" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <p className="text-xs font-semibold text-action-primary">
             {client.kind === "cliente" ? "Cliente" : "Marca propia"}
             {client.description ? ` · ${client.description}` : ""}
           </p>
           <h1
-            className="text-[#2B2140] leading-tight mt-1"
-            style={{ fontFamily: '"Fraunces",serif', fontWeight: 500, fontSize: "clamp(26px,5vw,38px)" }}
+            className="text-text-primary leading-tight mt-1"
+            style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500, fontSize: "clamp(26px,5vw,38px)" }}
           >
             {client.name}
           </h1>
         </div>
 
         {/* Barra de acciones */}
-        <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontFamily: '"Work Sans",sans-serif' }}>
+        <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           <button
             onClick={() => setNewForDate(`${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-01`)}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors"
+            className="flex min-h-10 items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={14} color="white" />
             Agregar pieza
@@ -419,9 +419,9 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: compartir */}
         {panel === "share" && (
-          <div className="mb-5 bg-white border border-[#E4DCD0] rounded-xl p-4" style={{ fontFamily: '"Work Sans",sans-serif' }}>
-            <p className="text-sm font-semibold text-[#2B2140] mb-1">Enlace público del calendario</p>
-            <p className="text-xs text-[#8A7F8F] mb-3">
+          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+            <p className="text-sm font-semibold text-text-primary mb-1">Enlace público del calendario</p>
+            <p className="text-xs text-text-secondary mb-3">
               Mándale este enlace al cliente: verá el calendario (sin poder editarlo) con qué debe grabar y las sugerencias.
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -429,7 +429,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <div className="flex gap-2">
                 <button
                   onClick={copyLink}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-[#2D2D2D] text-white font-medium hover:bg-[#1a1a1a] transition-colors"
+                  className="flex-1 sm:flex-none flex min-h-10 items-center justify-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
                 >
                   <HugeiconsIcon icon={copied ? CheckmarkCircle01Icon : Copy01Icon} size={14} color="white" />
                   {copied ? "¡Copiado!" : "Copiar"}
@@ -448,21 +448,21 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: WhatsApp */}
         {panel === "phones" && (
-          <div className="mb-5 bg-white border border-[#E4DCD0] rounded-xl p-4" style={{ fontFamily: '"Work Sans",sans-serif' }}>
-            <p className="text-sm font-semibold text-[#2B2140] mb-1">Números de WhatsApp (CallMeBot)</p>
-            <p className="text-xs text-[#8A7F8F] mb-3">
+          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+            <p className="text-sm font-semibold text-text-primary mb-1">Números de WhatsApp (CallMeBot)</p>
+            <p className="text-xs text-text-secondary mb-3">
               A estos números les llega el aviso de qué contenido grabar y cuándo. Cada número necesita su propia apikey de
               callmebot.com (se obtiene escribiendo &quot;I allow callmebot to send me messages&quot; al bot).
             </p>
             {phones.length > 0 && (
               <div className="flex flex-col gap-2 mb-3">
                 {phones.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2 text-sm bg-[#FBF7F1] border border-[#E4DCD0] rounded-lg px-3 py-2">
-                    <span className="font-medium text-[#2B2140] truncate">{p.label || "Sin nombre"}</span>
-                    <span className="text-[#8A7F8F] text-xs">{p.phone}</span>
+                  <div key={p.id} className="flex items-center gap-2 text-sm bg-surface-app border border-border-subtle rounded-control px-3 py-2">
+                    <span className="font-medium text-text-primary truncate">{p.label || "Sin nombre"}</span>
+                    <span className="text-text-secondary text-xs">{p.phone}</span>
                     <button
                       onClick={() => removePhone(p.id)}
-                      className="ml-auto w-7 h-7 flex items-center justify-center rounded-md text-[#8A7F8F] hover:bg-red-50 hover:text-red-600 transition-colors"
+                      className="ml-auto w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
                       <HugeiconsIcon icon={Delete01Icon} size={13} />
                     </button>
@@ -477,7 +477,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <button
                 onClick={addPhone}
                 disabled={phoneBusy || !phoneForm.phone.trim() || !phoneForm.apiKey.trim()}
-                className="px-4 py-2 text-sm rounded-lg bg-[#2D2D2D] text-white font-medium hover:bg-[#1a1a1a] transition-colors disabled:opacity-50"
+                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50 motion-reduce:transition-none"
               >
                 Agregar
               </button>
@@ -487,10 +487,10 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: IA */}
         {panel === "ai" && (
-          <div className="mb-5 bg-white border border-[#E4DCD0] rounded-xl p-4" style={{ fontFamily: '"Work Sans",sans-serif' }}>
-            <p className="text-sm font-semibold text-[#2B2140] mb-1">Calendario del mes con IA</p>
+          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+            <p className="text-sm font-semibold text-text-primary mb-1">Calendario del mes con IA</p>
             {client.context ? (
-              <p className="text-xs text-[#8A7F8F] mb-3">
+              <p className="text-xs text-text-secondary mb-3">
                 La IA conoce el contexto de {client.name} y generará el calendario de {monthLabel(cursor.year, cursor.month)} semana por semana.
               </p>
             ) : (
@@ -501,7 +501,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
             {/* Configuración: piezas por semana + semanas */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-3">
-              <label className="flex items-center gap-2 text-xs text-[#2B2140]">
+              <label className="flex items-center gap-2 text-xs text-text-primary">
                 <span className="font-medium">Piezas por semana</span>
                 <select
                   className="px-2 py-1.5 text-sm border border-border-subtle rounded-lg bg-white"
@@ -512,7 +512,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 </select>
               </label>
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-[#2B2140] mr-1">Semanas</span>
+                <span className="text-xs font-medium text-text-primary mr-1">Semanas</span>
                 {[1, 2, 3, 4, 5].map((w) => {
                   const active = aiWeeks.includes(w);
                   return (
@@ -526,7 +526,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                       }
                       className={`w-8 h-8 text-xs rounded-lg border font-medium transition-colors ${
                         active
-                          ? "border-[#B75C3E] bg-[#F9E8E1] text-[#B75C3E]"
+                          ? "border-action-primary bg-nav-active text-action-primary"
                           : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
                       }`}
                       title={`Semana ${w} (días ${(w - 1) * 7 + 1}–${Math.min(w * 7, 31)})`}
@@ -536,7 +536,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                   );
                 })}
               </div>
-              <span className="text-xs text-[#8A7F8F]">
+              <span className="text-xs text-text-secondary">
                 = {aiPerWeek * aiWeeks.length} pieza(s) en total
               </span>
             </div>
@@ -552,13 +552,13 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <button
                 onClick={generateIdeas}
                 disabled={aiBusy || aiWeeks.length === 0}
-                className="px-4 py-2 text-sm rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60 whitespace-nowrap"
+                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 whitespace-nowrap motion-reduce:transition-none"
               >
                 {aiBusy ? "Generando semana por semana…" : "Generar calendario"}
               </button>
             </div>
             {aiBusy && (
-              <p className="text-[11px] text-[#8A7F8F] mb-2">
+              <p className="text-xs text-text-secondary mb-2">
                 Generando {aiWeeks.length} semana(s) × {aiPerWeek} pieza(s)… puede tardar un momento.
               </p>
             )}
@@ -568,26 +568,26 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
             {aiIdeas.length > 0 && (
               <>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-[#2B2140]">{aiIdeas.length} ideas propuestas</p>
+                  <p className="text-xs font-medium text-text-primary">{aiIdeas.length} ideas propuestas</p>
                   <button
                     onClick={addAllIdeas}
                     disabled={addAllBusy || aiIdeas.every((_, i) => addedIdeas.has(i))}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60"
+                    className="px-3 py-1.5 text-xs rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-60 motion-reduce:transition-none"
                   >
                     {addAllBusy ? "Agregando…" : "Agregar todas al calendario"}
                   </button>
                 </div>
                 <div className="flex flex-col gap-2">
                   {aiIdeas.map((idea, idx) => (
-                    <div key={idx} className="border border-[#E4DCD0] rounded-lg p-3 bg-[#FBF7F1]">
+                    <div key={idx} className="border border-border-subtle rounded-control p-3 bg-surface-app">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#2B2140]">{idea.title}</p>
-                          <p className="text-xs text-[#8A7F8F]">
+                          <p className="text-sm font-semibold text-text-primary">{idea.title}</p>
+                          <p className="text-xs text-text-secondary">
                             {idea.week ? `S${idea.week} · ` : ""}{idea.date} · {TYPE_OPTIONS.find((t) => t.v === idea.type)?.label ?? idea.type}
                             {idea.time ? ` · ${idea.time}` : ""}
                           </p>
-                          {idea.hook && <p className="text-xs text-[#2B2140] mt-1 italic">&quot;{idea.hook}&quot;</p>}
+                          {idea.hook && <p className="text-xs text-text-primary mt-1 italic">&quot;{idea.hook}&quot;</p>}
                         </div>
                         <button
                           onClick={() => addIdea(idea, idx)}
@@ -595,7 +595,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                           className={`shrink-0 px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${
                             addedIdeas.has(idx)
                               ? "bg-[#6E7F5C] text-white"
-                              : "bg-[#2D2D2D] text-white hover:bg-[#1a1a1a]"
+                              : "bg-action-primary text-action-primary-foreground hover:bg-action-secondary"
                           }`}
                         >
                           {addedIdeas.has(idx) ? "✓ En calendario" : "+ Agregar"}
@@ -610,23 +610,23 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         )}
 
         {/* Navegación de mes */}
-        <div className="flex items-center justify-between mb-3" style={{ fontFamily: '"Work Sans",sans-serif' }}>
+        <div className="flex items-center justify-between mb-3" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           <button
             onClick={() => moveMonth(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#E4DCD0] bg-white text-[#2B2140] hover:bg-[#F3ECE0] transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-control border border-border-subtle bg-white text-text-primary hover:bg-surface-sidebar transition-colors"
             aria-label="Mes anterior"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </button>
           <h2
-            className="text-[#2B2140] capitalize"
-            style={{ fontFamily: '"Fraunces",serif', fontWeight: 500, fontSize: "clamp(20px,4vw,28px)" }}
+            className="text-text-primary capitalize"
+            style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500, fontSize: "clamp(20px,4vw,28px)" }}
           >
             {monthLabel(cursor.year, cursor.month)}
           </h2>
           <button
             onClick={() => moveMonth(1)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#E4DCD0] bg-white text-[#2B2140] hover:bg-[#F3ECE0] transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-control border border-border-subtle bg-white text-text-primary hover:bg-surface-sidebar transition-colors"
             aria-label="Mes siguiente"
           >
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
@@ -635,7 +635,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Calendario */}
         {loading ? (
-          <div className="h-96 rounded-xl bg-[#F3ECE0] animate-pulse" />
+          <div className="h-96 rounded-surface bg-surface-sidebar animate-pulse" />
         ) : (
           <ContentMonthGrid
             year={cursor.year}
@@ -648,12 +648,12 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         )}
 
         {/* Leyenda */}
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-5 text-xs text-[#2B2140]" style={{ fontFamily: '"Work Sans",sans-serif' }}>
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-5 text-xs text-text-primary" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           {TYPE_OPTIONS.filter((t) => t.v !== "edicion").map((t) => (
             <span key={t.v} className="inline-flex items-center gap-2">
               <i
                 className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ background: { video: "#B75C3E", reel: "#9B7EDE", flyer: "#6E7F5C", historia: "#4A7BA6", entrega: "#C9973B" }[t.v] }}
+                style={{ background: { video: "#3545D6", reel: "#9B7EDE", flyer: "#6E7F5C", historia: "#4A7BA6", entrega: "#C9973B" }[t.v] }}
               />
               {t.label}
             </span>
@@ -679,7 +679,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               </button>
               <button
                 onClick={() => { setEditing(selected); setSelected(null); }}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg bg-[#2D2D2D] text-white font-medium hover:bg-[#1a1a1a] transition-colors"
+                className="flex min-h-10 items-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
               >
                 <HugeiconsIcon icon={PencilEdit01Icon} size={14} color="white" />
                 Editar
@@ -696,7 +696,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 </p>
               )}
               {selected.notifiedAt && !notifyResult && (
-                <p className="w-full text-xs mt-1 text-[#8A7F8F]">
+                <p className="w-full text-xs mt-1 text-text-secondary">
                   Último aviso enviado: {new Date(selected.notifiedAt).toLocaleString("es-MX")}
                 </p>
               )}
@@ -719,8 +719,8 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       {/* Confirmación eliminar */}
       {deleting && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-6" onClick={() => setDeleting(null)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-brand-obsidian/35" />
+          <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.title}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">Se quitará del calendario y del enlace público.</p>
             <div className="flex gap-2">

@@ -22,7 +22,7 @@ export default function AppointmentTypesPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState("30");
-  const [color, setColor] = useState("#3B82F6");
+  const [color, setColor] = useState("#3545D6");
   const [location, setLocation] = useState("");
   const [slug, setSlug] = useState("");
   const [scheduleId, setScheduleId] = useState("");
@@ -77,7 +77,7 @@ export default function AppointmentTypesPage() {
 
   const openCreate = () => {
     setEditingType(null);
-    setName(""); setDescription(""); setDuration("30"); setColor("#3B82F6");
+    setName(""); setDescription(""); setDuration("30"); setColor("#3545D6");
     setLocation(""); setSlug(""); setScheduleId(schedules[0]?.id || "");
     setCompanyId(""); setBufferAfter("0"); setMaxAdvanceDays("30");
     setIsModalOpen(true);
@@ -208,7 +208,7 @@ export default function AppointmentTypesPage() {
                     {type._count?.forms > 0 && (
                       <>
                         <span className="mx-1 text-gray-200">·</span>
-                        <div className="flex items-center gap-1 text-blue-600 font-medium">
+                        <div className="flex items-center gap-1 text-action-primary font-medium">
                           <HugeiconsIcon icon={Note01Icon} size={14} />
                           <span>Con Formulario</span>
                         </div>
@@ -226,7 +226,7 @@ export default function AppointmentTypesPage() {
                   <div className="flex items-center justify-between gap-2 mt-auto pt-4 border-t border-border-subtle">
                     <button
                       onClick={() => copyLink(type.slug)}
-                      className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors"
                       title="Copiar link"
                     >
                       <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
@@ -253,7 +253,7 @@ export default function AppointmentTypesPage() {
         </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">
@@ -389,7 +389,7 @@ export default function AppointmentTypesPage() {
                 type="submit"
                 form="typeForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : editingType ? "Actualizar" : "Crear"}
               </button>

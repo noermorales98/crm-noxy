@@ -103,10 +103,10 @@ export default function AppointmentsPage() {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${filter === tab.key ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${filter === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${filter === tab.key ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary"}`}>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${filter === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>
                   {counts[tab.key as keyof typeof counts]}
                 </span>
               </button>
@@ -136,7 +136,7 @@ export default function AppointmentsPage() {
                   <div key={appt.id} className="bg-white border border-border-subtle rounded-lg p-5 transition-all flex items-start justify-between gap-4 group">
                     <div className="flex items-start gap-4 flex-1 min-w-0">
                       {/* Color accent */}
-                      <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType?.color || "#3B82F6" }} />
+                      <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType?.color || "#3545D6" }} />
                       {/* Date badge */}
                       <div className="w-14 shrink-0 text-center bg-surface-sidebar rounded-lg p-2 border border-border-subtle">
                         <div className="text-[10px] font-bold uppercase text-text-secondary tracking-widest">

@@ -151,7 +151,7 @@ function KanbanCard({ deal, isDragging }: { deal: any, isDragging: boolean }) {
       {/* Footer Metrics */}
       <div className={`flex items-center justify-between mt-auto pt-2 ${isDark ? '' : 'border-t border-border-subtle'}`}>
         {/* Date Badge */}
-        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${isDark ? 'bg-[#37352F] text-text-secondary' : 'bg-surface-sidebar text-text-secondary'}`}>
+        <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${isDark ? 'bg-brand-obsidian text-white' : 'bg-surface-sidebar text-text-secondary'}`}>
           <HugeiconsIcon icon={Calendar01Icon} size={12} />
           {new Date(deal.createdAt).toLocaleDateString()}
         </div>

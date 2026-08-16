@@ -87,7 +87,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
                 activeTabData.id === tab.id
-                  ? "border-accent-charcoal text-text-primary"
+                  ? "border-action-primary text-text-primary"
                   : "border-transparent text-text-secondary hover:text-text-secondary hover:border-border-subtle"
               }`}
             >
@@ -96,7 +96,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
               {tab.count(data) > 0 && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${
-                    activeTabData.id === tab.id ? "bg-accent-charcoal text-white" : "bg-nav-active text-text-secondary"
+                    activeTabData.id === tab.id ? "bg-action-primary text-action-primary-foreground" : "bg-nav-active text-text-secondary"
                   }`}
                 >
                   {tab.count(data)}

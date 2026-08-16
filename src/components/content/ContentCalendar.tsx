@@ -21,12 +21,12 @@ export type ContentItemData = {
 };
 
 export const TYPE_META: Record<string, { label: string; color: string }> = {
-  video: { label: "Video", color: "#B75C3E" },
+  video: { label: "Video", color: "#3545D6" },
   reel: { label: "Reel", color: "#9B7EDE" },
   flyer: { label: "Flyer", color: "#6E7F5C" },
   historia: { label: "Historia", color: "#4A7BA6" },
   entrega: { label: "Entrega / grabación", color: "#C9973B" },
-  edicion: { label: "En edición", color: "#8A7F8F" },
+  edicion: { label: "En edición", color: "#6B7184" },
 };
 
 export function parseHooksAlt(raw: string | null): string[] {
@@ -59,13 +59,13 @@ export function longDateLabel(iso: string): string {
 
 export const CALENDAR_CSS = `
 .ncc-root, .ncc-overlay, .ncc-modal{
-  --ink:#2B2140; --paper:#FBF7F1; --paper-2:#F3ECE0;
-  --gold:#C9973B; --terracotta:#B75C3E; --sage:#6E7F5C;
-  --line:#E4DCD0; --muted:#8A7F8F;
+  --ink:#0B0B18; --paper:#F5F6FB; --paper-2:#EBEDFA;
+  --gold:#C9973B; --terracotta:#3545D6; --sage:#6E7F5C;
+  --line:#DCDFE6; --muted:#6B7184;
 }
 .ncc-root{
   background:var(--paper); color:var(--ink);
-  font-family:"Work Sans",sans-serif; min-height:100%;
+  font-family:"Open Sauce Two",system-ui,sans-serif; min-height:100%;
   -webkit-font-smoothing:antialiased; border-radius:inherit;
 }
 .ncc-root *{box-sizing:border-box;}
@@ -74,12 +74,12 @@ export const CALENDAR_CSS = `
 .ncc-weekdays div{text-align:center;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-bottom:4px;}
 .ncc-day{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;min-height:104px;padding:10px 8px;position:relative;display:flex;flex-direction:column;gap:6px;}
 .ncc-day.empty{background:transparent;border:none;}
-.ncc-day.today{border:2px solid var(--terracotta);box-shadow:0 0 0 3px rgba(183,92,62,0.12);}
+.ncc-day.today{border:2px solid var(--terracotta);box-shadow:0 0 0 3px rgba(53,69,214,0.12);}
 .ncc-today-label{position:absolute;top:8px;right:8px;font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--terracotta);font-weight:700;}
-.ncc-daynum{font-family:"Fraunces",serif;font-size:18px;color:var(--ink);opacity:0.75;}
+.ncc-daynum{font-family:"Open Sauce Two",system-ui,sans-serif;font-size:18px;color:var(--ink);opacity:0.75;}
 .ncc-day.editable{cursor:pointer;}
 .ncc-day.editable:hover{border-color:var(--gold);}
-.ncc-tag{border:none;text-align:left;border-radius:9px;padding:8px 9px;font-size:12.5px;line-height:1.3;font-weight:600;color:#fff;cursor:pointer;font-family:"Work Sans",sans-serif;-webkit-tap-highlight-color:transparent;transition:transform .12s ease;width:100%;}
+.ncc-tag{border:none;text-align:left;border-radius:9px;padding:8px 9px;font-size:12.5px;line-height:1.3;font-weight:600;color:#fff;cursor:pointer;font-family:"Open Sauce Two",system-ui,sans-serif;-webkit-tap-highlight-color:transparent;transition:transform .12s ease;width:100%;}
 .ncc-tag:active{transform:scale(0.97);}
 .ncc-tag .ncc-kind{display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.85;margin-bottom:2px;font-weight:700;}
 .ncc-edit-note{font-size:11.5px;color:var(--muted);font-style:italic;line-height:1.3;padding:2px 1px;}
@@ -94,11 +94,11 @@ export const CALENDAR_CSS = `
   .ncc-tag .ncc-kind{font-size:8.5px;}
   .ncc-add-day{display:none;}
 }
-.ncc-overlay{position:fixed;inset:0;background:rgba(43,33,64,0.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60;}
-.ncc-modal{background:var(--paper);max-width:560px;width:100%;max-height:86vh;overflow-y:auto;border-radius:18px;padding:28px 26px 26px;position:relative;box-shadow:0 30px 60px rgba(43,33,64,0.35);font-family:"Work Sans",sans-serif;color:var(--ink);}
+.ncc-overlay{position:fixed;inset:0;background:rgba(11,11,24,0.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60;}
+.ncc-modal{background:var(--paper);max-width:560px;width:100%;max-height:86vh;overflow-y:auto;border-radius:12px;padding:28px 26px 26px;position:relative;border:1px solid var(--line);box-shadow:0 16px 40px rgba(11,11,24,0.22);font-family:"Open Sauce Two",system-ui,sans-serif;color:var(--ink);}
 .ncc-kind-badge{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:#fff;padding:5px 11px;border-radius:20px;margin-bottom:14px;}
 .ncc-fecha{color:var(--muted);font-size:13px;margin-bottom:2px;text-transform:capitalize;}
-.ncc-modal h2{font-family:"Fraunces",serif;font-weight:500;font-size:24px;margin:0 0 14px;line-height:1.25;}
+.ncc-modal h2{font-family:"Open Sauce Two",system-ui,sans-serif;font-weight:500;font-size:24px;margin:0 0 14px;line-height:1.25;}
 .ncc-block{margin-bottom:16px;}
 .ncc-block h3{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--terracotta);margin:0 0 6px;font-weight:700;}
 .ncc-block p{margin:0;font-size:14.5px;line-height:1.6;white-space:pre-line;}
@@ -112,16 +112,8 @@ export const CALENDAR_CSS = `
 }
 `;
 
-export const CALENDAR_FONTS = (
-  <>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-  </>
-);
+// Open Sauce Two is loaded once by the application shell.
+export const CALENDAR_FONTS = null;
 
 // ─── Grid del mes ─────────────────────────────────────────────────────────────
 

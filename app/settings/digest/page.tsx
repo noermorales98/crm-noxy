@@ -257,7 +257,7 @@ export default function DigestSettingsPage() {
                       onClick={() => toggleDay(d.value)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                         customDays.includes(d.value)
-                          ? "bg-accent-charcoal text-white border-accent-charcoal"
+                          ? "bg-action-primary text-action-primary-foreground border-action-primary"
                           : "bg-white text-text-secondary border-border-subtle hover:bg-nav-hover"
                       }`}
                     >
@@ -397,7 +397,7 @@ export default function DigestSettingsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:bg-black transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:bg-black transition-colors disabled:opacity-50"
               >
                 {saving ? "Guardando…" : "Guardar"}
               </button>

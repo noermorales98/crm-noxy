@@ -21,7 +21,7 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      setError("Completa todos los campos.");
       setLoading(false);
       return;
     }
@@ -34,13 +34,13 @@ export default function LoginPage() {
       });
 
       if (res?.error) {
-        setError("Invalid email or password");
+        setError("El correo o la contraseña no son correctos.");
       } else {
         router.push("/");
         router.refresh();
       }
-    } catch (err) {
-      setError("An unexpected error occurred");
+    } catch {
+      setError("Ocurrió un error inesperado. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -56,16 +56,18 @@ export default function LoginPage() {
         <p className="text-sm text-text-secondary text-center mb-8">Inicia sesión en tu CRM</p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 font-medium">
+          <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-control text-sm mb-4 font-medium">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Correo electrónico</label>
+            <label htmlFor="login-email" className="block text-sm font-medium text-text-primary mb-1">Correo electrónico</label>
             <input
+              id="login-email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={input}
@@ -73,9 +75,11 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Contraseña</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-text-primary mb-1">Contraseña</label>
             <input
+              id="login-password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={input}
@@ -84,14 +88,14 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" disabled={loading} className={`w-full ${btnPrimary} py-2.5 mt-2`}>
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Iniciando sesión…" : "Iniciar sesión"}
           </button>
         </form>
 
         <p className="text-center text-sm text-text-secondary mt-6">
-          Do not have an account?{" "}
-          <Link href="/register" className="text-text-primary font-medium hover:underline">
-            Register your agency
+          ¿Aún no tienes una cuenta?{" "}
+          <Link href="/register" className="text-action-primary font-semibold hover:underline">
+            Registra tu empresa
           </Link>
         </p>
       </div>

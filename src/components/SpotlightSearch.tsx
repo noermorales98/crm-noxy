@@ -134,10 +134,10 @@ export default function SpotlightSearch({
       className="fixed inset-0 z-[9999] flex items-start justify-center pt-[18vh]"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/25 backdrop-blur-[3px]" />
+      <div className="absolute inset-0 bg-brand-obsidian/35" />
 
       <div
-        className="relative w-full max-w-[560px] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden border border-border-subtle"
+        className="relative w-full max-w-[560px] mx-4 bg-white rounded-surface shadow-md overflow-hidden border border-border-subtle"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 px-5 py-4 border-b border-border-subtle">

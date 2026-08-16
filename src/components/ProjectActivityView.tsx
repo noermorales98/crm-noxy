@@ -55,10 +55,10 @@ function noteIconFor(key: string | null) {
 
 const TYPE_META: Record<ActivityType, { icon: any; color: string; bg: string }> = {
   NOTE: { icon: Note01Icon, color: "#9065B0", bg: "#F0E6F9" },
-  PROJECT_CREATED: { icon: FolderIcon, color: "#337EA9", bg: "#E1F0FF" },
+  PROJECT_CREATED: { icon: FolderIcon, color: "#3545D6", bg: "#EBEDFA" },
   TASK_CREATED: { icon: Task01Icon, color: "#D9730D", bg: "#FFECD2" },
   TASK_COMPLETED: { icon: CheckmarkCircle01Icon, color: "#448361", bg: "#E2F6E9" },
-  ASSOCIATIONS_UPDATED: { icon: PencilEdit01Icon, color: "#787774", bg: "#F0F0EE" },
+  ASSOCIATIONS_UPDATED: { icon: PencilEdit01Icon, color: "#6B7184", bg: "#F5F6FB" },
 };
 
 function timeAgo(dateStr: string): string {
@@ -140,7 +140,7 @@ export default function ProjectActivityView({ projectId }: { projectId: string }
               type="button"
               onClick={() => setSelectedIcon(opt.key)}
               className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
-                selectedIcon === opt.key ? "bg-accent-charcoal text-white" : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
+                selectedIcon === opt.key ? "bg-action-primary text-action-primary-foreground" : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
               }`}
             >
               <HugeiconsIcon icon={opt.icon} size={14} />
@@ -163,7 +163,7 @@ export default function ProjectActivityView({ projectId }: { projectId: string }
           <button
             onClick={handleAddNote}
             disabled={saving || !note.trim()}
-            className="px-4 py-2 bg-accent-charcoal text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
           >
             {saving ? "Guardando..." : "Agregar nota"}
           </button>

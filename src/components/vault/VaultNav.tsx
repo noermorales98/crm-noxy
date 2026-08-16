@@ -13,7 +13,7 @@ import {
 import AddClientModal from "./AddClientModal";
 import ImportExistingModal from "./ImportExistingModal";
 
-const ICON_COLOR = "#37352F";
+const ICON_COLOR = "#0B0B18";
 const ICON_SIZE = 16;
 
 const itemBase = "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors";
@@ -80,7 +80,7 @@ export default function VaultNav() {
         <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+            className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
             Nuevo cliente

@@ -1,66 +1,140 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #FBFBFA;
-  --color-foreground: #37352F;
-  --color-surface-app: #FBFBFA;
-  --color-surface-sidebar: #F7F7F5;
+  --font-sans: 'Open Sauce Two', system-ui, sans-serif;
+  --color-brand-memory: #7F96F9;
+  --color-brand-discord: #5363EE;
+  --color-brand-indigo: #3545D6;
+  --color-brand-obsidian: #0B0B18;
+  --color-brand-lime: #C8FE37;
+  --color-brand-jasmine: #F5F6FB;
+  --color-brand-lavender: #EBEDFA;
+  --color-brand-silver: #9CA3B7;
+  --color-brand-gray: #6B7184;
+  --color-background: #F5F6FB;
+  --color-foreground: #0B0B18;
+  --color-surface-app: #F5F6FB;
+  --color-surface-sidebar: #EBEDFA;
   --color-surface-elevated: #FFFFFF;
-  --color-text-primary: #37352F;
-  --color-text-secondary: #787774;
-  --color-nav-active: #EFEFEF;
-  --color-nav-hover: #E8E8E8;
-  --color-border-subtle: #EDEDED;
-  --color-accent-charcoal: #2D2D2D;
-  --radius-ui: 8px;
+  --color-text-primary: #0B0B18;
+  --color-text-secondary: #6B7184;
+  --color-text-secondary-strong: #555B6E;
+  --color-text-placeholder: #555B6E;
+  --color-nav-active: #DDE3FE;
+  --color-nav-hover: #F0F2FE;
+  --color-border-subtle: #DCDFE6;
+  --color-action-primary: #3545D6;
+  --color-action-primary-foreground: #FFFFFF;
+  --color-action-secondary: #5363EE;
+  --color-focus: #3545D6;
+  --color-highlight: #C8FE37;
+  --radius-control: 10px;
+  --radius-surface: 12px;
+  --radius-ui: 10px;
 }
 
 :root {
-  --surface-app: #FBFBFA;
-  --surface-sidebar: #F7F7F5;
+  --brand-memory: #7F96F9;
+  --brand-discord: #5363EE;
+  --brand-indigo: #3545D6;
+  --brand-obsidian: #0B0B18;
+  --brand-lime: #C8FE37;
+  --brand-jasmine: #F5F6FB;
+  --brand-lavender: #EBEDFA;
+  --brand-silver: #9CA3B7;
+  --brand-gray: #6B7184;
+  --surface-app: #F5F6FB;
+  --surface-sidebar: #EBEDFA;
   --surface-elevated: #FFFFFF;
-  --text-primary: #37352F;
-  --text-secondary: #787774;
-  --nav-active: #EFEFEF;
-  --nav-hover: #E8E8E8;
-  --border-subtle: #EDEDED;
-  --accent-charcoal: #2D2D2D;
-  --radius-ui: 8px;
+  --text-primary: #0B0B18;
+  --text-secondary: #6B7184;
+  --text-secondary-strong: #555B6E;
+  --text-placeholder: #555B6E;
+  --nav-active: #DDE3FE;
+  --nav-hover: #F0F2FE;
+  --border-subtle: #DCDFE6;
+  --action-primary: #3545D6;
+  --action-primary-foreground: #FFFFFF;
+  --action-secondary: #5363EE;
+  --focus: #3545D6;
+  --highlight: #C8FE37;
+  --radius-control: 10px;
+  --radius-surface: 12px;
+  --radius-ui: 10px;
+  --duration-state: 180ms;
+  --ease-state: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 body {
   background-color: var(--surface-app);
   color: var(--text-primary);
-  font-family: 'Google Sans Flex Variable', system-ui, sans-serif;
+  font-family: 'Open Sauce Two', system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+::placeholder {
+  color: var(--text-placeholder);
+  opacity: 1;
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 
 @layer components {
   .crm-card {
-    @apply bg-surface-elevated rounded-lg p-5 transition-colors;
+    @apply bg-surface-elevated rounded-surface border border-border-subtle p-5;
   }
 
   .crm-card-interactive {
-    @apply bg-surface-elevated rounded-lg p-5 transition-colors hover:bg-nav-hover;
+    @apply bg-surface-elevated rounded-surface border border-border-subtle p-5 transition-colors duration-200 hover:bg-nav-hover;
   }
 
   .crm-input {
-    @apply w-full px-3 py-2.5 rounded-lg bg-surface-sidebar text-text-primary text-sm outline-none focus:bg-surface-elevated focus:ring-1 focus:ring-border-subtle transition-colors;
+    @apply min-h-11 w-full rounded-control border border-border-subtle bg-surface-elevated px-3 py-2.5 text-sm text-text-primary outline-none transition-colors duration-200 focus:border-focus focus:ring-2 focus:ring-focus/15;
   }
 
   .crm-btn-primary {
-    @apply bg-accent-charcoal text-white rounded-lg px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50;
+    @apply inline-flex min-h-10 items-center justify-center rounded-control bg-action-primary px-4 py-2 text-sm font-semibold text-action-primary-foreground transition-colors duration-200 hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .crm-btn-ghost {
-    @apply text-text-primary rounded-lg px-3 py-2 text-sm hover:bg-nav-hover transition-colors;
+    @apply inline-flex min-h-10 items-center justify-center rounded-control px-3 py-2 text-sm font-medium text-text-primary transition-colors duration-200 hover:bg-nav-hover;
   }
 
   .crm-dropdown {
-    @apply bg-surface-elevated rounded-lg py-1 overflow-hidden;
+    @apply overflow-hidden rounded-surface border border-border-subtle bg-surface-elevated py-1 shadow-[0_8px_8px_rgba(11,11,24,0.10)];
   }
 
   .crm-section-label {
-    @apply text-[11px] font-medium text-text-secondary uppercase tracking-wider;
+    @apply text-xs font-semibold text-text-secondary;
+  }
+
+  .noxy-form-panel {
+    @apply rounded-surface border border-border-subtle bg-surface-elevated;
+  }
+
+  .noxy-form-label {
+    @apply text-sm font-semibold text-text-primary;
+  }
+
+  .noxy-form-control {
+    @apply min-h-11 w-full rounded-control border border-border-subtle bg-surface-elevated px-3.5 py-3 text-sm text-text-primary outline-none;
+  }
+
+  .noxy-form-control:focus-visible {
+    @apply border-focus ring-2 ring-focus/15;
+    outline: none;
+  }
+
+  .noxy-form-control:disabled {
+    @apply cursor-not-allowed bg-brand-lavender text-text-secondary opacity-70;
+  }
+
+  .noxy-form-button {
+    @apply inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-5 py-2.5 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
   }
 }
 
@@ -73,11 +147,22 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #E0E0E0;
+  background: #9CA3B7;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #D0D0D0;
+  background: #6B7184;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* KB markdown themes */
@@ -422,4 +507,3 @@ body {
   background: color-mix(in srgb, var(--comment-accent, #f59e0b) 8%, white) !important;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--comment-accent, #f59e0b) 20%, transparent);
 }
-

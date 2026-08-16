@@ -84,7 +84,7 @@ export default function KbHomePage() {
           {/* Page header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent-charcoal flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-action-primary flex items-center justify-center">
                 <BookOpen size={18} color="white" />
               </div>
               <p className="text-sm text-text-secondary">Documentación, guías y notas del equipo</p>
@@ -102,7 +102,7 @@ export default function KbHomePage() {
               <button
                 onClick={() => createPage(false)}
                 disabled={creating}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-charcoal text-white text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
               >
                 <Plus size={14} />
                 Nueva página
@@ -113,7 +113,7 @@ export default function KbHomePage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-8">
             {[
-              { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-blue-600 bg-blue-50" },
+              { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-action-primary bg-nav-hover" },
               { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
               { label: "Borradores",  value: pages.filter(p => !p.isFolder && !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
             ].map((stat) => (
@@ -163,7 +163,7 @@ export default function KbHomePage() {
                     <button
                       onClick={() => createPage(false)}
                       disabled={creating}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-accent-charcoal hover:bg-black text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                     >
                       <Plus size={14} />
                       Nueva página
