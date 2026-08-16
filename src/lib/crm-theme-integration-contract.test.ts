@@ -59,3 +59,15 @@ test("personal themes wrap only the authenticated CRM shell", () => {
   assert.match(dashboardShell, /data-crm-theme=\{themeId\}/);
   assert.match(dashboardShell, /crmThemeCssVariables\(theme\)/);
 });
+
+test("Settings exposes an accessible responsive theme selector", () => {
+  const settings = read("app/settings/page.tsx");
+  const selector = read("src/components/settings/ThemeSelector.tsx");
+
+  assert.match(settings, /<ThemeSelector\s*\/>/);
+  assert.match(selector, /<h2[^>]*>Apariencia<\/h2>/);
+  assert.match(selector, /aria-pressed=\{selected\}/);
+  assert.match(selector, /role="status"/);
+  assert.match(selector, /aria-live="polite"/);
+  assert.match(selector, /grid-cols-1 sm:grid-cols-2/);
+});

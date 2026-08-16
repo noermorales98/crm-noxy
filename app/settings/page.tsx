@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSoundSettings } from "@/src/context/SoundContext";
+import ThemeSelector from "@/src/components/settings/ThemeSelector";
 
 type GoogleStatus = {
   connected: boolean;
@@ -155,12 +156,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">Configuración / Integraciones</h1>
           </div>
 
-          <div className="bg-white rounded-lg border border-border-subtle p-8 max-w-2xl flex flex-col gap-8">
+          <div className="bg-surface-elevated rounded-surface border border-border-subtle p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
+
+            <ThemeSelector />
+
+            <hr className="border-border-subtle" />
 
             {/* Sonidos de interacción */}
             <div>

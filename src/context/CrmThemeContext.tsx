@@ -64,24 +64,27 @@ function isAbortError(error: unknown): boolean {
 export function CrmThemeProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [state, setState] = useState<CrmThemePreferenceState>(() => createThemePreferenceState());
+
+  return (
+    <CrmThemePreferenceProvider key={userId ?? "anonymous"} userId={userId}>
+      {children}
+    </CrmThemePreferenceProvider>
+  );
+}
+
+function CrmThemePreferenceProvider({ children, userId }: { children: ReactNode; userId?: string }) {
+  const [state, setState] = useState<CrmThemePreferenceState>(() => {
+    const initial = createThemePreferenceState(userId ? readCachedTheme(userId) : undefined);
+    return userId ? { ...initial, saveStatus: "loading" } : initial;
+  });
   const requestVersionRef = useRef(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveControllerRef.current?.abort();
-
-    if (!userId) {
-      setState(createThemePreferenceState());
-      return;
-    }
+    if (!userId) return;
 
     const loadVersion = ++requestVersionRef.current;
-    const cached = readCachedTheme(userId);
-    setState({ ...createThemePreferenceState(cached), requestVersion: loadVersion, saveStatus: "loading" });
-
     const controller = new AbortController();
     saveControllerRef.current = controller;
 
