@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import DashboardShell from "@/src/components/DashboardShell";
+import { CrmThemeProvider } from "@/src/context/CrmThemeContext";
 
 const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/", "/calendario/"];
 
@@ -17,5 +18,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <CrmThemeProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </CrmThemeProvider>
+  );
 }

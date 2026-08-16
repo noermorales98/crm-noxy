@@ -8,6 +8,9 @@ import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
 import { SearchProvider } from "@/src/context/SearchContext";
 import { usePathname } from "next/navigation";
+import { useCrmTheme } from "@/src/context/CrmThemeContext";
+import { crmThemeCssVariables } from "@/src/lib/crm-themes";
+import type { CSSProperties } from "react";
 
 function isHideHeaderRoute(pathname: string) {
   return /^\/kb\/[^/]+$/.test(pathname) || pathname.startsWith("/assistant");
@@ -15,6 +18,7 @@ function isHideHeaderRoute(pathname: string) {
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { themeId, theme } = useCrmTheme();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
   const useFloatingAssistantSidebar = isAssistantRoute(pathname ?? "");
 
@@ -22,7 +26,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <SearchProvider>
       <KbProvider>
         <EmailProvider>
-          <div className="flex h-screen overflow-hidden bg-surface-app">
+          <div
+            className="flex h-screen overflow-hidden bg-surface-app"
+            data-crm-theme={themeId}
+            style={crmThemeCssVariables(theme) as CSSProperties}
+          >
             {useFloatingAssistantSidebar ? (
               <AssistantSidebarShell />
             ) : (

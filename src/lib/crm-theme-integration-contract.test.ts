@@ -47,3 +47,15 @@ test("public forms retain their static no-motion contract", () => {
   assert.match(publicForm, /role="status"/);
   assert.match(publicForm, /aria-live="polite"/);
 });
+
+test("personal themes wrap only the authenticated CRM shell", () => {
+  const appShell = read("src/components/AppShell.tsx");
+  const dashboardShell = read("src/components/DashboardShell.tsx");
+  const publicReturn = appShell.indexOf("if (isPublicRoute(pathname))");
+  const provider = appShell.indexOf("<CrmThemeProvider>");
+
+  assert.ok(publicReturn >= 0 && provider > publicReturn);
+  assert.match(appShell, /<CrmThemeProvider>[\s\S]*<DashboardShell/);
+  assert.match(dashboardShell, /data-crm-theme=\{themeId\}/);
+  assert.match(dashboardShell, /crmThemeCssVariables\(theme\)/);
+});
