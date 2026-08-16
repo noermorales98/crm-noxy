@@ -52,7 +52,7 @@ export default function KbEditorAiModal({
         onClick={loading ? undefined : onClose}
       />
       <div
-        className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl border border-border-subtle shadow-2xl flex flex-col overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-surface border border-border-subtle shadow-md flex flex-col overflow-hidden"
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >

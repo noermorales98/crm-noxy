@@ -526,7 +526,7 @@ export default function AvailabilityPage() {
         </main>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">
@@ -611,7 +611,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="scheduleForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmitting ? "Guardando..." : editingSchedule ? "Actualizar" : "Crear"}
               </button>
@@ -622,7 +622,7 @@ export default function AvailabilityPage() {
 
       {/* BLOCKED TIME MODAL */}
       {isBlockedModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">Bloquear Fecha / Hora</h3>
@@ -686,7 +686,7 @@ export default function AvailabilityPage() {
                         type="button"
                         onClick={addAllDayDate}
                         disabled={!allDayInput}
-                        className="px-3 py-2 rounded-lg bg-accent-charcoal text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-colors"
+                        className="px-3 py-2 rounded-lg bg-action-primary text-white text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-colors"
                       >
                         Agregar
                       </button>
@@ -733,7 +733,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="blockedForm"
                 disabled={isSubmittingBlocked}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
               </button>
@@ -744,7 +744,7 @@ export default function AvailabilityPage() {
 
       {/* EXTENDED AVAILABILITY MODAL */}
       {isExtendedModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">Agregar Horario Extendido</h3>
@@ -812,7 +812,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="extendedForm"
                 disabled={isSubmittingExtended}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-action-primary hover:opacity-90 disabled:opacity-50"
               >
                 {isSubmittingExtended ? "Guardando..." : "Agregar"}
               </button>

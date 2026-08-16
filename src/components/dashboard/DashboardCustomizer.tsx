@@ -107,7 +107,7 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
       {editMode && !pickerOpen && (
         <button
           onClick={() => setPickerOpen(true)}
-          className="fixed bottom-6 right-6 z-30 px-4 py-2.5 rounded-full bg-accent-charcoal text-white text-xs font-medium shadow-lg hover:opacity-90"
+          className="fixed bottom-6 right-6 z-30 px-4 py-2.5 rounded-full bg-action-primary text-white text-xs font-medium shadow-lg hover:opacity-90"
         >
           + Agregar widgets o pestañas
         </button>

@@ -34,7 +34,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
 
   if (!editMode) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {widgets.map((w) => (
           <div key={w.id} className={widgetSizeClass(w.size)}>
             {w.render(data)}
@@ -48,7 +48,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="dashboard-widgets" direction="horizontal">
         {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 xl:grid-cols-4 gap-4">
             {widgets.map((w, index) => (
               <Draggable key={w.id} draggableId={w.id} index={index}>
                 {(dragProvided, dragSnapshot) => (
@@ -57,7 +57,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
                     {...dragProvided.draggableProps}
                     className={`${widgetSizeClass(w.size)} relative group ${dragSnapshot.isDragging ? "z-10" : ""}`}
                   >
-                    <div className="absolute inset-0 rounded-lg ring-2 ring-accent-charcoal/20 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-lg ring-2 ring-action-primary/20 pointer-events-none" />
                     <div
                       {...dragProvided.dragHandleProps}
                       className="absolute top-2 left-2 z-20 w-6 h-6 rounded-md bg-surface-elevated border border-border-subtle flex items-center justify-center cursor-grab active:cursor-grabbing text-text-secondary hover:text-text-primary shadow-sm"

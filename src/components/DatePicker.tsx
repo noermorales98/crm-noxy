@@ -174,7 +174,7 @@ export default function DatePicker({
               onClick={() => selectDay(day)}
               className={[
                 "w-9 h-9 rounded-lg text-sm font-medium transition-all mx-auto flex items-center justify-center",
-                isSelected ? "bg-accent-charcoal text-white font-bold" : "",
+                isSelected ? "bg-action-primary text-white font-bold" : "",
                 isToday && !isSelected ? "bg-gray-100 text-text-primary font-bold ring-1 ring-gray-300" : "",
                 !isSelected && !isToday ? "text-text-primary hover:bg-nav-hover" : "",
               ].join(" ")}
@@ -222,7 +222,7 @@ export default function DatePicker({
           compact ? "px-3 py-2 rounded-lg text-xs" : "px-4 py-2.5 rounded-lg text-sm",
         ].join(" ")}
       >
-        <HugeiconsIcon icon={CalendarCheckIn01Icon} size={compact ? 14 : 16} color="#787774" />
+        <HugeiconsIcon icon={CalendarCheckIn01Icon} size={compact ? 14 : 16} color="#6B7184" />
         <span className={`flex-1 ${displayValue ? "text-text-primary" : "text-text-secondary"}`}>
           {displayValue || placeholder}
         </span>

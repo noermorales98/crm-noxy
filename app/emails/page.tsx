@@ -661,7 +661,7 @@ function EmailsPageInner() {
                           const company = targetCompany || companies.find((c) => !c.imapHost);
                           if (company) openConfig(company);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-accent-charcoal text-white text-xs font-medium rounded-lg hover:opacity-90 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-xs font-medium rounded-lg hover:opacity-90 transition-colors"
                       >
                         <HugeiconsIcon icon={Settings01Icon} size={13} />
                         Configurar IMAP
@@ -898,7 +898,7 @@ function EmailsPageInner() {
 
       {/* Compose Modal */}
       {isComposing && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-accent-charcoal/20 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-brand-obsidian/25 p-4">
           <div className="bg-white rounded-lg w-full max-w-xl flex flex-col max-h-[85vh]">
             {/* Header */}
             <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between shrink-0">
@@ -913,11 +913,11 @@ function EmailsPageInner() {
                   onClick={() => { setShowAiDraft((v) => !v); setAiResult(null); }}
                   className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
                     showAiDraft
-                      ? "bg-[#EEF2FF] text-[#6366F1] font-medium"
+                      ? "bg-[#EBEDFA] text-[#3545D6] font-medium"
                       : "text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
                   }`}
                 >
-                  <HugeiconsIcon icon={SparklesIcon} size={13} color={showAiDraft ? "#6366F1" : undefined} />
+                  <HugeiconsIcon icon={SparklesIcon} size={13} color={showAiDraft ? "#3545D6" : undefined} />
                   Redactar con IA
                 </button>
                 <button
@@ -934,15 +934,15 @@ function EmailsPageInner() {
               {showAiDraft && (
                 <div className="px-5 py-4 border-b border-border-subtle bg-[#F5F3FF]">
                   <div className="flex items-center gap-2 mb-3">
-                    <HugeiconsIcon icon={SparklesIcon} size={14} color="#6366F1" />
-                    <span className="text-xs font-semibold text-[#6366F1]">Redactar con IA</span>
+                    <HugeiconsIcon icon={SparklesIcon} size={14} color="#3545D6" />
+                    <span className="text-xs font-semibold text-[#3545D6]">Redactar con IA</span>
                   </div>
                   <textarea
                     rows={2}
                     placeholder="Describe lo que quieres comunicar... (ej: seguimiento a propuesta enviada la semana pasada)"
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
-                    className="w-full text-sm border border-[#DDD6FE] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#6366F1] resize-none text-text-primary placeholder-gray-300"
+                    className="w-full text-sm border border-[#DCDFE6] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#3545D6] resize-none text-text-primary placeholder-gray-300"
                   />
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1">
@@ -953,7 +953,7 @@ function EmailsPageInner() {
                           onClick={() => setAiTone(t)}
                           className={`text-xs px-2.5 py-1 rounded-md transition-colors capitalize ${
                             aiTone === t
-                              ? "bg-[#6366F1] text-white"
+                              ? "bg-[#3545D6] text-white"
                               : "text-text-secondary hover:bg-surface-elevated"
                           }`}
                         >
@@ -965,7 +965,7 @@ function EmailsPageInner() {
                       type="button"
                       onClick={handleAiDraft}
                       disabled={!aiPrompt.trim() || aiLoading}
-                      className="flex items-center gap-1.5 text-xs bg-[#6366F1] text-white px-3 py-1.5 rounded-lg hover:bg-[#4F46E5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-1.5 text-xs bg-[#3545D6] text-white px-3 py-1.5 rounded-lg hover:bg-[#5363EE] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {aiLoading ? (
                         <span className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
@@ -977,7 +977,7 @@ function EmailsPageInner() {
                   </div>
                   {/* Result */}
                   {aiResult && (
-                    <div className="mt-3 border border-[#DDD6FE] rounded-lg bg-white overflow-hidden">
+                    <div className="mt-3 border border-[#DCDFE6] rounded-lg bg-white overflow-hidden">
                       <div className="px-3 py-2 border-b border-[#EDE9FE]">
                         <p className="text-xs text-text-secondary">Asunto: <span className="text-text-primary font-medium">{aiResult.subject}</span></p>
                       </div>
@@ -993,7 +993,7 @@ function EmailsPageInner() {
                             setAiResult(null);
                             setAiPrompt("");
                           }}
-                          className="text-xs bg-[#6366F1] text-white px-3 py-1.5 rounded-md hover:bg-[#4F46E5] transition-colors"
+                          className="text-xs bg-[#3545D6] text-white px-3 py-1.5 rounded-md hover:bg-[#5363EE] transition-colors"
                         >
                           Insertar
                         </button>
@@ -1207,7 +1207,7 @@ function EmailsPageInner() {
                   <button
                     type="submit"
                     disabled={isSending}
-                    className="flex items-center gap-2 px-4 py-2 bg-accent-charcoal text-white text-sm font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:opacity-90 transition-colors disabled:opacity-50"
                   >
                     <HugeiconsIcon icon={SentIcon} size={14} />
                     {isSending ? "Guardando..." : composeData.scheduledAt ? "Programar" : "Enviar"}
@@ -1221,7 +1221,7 @@ function EmailsPageInner() {
 
       {/* IMAP/SMTP Config Modal */}
       {showImapModal && configCompanyId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-lg flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-border-subtle flex items-center justify-between shrink-0">
               <div>
@@ -1386,7 +1386,7 @@ function EmailsPageInner() {
                 <button
                   type="submit"
                   disabled={isSavingConfig}
-                  className="px-5 py-2 text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2 text-sm font-medium text-white bg-action-primary hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
                 >
                   {isSavingConfig ? "Guardando..." : "Guardar configuración"}
                 </button>

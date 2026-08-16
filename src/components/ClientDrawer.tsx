@@ -204,7 +204,7 @@ export default function ClientDrawer({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setEditing(e => !e)}
-              className={`p-2 rounded-lg transition-colors ${editing ? "bg-accent-charcoal text-white" : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"}`}
+              className={`p-2 rounded-lg transition-colors ${editing ? "bg-action-primary text-white" : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"}`}
             >
               <HugeiconsIcon icon={Edit01Icon} size={16} />
             </button>
@@ -222,7 +222,7 @@ export default function ClientDrawer({
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
               >
                 {labels[t]}
               </button>
@@ -280,7 +280,7 @@ export default function ClientDrawer({
                         <div className="flex rounded-lg border border-border-subtle overflow-hidden">
                           {["USD", "MXN"].map(c => (
                             <button key={c} type="button" onClick={() => setForm(f => ({ ...f, currency: c }))}
-                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-accent-charcoal text-white" : "text-text-secondary hover:bg-surface-sidebar"}`}>
+                              className={`flex-1 py-2 text-sm font-bold transition-all ${form.currency === c ? "bg-action-primary text-white" : "text-text-secondary hover:bg-surface-sidebar"}`}>
                               {c}
                             </button>
                           ))}
@@ -302,7 +302,7 @@ export default function ClientDrawer({
                       </div>
                       <div
                         onClick={() => setForm(f => ({ ...f, autoMarkPaid: !f.autoMarkPaid }))}
-                        className={`w-11 h-6 rounded-full transition-colors relative ${form.autoMarkPaid ? "bg-accent-charcoal" : "bg-nav-active"}`}
+                        className={`w-11 h-6 rounded-full transition-colors relative ${form.autoMarkPaid ? "bg-action-primary" : "bg-nav-active"}`}
                       >
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.autoMarkPaid ? "translate-x-5" : "translate-x-0.5"}`} />
                       </div>
@@ -326,7 +326,7 @@ export default function ClientDrawer({
 
                   <div className="flex gap-3 pt-2 border-t border-border-subtle">
                     <button onClick={() => setEditing(false)} className="flex-1 py-2.5 text-sm font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">Cancelar</button>
-                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-50">
+                    <button onClick={saveInfo} disabled={saving} className="flex-1 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
                       {saving ? "Guardando..." : "Guardar cambios"}
                     </button>
                   </div>
@@ -437,7 +437,7 @@ export default function ClientDrawer({
                 {!isPaidThisMonth && (
                   <button
                     onClick={() => markPaid(currentPayment?.id)}
-                    className="w-full py-2.5 text-sm font-semibold bg-accent-charcoal text-white rounded-lg hover:bg-black transition-colors"
+                    className="w-full py-2.5 text-sm font-semibold bg-action-primary text-white rounded-lg hover:bg-black transition-colors"
                   >
                     Marcar como pagado
                   </button>

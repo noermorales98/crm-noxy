@@ -40,7 +40,7 @@ export async function POST(req: Request) {
         name,
         description,
         duration: Number(duration),
-        color: color || "#3B82F6",
+        color: color || "#3545D6",
         location,
         slug,
         scheduleId,

@@ -65,7 +65,7 @@ function DonutChart({ pages, folders }: { pages: number; folders: number }) {
           cy="36"
           r={r}
           fill="none"
-          stroke="#337EA9"
+          stroke="#3545D6"
           strokeWidth="10"
           strokeDasharray={`${pageLen} ${c - pageLen}`}
           strokeLinecap="round"
@@ -84,7 +84,7 @@ function DonutChart({ pages, folders }: { pages: number; folders: number }) {
       </svg>
       <div className="text-xs space-y-1">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#337EA9]" />
+          <span className="w-2 h-2 rounded-full bg-[#3545D6]" />
           <span className="text-text-secondary">{pages} páginas</span>
         </div>
         <div className="flex items-center gap-2">
@@ -254,7 +254,7 @@ export default function KbFolderView({
             type="button"
             disabled={creating}
             onClick={() => createChild(false)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent-charcoal text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"
           >
             <Plus size={14} /> Página
           </button>

@@ -25,7 +25,7 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
   if (!project) return notFound();
 
   const associations = [
-    project.clientCompany && { icon: Building04Icon, color: "#337EA9", bg: "#E1F0FF", label: "Empresa asociada", name: project.clientCompany.name, href: `/companies/${project.clientCompany.id}` },
+    project.clientCompany && { icon: Building04Icon, color: "#3545D6", bg: "#EBEDFA", label: "Empresa asociada", name: project.clientCompany.name, href: `/companies/${project.clientCompany.id}` },
     project.client && { icon: Money02Icon, color: "#448361", bg: "#E2F6E9", label: "Cliente recurrente", name: project.client.name, href: `/pipeline/clientes` },
     project.contact && { icon: UserMultipleIcon, color: "#0891b2", bg: "#ECFEFF", label: "Contacto asociado", name: `${project.contact.firstName} ${project.contact.lastName || ""}`, href: `/contacts` },
     project.emailAccountCompany && { icon: Mail01Icon, color: "#D9730D", bg: "#FFECD2", label: "Cuenta de correo", name: project.emailAccountCompany.name, href: `/projects/${id}/correo` },

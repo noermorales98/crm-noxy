@@ -157,7 +157,7 @@ export default function AiModelsPage() {
           </div>
           <button
             onClick={openAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-accent-charcoal text-white text-sm font-medium rounded-lg hover:bg-black transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:bg-black transition-colors"
           >
             <Plus size={14} />
             Agregar modelo
@@ -192,7 +192,7 @@ export default function AiModelsPage() {
                 <button
                   type="submit"
                   disabled={saving || !form.modelId.trim() || !form.name.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent-charcoal text-white text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-40"
+                  className="flex items-center gap-2 px-4 py-2 bg-action-primary text-white text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-40"
                 >
                   <Check size={13} />
                   {saving ? "Guardando…" : "Guardar"}
@@ -217,7 +217,7 @@ export default function AiModelsPage() {
           ) : customs.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <p className="text-sm text-text-secondary mb-2">No hay modelos personalizados aún.</p>
-              <button onClick={openAdd} className="text-sm text-[#6366F1] hover:underline">Agregar el primero</button>
+              <button onClick={openAdd} className="text-sm text-[#3545D6] hover:underline">Agregar el primero</button>
             </div>
           ) : (
             <div className="divide-y divide-border-subtle">
@@ -296,7 +296,7 @@ export default function AiModelsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-text-primary">{m.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#6366F1] font-semibold">{m.group}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EBEDFA] text-[#3545D6] font-semibold">{m.group}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Fijo</span>
                   </div>
                   <p className="text-xs text-text-secondary mt-0.5 font-mono">{m.id}</p>
@@ -314,7 +314,7 @@ export default function AiModelsPage() {
                       <span className={`text-sm font-medium ${isHidden ? "line-through text-text-secondary" : "text-text-primary"}`}>
                         {m.name}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EEF2FF] text-[#6366F1] font-semibold">{m.group}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EBEDFA] text-[#3545D6] font-semibold">{m.group}</span>
                       {isHidden && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Oculto</span>
                       )}

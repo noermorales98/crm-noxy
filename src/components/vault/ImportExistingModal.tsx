@@ -152,7 +152,7 @@ export default function ImportExistingModal({
         : "No hay contactos disponibles para agregar.";
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+    <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
       <div className="bg-white rounded-lg w-full max-w-md max-h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle shrink-0">
           <h2 className="text-base font-bold text-text-primary">Agregar existente</h2>
@@ -221,7 +221,7 @@ export default function ImportExistingModal({
                     onClick={() => importCompany(company)}
                     className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left hover:bg-nav-hover transition-colors disabled:opacity-50"
                   >
-                    <HugeiconsIcon icon={Building02Icon} size={16} color="#37352F" />
+                    <HugeiconsIcon icon={Building02Icon} size={16} color="#0B0B18" />
                     <span className="text-sm font-medium text-text-primary truncate flex-1">
                       {company.name}
                     </span>
@@ -246,7 +246,7 @@ export default function ImportExistingModal({
                     onClick={() => importContact(contact)}
                     className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left hover:bg-nav-hover transition-colors disabled:opacity-50"
                   >
-                    <HugeiconsIcon icon={User02Icon} size={16} color="#37352F" />
+                    <HugeiconsIcon icon={User02Icon} size={16} color="#0B0B18" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-text-primary truncate">{fullName}</p>
                       {(contact.company?.name || contact.email) && (

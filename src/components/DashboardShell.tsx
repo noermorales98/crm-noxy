@@ -23,7 +23,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <KbProvider>
         <EmailProvider>
           <div className="flex h-screen overflow-hidden bg-surface-app">
-            {useFloatingAssistantSidebar ? <AssistantSidebarShell /> : <Sidebar />}
+            {useFloatingAssistantSidebar ? (
+              <AssistantSidebarShell />
+            ) : (
+              <>
+                <div className="hidden lg:flex">
+                  <Sidebar />
+                </div>
+                <div className="lg:hidden">
+                  <AssistantSidebarShell />
+                </div>
+              </>
+            )}
             <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-app">
               {!hideHeader && <Header />}
               <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${hideHeader ? "bg-transparent" : ""}`}>

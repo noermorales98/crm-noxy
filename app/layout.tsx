@@ -14,8 +14,8 @@ export const metadata: Metadata = {
   title: "Noxy CRM - Gestión de Clientes",
   description: "Gestión de Clientes",
   icons: {
-    icon: "/favicon.webp",
-    apple: "/favicon.webp",
+    icon: [{ url: "/favicon.webp?v=noxy-2026", type: "image/webp", sizes: "222x222" }],
+    apple: [{ url: "/favicon.webp?v=noxy-2026", type: "image/webp", sizes: "222x222" }],
   },
 };
 

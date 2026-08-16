@@ -12,7 +12,7 @@ import { useKbContext, type KbNode } from "@/src/context/KbContext";
 import { fromDroppableId, toDroppableId } from "@/src/lib/kb-tree-dnd";
 
 const ICON_SIZE = 16;
-const ICON_COLOR = "#37352F";
+const ICON_COLOR = "#0B0B18";
 const itemActive = "bg-nav-active text-text-primary font-medium";
 const itemHover = "hover:bg-nav-hover";
 const itemIdle = "text-text-primary";
@@ -28,15 +28,15 @@ function DeleteModal({
 }) {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center" onClick={onCancel}>
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-brand-obsidian/35" />
       <div className="relative bg-white rounded-lg p-6 w-72 mx-4" onClick={(e) => e.stopPropagation()}>
-        <p className="text-sm font-semibold text-[#37352F] mb-1">¿Eliminar página?</p>
+        <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar página?</p>
         <p className="text-xs text-text-secondary mb-1 truncate font-medium">&quot;{name}&quot;</p>
         <p className="text-xs text-text-secondary mb-5">Las subpáginas se conservarán pero perderán su padre.</p>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="flex-1 py-2 text-sm text-[#37352F] rounded-lg hover:bg-surface-sidebar transition-colors"
+            className="flex-1 py-2 text-sm text-text-primary rounded-control hover:bg-surface-sidebar transition-colors"
           >
             Cancelar
           </button>
@@ -194,7 +194,7 @@ function KbTreeNode({
 
               <button
                 onClick={handleToggle}
-                className={`w-4 h-4 flex items-center justify-center shrink-0 rounded text-[#37352F] ${
+                className={`w-4 h-4 flex items-center justify-center shrink-0 rounded text-text-primary ${
                   !hasChildren ? "opacity-0 pointer-events-none" : ""
                 }`}
               >
@@ -387,7 +387,7 @@ export default function KbSidebarTree() {
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <Link
           href="/kb"
-          className="flex items-center gap-2 min-w-0 text-sm font-medium text-[#37352F] hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-primary transition-colors"
         >
           <HugeiconsIcon icon={Book01Icon} size={ICON_SIZE} color={ICON_COLOR} />
           <span className="truncate italic">Inicio Docs</span>
@@ -395,14 +395,14 @@ export default function KbSidebarTree() {
         <div className="flex items-center gap-0.5 shrink-0">
           <button
             onClick={() => createRoot(false)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#37352F] hover:bg-nav-hover"
+            className="w-7 h-7 flex items-center justify-center rounded-control text-text-primary hover:bg-nav-hover"
             title="Nueva página"
           >
             <Plus size={14} />
           </button>
           <button
             onClick={() => createRoot(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-[#37352F] hover:bg-nav-hover"
+            className="w-7 h-7 flex items-center justify-center rounded-control text-text-primary hover:bg-nav-hover"
             title="Nueva carpeta"
           >
             <HugeiconsIcon icon={FolderAddIcon} size={14} color={ICON_COLOR} />
@@ -422,7 +422,7 @@ export default function KbSidebarTree() {
             <p className="text-xs text-text-secondary mb-2">Sin páginas</p>
             <button
               onClick={() => createRoot(false)}
-              className="text-xs text-[#37352F] font-medium underline"
+              className="text-xs text-action-primary font-medium underline"
             >
               Crear primera página
             </button>

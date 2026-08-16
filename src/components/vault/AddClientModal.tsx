@@ -52,7 +52,7 @@ export default function AddClientModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-40 p-4">
+    <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
       <div className="bg-white rounded-lg w-full max-w-md">
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
           <h2 className="text-base font-bold text-text-primary">Nuevo cliente</h2>
@@ -98,7 +98,7 @@ export default function AddClientModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando…" : "Crear cliente"}
             </button>

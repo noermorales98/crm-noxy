@@ -172,10 +172,10 @@ function TasksContent() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as "pending" | "completed")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
               >
                 {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
               </button>
             ))}
           </div>
@@ -228,7 +228,7 @@ function TasksContent() {
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
                           {task.company && <span className="text-[11px] bg-gray-100 text-text-secondary px-2 py-0.5 rounded-full font-medium">🏢 {task.company.name}</span>}
                           {task.form && <span className="text-[11px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full font-medium">📝 {task.form.name}</span>}
-                          {task.appointment && <span className="text-[11px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">📅 {new Date(task.appointment.startTime).toLocaleDateString()}</span>}
+                          {task.appointment && <span className="text-xs bg-nav-hover text-action-primary px-2 py-0.5 rounded-full font-medium">📅 {new Date(task.appointment.startTime).toLocaleDateString()}</span>}
                           {task.contact && <span className="text-[11px] text-text-secondary px-2 py-0.5 rounded-full">👤 {task.contact.firstName} {task.contact.lastName}</span>}
                         </div>
                       )}
@@ -248,7 +248,7 @@ function TasksContent() {
 
       {/* New Task Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
               <div className="flex items-center gap-2.5">
@@ -305,7 +305,7 @@ function TasksContent() {
               </div>
               <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
+                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>

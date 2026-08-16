@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-16T00:00:00Z",
+  "title": "Design System: Noxy CRM",
+  "extensions": {
+    "colorMeta": {
+      "action-primary": {
+        "role": "primary",
+        "displayName": "Confianza Índigo",
+        "canonical": "#3545D6",
+        "tonalRamp": ["#0D144C", "#182473", "#2635A4", "#3545D6", "#5363EE", "#7F8DF5", "#B8C0FA", "#EFF1FF"]
+      },
+      "action-secondary": {
+        "role": "secondary",
+        "displayName": "Púrpura Discord",
+        "canonical": "#5363EE",
+        "tonalRamp": ["#101748", "#1E286F", "#34419F", "#5363EE", "#7885F4", "#9EA8F8", "#C9CEFC", "#F0F2FF"]
+      },
+      "selection-soft": {
+        "role": "tertiary",
+        "displayName": "Azul Recuerdo",
+        "canonical": "#7F96F9",
+        "tonalRamp": ["#171C43", "#27336C", "#44569F", "#6176D4", "#7F96F9", "#A4B4FB", "#CCD5FD", "#F2F4FF"]
+      },
+      "highlight-lime": {
+        "role": "tertiary",
+        "displayName": "Grafiti Lima",
+        "canonical": "#C8FE37",
+        "tonalRamp": ["#263500", "#415C00", "#648A00", "#8ABA0B", "#B1E923", "#C8FE37", "#DFFE83", "#F5FFD6"]
+      },
+      "ink-obsidian": {
+        "role": "neutral",
+        "displayName": "Obsidiana Negra",
+        "canonical": "#0B0B18",
+        "tonalRamp": ["#0B0B18", "#232431", "#3C3D4B", "#575866", "#747583", "#9596A3", "#C3C4CC", "#F2F2F5"]
+      },
+      "surface-app": {
+        "role": "neutral",
+        "displayName": "Blanco Jazmín",
+        "canonical": "#F5F6FB",
+        "tonalRamp": ["#1D1E25", "#373941", "#54565F", "#747680", "#9698A2", "#B9BBC4", "#DCDDE4", "#F5F6FB"]
+      },
+      "surface-panel": {
+        "role": "neutral",
+        "displayName": "Lavanda Relajación",
+        "canonical": "#EBEDFA",
+        "tonalRamp": ["#1B1C27", "#343643", "#50525F", "#70727F", "#9294A1", "#B6B8C5", "#D8DAE8", "#EBEDFA"]
+      },
+      "surface-elevated": {
+        "role": "neutral",
+        "displayName": "Blanco Elevado",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["#1F1F1F", "#3B3B3B", "#595959", "#787878", "#999999", "#BBBBBB", "#DDDDDD", "#FFFFFF"]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Ansiedad Gris",
+        "canonical": "#6B7184",
+        "tonalRamp": ["#151820", "#292E3B", "#404657", "#586073", "#6B7184", "#9298AA", "#BEC2CF", "#EEF0F5"]
+      },
+      "text-secondary-strong": {
+        "role": "neutral",
+        "displayName": "Gris Accesible",
+        "canonical": "#555B6E",
+        "tonalRamp": ["#12141A", "#252933", "#393E4B", "#555B6E", "#737A8E", "#989EAE", "#C3C7D1", "#F0F1F5"]
+      },
+      "border-subtle": {
+        "role": "neutral",
+        "displayName": "Borde Plata",
+        "canonical": "#DCDFE6",
+        "tonalRamp": ["#1C1D21", "#35373C", "#515359", "#707278", "#92949B", "#B5B7BE", "#DCDFE6", "#F6F7F9"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Títulos principales con jerarquía contenida." },
+      "title": { "displayName": "Title", "purpose": "Encabezados de panel y sección." },
+      "body": { "displayName": "Body", "purpose": "Texto operativo y contenido de interfaz." },
+      "label": { "displayName": "Label", "purpose": "Etiquetas legibles y metadatos breves." }
+    },
+    "shadows": [
+      { "name": "overlay-structural", "value": "0 8px 8px rgba(11, 11, 24, 0.10)", "purpose": "Dropdowns, menús y modales únicamente." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "180ms cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Cambios funcionales de hover, foco y selección." },
+      { "name": "reduced", "value": "0ms", "purpose": "Alternativa global bajo prefers-reduced-motion y valor permanente en /form/:id." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "390px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "desktop", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal compacta, inequívoca y accesible.",
+      "html": "<button class=\"ds-btn-primary\">Guardar cambios</button>",
+      "css": ".ds-btn-primary { min-height: 44px; border: 0; border-radius: var(--radius-control, 10px); padding: 10px 16px; background: var(--action-primary, #3545D6); color: #fff; font: 600 14px/1.4 'Open Sauce Two', system-ui, sans-serif; transition: background-color 180ms cubic-bezier(.22,1,.36,1); } .ds-btn-primary:hover { background: #5363EE; } .ds-btn-primary:focus-visible { outline: 2px solid #3545D6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acción secundaria tonal que no compite con el CTA.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { min-height: 44px; border: 1px solid #DCDFE6; border-radius: 10px; padding: 10px 16px; background: #EBEDFA; color: #0B0B18; font: 600 14px/1.4 'Open Sauce Two', system-ui, sans-serif; transition: background-color 180ms cubic-bezier(.22,1,.36,1); } .ds-btn-secondary:hover { background: #F0F2FE; } .ds-btn-secondary:focus-visible { outline: 2px solid #3545D6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo blanco con foco fuerte y placeholder legible.",
+      "html": "<label class=\"ds-field\"><span>Correo electrónico</span><input type=\"email\" placeholder=\"nombre@empresa.com\"></label>",
+      "css": ".ds-field { display: grid; gap: 6px; color: #0B0B18; font: 600 12px/1.4 'Open Sauce Two', system-ui, sans-serif; } .ds-field input { min-height: 44px; border: 1px solid #DCDFE6; border-radius: 10px; padding: 10px 12px; background: #fff; color: #0B0B18; font: 400 14px/1.5 'Open Sauce Two', system-ui, sans-serif; } .ds-field input::placeholder { color: #555B6E; } .ds-field input:focus-visible { outline: 2px solid #3545D6; outline-offset: 1px; border-color: #3545D6; }"
+    },
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Estado activo tonal con acento Índigo.",
+      "html": "<nav><a class=\"ds-nav-active\" href=\"#\">Formularios</a></nav>",
+      "css": ".ds-nav-active { display: flex; min-height: 40px; align-items: center; border-radius: 10px; padding: 8px 12px; background: #EBEDFA; color: #3545D6; text-decoration: none; font: 600 14px/1.4 'Open Sauce Two', system-ui, sans-serif; } .ds-nav-active:hover { background: #F0F2FE; } .ds-nav-active:focus-visible { outline: 2px solid #3545D6; outline-offset: 2px; }"
+    },
+    {
+      "name": "Elevated Surface",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Superficie plana reservada para contenido que requiere separación real.",
+      "html": "<section class=\"ds-surface\"><h3>Resumen</h3><p>Información operativa prioritaria.</p></section>",
+      "css": ".ds-surface { border: 1px solid #DCDFE6; border-radius: 12px; padding: 20px; background: #fff; color: #0B0B18; font: 400 14px/1.5 'Open Sauce Two', system-ui, sans-serif; } .ds-surface h3 { margin: 0 0 8px; font-size: 16px; line-height: 1.4; } .ds-surface p { margin: 0; color: #6B7184; }"
+    },
+    {
+      "name": "Highlight Chip",
+      "kind": "chip",
+      "refersTo": "chip-highlight",
+      "description": "Énfasis de marca excepcional con contraste Obsidiana.",
+      "html": "<span class=\"ds-chip-highlight\">Nuevo</span>",
+      "css": ".ds-chip-highlight { display: inline-flex; align-items: center; border-radius: 9999px; padding: 4px 8px; background: #C8FE37; color: #0B0B18; font: 600 12px/1.4 'Open Sauce Two', system-ui, sans-serif; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El Centro de Operaciones Noxy",
+    "overview": "La interfaz funciona como un centro de operaciones luminoso y preciso: la información domina, los controles se reconocen sin aprendizaje y la identidad Noxy aparece en los lugares que orientan una decisión. El sistema rechaza clones de Notion, plantillas SaaS genéricas, glassmorphism, tarjetas repetidas y movimiento decorativo.",
+    "keyCharacteristics": [
+      "Jerarquía clara y densidad operativa.",
+      "Una sola gramática de componentes.",
+      "Acentos saturados limitados a acciones y selección.",
+      "Bordes y capas tonales antes que sombras.",
+      "Respuesta inmediata, accesible y predecible."
+    ],
+    "rules": [
+      { "name": "Restricted Accent", "body": "Los colores saturados ocupan como máximo aproximadamente el 10% de una pantalla operativa.", "section": "colors" },
+      { "name": "One-Family", "body": "Open Sauce Two es obligatoria en toda la interfaz y superficies públicas.", "section": "typography" },
+      { "name": "Flat-by-Default", "body": "Una tarjeta en reposo no utiliza sombra.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do usar Obsidiana para jerarquía, Índigo para acciones y Lavanda para agrupación.",
+      "Do mantener texto secundario con contraste WCAG AA.",
+      "Do implementar todos los estados en cada control."
+    ],
+    "donts": [
+      "Don't crear clones de Notion ni plantillas SaaS genéricas.",
+      "Don't anidar tarjetas ni combinar borde con sombra amplia.",
+      "Don't añadir movimiento decorativo o secuencias de entrada."
+    ]
+  }
+}

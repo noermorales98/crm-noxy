@@ -184,7 +184,7 @@ export default function KbEditorAiBar({
         style={{ ...contentPad, borderColor: borderColor ?? undefined }}
       >
         <div className="flex items-center gap-2 flex-wrap">
-          <HugeiconsIcon icon={AiChatIcon} size={14} color="#000000" />
+          <HugeiconsIcon icon={AiChatIcon} size={14} color="#0B0B18" />
           <span className="text-xs font-semibold text-text-primary mr-1">IA</span>
           {(["summarize", "improve", "continue"] as const).map((a) => (
             <button

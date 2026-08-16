@@ -45,18 +45,18 @@ import { play } from "cuelume";
 
 type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
 
-// ─── Design tokens (Notion-style premium) ─────────────────────────────────────
+// ─── Noxy product design tokens ────────────────────────────────────────────────
 
-const ICON_COLOR = "#37352F";
+const ICON_COLOR = "#0B0B18";
 const SIDEBAR_W = "w-64";
 const ICON_SIZE = 16;
 
-const itemBase = "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors";
+const itemBase = "flex min-h-10 items-center gap-2.5 px-3 py-2 rounded-control text-sm transition-colors duration-200 motion-reduce:transition-none";
 const itemActive = "bg-nav-active text-text-primary font-medium";
 const itemHover = "hover:bg-nav-hover";
 const itemIdle = "text-text-primary";
 
-const sectionLabelClass = "text-[11px] font-medium italic text-text-secondary uppercase tracking-wider px-3 pt-6 pb-2";
+const sectionLabelClass = "px-3 pt-6 pb-2 text-xs font-semibold text-text-secondary-strong";
 
 interface SidebarProps {
   variant?: "docked" | "floating";
@@ -72,9 +72,9 @@ const NOTIF_ICONS: Record<NotificationType, typeof UserMultipleIcon> = {
 };
 
 const NOTIF_COLORS: Record<NotificationType, string> = {
-  NEW_EMAIL: "bg-blue-50 text-blue-600",
+  NEW_EMAIL: "bg-nav-hover text-action-primary",
   NEW_CONTACT: "bg-green-50 text-green-600",
-  NEW_FORM_LEAD: "bg-violet-50 text-violet-600",
+  NEW_FORM_LEAD: "bg-nav-active text-action-primary",
 };
 
 function timeAgo(date: string): string {
@@ -97,12 +97,12 @@ const SECTIONS: {
   accent: string;
   accentBg: string;
 }[] = [
-  { id: "home", label: "Inicio", href: "/", icon: Home01Icon, accent: "#5B9BF5", accentBg: "#E1F0FF" },
-  { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon, accent: "#F0A050", accentBg: "#FFECD2" },
-  { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#9B7EDE", accentBg: "#F0E6F9" },
-  { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#6366F1", accentBg: "#EEF2FF" },
-  { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#10B981", accentBg: "#D1FAE5" },
-  { id: "content", label: "Gestión de contenido", href: "/contenido", icon: MegaphoneIcon, accent: "#B75C3E", accentBg: "#F9E8E1" },
+  { id: "home", label: "Inicio", href: "/", icon: Home01Icon, accent: "#3545D6", accentBg: "#EBEDFA" },
+  { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
+  { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#3545D6", accentBg: "#DDE3FE" },
+  { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#3545D6", accentBg: "#EBEDFA" },
+  { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#0B0B18", accentBg: "#C8FE37" },
+  { id: "content", label: "Gestión de contenido", href: "/contenido", icon: MegaphoneIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
 ];
 
 // ─── Section switcher (unified dropdown) ───────────────────────────────────────
@@ -241,13 +241,13 @@ function DeleteModal({ name, onConfirm, onCancel }: {
 }) {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center" onClick={onCancel}>
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
-      <div className="relative bg-white rounded-lg p-6 w-72 mx-4" onClick={e => e.stopPropagation()}>
-        <p className="text-sm font-semibold text-[#37352F] mb-1">¿Eliminar página?</p>
+      <div className="absolute inset-0 bg-brand-obsidian/35" />
+      <div className="relative w-72 mx-4 rounded-surface border border-border-subtle bg-white p-6" onClick={e => e.stopPropagation()}>
+        <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar página?</p>
         <p className="text-xs text-text-secondary mb-1 truncate font-medium">&quot;{name}&quot;</p>
         <p className="text-xs text-text-secondary mb-5">Las subpáginas se conservarán pero perderán su padre.</p>
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2 text-sm text-[#37352F] rounded-lg hover:bg-surface-sidebar transition-colors">
+          <button onClick={onCancel} className="min-h-11 flex-1 py-2 text-sm text-text-primary rounded-control hover:bg-surface-sidebar transition-colors duration-200 motion-reduce:transition-none">
             Cancelar
           </button>
           <button onClick={onConfirm} className="flex-1 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors">
@@ -272,7 +272,7 @@ function NavItem({ icon, label, href, badge }: { icon: any; label: string; href:
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         {badge != null && badge > 0 && (
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-[#37352F]">
+          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-text-primary">
             {badge > 99 ? "99+" : badge}
           </span>
         )}
@@ -387,7 +387,7 @@ const EMAIL_FOLDERS = [
   { key: "spam" as const, label: "Spam", icon: SpamIcon },
 ];
 
-const composeBtnClass = "w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors";
+const composeBtnClass = "w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none";
 
 function MailNav({ unreadCount }: { unreadCount: number }) {
   const emailCtx = useOptionalEmailContext();
@@ -446,7 +446,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
               </div>
               <div className="flex items-center gap-1.5">
                 {f.key === "inbox" && unreadCount > 0 && (
-                  <span className="text-[10px] bg-nav-hover text-[#37352F] px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
+                  <span className="text-xs bg-nav-hover text-text-primary px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
                 )}
                 {isActive && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
               </div>
@@ -508,7 +508,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
                 {isOnEmail && emailCtx?.onOpenConfig && (
                   <button
                     onClick={() => emailCtx.onOpenConfig(company)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-[#37352F] hover:bg-nav-active transition-all rounded-md"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-text-primary hover:bg-nav-active transition-opacity duration-200 rounded-md motion-reduce:transition-none"
                     title="Configurar SMTP / IMAP"
                   >
                     <HugeiconsIcon icon={Settings01Icon} size={14} color={ICON_COLOR} />
@@ -557,7 +557,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/contenido?new=1"
           onClick={onNavigate}
-          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           Nuevo cliente / marca
@@ -578,7 +578,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
                     className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{ backgroundColor: c.kind === "cliente" ? "#B75C3E" : "#6E7F5C" }}
+                    style={{ backgroundColor: c.kind === "cliente" ? "#3545D6" : "#5363EE" }}
                   >
                     {c.name.charAt(0).toUpperCase()}
                   </span>
@@ -636,7 +636,7 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
           href="/assistant/new"
           prefetch
           onClick={onNavigate}
-          className="w-full flex items-center justify-center gap-2 bg-[#2D2D2D] text-white py-2.5 px-3 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-[transform,background-color] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563A9]"
+          className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-white py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
           Nueva conversación
@@ -829,8 +829,8 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const isAssistant = activeTab === "assistant";
   const shellClass =
     variant === "floating"
-      ? "flex h-full w-full flex-col overflow-hidden rounded-[20px] border border-blue-100/90 bg-white shadow-[0_24px_70px_rgba(38,65,102,0.22)]"
-      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-white`;
+      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-border-subtle bg-white shadow-sm"
+      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-surface-sidebar`;
 
   return (
     <>
@@ -914,7 +914,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                           <button
                             key={n.id}
                             onClick={() => { markAsRead(n.id); setSidebarNotifOpen(false); }}
-                            className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface-sidebar transition-colors ${!n.isRead ? "bg-blue-50/40" : ""}`}
+                            className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-surface-sidebar transition-colors ${!n.isRead ? "bg-nav-hover" : ""}`}
                           >
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}>
                               <HugeiconsIcon icon={Icon} size={12} />
@@ -924,7 +924,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                               {n.body && <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-2">{n.body}</p>}
                               <p className="text-[10px] text-gray-300 mt-1">{timeAgo(n.createdAt)}</p>
                             </div>
-                            {!n.isRead && <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
+                            {!n.isRead && <span className="w-1.5 h-1.5 bg-action-primary rounded-full shrink-0 mt-1.5" />}
                           </button>
                         );
                       })

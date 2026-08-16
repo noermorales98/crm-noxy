@@ -49,7 +49,7 @@ interface CustomModelPayload {
 
 /* Shared prose classes for consistent markdown rendering */
 const PROSE =
-  "prose prose-sm max-w-none prose-p:my-1 prose-pre:bg-gray-100 prose-pre:text-gray-800 prose-code:text-[#6366F1] prose-code:bg-[#EEF2FF] prose-code:px-1 prose-code:rounded prose-code:text-xs [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto [&_table]:max-w-full [&_img]:max-w-full";
+  "prose prose-sm max-w-none prose-p:my-1 prose-pre:bg-gray-100 prose-pre:text-gray-800 prose-code:text-[#3545D6] prose-code:bg-[#EBEDFA] prose-code:px-1 prose-code:rounded prose-code:text-xs [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto [&_table]:max-w-full [&_img]:max-w-full";
 
 export default function MessageBubble({
   role,
@@ -225,10 +225,10 @@ export default function MessageBubble({
         <div
           className={usesSoftCards
             ? styles.assistantAvatar
-            : "shrink-0 w-7 h-7 rounded-full bg-[#EEF2FF] flex items-center justify-center mr-3 mt-0.5"}
+            : "shrink-0 w-7 h-7 rounded-full bg-[#EBEDFA] flex items-center justify-center mr-3 mt-0.5"}
           aria-hidden="true"
         >
-          <span className={usesSoftCards ? undefined : "text-[#6366F1] text-xs font-bold"}>AI</span>
+          <span className={usesSoftCards ? undefined : "text-[#3545D6] text-xs font-bold"}>AI</span>
         </div>
       )}
 
@@ -243,7 +243,7 @@ export default function MessageBubble({
           <div
             className={usesSoftCards
               ? styles.userCard
-              : "rounded-2xl px-4 py-3 text-sm leading-relaxed bg-accent-charcoal text-white rounded-br-sm"}
+              : "rounded-surface px-4 py-3 text-sm leading-relaxed bg-action-primary text-white rounded-br-sm"}
             style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
           >
             <p style={{ whiteSpace: "pre-wrap" }}>{content}</p>
@@ -253,7 +253,7 @@ export default function MessageBubble({
           <div
             className={usesSoftCards
               ? styles.assistantCard
-              : "w-full flex flex-col rounded-2xl border border-border-subtle bg-surface-elevated text-text-primary rounded-bl-sm overflow-hidden"}
+              : "w-full flex flex-col rounded-surface border border-border-subtle bg-surface-elevated text-text-primary rounded-bl-sm overflow-hidden"}
           >
 
             {/* Content — no vertical scroll, only horizontal clipping */}
@@ -394,13 +394,13 @@ export default function MessageBubble({
                             onClick={() => handleSelect(m)}
                             className={`${usesSoftCards ? styles.retryOption : ""} w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
                               isCurrent
-                                ? "bg-[#EEF2FF] text-[#6366F1]"
+                                ? "bg-[#EBEDFA] text-[#3545D6]"
                                 : "hover:bg-surface-sidebar text-text-primary"
                             }`}
                           >
                             <span className="flex-1 truncate">{m.name}</span>
                             {isCurrent && (
-                              <Check size={11} strokeWidth={2.5} className="shrink-0 text-[#6366F1]" />
+                              <Check size={11} strokeWidth={2.5} className="shrink-0 text-[#3545D6]" />
                             )}
                           </button>
                         );
@@ -421,7 +421,7 @@ export default function MessageBubble({
             ref={fullscreenBackdropRef}
             className={usesSoftCards
               ? styles.fullscreenBackdrop
-              : "fixed inset-0 z-100 bg-black/60 backdrop-blur-sm flex items-start justify-center p-6 overflow-y-auto"}
+              : "fixed inset-0 z-100 bg-brand-obsidian/60 flex items-start justify-center p-6 overflow-y-auto"}
             onClick={(e) => {
               if (e.target === e.currentTarget) setFullscreen(false);
             }}
@@ -436,7 +436,7 @@ export default function MessageBubble({
               {/* Fullscreen bubble — same visual style as inline bubble */}
               <div className={usesSoftCards
                 ? styles.fullscreenCard
-                : "rounded-2xl px-4 py-3 text-sm leading-relaxed bg-surface-elevated border border-border-subtle text-text-primary rounded-bl-sm relative overflow-hidden"}
+                : "rounded-surface px-4 py-3 text-sm leading-relaxed bg-surface-elevated border border-border-subtle text-text-primary rounded-bl-sm relative overflow-hidden"}
               >
 
                 {/* Close button inside fullscreen bubble (top-right corner) */}

@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     const category = await prisma.taskCategory.create({
       data: {
         name,
-        color: color || "#3B82F6",
+        color: color || "#3545D6",
         companyId: companyId || null,
         organizationId: currentOrganizationId
       },

@@ -303,7 +303,7 @@ export default function SettingsPage() {
             <div>
               <h2 className="text-lg font-bold text-text-primary mb-1">Notificaciones por WhatsApp</h2>
               <p className="text-sm text-text-secondary mb-5">
-                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-blue-600 hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
+                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-action-primary hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
               </p>
             </div>
 
@@ -339,7 +339,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 bg-accent-charcoal hover:opacity-90 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 bg-action-primary hover:opacity-90 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   {loading ? "Guardando..." : "Guardar configuración"}
                 </button>

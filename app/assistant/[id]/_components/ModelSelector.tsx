@@ -4,12 +4,12 @@ import { ChevronDown, Check, Zap } from "lucide-react";
 import { AI_MODELS, getModelGroups, getModelById, type AiModel } from "@/src/lib/ai-models";
 
 const TAG_COLORS: Record<string, string> = {
-  CRM: "bg-[#EEF2FF] text-[#6366F1]",
-  Personalizado: "bg-[#EEF2FF] text-[#6366F1]",
+  CRM: "bg-[#EBEDFA] text-[#3545D6]",
+  Personalizado: "bg-[#EBEDFA] text-[#3545D6]",
   General: "bg-surface-sidebar text-text-secondary",
   Potente: "bg-amber-50 text-amber-600",
   Rápido: "bg-green-50 text-green-600",
-  Código: "bg-blue-50 text-blue-600",
+  Código: "bg-nav-hover text-action-primary",
   Razonamiento: "bg-violet-50 text-violet-600",
   Visión: "bg-cyan-50 text-cyan-600",
   "Sin filtros": "bg-orange-50 text-orange-600",
@@ -121,7 +121,7 @@ export default function ModelSelector({
         title="Cambiar modelo de IA"
       >
         {isChatbase ? (
-          <span className="w-3 h-3 rounded-sm bg-[#6366F1] flex items-center justify-center shrink-0">
+          <span className="w-3 h-3 rounded-sm bg-[#3545D6] flex items-center justify-center shrink-0">
             <Zap size={7} className="text-white" />
           </span>
         ) : (
@@ -163,14 +163,14 @@ export default function ModelSelector({
                       type="button"
                       onClick={() => select(model)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
-                        isSelected ? "bg-[#EEF2FF]" : "hover:bg-surface-sidebar"
+                        isSelected ? "bg-[#EBEDFA]" : "hover:bg-surface-sidebar"
                       }`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span
                             className={`text-xs font-medium truncate ${
-                              isSelected ? "text-[#6366F1]" : "text-text-primary"
+                              isSelected ? "text-[#3545D6]" : "text-text-primary"
                             }`}
                           >
                             {model.name}
@@ -190,7 +190,7 @@ export default function ModelSelector({
                         </p>
                       </div>
                       {isSelected && (
-                        <Check size={13} className="shrink-0 text-[#6366F1]" strokeWidth={2.5} />
+                        <Check size={13} className="shrink-0 text-[#3545D6]" strokeWidth={2.5} />
                       )}
                     </button>
                   );

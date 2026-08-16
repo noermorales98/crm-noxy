@@ -147,7 +147,7 @@ function ConfiguracionContent() {
             {/* Datos fiscales */}
             <section className="bg-white border border-border-subtle rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
-                <HugeiconsIcon icon={Building04Icon} size={16} color="#37352F" />
+                <HugeiconsIcon icon={Building04Icon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Empresa remitente</h2>
               </div>
               <p className="text-xs text-text-secondary mb-4">
@@ -190,7 +190,7 @@ function ConfiguracionContent() {
             {/* Datos bancarios */}
             <section className="bg-white border border-border-subtle rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
-                <HugeiconsIcon icon={BankIcon} size={16} color="#37352F" />
+                <HugeiconsIcon icon={BankIcon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Datos bancarios para transferencia</h2>
               </div>
               <p className="text-xs text-text-secondary mb-4">
@@ -208,7 +208,7 @@ function ConfiguracionContent() {
             {/* Defaults */}
             <section className="bg-white border border-border-subtle rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
-                <HugeiconsIcon icon={Settings01Icon} size={16} color="#37352F" />
+                <HugeiconsIcon icon={Settings01Icon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Valores por defecto</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +234,7 @@ function ConfiguracionContent() {
             {/* Stripe */}
             <section className="bg-white border border-border-subtle rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
-                <HugeiconsIcon icon={DollarCircleIcon} size={16} color="#37352F" />
+                <HugeiconsIcon icon={DollarCircleIcon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Cobro con Stripe</h2>
               </div>
               <p className="text-xs text-text-secondary mb-4">

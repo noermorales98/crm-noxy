@@ -112,7 +112,7 @@ function ConfirmModal({
   loading: boolean;
 }) {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-brand-obsidian/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg w-full max-w-sm overflow-hidden">
         <div className="p-6">
           <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
@@ -653,7 +653,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   value={titleValue}
                   onChange={(e) => setTitleValue(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") { setEditingTitle(false); setTitleValue(deal.title); } }}
-                  className="text-xl font-bold text-text-primary bg-transparent border-b-2 border-accent-charcoal outline-none flex-1"
+                  className="text-xl font-bold text-text-primary bg-transparent border-b-2 border-action-primary outline-none flex-1"
                   autoFocus
                 />
                 <button onClick={saveTitle} className="p-1 text-green-600 hover:bg-green-50 rounded-lg">
@@ -926,7 +926,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <button
               onClick={saveInfo}
               disabled={savingNotes}
-              className="px-3 py-1.5 text-xs font-semibold bg-accent-charcoal text-white rounded-lg hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-semibold bg-action-primary text-white rounded-lg hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               {savingNotes ? "Guardando..." : "Guardar"}
             </button>
@@ -941,7 +941,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab.key
-                  ? "border-accent-charcoal text-text-primary"
+                  ? "border-action-primary text-text-primary"
                   : "border-transparent text-text-secondary hover:text-text-primary"
               }`}
             >
@@ -999,7 +999,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   <button
                     onClick={addActivity}
                     disabled={savingActivity || !activityDesc.trim()}
-                    className="px-4 py-2 bg-accent-charcoal text-white rounded-lg text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
+                    className="px-4 py-2 bg-action-primary text-white rounded-lg text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
                   >
                     {savingActivity ? "..." : "Agregar"}
                   </button>
@@ -1170,7 +1170,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                               onClick={() => selectApptType(t)}
                               className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-sidebar border border-border-subtle hover:border-border-subtle transition-all"
                             >
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3B82F6" }} />
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3545D6" }} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-semibold text-text-primary truncate">{t.name}</p>
                                 <p className="text-[10px] text-text-secondary">{t.duration} min</p>
@@ -1187,7 +1187,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   {bookingStep === "date" && (
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3545D6" }} />
                         <p className="text-xs font-semibold text-text-primary">{selectedApptType?.name} · {selectedApptType?.duration} min</p>
                       </div>
                       <DatePicker label="Fecha de la cita" value={selectedDate} onChange={(d) => selectDate(d)} placeholder="Seleccionar fecha" align="right" />
@@ -1200,7 +1200,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   {bookingStep === "slots" && (
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3545D6" }} />
                         <p className="text-xs font-semibold text-text-primary">{selectedApptType?.name}</p>
                         <span className="text-[10px] text-text-secondary">·</span>
                         <p className="text-xs text-text-secondary">{new Date(selectedDate + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}</p>
@@ -1215,7 +1215,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       ) : (
                         <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
                           {availableSlots.map((slot) => (
-                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-border-subtle rounded-lg hover:bg-accent-charcoal hover:text-white hover:border-accent-charcoal transition-all">
+                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-border-subtle rounded-lg hover:bg-action-primary hover:text-white hover:border-action-primary transition-all">
                               {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             </button>
                           ))}
@@ -1231,7 +1231,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     <div className="flex flex-col gap-3">
                       <div className="bg-surface-sidebar rounded-lg p-3 flex flex-col gap-1">
                         <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3B82F6" }} />
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3545D6" }} />
                           <p className="text-xs font-bold text-text-primary">{selectedApptType?.name}</p>
                         </div>
                         <p className="text-xs text-text-secondary ml-[18px]">
@@ -1246,7 +1246,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       <textarea value={bookingGuest.notes} onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))} className={`${inputCls} text-xs resize-none`} rows={2} placeholder="Notas (opcional)" />
                       <div className="flex gap-2">
                         <button onClick={() => setBookingStep("slots")} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">← Atrás</button>
-                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg disabled:opacity-40 transition-colors">
+                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-white bg-action-primary hover:bg-black rounded-lg disabled:opacity-40 transition-colors">
                           {savingBooking ? "Reservando..." : "Confirmar cita"}
                         </button>
                       </div>
@@ -1273,8 +1273,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     const isUpcoming = !isCancelled && !isPast;
                     return (
                       <div key={appt.id} className={`px-5 py-4 flex gap-3 group/appt ${isCancelled ? "opacity-50" : "hover:bg-surface-sidebar/50"} transition-colors`}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: (appt.appointmentType?.color || "#3B82F6") + "18" }}>
-                          <HugeiconsIcon icon={Calendar02Icon} size={14} color={appt.appointmentType?.color || "#3B82F6"} />
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: (appt.appointmentType?.color || "#3545D6") + "18" }}>
+                          <HugeiconsIcon icon={Calendar02Icon} size={14} color={appt.appointmentType?.color || "#3545D6"} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
@@ -1364,7 +1364,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 />
                 <button
                   onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`); setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-accent-charcoal text-white hover:bg-black"}`}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-action-primary text-white hover:bg-black"}`}
                 >
                   {copiedLink ? "✓ Copiado" : "Copiar"}
                 </button>
@@ -1385,7 +1385,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
       {/* ── Proposal Modal ── */}
       {showProposalModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-lg">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
               <h2 className="text-base font-bold text-text-primary">Nueva propuesta</h2>
@@ -1469,7 +1469,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               <button onClick={() => setShowProposalModal(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">
                 Cancelar
               </button>
-              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
+              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
                 {savingProposal ? "Creando..." : "Crear propuesta"}
               </button>
             </div>

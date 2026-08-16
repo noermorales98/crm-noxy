@@ -189,14 +189,14 @@ export default function CompaniesPage() {
                       </td>
                       <td className="px-6 py-4">
                         {c.website ? (
-                          <a href={c.website.startsWith("http") ? c.website : `https://${c.website}`} target="_blank" className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium">
+                          <a href={c.website.startsWith("http") ? c.website : `https://${c.website}`} target="_blank" className="flex items-center gap-1.5 text-action-primary hover:text-action-secondary font-medium">
                             <HugeiconsIcon icon={GlobeIcon} size={13} />
                             {c.website.replace(/^https?:\/\//, "")}
                           </a>
                         ) : <span className="text-text-secondary">—</span>}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
+                        <span className="px-2.5 py-1 bg-nav-hover text-action-primary text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
                       </td>
                       <td className="px-6 py-4">
                         <button onClick={() => openSmtpModal(c)} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">
@@ -206,7 +206,7 @@ export default function CompaniesPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                          <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Editar">
                             <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
                           </button>
                           <button onClick={() => handleDelete(c)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
@@ -223,7 +223,7 @@ export default function CompaniesPage() {
 
           {/* Create/Edit Modal */}
           {showModal && (
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
                   <h2 className="text-base font-bold text-text-primary">{editingId ? "Editar empresa" : "Agregar empresa"}</h2>
@@ -246,7 +246,7 @@ export default function CompaniesPage() {
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
+                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
                   </div>
                 </form>
               </div>
@@ -255,7 +255,7 @@ export default function CompaniesPage() {
 
           {/* SMTP Modal */}
           {showSmtpModal && (
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden">
                 <div className="flex items-start justify-between px-6 py-5 border-b border-border-subtle">
                   <div>
@@ -303,7 +303,7 @@ export default function CompaniesPage() {
 
                   <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle mt-2">
                     <button type="button" onClick={() => setShowSmtpModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
+                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
                   </div>
                 </form>
               </div>

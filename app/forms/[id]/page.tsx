@@ -23,12 +23,12 @@ const FIELD_TYPES = [
 ];
 
 function FieldPreview({ field }: { field: any }) {
-  const base = "w-full px-3 py-2 rounded-lg border border-border-subtle bg-white text-sm text-text-secondary pointer-events-none";
+  const base = "noxy-form-control min-h-10 py-2 text-sm text-text-secondary pointer-events-none";
   const opts = field.options ? field.options.split(",").map((o: string) => o.trim()).filter(Boolean) : [];
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold text-text-primary">
+    <div className="flex flex-col gap-2">
+      <label className="noxy-form-label">
         {field.label || "Sin etiqueta"} {field.isRequired && <span className="text-red-400">*</span>}
       </label>
       {(field.type === "TEXT" || field.type === "EMAIL" || field.type === "PHONE" || field.type === "NUMBER" || field.type === "DATE") && (
@@ -42,7 +42,7 @@ function FieldPreview({ field }: { field: any }) {
       )}
       {field.type === "PHONE_LADA" && (
         <div className="flex gap-2">
-          <div className="w-20 px-3 py-2 rounded-lg border border-border-subtle bg-white text-sm text-text-secondary pointer-events-none">+52</div>
+          <div className="noxy-form-control min-h-10 w-20 py-2 text-sm text-text-secondary pointer-events-none">+52</div>
           <div className={`${base} flex-1`}>{field.placeholder || "—"}</div>
         </div>
       )}
@@ -57,8 +57,8 @@ function FieldPreview({ field }: { field: any }) {
       {field.type === "RADIO" && (
         <div className="flex flex-col gap-1">
           {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
-            <label key={i} className="flex items-center gap-2 text-xs text-text-secondary pointer-events-none">
-              <div className="w-3 h-3 rounded-full border border-border-subtle shrink-0" />
+            <label key={i} className="flex min-h-8 items-center gap-2 text-xs text-text-secondary pointer-events-none">
+              <div className="w-5 h-5 rounded-full border-2 border-border-subtle shrink-0" />
               {opt}
             </label>
           ))}
@@ -67,8 +67,8 @@ function FieldPreview({ field }: { field: any }) {
       {field.type === "CHECKBOX" && (
         <div className="flex flex-col gap-1">
           {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
-            <label key={i} className="flex items-center gap-2 text-xs text-text-secondary pointer-events-none">
-              <div className="w-3 h-3 rounded border border-border-subtle shrink-0" />
+            <label key={i} className="flex min-h-8 items-center gap-2 text-xs text-text-secondary pointer-events-none">
+              <div className="w-5 h-5 rounded-control border-2 border-border-subtle shrink-0" />
               {opt}
             </label>
           ))}
@@ -291,15 +291,15 @@ export default function FormBuilderPage() {
     <>
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background font-sans">
           {/* Top Bar */}
-          <div className="border-b border-border-subtle bg-white px-6 py-3 flex items-center gap-4 shrink-0">
-            <Link href="/forms" className="p-1.5 text-text-secondary hover:bg-nav-hover rounded-lg">
+          <div className="border-b border-border-subtle bg-white px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
+            <Link href="/forms" aria-label="Volver a formularios" className="p-1.5 text-text-secondary hover:bg-nav-hover rounded-control">
               <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
             </Link>
 
-            <div className="flex-1 min-w-0">
+            <div className="hidden xl:block flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-sm font-bold text-text-primary truncate">{name || "Sin título"}</h1>
-                <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
+                <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`} />
                   {isActive ? "Activo" : "Borrador"}
                 </span>
@@ -308,24 +308,24 @@ export default function FormBuilderPage() {
             </div>
 
             {/* Tabs */}
-            <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
+            <div className="order-3 flex w-full overflow-x-auto bg-surface-sidebar p-1 rounded-control shrink-0 xl:order-none xl:w-auto">
               <button
                 onClick={() => setActiveTab("BUILDER")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "BUILDER" ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "BUILDER" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={Layout01Icon} size={14} />
                 Constructor
               </button>
               <button
                 onClick={() => setActiveTab("SETTINGS")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={Settings02Icon} size={14} />
                 Configuración
               </button>
               <button
                 onClick={() => setActiveTab("VARIANTS")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={GitBranchIcon} size={14} />
                 Variantes
@@ -336,10 +336,10 @@ export default function FormBuilderPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="ml-auto flex items-center gap-2 shrink-0">
               <button
                 onClick={handleCopyLink}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"}`}
+                className={`hidden sm:flex min-h-10 items-center gap-1.5 px-3 py-2 rounded-control text-xs font-semibold border ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"}`}
               >
                 {copied ? <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} /> : <HugeiconsIcon icon={Copy01Icon} size={14} />}
                 {copied ? "¡Copiado!" : "Copiar link"}
@@ -347,7 +347,7 @@ export default function FormBuilderPage() {
               <Link
                 href={`/form/${id}`}
                 target="_blank"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"
+                className="hidden sm:flex min-h-10 items-center gap-1.5 px-3 py-2 rounded-control text-xs font-semibold border border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"
               >
                 <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
                 Ver
@@ -355,7 +355,7 @@ export default function FormBuilderPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-1.5 bg-accent-charcoal hover:opacity-90 text-white px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
+                className="flex min-h-10 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-white px-4 py-2 rounded-control text-xs font-semibold disabled:opacity-50"
               >
                 <HugeiconsIcon icon={SaveIcon} size={14} />
                 {isSaving ? "Guardando..." : "Guardar"}
@@ -364,13 +364,13 @@ export default function FormBuilderPage() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto xl:overflow-hidden">
 
             {/* BUILDER TAB — two columns */}
             {activeTab === "BUILDER" && (
-              <div className="flex h-full">
+              <div className="flex min-h-full flex-col xl:h-full xl:min-h-0 xl:flex-row">
                 {/* Left: Field List */}
-                <div className="flex-1 overflow-y-auto p-6 border-r border-border-subtle">
+                <div className="flex-none overflow-visible p-4 sm:p-6 xl:flex-1 xl:overflow-y-auto xl:border-r border-border-subtle">
                   <div className="max-w-xl mx-auto flex flex-col gap-3">
                     <div className="flex items-center justify-between mb-1">
                       <h2 className="text-sm font-bold text-text-primary">Campos del formulario</h2>
@@ -391,14 +391,14 @@ export default function FormBuilderPage() {
                                   >
                                     {/* Field Header */}
                                     <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border-subtle bg-surface-sidebar rounded-t-xl">
-                                      <div {...provided.dragHandleProps} className="text-gray-300 hover:text-text-secondary cursor-grab">
+                                      <div {...provided.dragHandleProps} aria-label={`Reordenar campo ${index + 1}`} title={`Reordenar campo ${index + 1}`} className="text-brand-silver hover:text-text-secondary cursor-grab">
                                         <HugeiconsIcon icon={HandGripIcon} size={16} />
                                       </div>
-                                      <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Campo {index + 1}</span>
-                                      <span className="text-[10px] text-text-secondary bg-gray-100 px-2 py-0.5 rounded-full font-medium">
+                                      <span className="text-xs font-semibold text-text-secondary-strong">Campo {index + 1}</span>
+                                      <span className="text-xs text-text-secondary bg-surface-app px-2 py-0.5 rounded-full font-medium">
                                         {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
                                       </span>
-                                      <button onClick={() => removeField(index)} className="ml-auto text-gray-300 hover:text-red-500 p-1">
+                                      <button onClick={() => removeField(index)} aria-label={`Eliminar campo ${index + 1}`} className="ml-auto text-brand-silver hover:text-red-500 p-1">
                                         <HugeiconsIcon icon={Delete01Icon} size={14} />
                                       </button>
                                     </div>
@@ -406,58 +406,63 @@ export default function FormBuilderPage() {
                                     {/* Field Body */}
                                     <div className="p-4 grid grid-cols-2 gap-3">
                                       <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Tipo</label>
+                                        <label htmlFor={`field-${field.id}-type`} className="noxy-form-label">Tipo</label>
                                         <select
+                                          id={`field-${field.id}-type`}
                                           value={field.type}
                                           onChange={e => updateField(index, "type", e.target.value)}
-                                          className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-xs focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                                          className="noxy-form-control text-xs"
                                         >
                                           {FIELD_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                                         </select>
                                       </div>
 
                                       <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Etiqueta / Pregunta</label>
+                                        <label htmlFor={`field-${field.id}-label`} className="noxy-form-label">Etiqueta / pregunta</label>
                                         <input
+                                          id={`field-${field.id}-label`}
                                           type="text"
                                           value={field.label}
                                           onChange={e => updateField(index, "label", e.target.value)}
                                           placeholder="¿Cuál es tu nombre?"
-                                          className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-xs focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                                          className="noxy-form-control text-xs"
                                         />
                                       </div>
 
                                       <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Nombre interno</label>
+                                        <label htmlFor={`field-${field.id}-name`} className="noxy-form-label">Nombre interno</label>
                                         <input
+                                          id={`field-${field.id}-name`}
                                           type="text"
                                           value={field.name}
                                           onChange={e => updateField(index, "name", e.target.value)}
                                           placeholder="nombre_campo"
-                                          className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-xs font-mono focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                                          className="noxy-form-control text-xs font-mono"
                                         />
                                       </div>
 
                                       <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Placeholder</label>
+                                        <label htmlFor={`field-${field.id}-placeholder`} className="noxy-form-label">Placeholder</label>
                                         <input
+                                          id={`field-${field.id}-placeholder`}
                                           type="text"
                                           value={field.placeholder || ""}
                                           onChange={e => updateField(index, "placeholder", e.target.value)}
                                           placeholder="Escribe aquí..."
-                                          className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-xs focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                                          className="noxy-form-control text-xs"
                                         />
                                       </div>
 
                                       {(field.type === "SELECT" || field.type === "RADIO" || field.type === "CHECKBOX") && (
                                         <div className="flex flex-col gap-1 col-span-2">
-                                          <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Opciones (separadas por coma)</label>
+                                          <label htmlFor={`field-${field.id}-options`} className="noxy-form-label">Opciones (separadas por coma)</label>
                                           <textarea
+                                            id={`field-${field.id}-options`}
                                             rows={2}
                                             value={field.options || ""}
                                             onChange={e => updateField(index, "options", e.target.value)}
                                             placeholder="Opción 1, Opción 2, Opción 3"
-                                            className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-xs resize-none focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                                            className="noxy-form-control min-h-20 text-xs resize-none"
                                           />
                                         </div>
                                       )}
@@ -500,11 +505,11 @@ export default function FormBuilderPage() {
                 </div>
 
                 {/* Right: Live Preview */}
-                <div className="w-80 xl:w-96 shrink-0 overflow-y-auto bg-surface-sidebar p-6">
+                <aside className="w-full xl:w-96 shrink-0 overflow-visible bg-surface-sidebar p-4 sm:p-6 xl:overflow-y-auto" aria-label="Vista previa del formulario">
                   <div className="mb-4">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">Vista previa</span>
+                    <span className="text-xs font-semibold text-text-secondary">Vista previa</span>
                   </div>
-                  <div className="bg-white rounded-lg border border-border-subtle p-6 flex flex-col gap-5">
+                  <div className="noxy-form-panel p-6 flex flex-col gap-5">
                     <div>
                       <h2 className="text-base font-bold text-text-primary leading-tight">{name || "Sin título"}</h2>
                       {description && <p className="text-xs text-text-secondary mt-1">{description}</p>}
@@ -521,12 +526,12 @@ export default function FormBuilderPage() {
                     )}
 
                     <div className="pt-2 border-t border-border-subtle">
-                      <div className="w-full py-2.5 rounded-lg bg-accent-charcoal text-white text-xs font-bold text-center">
+                      <div className="noxy-form-button w-full text-xs pointer-events-none">
                         Enviar
                       </div>
                     </div>
                   </div>
-                </div>
+                </aside>
               </div>
             )}
 
@@ -545,7 +550,7 @@ export default function FormBuilderPage() {
                     </div>
                     <button
                       onClick={openNewVariantModal}
-                      className="shrink-0 flex items-center gap-1.5 bg-accent-charcoal hover:opacity-90 text-white px-3 py-2 rounded-lg text-xs font-semibold"
+                      className="shrink-0 flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-white px-3 py-2 rounded-lg text-xs font-semibold"
                     >
                       <HugeiconsIcon icon={Add01Icon} size={14} />
                       Nueva variante
@@ -682,7 +687,7 @@ export default function FormBuilderPage() {
                         </div>
                         <button
                           onClick={() => setIsActive(v => !v)}
-                          className={`relative w-10 h-6 rounded-full shrink-0 ${isActive ? "bg-accent-charcoal" : "bg-nav-active"}`}
+                          className={`relative w-10 h-6 rounded-full shrink-0 ${isActive ? "bg-action-primary" : "bg-nav-active"}`}
                         >
                           <span className={`absolute top-1 w-4 h-4 bg-white rounded-full ${isActive ? "left-5" : "left-1"}`} />
                         </button>
@@ -704,7 +709,7 @@ export default function FormBuilderPage() {
                           <button
                             key={opt.value}
                             onClick={() => setSuccessAction(opt.value)}
-                            className={`flex-1 py-2.5 rounded-lg border text-xs font-semibold ${successAction === opt.value ? "border-accent-charcoal bg-accent-charcoal text-white" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
+                            className={`flex-1 py-2.5 rounded-lg border text-xs font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-white" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
                           >
                             {opt.label}
                           </button>
@@ -827,8 +832,8 @@ export default function FormBuilderPage() {
 
       {/* Variant Create/Edit Modal */}
       {isVariantModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-accent-charcoal/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
+          <div className="bg-white rounded-surface border border-border-subtle w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-border-subtle flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-text-primary">{editingVariant ? "Editar variante" : "Nueva variante"}</h3>
@@ -840,24 +845,24 @@ export default function FormBuilderPage() {
             </div>
             <div className="p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Nombre de la variante <span className="text-red-400">*</span></label>
+                <label className="noxy-form-label">Nombre de la variante <span className="text-red-400">*</span></label>
                 <input
                   type="text"
                   autoFocus
                   value={variantName}
                   onChange={e => setVariantName(e.target.value)}
                   placeholder="Ej: Paquete Básico $8,000 MXN"
-                  className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                  className="noxy-form-control"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Descripción interna (opcional)</label>
+                <label className="noxy-form-label">Descripción interna (opcional)</label>
                 <textarea
                   rows={2}
                   value={variantDescription}
                   onChange={e => setVariantDescription(e.target.value)}
                   placeholder="Notas internas sobre esta variante..."
-                  className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm resize-none focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                  className="noxy-form-control min-h-20 resize-none"
                 />
               </div>
             </div>
@@ -868,7 +873,7 @@ export default function FormBuilderPage() {
               <button
                 onClick={handleSaveVariant}
                 disabled={isSavingVariant || !variantName.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-accent-charcoal hover:opacity-90 disabled:opacity-50"
+                className="noxy-form-button px-4 text-sm"
               >
                 {isSavingVariant ? "Guardando..." : editingVariant ? "Guardar cambios" : "Crear variante"}
               </button>

@@ -94,7 +94,7 @@ function AddRelationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35" onClick={onClose}>
       <div className="bg-white rounded-lg w-full max-w-lg mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
@@ -112,7 +112,7 @@ function AddRelationModal({
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterType("")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === "" ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
             >
               Todos
             </button>
@@ -120,7 +120,7 @@ function AddRelationModal({
               <button
                 key={t}
                 onClick={() => setFilterType(t)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === t ? "bg-accent-charcoal text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-white" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}
               >
                 {ENTITY_CONFIG[t].label}
               </button>

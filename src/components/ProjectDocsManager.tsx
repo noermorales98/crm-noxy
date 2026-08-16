@@ -133,7 +133,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
           <ul className="divide-y divide-gray-50">
             {relations.map((r) => (
               <li key={r.id} className="py-2.5 flex items-center justify-between gap-2 group">
-                <button onClick={() => setViewingPageId(r.page.id)} className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-accent-charcoal transition-colors">
+                <button onClick={() => setViewingPageId(r.page.id)} className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-primary transition-colors">
                   <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
                   <span className="truncate">{r.page.title}</span>
                 </button>
@@ -169,7 +169,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
 
       {/* Picker modal */}
       {pickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setPickerOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4" onClick={() => setPickerOpen(false)}>
           <div className="bg-white rounded-lg w-full max-w-md max-h-[70vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
               <h4 className="text-sm font-bold text-text-primary">Vincular página o carpeta</h4>
@@ -210,7 +210,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
 
       {/* Create folder modal */}
       {creatingFolder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setCreatingFolder(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4" onClick={() => setCreatingFolder(false)}>
           <form onSubmit={createFolder} className="bg-white rounded-lg w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
             <h4 className="text-sm font-bold text-text-primary mb-3">Crear carpeta para este proyecto</h4>
             <input
@@ -224,7 +224,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
               <button type="button" onClick={() => setCreatingFolder(false)} className="px-4 py-2 text-sm font-semibold text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">
                 Cancelar
               </button>
-              <button type="submit" disabled={saving || !newFolderName.trim()} className="px-4 py-2 text-sm font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg transition-colors disabled:opacity-50">
+              <button type="submit" disabled={saving || !newFolderName.trim()} className="px-4 py-2 text-sm font-semibold text-white bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">
                 {saving ? "Creando..." : "Crear y vincular"}
               </button>
             </div>

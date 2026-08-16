@@ -65,7 +65,7 @@ export default function ProjectInboxView({ companyId }: { companyId: string }) {
           <button
             key={f.key}
             onClick={() => setFolder(f.key)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${folder === f.key ? "border-accent-charcoal text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${folder === f.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
           >
             <HugeiconsIcon icon={f.icon} size={14} />
             {f.label}

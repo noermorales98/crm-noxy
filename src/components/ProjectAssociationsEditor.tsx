@@ -66,7 +66,7 @@ export default function ProjectAssociationsEditor({ projectId, initial, open: is
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setIsOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4" onClick={() => setIsOpen(false)}>
           <div className="bg-white rounded-lg w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
               <h3 className="text-base font-bold text-text-primary">Editar asociaciones</h3>
@@ -107,7 +107,7 @@ export default function ProjectAssociationsEditor({ projectId, initial, open: is
                 <button onClick={() => setIsOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">
                   Cancelar
                 </button>
-                <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-accent-charcoal hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
+                <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 font-semibold text-white bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>

@@ -18,7 +18,7 @@ type ContentClient = {
 };
 
 const inputClass =
-  "w-full px-3 py-2 text-sm border border-border-subtle rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#B75C3E]/30 focus:border-[#B75C3E]";
+  "noxy-form-control";
 
 function ClientModal({
   initial,
@@ -64,9 +64,9 @@ function ClientModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      <div className="absolute inset-0 bg-brand-obsidian/35" />
       <div
-        className="relative bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 max-h-[92vh] overflow-y-auto"
+        className="relative w-full sm:max-w-lg rounded-t-surface sm:rounded-surface border border-border-subtle bg-white p-6 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -75,12 +75,12 @@ function ClientModal({
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1">Nombre *</label>
+            <label className="noxy-form-label mb-1">Nombre *</label>
             <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Ángeles Lomelí — Volver a Creer" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1">Tipo</label>
+            <label className="noxy-form-label mb-1">Tipo</label>
             <div className="flex gap-2">
               {[
                 { v: "cliente", label: "Cliente" },
@@ -92,7 +92,7 @@ function ClientModal({
                   onClick={() => setKind(opt.v)}
                   className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
                     kind === opt.v
-                      ? "border-[#B75C3E] bg-[#F9E8E1] text-[#B75C3E] font-medium"
+                      ? "border-action-primary bg-nav-active text-action-primary font-semibold"
                       : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
                   }`}
                 >
@@ -103,7 +103,7 @@ function ClientModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1">Descripción breve</label>
+            <label className="noxy-form-label mb-1">Descripción breve</label>
             <input
               className={inputClass}
               value={description ?? ""}
@@ -113,7 +113,7 @@ function ClientModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1">
+            <label className="noxy-form-label mb-1">
               Contexto para la IA
               <span className="font-normal text-text-secondary/70"> — voz de marca, audiencia, productos, tono</span>
             </label>
@@ -137,7 +137,7 @@ function ClientModal({
             <button
               onClick={save}
               disabled={saving}
-              className="flex-1 py-2.5 text-sm rounded-lg bg-[#B75C3E] text-white font-medium hover:bg-[#a04e33] transition-colors disabled:opacity-60"
+              className="noxy-form-button flex-1 text-sm"
             >
               {saving ? "Guardando…" : "Guardar"}
             </button>
@@ -185,7 +185,7 @@ export default function ContentClientsView() {
         </div>
         <button
           onClick={() => { setEditing(null); setModalOpen(true); }}
-          className="shrink-0 flex items-center gap-2 bg-[#2D2D2D] text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[#1a1a1a] transition-colors"
+          className="shrink-0 min-h-11 flex items-center gap-2 bg-action-primary text-white px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
           <span className="hidden sm:inline">Nuevo cliente / marca</span>
@@ -200,9 +200,9 @@ export default function ContentClientsView() {
           ))}
         </div>
       ) : clients.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border-subtle rounded-2xl">
-          <div className="w-14 h-14 rounded-xl bg-[#F9E8E1] flex items-center justify-center mx-auto mb-4">
-            <HugeiconsIcon icon={MegaphoneIcon} size={24} color="#B75C3E" />
+        <div className="text-center py-16 border border-dashed border-border-subtle rounded-surface">
+          <div className="w-14 h-14 rounded-surface bg-nav-active flex items-center justify-center mx-auto mb-4">
+            <HugeiconsIcon icon={MegaphoneIcon} size={24} color="#3545D6" />
           </div>
           <h2 className="text-base font-semibold text-text-primary mb-1">Sin clientes ni marcas todavía</h2>
           <p className="text-sm text-text-secondary mb-5 max-w-sm mx-auto">
@@ -210,7 +210,7 @@ export default function ContentClientsView() {
           </p>
           <button
             onClick={() => { setEditing(null); setModalOpen(true); }}
-            className="inline-flex items-center gap-2 bg-[#B75C3E] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[#a04e33] transition-colors"
+            className="inline-flex min-h-11 items-center gap-2 bg-action-primary text-white px-5 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             Crear el primero
@@ -226,7 +226,7 @@ export default function ContentClientsView() {
               <div className="flex items-start gap-3 mb-3">
                 <span
                   className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold text-white"
-                  style={{ backgroundColor: c.kind === "cliente" ? "#B75C3E" : "#6E7F5C" }}
+                  style={{ backgroundColor: c.kind === "cliente" ? "#3545D6" : "#5363EE" }}
                 >
                   {c.name.charAt(0).toUpperCase()}
                 </span>
@@ -246,7 +246,7 @@ export default function ContentClientsView() {
                 {c.context && (
                   <>
                     <span>·</span>
-                    <span className="text-[#B75C3E] font-medium">Con contexto IA</span>
+                    <span className="text-action-primary font-semibold">Con contexto IA</span>
                   </>
                 )}
               </div>
@@ -254,9 +254,9 @@ export default function ContentClientsView() {
               <div className="mt-auto flex items-center gap-2">
                 <Link
                   href={`/contenido/${c.id}`}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 text-sm rounded-lg bg-[#F9E8E1] text-[#B75C3E] font-medium hover:bg-[#f3d9cb] transition-colors"
+                  className="flex-1 min-h-10 flex items-center justify-center gap-2 py-2 text-sm rounded-control bg-nav-active text-action-primary font-semibold hover:bg-nav-hover transition-colors duration-200 motion-reduce:transition-none"
                 >
-                  <HugeiconsIcon icon={Calendar01Icon} size={14} color="#B75C3E" />
+                  <HugeiconsIcon icon={Calendar01Icon} size={14} color="#3545D6" />
                   Ver calendario
                 </Link>
                 <button
@@ -285,8 +285,8 @@ export default function ContentClientsView() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" onClick={() => setDeleting(null)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-brand-obsidian/35" />
+          <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.name}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">
               Se eliminarán también su calendario, sus piezas y sus números de WhatsApp. El enlace público dejará de funcionar.

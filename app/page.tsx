@@ -31,7 +31,7 @@ export default async function Home() {
   const data = await fetchDashboardData(requiredKeys, organizationId, now);
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 flex flex-col gap-5 bg-surface-app">
+    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 sm:px-6 py-5 sm:py-6 flex flex-col gap-5 bg-surface-app">
       <DashboardCustomizer initialWidgets={widgetIds} initialTabs={tabIds} data={data} />
     </main>
   );

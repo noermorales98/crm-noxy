@@ -106,20 +106,20 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center gap-2 bg-accent-charcoal text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium shrink-0"
+        className="flex items-center justify-center gap-2 bg-action-primary text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-colors font-medium shrink-0"
       >
         <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
         Vincular tareas
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="px-6 py-5 border-b border-border-subtle flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
-                  <HugeiconsIcon icon={CheckmarkSquare01Icon} size={20} color="#2563eb" />
+                  <HugeiconsIcon icon={CheckmarkSquare01Icon} size={20} color="#3545D6" />
                   Vincular tareas al proyecto
                 </h3>
                 <p className="text-sm text-text-secondary mt-1">
@@ -168,7 +168,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                       </span>
                       <button
                         onClick={handleSelectAllFiltered}
-                        className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wide px-2 py-1 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                        className="text-xs font-bold text-action-primary hover:text-action-secondary px-2 py-1 bg-nav-hover hover:bg-nav-active rounded-md transition-colors"
                       >
                         Seleccionar Todo / Ninguno
                       </button>
@@ -186,12 +186,12 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                           type="checkbox"
                           checked={selectedTasks.has(t.id)}
                           onChange={() => toggleSelection(t.id)}
-                          className="w-4 h-4 rounded text-blue-600 border-border-subtle focus:ring-blue-500"
+                          className="w-4 h-4 rounded text-action-primary border-border-subtle focus:ring-focus"
                         />
                         <div className="flex flex-col min-w-0">
                           <span className={`text-sm font-semibold truncate ${t.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}>{t.title}</span>
                           <div className="flex gap-2 flex-wrap text-xs text-text-secondary">
-                            {t.company && <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={Building04Icon} size={10} className="inline mr-0.5" />{t.company.name}</span>}
+                            {t.company && <span className="text-action-primary bg-nav-hover px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={Building04Icon} size={10} className="inline mr-0.5" />{t.company.name}</span>}
                             {t.form && <span className="text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={BrowserIcon} size={10} className="inline mr-0.5" />{t.form.name}</span>}
                           </div>
                         </div>
@@ -210,7 +210,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                     <button
                       disabled={saving}
                       onClick={handleSave}
-                      className="px-5 py-2.5 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm disabled:opacity-50"
+                      className="px-5 py-2.5 font-semibold text-white bg-action-primary hover:bg-action-secondary rounded-control transition-colors text-sm disabled:opacity-50"
                     >
                       {saving ? "Guardando..." : "Guardar vínculos"}
                     </button>
