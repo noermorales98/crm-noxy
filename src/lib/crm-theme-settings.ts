@@ -1,3 +1,4 @@
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { isCrmThemeId, type CrmThemeId } from "./crm-themes.ts";
 
 export type CrmThemePatchResult =

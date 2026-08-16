@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { parseCrmThemePatch } from "./crm-theme-settings.ts";
 
 test("accepts a known CRM theme identifier", () => {

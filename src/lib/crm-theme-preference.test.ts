@@ -1,13 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  applyConfirmedTheme,
-  beginThemeSelection,
-  confirmThemeSelection,
-  createThemePreferenceState,
-  rollbackThemeSelection,
-  themeStorageKey,
-} from "./crm-theme-preference.ts";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { applyConfirmedTheme, beginThemeSelection, confirmThemeSelection, createThemePreferenceState, rollbackThemeSelection, themeStorageKey } from "./crm-theme-preference.ts";
 
 test("creates user-scoped storage keys", () => {
   assert.equal(themeStorageKey("user-1"), "noxy-crm-theme:user-1");

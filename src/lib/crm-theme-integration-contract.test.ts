@@ -70,4 +70,6 @@ test("Settings exposes an accessible responsive theme selector", () => {
   assert.match(selector, /role="status"/);
   assert.match(selector, /aria-live="polite"/);
   assert.match(selector, /grid-cols-1 sm:grid-cols-2/);
+  assert.match(settings, /<label[^>]*htmlFor="timezone"/);
+  assert.match(settings, /<select[^>]*id="timezone"/);
 });

@@ -1,14 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  CRM_THEMES,
-  DEFAULT_CRM_THEME_ID,
-  contrastRatio,
-  crmThemeCssVariables,
-  isCrmThemeId,
-  resolveCrmTheme,
-  type CrmThemeTokens,
-} from "./crm-themes.ts";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { CRM_THEMES, DEFAULT_CRM_THEME_ID, contrastRatio, crmThemeCssVariables, isCrmThemeId, resolveCrmTheme, type CrmThemeTokens } from "./crm-themes.ts";
 
 const TOKEN_KEYS: Array<keyof CrmThemeTokens> = [
   "surfaceApp",

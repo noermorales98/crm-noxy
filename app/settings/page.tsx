@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSoundSettings } from "@/src/context/SoundContext";
 import ThemeSelector from "@/src/components/settings/ThemeSelector";
@@ -73,7 +73,7 @@ export default function SettingsPage() {
             setTimezone(data.timezone || "America/Cancun");
           }
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to load settings");
       }
     }
@@ -148,8 +148,8 @@ export default function SettingsPage() {
         throw new Error("Failed to save settings");
       }
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -252,8 +252,9 @@ export default function SettingsPage() {
                 Define la zona horaria de tu organización. Se usará para guardar horarios bloqueados y disponibilidad correctamente.
               </p>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">Zona horaria</label>
+                <label htmlFor="timezone" className="text-sm font-semibold text-text-primary">Zona horaria</label>
                 <select
+                  id="timezone"
                   value={timezone}
                   onChange={e => setTimezone(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
@@ -334,7 +335,7 @@ export default function SettingsPage() {
                   onChange={(e) => setCallMeBotApiKey(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
                 />
-                <p className="text-xs text-text-secondary">Get this by sending "I allow callmebot to send me messages" to the CallMeBot WhatsApp number.</p>
+                <p className="text-xs text-text-secondary">Get this by sending &quot;I allow callmebot to send me messages&quot; to the CallMeBot WhatsApp number.</p>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}

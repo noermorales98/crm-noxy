@@ -1,8 +1,5 @@
-import {
-  DEFAULT_CRM_THEME_ID,
-  isCrmThemeId,
-  type CrmThemeId,
-} from "./crm-themes.ts";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { DEFAULT_CRM_THEME_ID, isCrmThemeId, type CrmThemeId } from "./crm-themes.ts";
 
 export type CrmThemeSaveStatus = "idle" | "loading" | "saving" | "saved" | "error";
 
