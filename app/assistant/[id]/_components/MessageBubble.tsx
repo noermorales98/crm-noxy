@@ -372,7 +372,7 @@ export default function MessageBubble({
             {retryOpen && (
               <div className={usesSoftCards
                 ? styles.retryMenu
-                : "absolute bottom-full left-0 mb-2 w-60 bg-white rounded-xl border border-border-subtle shadow-xl overflow-hidden z-50"}
+                : "crm-floating-menu absolute bottom-full left-0 mb-2 w-60 bg-white rounded-xl border border-border-subtle overflow-hidden z-50"}
               >
                 <div className="px-3 py-2 border-b border-border-subtle bg-surface-sidebar">
                   <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">

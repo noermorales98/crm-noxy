@@ -195,7 +195,7 @@ export default function KbEditorNavbar({
               <ChevronDown size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
             </button>
             {themeMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-52 max-h-72 overflow-y-auto bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle shadow-sm">
+              <div className="crm-floating-menu absolute right-0 top-full mt-1 w-52 max-h-72 overflow-y-auto bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle">
                 {KB_MARKDOWN_THEMES.map((t) => (
                   <button
                     key={t.id}

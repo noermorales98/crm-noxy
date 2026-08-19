@@ -58,7 +58,7 @@ function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) 
   const filtered = searchHugeIcons(q, 48, 0);
 
   return (
-    <div ref={ref} className="absolute top-full left-0 mt-1 z-50 bg-surface-elevated rounded-lg border border-border-subtle p-3 w-60">
+    <div ref={ref} className="crm-floating-menu absolute top-full left-0 mt-1 z-50 bg-surface-elevated rounded-lg border border-border-subtle p-3 w-60">
       <p className="text-xs text-text-secondary mb-2 font-medium">Insertar ícono HugeIcon</p>
       <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar icono..." className="crm-input mb-2 text-xs py-1.5" />
       <p className="text-[10px] text-text-secondary mb-1.5">Sintaxis: <code className="bg-surface-sidebar px-1 rounded">&#96;icon:Nombre&#96;</code></p>

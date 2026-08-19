@@ -898,8 +898,8 @@ function EmailsPageInner() {
 
       {/* Compose Modal */}
       {isComposing && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-brand-obsidian/25 p-4">
-          <div className="bg-white rounded-lg w-full max-w-xl flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-brand-obsidian/55 backdrop-blur-[2px] p-4">
+          <div className="bg-white rounded-surface overflow-hidden w-full max-w-xl flex flex-col max-h-[85vh] shadow-[0_24px_70px_rgba(11,11,24,0.28)]">
             {/* Header */}
             <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between shrink-0">
               <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
@@ -914,7 +914,7 @@ function EmailsPageInner() {
                   className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
                     showAiDraft
                       ? "bg-[#EBEDFA] text-[#3545D6] font-medium"
-                      : "text-text-secondary hover:bg-surface-elevated hover:text-text-primary"
+                      : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover hover:text-text-primary"
                   }`}
                 >
                   <HugeiconsIcon icon={SparklesIcon} size={13} color={showAiDraft ? "#3545D6" : undefined} />
@@ -922,7 +922,7 @@ function EmailsPageInner() {
                 </button>
                 <button
                   onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
-                  className="text-text-secondary hover:text-text-secondary p-1 rounded-lg hover:bg-nav-hover transition-colors"
+                  className="bg-surface-sidebar text-text-secondary hover:text-text-primary p-1 rounded-lg hover:bg-nav-hover transition-colors"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={16} />
                 </button>
@@ -954,7 +954,7 @@ function EmailsPageInner() {
                           className={`text-xs px-2.5 py-1 rounded-md transition-colors capitalize ${
                             aiTone === t
                               ? "bg-[#3545D6] text-white"
-                              : "text-text-secondary hover:bg-surface-elevated"
+                              : "bg-white text-text-secondary hover:bg-nav-hover"
                           }`}
                         >
                           {t === "formal" ? "Formal" : t === "casual" ? "Casual" : "Amigable"}
@@ -1001,7 +1001,7 @@ function EmailsPageInner() {
                           type="button"
                           onClick={handleAiDraft}
                           disabled={aiLoading}
-                          className="text-xs text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-md hover:bg-surface-elevated transition-colors"
+                          className="text-xs bg-surface-sidebar text-text-secondary hover:text-text-primary px-3 py-1.5 rounded-md hover:bg-nav-hover transition-colors"
                         >
                           Regenerar
                         </button>
@@ -1061,7 +1061,7 @@ function EmailsPageInner() {
                       return matches.length > 0 ? (
                         <div
                           ref={contactDropdownRef}
-                          className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border-subtle rounded-lg overflow-hidden"
+                          className="crm-floating-menu absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border-subtle rounded-lg overflow-hidden"
                         >
                           {matches.map((c) => (
                             <button
@@ -1119,7 +1119,7 @@ function EmailsPageInner() {
                       type="button"
                       onClick={() => setPreviewCompose(false)}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                        !previewCompose ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"
+                        !previewCompose ? "bg-white text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       <HugeiconsIcon icon={SourceCodeIcon} size={12} />
@@ -1129,7 +1129,7 @@ function EmailsPageInner() {
                       type="button"
                       onClick={() => setPreviewCompose(true)}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                        previewCompose ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"
+                        previewCompose ? "bg-white text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       <HugeiconsIcon icon={ViewIcon} size={12} />
@@ -1171,7 +1171,7 @@ function EmailsPageInner() {
                 <button
                   type="button"
                   onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
-                  className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+                  className="rounded-control bg-surface-elevated px-3 py-2 text-sm text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
                 >
                   Cancelar
                 </button>
@@ -1197,7 +1197,7 @@ function EmailsPageInner() {
                       className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
                         composeData.scheduledAt
                           ? "border-blue-300 bg-blue-50 text-blue-700"
-                          : "border-border-subtle text-text-secondary hover:bg-nav-hover"
+                          : "border-border-subtle bg-surface-elevated text-text-secondary hover:bg-nav-hover"
                       }`}
                     >
                       <HugeiconsIcon icon={Clock01Icon} size={14} />

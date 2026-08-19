@@ -109,7 +109,7 @@ export default function KbSharePanel({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-80 bg-surface-elevated rounded-lg border border-border-subtle shadow-lg z-50 p-4">
+        <div className="crm-floating-menu absolute right-0 top-full mt-1 w-80 bg-surface-elevated rounded-lg border border-border-subtle z-50 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-text-primary">Compartir públicamente</h3>
             <button type="button" onClick={() => setOpen(false)} className="text-text-secondary hover:text-text-primary">

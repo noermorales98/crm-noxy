@@ -129,7 +129,7 @@ export default function Header() {
             </button>
 
             {sortOpen && (
-              <div className="absolute left-0 mt-2 w-48 bg-surface-elevated rounded-lg py-1 z-40">
+              <div className="crm-floating-menu absolute left-0 mt-2 w-48 bg-surface-elevated rounded-lg py-1 z-40">
                 {config.sortOptions!.map((opt) => (
                   <button
                     key={opt.value}
@@ -180,7 +180,7 @@ export default function Header() {
             </button>
 
             {filtersOpen && (
-              <div className="absolute left-0 mt-2 w-56 bg-surface-elevated rounded-lg p-4 z-40 flex flex-col gap-4">
+              <div className="crm-floating-menu absolute left-0 mt-2 w-56 bg-surface-elevated rounded-lg p-4 z-40 flex flex-col gap-4">
                 {config.filterGroups!.map((group) => (
                   <div key={group.key}>
                     <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">{group.label}</p>
@@ -244,7 +244,7 @@ export default function Header() {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-surface-elevated rounded-lg overflow-hidden z-50">
+            <div className="crm-floating-menu absolute right-0 mt-2 w-80 bg-surface-elevated rounded-lg overflow-hidden z-50">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
                 <p className="text-sm font-bold text-text-primary">Notificaciones</p>
@@ -304,7 +304,7 @@ export default function Header() {
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-surface-elevated rounded-lg py-1 z-50">
+            <div className="crm-floating-menu absolute right-0 mt-2 w-52 bg-surface-elevated rounded-lg py-1 z-50">
               <div className="px-4 py-3 border-b border-border-subtle">
                 <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                 <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
@@ -378,7 +378,7 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
           {icon}
         </button>
         {open && (
-          <div className="absolute right-0 mt-2 w-56 bg-surface-elevated rounded-lg py-1 z-40">
+          <div className="crm-floating-menu absolute right-0 mt-2 w-56 bg-surface-elevated rounded-lg py-1 z-40">
             {action.menu.map((item) => (
               <button
                 key={item.label}

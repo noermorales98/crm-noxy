@@ -79,7 +79,7 @@ export default function KbIconPicker({
   return (
     <div
       ref={ref}
-      className="absolute top-full left-0 mt-2 z-50 bg-surface-elevated rounded-lg border border-border-subtle p-4 w-80 max-h-[70vh] overflow-hidden flex flex-col"
+      className="crm-floating-menu absolute top-full left-0 mt-2 z-50 bg-surface-elevated rounded-lg border border-border-subtle p-4 w-80 max-h-[70vh] overflow-hidden flex flex-col"
     >
       <div className="flex gap-1 mb-3 p-0.5 bg-surface-sidebar rounded-lg shrink-0">
         {(["emoji", "icon"] as const).map((t) => (

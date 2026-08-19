@@ -189,7 +189,7 @@ function SectionSwitcher({
 
       {open && (
         <div
-          className="absolute left-3 right-3 top-full mt-1 z-50 bg-surface-elevated rounded-lg py-1.5 overflow-hidden border border-border-subtle"
+          className="crm-floating-menu absolute left-3 right-3 top-full mt-1 z-50 bg-surface-elevated rounded-lg py-1.5 overflow-hidden border border-border-subtle"
           role="listbox"
         >
           {SECTIONS.map((section) => {
@@ -829,8 +829,8 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const isAssistant = activeTab === "assistant";
   const shellClass =
     variant === "floating"
-      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-border-subtle bg-white shadow-sm"
-      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden border-r border-border-subtle bg-surface-sidebar`;
+      ? "flex h-full w-full flex-col overflow-hidden rounded-surface bg-white shadow-sm"
+      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
 
   return (
     <>
@@ -882,7 +882,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
               </button>
 
               {sidebarNotifOpen && (
-                <div className="absolute bottom-full left-0 mb-2 w-72 bg-surface-elevated rounded-lg overflow-hidden z-50 border border-border-subtle shadow-lg">
+                <div className="crm-floating-menu absolute bottom-full left-0 mb-2 w-72 bg-surface-elevated rounded-lg overflow-hidden z-50 border border-border-subtle">
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
                     <p className="text-sm font-bold text-text-primary">Notificaciones</p>
                     <div className="flex items-center gap-2">
@@ -945,7 +945,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
               </button>
 
               {sidebarUserOpen && (
-                <div className="absolute bottom-full right-0 mb-2 w-52 bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle shadow-lg">
+                <div className="crm-floating-menu absolute bottom-full right-0 mb-2 w-52 bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle">
                   <div className="px-4 py-3 border-b border-border-subtle">
                     <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                     <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>

@@ -26,7 +26,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
 
   if (widgets.length === 0) {
     return (
-      <div className="bg-surface-elevated rounded-lg p-10 text-center text-sm text-text-secondary">
+      <div className="bg-surface-elevated rounded-surface p-10 text-center text-sm text-text-secondary">
         No hay widgets en tu dashboard. Activa &quot;Personalizar&quot; para agregar algunos.
       </div>
     );
@@ -57,7 +57,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
                     {...dragProvided.draggableProps}
                     className={`${widgetSizeClass(w.size)} relative group ${dragSnapshot.isDragging ? "z-10" : ""}`}
                   >
-                    <div className="absolute inset-0 rounded-lg ring-2 ring-action-primary/20 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-surface ring-2 ring-action-primary/20 pointer-events-none" />
                     <div
                       {...dragProvided.dragHandleProps}
                       className="absolute top-2 left-2 z-20 w-6 h-6 rounded-md bg-surface-elevated border border-border-subtle flex items-center justify-center cursor-grab active:cursor-grabbing text-text-secondary hover:text-text-primary shadow-sm"

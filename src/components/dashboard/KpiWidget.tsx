@@ -15,7 +15,7 @@ export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlig
   return (
     <Link
       href={href}
-      className={`bg-surface-elevated rounded-lg p-5 h-full flex items-start gap-3 hover:bg-nav-hover transition-colors ${
+      className={`bg-surface-elevated rounded-surface p-5 h-full flex items-start gap-3 hover:bg-nav-hover transition-colors ${
         highlight ? "bg-red-50/50" : ""
       }`}
     >

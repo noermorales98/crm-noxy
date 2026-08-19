@@ -37,7 +37,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
 
   if (tabs.length === 0) {
     return (
-      <div className="bg-surface-elevated rounded-lg p-10 text-center text-sm text-text-secondary">
+      <div className="bg-surface-elevated rounded-surface p-10 text-center text-sm text-text-secondary">
         No hay pestañas en la tabla. Activa &quot;Personalizar&quot; para agregar algunas.
       </div>
     );
@@ -46,7 +46,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
   const activeTabData = tabs.find((t) => t.id === activeTab) ?? tabs[0];
 
   return (
-    <div className="bg-surface-elevated rounded-lg">
+    <div className="bg-surface-elevated rounded-surface overflow-hidden">
       <div className="flex items-center border-b border-border-subtle px-2">
         {editMode ? (
           <DragDropContext onDragEnd={handleDragEnd}>

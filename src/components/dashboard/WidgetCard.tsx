@@ -10,7 +10,7 @@ interface WidgetCardProps {
 
 export function WidgetCard({ title, href, children }: WidgetCardProps) {
   return (
-    <div className="bg-surface-elevated rounded-lg h-full flex flex-col">
+    <div className="bg-surface-elevated rounded-surface overflow-hidden h-full flex flex-col">
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle shrink-0">
         <p className="text-sm font-semibold text-text-primary">{title}</p>
         <Link href={href} className="flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary transition-colors">

@@ -28,9 +28,12 @@
   --color-action-secondary: #5363EE;
   --color-focus: #3545D6;
   --color-highlight: #C8FE37;
-  --radius-control: 10px;
-  --radius-surface: 12px;
-  --radius-ui: 10px;
+  --radius-control: 12px;
+  --radius-surface: 20px;
+  --radius-ui: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 20px;
 }
 
 :root {
@@ -58,9 +61,9 @@
   --action-secondary: #5363EE;
   --focus: #3545D6;
   --highlight: #C8FE37;
-  --radius-control: 10px;
-  --radius-surface: 12px;
-  --radius-ui: 10px;
+  --radius-control: 12px;
+  --radius-surface: 20px;
+  --radius-ui: 12px;
   --duration-state: 180ms;
   --ease-state: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -85,11 +88,11 @@ body {
 
 @layer components {
   .crm-card {
-    @apply bg-surface-elevated rounded-surface border border-border-subtle p-5;
+    @apply overflow-hidden bg-surface-elevated rounded-surface border border-border-subtle p-5;
   }
 
   .crm-card-interactive {
-    @apply bg-surface-elevated rounded-surface border border-border-subtle p-5 transition-colors duration-200 hover:bg-nav-hover;
+    @apply overflow-hidden bg-surface-elevated rounded-surface border border-border-subtle p-5 transition-colors duration-200 hover:bg-nav-hover;
   }
 
   .crm-input {
@@ -101,11 +104,11 @@ body {
   }
 
   .crm-btn-ghost {
-    @apply inline-flex min-h-10 items-center justify-center rounded-control px-3 py-2 text-sm font-medium text-text-primary transition-colors duration-200 hover:bg-nav-hover;
+    @apply inline-flex min-h-10 items-center justify-center rounded-control bg-surface-sidebar px-3 py-2 text-sm font-medium text-text-primary transition-colors duration-200 hover:bg-nav-hover;
   }
 
   .crm-dropdown {
-    @apply overflow-hidden rounded-surface border border-border-subtle bg-surface-elevated py-1 shadow-[0_8px_8px_rgba(11,11,24,0.10)];
+    @apply overflow-hidden rounded-surface border border-border-subtle bg-surface-elevated py-1;
   }
 
   .crm-section-label {
@@ -136,6 +139,41 @@ body {
   .noxy-form-button {
     @apply inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-5 py-2.5 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:cursor-not-allowed disabled:opacity-50;
   }
+}
+
+.crm-dropdown,
+.crm-floating-menu {
+  box-shadow: 0 10px 28px rgba(11, 11, 24, 0.12), 0 2px 6px rgba(11, 11, 24, 0.06);
+}
+
+/* Private CRM surfaces keep their geometry while neutral outlines lose their color. */
+[data-crm-theme] :where(
+  [class~="border-border-subtle"]:not(.animate-spin):not(:focus):not(:focus-within),
+  [class~="border-gray-100"]:not(.animate-spin):not(:focus):not(:focus-within),
+  [class~="border-gray-200"]:not(.animate-spin):not(:focus):not(:focus-within),
+  [class~="border-[#DCDFE6]"]:not(:focus):not(:focus-within),
+  [class~="border-[#EDE9FE]"]:not(:focus):not(:focus-within)
+) {
+  border-color: transparent;
+}
+
+[data-crm-theme] :where(
+  button[class~="border-border-subtle"],
+  a[class~="border-border-subtle"]
+) {
+  background-color: var(--surface-sidebar);
+}
+
+[data-crm-theme] :where(
+  div,
+  section,
+  article,
+  aside,
+  main,
+  nav,
+  table
+)[class~="border-border-subtle"][class*="rounded-"]:not(.animate-spin) {
+  border-radius: var(--radius-surface);
 }
 
 /* Scrollbar */

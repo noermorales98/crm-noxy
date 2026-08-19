@@ -98,7 +98,7 @@ function AddRelationPopover({
   return (
     <div
       ref={containerRef}
-      className="absolute top-full left-0 mt-2 z-50 bg-white rounded-lg border border-border-subtle w-80 overflow-hidden"
+      className="crm-floating-menu absolute top-full left-0 mt-2 z-50 bg-white rounded-lg border border-border-subtle w-80 overflow-hidden"
     >
       {/* Filter chips */}
       <div className="flex gap-1 flex-wrap p-3 border-b border-border-subtle">

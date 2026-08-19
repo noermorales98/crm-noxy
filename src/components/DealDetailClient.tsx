@@ -797,7 +797,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   Vincular
                 </button>
                 {showContactSearch && (
-                  <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-border-subtle rounded-lg z-20 p-3 flex flex-col gap-2">
+                  <div className="crm-floating-menu absolute top-full left-0 mt-1 w-64 bg-white border border-border-subtle rounded-lg z-20 p-3 flex flex-col gap-2">
                     <input
                       value={contactSearch}
                       onChange={(e) => setContactSearch(e.target.value)}
