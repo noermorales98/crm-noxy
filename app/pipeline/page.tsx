@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
 import DatePicker from "@/src/components/DatePicker";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -13,6 +14,7 @@ import {
   KanbanIcon,
   Cancel01Icon,
   Building02Icon,
+  Folder01Icon,
 } from "@hugeicons/core-free-icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { input as inputCls } from "@/src/lib/crm-ui";
@@ -619,6 +621,20 @@ export default function PipelinePage() {
                     onHide={() => hideStat(s.id)}
                   />
                 ))}
+                
+                {/* Historial link embedded in stats row */}
+                <Link 
+                  href="/pipeline/historial"
+                  className="flex items-center gap-3 px-5 py-3 bg-white border border-border-subtle rounded-xl hover:bg-gray-50 transition-colors shrink-0 min-w-[200px]"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <HugeiconsIcon icon={Folder01Icon} size={20} />
+                  </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-sm font-bold text-text-primary whitespace-nowrap">Historial</span>
+                    <span className="text-xs text-text-secondary whitespace-nowrap truncate">Ver ventas archivadas</span>
+                  </div>
+                </Link>
               </div>
             )}
 

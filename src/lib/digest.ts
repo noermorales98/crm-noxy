@@ -111,7 +111,7 @@ export async function buildDigestContext(
       select: { id: true, name: true },
     }),
     prisma.deal.findMany({
-      where: { organizationId: orgId, stage: { isWon: false, isLost: false } },
+      where: { organizationId: orgId, isArchived: false, stage: { isWon: false, isLost: false } },
       select: {
         id: true, title: true, value: true, currency: true, followUpAt: true,
         stage: { select: { name: true, pipeline: { select: { id: true, name: true } } } },
@@ -121,6 +121,7 @@ export async function buildDigestContext(
     prisma.deal.count({
       where: {
         organizationId: orgId,
+        isArchived: false,
         followUpAt: { lt: now },
         stage: { isWon: false, isLost: false },
       },

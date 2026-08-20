@@ -18,6 +18,7 @@ export async function GET() {
           orderBy: { order: "asc" },
           include: {
             deals: {
+              where: { isArchived: false },
               orderBy: { createdAt: "desc" },
               include: {
                 contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
@@ -117,6 +118,10 @@ export async function PATCH(req: Request) {
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
     if (contactId !== undefined) updateData.contactId = contactId || null;
     if (body.allowedBookingTypes !== undefined) updateData.allowedBookingTypes = body.allowedBookingTypes || null;
+    if (body.isArchived !== undefined) {
+      updateData.isArchived = body.isArchived;
+      updateData.archivedAt = body.isArchived ? new Date() : null;
+    }
 
     if (stageId !== undefined && stageId !== existing.stageId) {
       const stage = await prisma.stage.findFirst({

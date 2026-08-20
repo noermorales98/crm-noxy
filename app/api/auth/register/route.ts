@@ -45,10 +45,11 @@ export async function POST(req: NextRequest) {
                     name: "Sales Pipeline",
                     stages: {
                       create: [
-                        { name: "Lead", order: 1 },
-                        { name: "Contactado", order: 2 },
-                        { name: "Propuesta", order: 3 },
-                        { name: "Ganado", order: 4 },
+                        { name: "Lead", order: 1, color: "#6B7280" },
+                        { name: "Contactado", order: 2, color: "#3B82F6" },
+                        { name: "Propuesta", order: 3, color: "#F59E0B" },
+                        { name: "Ganado", order: 4, isWon: true, color: "#10B981" },
+                        { name: "Perdido", order: 5, isLost: true, color: "#EF4444" },
                       ]
                     }
                   }

@@ -48,6 +48,7 @@ export default function SettingsPage() {
   const [callMeBotApiKey, setCallMeBotApiKey] = useState("");
   const [notificationEmail, setNotificationEmail] = useState("");
   const [timezone, setTimezone] = useState("America/Cancun");
+  const [autoArchiveDays, setAutoArchiveDays] = useState(30);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export default function SettingsPage() {
             setCallMeBotApiKey(data.callMeBotApiKey || "");
             setNotificationEmail(data.notificationEmail || "");
             setTimezone(data.timezone || "America/Cancun");
+            if (data.autoArchiveDays !== undefined) setAutoArchiveDays(data.autoArchiveDays);
           }
         }
       } catch {
@@ -141,7 +143,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail, timezone }),
+        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail, timezone, autoArchiveDays }),
       });
 
       if (!res.ok) {
@@ -284,6 +286,29 @@ export default function SettingsPage() {
                   className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
                 />
                 <p className="text-xs text-text-secondary">Si lo dejas vacío, se usará el correo de tu cuenta. El SMTP debe estar configurado en la empresa del formulario.</p>
+              </div>
+            </div>
+
+            <hr className="border-border-subtle" />
+
+            {/* Pipeline Settings */}
+            <div>
+              <h2 className="text-lg font-bold text-text-primary mb-1">Pipeline de Ventas</h2>
+              <p className="text-sm text-text-secondary mb-5">
+                Configura cómo se gestionan tus ventas. Los deals en la etapa Ganado se archivarán automáticamente después del período indicado. Las ventas perdidas solo se archivan manualmente.
+              </p>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-text-primary">Auto-archivar deals ganados (días)</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    value={autoArchiveDays}
+                    onChange={e => setAutoArchiveDays(parseInt(e.target.value) || 0)}
+                    className="w-24 px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                  />
+                  <span className="text-sm text-text-secondary">{autoArchiveDays === 0 ? "Desactivado (nunca archivar)" : "días después de ganar"}</span>
+                </div>
               </div>
             </div>
 

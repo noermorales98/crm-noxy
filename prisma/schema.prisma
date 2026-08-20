@@ -105,6 +105,7 @@ model Organization {
   id        String   @id @default(cuid())
   name      String
   timezone  String   @default("America/Cancun")
+  autoArchiveDays Int     @default(30)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -433,6 +434,8 @@ model Deal {
   notes       String?     @db.Text
   bookingToken String?    @unique @default(cuid())
   allowedBookingTypes String? @db.Text
+  isArchived  Boolean     @default(false)
+  archivedAt  DateTime?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

@@ -33,11 +33,17 @@ export async function PATCH(req: Request) {
 
     // Update org timezone if provided
     const organizationId = (session as any).currentOrganizationId;
-    if (organizationId && timezone) {
-      await prisma.organization.update({
-        where: { id: organizationId },
-        data: { timezone },
-      });
+    if (organizationId) {
+      const orgData: any = {};
+      if (timezone) orgData.timezone = timezone;
+      if (body.autoArchiveDays !== undefined) orgData.autoArchiveDays = body.autoArchiveDays;
+      
+      if (Object.keys(orgData).length > 0) {
+        await prisma.organization.update({
+          where: { id: organizationId },
+          data: orgData,
+        });
+      }
     }
 
     return NextResponse.json(
@@ -63,12 +69,14 @@ export async function GET(req: Request) {
 
      const organizationId = (session as any).currentOrganizationId;
      let timezone = "America/Cancun";
+     let autoArchiveDays = 30;
      if (organizationId) {
        const org = await prisma.organization.findUnique({
          where: { id: organizationId },
-         select: { timezone: true },
+         select: { timezone: true, autoArchiveDays: true },
        });
        timezone = org?.timezone || "America/Cancun";
+       if (org?.autoArchiveDays !== undefined) autoArchiveDays = org.autoArchiveDays;
      }
 
      return NextResponse.json({
@@ -76,6 +84,7 @@ export async function GET(req: Request) {
         callMeBotApiKey: config?.apiKey || "",
         notificationEmail: config?.notificationEmail || "",
         timezone,
+        autoArchiveDays,
      }, { status: 200 });
    } catch (error: any) {
      console.error("GET /api/settings error:", error);

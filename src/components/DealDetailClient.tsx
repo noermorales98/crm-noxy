@@ -444,6 +444,17 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     startTransition(() => router.refresh());
   }
 
+  // ─── Archivar ───────────────────────────────────────────────────────────
+
+  const [archiving, setArchiving] = useState(false);
+  async function toggleArchive() {
+    setArchiving(true);
+    await patchDeal({ isArchived: !deal.isArchived });
+    setArchiving(false);
+    setDeal((prev: any) => ({ ...prev, isArchived: !prev.isArchived }));
+    startTransition(() => router.refresh());
+  }
+
   // ─── Notes / Info ─────────────────────────────────────────────────────────
 
   async function saveInfo() {
@@ -627,6 +638,19 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 Email
               </a>
             )}
+            {/* Archive button */}
+            <button
+              onClick={toggleArchive}
+              disabled={archiving}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ${
+                deal.isArchived
+                  ? "text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200"
+                  : "text-text-secondary bg-gray-100 hover:bg-nav-active border border-transparent"
+              }`}
+              title={deal.isArchived ? "Desarchivar" : "Archivar"}
+            >
+              {deal.isArchived ? "Desarchivar" : "Archivar"}
+            </button>
             <button
               onClick={() => setShowDeleteDeal(true)}
               className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -764,6 +788,17 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             </div>
           </div>
         </div>
+
+        {deal.isArchived && (
+          <div className="bg-blue-50 border-t border-b border-blue-100 px-6 py-2 flex items-center justify-between">
+            <p className="text-sm text-blue-800 flex items-center gap-2">
+              <span>📁</span> Este deal se encuentra archivado y no aparece en tu tablero Kanban.
+            </p>
+            <button onClick={toggleArchive} disabled={archiving} className="text-xs font-semibold text-blue-700 hover:text-blue-900 underline">
+              Desarchivar
+            </button>
+          </div>
+        )}
 
         {/* ── Details strip ── */}
         <div className="border-t border-border-subtle px-6 py-0 flex items-stretch overflow-x-auto divide-x divide-gray-100">
