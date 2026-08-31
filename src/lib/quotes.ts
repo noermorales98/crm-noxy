@@ -1,5 +1,6 @@
 import { prisma } from "@/src/lib/db";
 import { sendEmail } from "@/src/lib/email";
+import { getPublicBaseUrl } from "@/src/lib/url";
 import nodemailer from "nodemailer";
 import Stripe from "stripe";
 
@@ -60,8 +61,7 @@ export function isQuoteExpired(quote: { validUntil: Date | null }): boolean {
 }
 
 export function quotePublicUrl(token: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  return `${baseUrl}/cotizar/${token}`;
+  return `${getPublicBaseUrl()}/cotizar/${token}`;
 }
 
 export function formatMoney(amount: number, currency: string): string {
@@ -198,7 +198,7 @@ export async function createQuoteStripeLink(quoteId: string): Promise<string> {
   }
 
   const stripe = new Stripe(secretKey, { apiVersion: "2025-03-31.basil" });
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = getPublicBaseUrl();
 
   const paymentLink = await stripe.paymentLinks.create({
     line_items: [

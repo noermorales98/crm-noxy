@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { getPublicBaseUrl } from "@/src/lib/url";
 import Stripe from "stripe";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -34,7 +35,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-03-31.basil" });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000";
+    const baseUrl = getPublicBaseUrl();
     const amountInCents = Math.round(parseFloat(amount) * 100);
 
     const paymentLink = await stripe.paymentLinks.create({
