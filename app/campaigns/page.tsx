@@ -15,11 +15,16 @@ type Campaign = {
   sentAt: string | null;
   createdAt: string;
   companyId: string;
+  scheduledAt: string | null;
+  nextScheduledAt?: string | null;
+  steps?: { order: number; delayDays: number; subject: string }[];
   company: { name: string };
   project?: { name: string };
   targetForm?: { name: string };
   _count: { logs: number };
 };
+
+type StepDraft = { delayDays: string; subject: string; body: string };
 
 export default function CampaignsPage() {
   const { addToast } = useToast();
@@ -43,6 +48,8 @@ export default function CampaignsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [steps, setSteps] = useState<StepDraft[]>([]);
 
   useEffect(() => {
     resetState();
@@ -127,17 +134,46 @@ export default function CampaignsPage() {
     } catch (e) { addToast("Error de conexión al eliminar.", "error"); }
   };
 
+  const resetForm = () => {
+    setSubject(""); setHtmlBody(""); setTargetType("ALL"); setProjectId(""); setTargetFormId("");
+    setIsPreviewMode(false); setScheduledAt(""); setSteps([]); setErrorMsg(null);
+  };
+
+  const addStep = () => {
+    setSteps(prev => (prev.length >= 10 ? prev : [...prev, { delayDays: "1", subject: "", body: "" }]));
+  };
+  const updateStep = (index: number, patch: Partial<StepDraft>) => {
+    setSteps(prev => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  };
+  const removeStep = (index: number) => {
+    setSteps(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleCreateDraft = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true); setErrorMsg(null);
     try {
+      const invalidStep = steps.findIndex(s => !s.subject.trim() || !s.body.trim());
+      if (invalidStep >= 0) throw new Error(`El mensaje ${invalidStep + 2} de la secuencia necesita asunto y cuerpo.`);
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, body: htmlBody, companyId, projectId: targetType === "PROJECT" ? projectId : null, targetFormId: targetType === "FORM" ? targetFormId : null }),
+        body: JSON.stringify({
+          subject,
+          body: htmlBody,
+          companyId,
+          projectId: targetType === "PROJECT" ? projectId : null,
+          targetFormId: targetType === "FORM" ? targetFormId : null,
+          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+          steps: steps.map(s => ({
+            delayDays: parseInt(s.delayDays, 10) || 0,
+            subject: s.subject.trim(),
+            body: s.body,
+          })),
+        }),
       });
       if (!res.ok) { const data = await res.json(); throw new Error(data.error || "Failed to create draft"); }
-      setSubject(""); setHtmlBody(""); setTargetType("ALL"); setProjectId(""); setTargetFormId(""); setIsPreviewMode(false); setIsModalOpen(false);
+      resetForm(); setIsModalOpen(false);
       fetchCampaigns();
     } catch (err: any) { setErrorMsg(err.message); }
     finally { setIsSubmitting(false); }
@@ -154,7 +190,12 @@ export default function CampaignsPage() {
       const res = await fetch("/api/campaigns/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaignId }) });
       if (!res.ok) { const data = await res.json(); addToast(data.error || "Failed to schedule campaign", "error"); return; }
       const result = await res.json();
-      addToast(`Success! ${result.totalScheduled} emails have been scheduled for dispatch.`, "success");
+      addToast(
+        result.totalMessages > result.totalScheduled
+          ? `¡Listo! Se programaron ${result.totalMessages} mensajes para ${result.totalScheduled} destinatarios.`
+          : `¡Listo! Se programaron ${result.totalScheduled} correos para envío.`,
+        "success"
+      );
       fetchCampaigns();
     } catch (error) { addToast("An unexpected error occurred.", "error"); }
   };
@@ -215,6 +256,19 @@ export default function CampaignsPage() {
                         {camp.project ? <div className="text-xs text-action-primary font-medium mt-0.5">💼 {camp.project.name}</div>
                           : camp.targetForm ? <div className="text-[11px] text-purple-600 font-medium mt-0.5">📝 {camp.targetForm.name}</div>
                           : <div className="text-[11px] text-text-secondary mt-0.5">Toda la empresa</div>}
+                        {camp.steps && camp.steps.length > 0 && (
+                          <div className="text-[11px] text-text-secondary font-medium mt-0.5">🔁 {camp.steps.length + 1} mensajes</div>
+                        )}
+                        {camp.status === "DRAFT" && camp.scheduledAt && new Date(camp.scheduledAt).getTime() > Date.now() && (
+                          <div className="text-[11px] text-amber-600 font-medium mt-0.5">
+                            🕐 Inicia: {new Date(camp.scheduledAt).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        )}
+                        {camp.status === "SENDING" && camp.nextScheduledAt && (
+                          <div className="text-[11px] text-action-primary font-medium mt-0.5">
+                            🕐 Próximo envío: {new Date(camp.nextScheduledAt).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
@@ -276,7 +330,7 @@ export default function CampaignsPage() {
           <div className="bg-white rounded-lg w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-border-subtle flex items-center justify-between shrink-0">
               <h3 className="text-lg font-bold text-text-primary">Crear campaña de correo</h3>
-              <button onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="text-text-secondary hover:text-text-secondary p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
+              <button onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-text-secondary hover:text-text-secondary p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
             </div>
             <div className="p-6 overflow-y-auto">
               <form id="createCampaignForm" onSubmit={handleCreateDraft} className="flex flex-col gap-5">
@@ -320,7 +374,15 @@ export default function CampaignsPage() {
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-text-primary">Asunto</label>
+                  <label className="text-sm font-semibold text-text-primary">Programar inicio (opcional)</label>
+                  <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm" />
+                  <p className="text-xs text-text-secondary">Vacío = se envía al procesar la cola.</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-semibold text-text-primary">Asunto</label>
+                    <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Mensaje 1 — al inicio</span>
+                  </div>
                   <input type="text" required placeholder="e.g. Noticias emocionantes de nuestro equipo!" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm" />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -343,11 +405,70 @@ export default function CampaignsPage() {
                     </div>
                   )}
                 </div>
+                {/* ── Secuencia de mensajes (seguimientos automáticos) ── */}
+                <div className="flex flex-col gap-3 border-t border-border-subtle pt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-semibold text-text-primary">Secuencia de mensajes</label>
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        Mensajes de seguimiento automáticos después del primero. Máximo 10.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addStep}
+                      disabled={steps.length >= 10}
+                      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-action-primary bg-nav-hover hover:opacity-80 transition-opacity disabled:opacity-40"
+                    >
+                      + Agregar seguimiento
+                    </button>
+                  </div>
+                  {steps.map((step, i) => (
+                    <div key={i} className="flex flex-col gap-2.5 p-3.5 border border-border-subtle rounded-lg bg-surface-sidebar/40">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-text-primary">
+                          Mensaje {i + 2} — {step.delayDays || "0"} {parseInt(step.delayDays, 10) === 1 ? "día" : "días"} después
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => removeStep(i)}
+                          className="p-1 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Quitar mensaje"
+                        >
+                          <HugeiconsIcon icon={Delete01Icon} size={14} />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-medium text-text-secondary shrink-0">Días después del anterior</label>
+                        <input
+                          type="number" min="0" max="365" step="1"
+                          value={step.delayDays}
+                          onChange={(e) => updateStep(i, { delayDays: e.target.value })}
+                          className="w-24 px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Asunto del seguimiento"
+                        value={step.subject}
+                        onChange={(e) => updateStep(i, { subject: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                      />
+                      <textarea
+                        placeholder="<p>Hola de nuevo…</p>"
+                        rows={4}
+                        value={step.body}
+                        onChange={(e) => updateStep(i, { body: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm resize-y font-mono"
+                      />
+                    </div>
+                  ))}
+                </div>
                 {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
               </form>
             </div>
             <div className="p-6 border-t border-border-subtle flex justify-end gap-3 shrink-0 bg-surface-sidebar/50">
-              <button type="button" onClick={() => { setIsModalOpen(false); setIsPreviewMode(false); }} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cancelar</button>
+              <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cancelar</button>
               <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
             </div>
           </div>

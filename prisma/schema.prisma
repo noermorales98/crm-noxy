@@ -607,6 +607,9 @@ model EmailCampaign {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
+  // Inicio programado de la campaña; null = inmediato al presionar Enviar
+  scheduledAt DateTime?
+
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -621,12 +624,30 @@ model EmailCampaign {
 
   formsAsWelcome Form[] @relation("WelcomeEmail")
 
-  logs EmailLog[]
+  logs  EmailLog[]
+  steps CampaignStep[]
 
   @@index([organizationId])
   @@index([companyId])
   @@index([projectId])
   @@index([targetFormId])
+}
+
+// Mensaje de seguimiento de una secuencia (drip). El mensaje 1 es
+// subject/body de la campaña; los steps son los mensajes 2, 3, 4...
+model CampaignStep {
+  id        String @id @default(cuid())
+  order     Int // 2, 3, 4...
+  delayDays Int    @default(1) // días DESPUÉS del mensaje anterior
+  subject   String
+  body      String @db.LongText
+
+  campaignId String
+  campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  logs EmailLog[]
+
+  @@index([campaignId])
 }
 
 enum EmailLogStatus {
@@ -644,14 +665,23 @@ model EmailLog {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
+  // Fecha/hora a partir de la cual el cron puede enviarlo; null = inmediato
+  scheduledAt DateTime?
+
   campaignId String
   campaign   EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   contactId String
   contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
+  // Mensaje de la secuencia al que pertenece este envío; null = mensaje 1 de la campaña
+  stepId String?
+  step   CampaignStep? @relation(fields: [stepId], references: [id], onDelete: SetNull)
+
   @@index([campaignId])
   @@index([contactId])
+  @@index([stepId])
+  @@index([status, scheduledAt])
 }
 
 model Form {

@@ -9,8 +9,13 @@ export async function GET(req: Request) {
   }
 
   try {
+    const now = new Date();
+    // Solo los envíos pendientes que ya vencieron (sin fecha programada o con fecha pasada)
     const pendingLogs = await prisma.emailLog.findMany({
-      where: { status: "PENDING" },
+      where: {
+        status: "PENDING",
+        OR: [{ scheduledAt: null }, { scheduledAt: { lte: now } }],
+      },
       take: 50,
       include: {
         campaign: {
@@ -18,7 +23,8 @@ export async function GET(req: Request) {
              company: true // We need the custom SMTP config!
           }
         },
-        contact: true
+        contact: true,
+        step: true // subject/body del mensaje de la secuencia (null = mensaje 1)
       }
     });
 
@@ -55,11 +61,16 @@ export async function GET(req: Request) {
       });
 
       try {
+        // Si el log pertenece a un mensaje de la secuencia, usar su subject/body;
+        // si no, los del mensaje principal de la campaña.
+        const subject = log.step?.subject ?? log.campaign.subject;
+        const html = log.step?.body ?? log.campaign.body;
+
         await transporter.sendMail({
           from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,
           to: log.contact.email,
-          subject: log.campaign.subject,
-          html: log.campaign.body,
+          subject,
+          html,
         });
 
         await prisma.emailLog.update({
@@ -76,7 +87,9 @@ export async function GET(req: Request) {
       }
     }
 
-    // 3. Mark campaigns as COMPLETED if all their logs are no longer PENDING
+    // 3. Mark campaigns as COMPLETED only when ALL their logs are no longer
+    // PENDING — incluyendo los programados a futuro: la campaña solo se completa
+    // cuando se envió el último mensaje de la secuencia.
     // Find unique campaign IDs from this batch
     const campaignIds = [...new Set(pendingLogs.map(l => l.campaignId))];
     for (const cid of campaignIds) {

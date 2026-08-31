@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     // Verify campaign belongs to the organization and is currently DRAFT
     const campaign = await prisma.emailCampaign.findUnique({
       where: { id: campaignId },
+      include: { steps: { orderBy: { order: "asc" } } },
     });
 
     if (!campaign || campaign.organizationId !== currentOrganizationId) {
@@ -56,12 +57,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No contacts with valid email addresses found." }, { status: 400 });
     }
 
-    // Build the EmailLog entries
-    const logsData = contacts.map(contact => ({
-      campaignId: campaignId,
-      contactId: contact.id,
-      status: "PENDING" as const,
-    }));
+    // Build the EmailLog entries: uno por mensaje de la secuencia por contacto.
+    // base = inicio programado (si es futuro) o ahora; cada mensaje N sale
+    // base + suma acumulada de delayDays hasta N.
+    const now = new Date();
+    const hasFutureStart = campaign.scheduledAt && campaign.scheduledAt.getTime() > now.getTime();
+    const base = hasFutureStart ? campaign.scheduledAt! : now;
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
+    const logsData: { campaignId: string; contactId: string; stepId: string | null; scheduledAt: Date | null; status: "PENDING" }[] = [];
+    for (const contact of contacts) {
+      if (campaign.steps.length === 0 && !hasFutureStart) {
+        // Comportamiento original: un solo log sin fecha programada
+        logsData.push({ campaignId, contactId: contact.id, stepId: null, scheduledAt: null, status: "PENDING" });
+        continue;
+      }
+      // Mensaje 1: subject/body de la campaña
+      logsData.push({ campaignId, contactId: contact.id, stepId: null, scheduledAt: base, status: "PENDING" });
+      // Mensajes de seguimiento
+      let cumulativeDays = 0;
+      for (const step of campaign.steps) {
+        cumulativeDays += step.delayDays;
+        logsData.push({
+          campaignId,
+          contactId: contact.id,
+          stepId: step.id,
+          scheduledAt: new Date(base.getTime() + cumulativeDays * DAY_MS),
+          status: "PENDING",
+        });
+      }
+    }
 
     // Perform the operation atomically:
     // 1. Mark campaign as SENDING
@@ -79,7 +104,12 @@ export async function POST(req: Request) {
 
     // Ideally here we would trigger an external Queue (Upstash QStash, etc)
     // For MVPs, we rely on the Vercel cron job picking up the PENDING logs later
-    return NextResponse.json({ message: "Campaign scheduled successfully. Cron will dispatch it shortly.", totalScheduled: contacts.length }, { status: 200 });
+    const totalLogs = logsData.length;
+    return NextResponse.json({
+      message: "Campaign scheduled successfully. Cron will dispatch it shortly.",
+      totalScheduled: contacts.length,
+      totalMessages: totalLogs,
+    }, { status: 200 });
   } catch (error: any) {
     console.error("POST /api/campaigns/send error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
