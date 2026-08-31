@@ -701,6 +701,10 @@ model Form {
   successMessage String? @db.Text
   redirectUrl    String?
 
+  // Apariencia de la página pública (hex, p. ej. "#7c3aed"); null = tema por defecto
+  accentColor     String?
+  backgroundColor String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

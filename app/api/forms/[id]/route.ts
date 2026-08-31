@@ -62,7 +62,19 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     }
 
     const body = await req.json();
-    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, fields } = body;
+    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, fields } = body;
+
+    // Colores de apariencia: hex "#RGB" o "#RRGGBB", o vacío/null para quitar
+    const hexRe = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+    const isValidColor = (value: unknown) =>
+      value == null || String(value).trim() === "" || hexRe.test(String(value).trim());
+    if (!isValidColor(accentColor) || !isValidColor(backgroundColor)) {
+      return NextResponse.json({ error: "Los colores deben estar en formato hex (#RGB o #RRGGBB)" }, { status: 400 });
+    }
+    const cleanColor = (value: unknown): string | null => {
+      if (value == null || String(value).trim() === "") return null;
+      return String(value).trim();
+    };
 
     // Use a transaction to safely update the form and recreate its fields
     const updatedForm = await prisma.$transaction(async (tx) => {
@@ -77,7 +89,9 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                successMessage,
                redirectUrl,
                welcomeEmailId: welcomeEmailId || null,
-               appointmentTypeId: appointmentTypeId || null
+               appointmentTypeId: appointmentTypeId || null,
+               accentColor: cleanColor(accentColor),
+               backgroundColor: cleanColor(backgroundColor)
             }
         });
 

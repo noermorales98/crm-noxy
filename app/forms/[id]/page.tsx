@@ -22,6 +22,57 @@ const FIELD_TYPES = [
   { value: "RADIO", label: "Botones de Opción" },
 ];
 
+const DEFAULT_ACCENT_COLOR = "#4f46e5";
+const DEFAULT_BACKGROUND_COLOR = "#f7f6f3";
+
+/** Control de color: selector visual + input hex sincronizados. Vacío = color por defecto. */
+function ColorSetting({
+  label,
+  help,
+  value,
+  fallback,
+  onChange,
+}: {
+  label: string;
+  help: string;
+  value: string;
+  fallback: string;
+  onChange: (v: string) => void;
+}) {
+  const hexRe = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+  const pickerValue = hexRe.test(value) ? (value.length === 4 ? `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}` : value) : fallback;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">{label}</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={pickerValue}
+          onChange={e => onChange(e.target.value)}
+          className="w-10 h-10 rounded-lg border border-border-subtle bg-surface-sidebar cursor-pointer p-1"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value.trim())}
+          placeholder={fallback}
+          className={`w-28 px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm font-mono focus:outline-none focus:ring-1 focus:ring-border-subtle ${value && !hexRe.test(value) ? "border-red-300 text-red-600" : ""}`}
+        />
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="text-xs text-text-secondary hover:text-text-primary hover:underline"
+          >
+            Quitar
+          </button>
+        )}
+      </div>
+      <p className="text-xs text-text-secondary">{help}</p>
+    </div>
+  );
+}
+
 function FieldPreview({ field }: { field: any }) {
   const base = "noxy-form-control min-h-10 py-2 text-sm text-text-secondary pointer-events-none";
   const opts = field.options ? field.options.split(",").map((o: string) => o.trim()).filter(Boolean) : [];
@@ -42,7 +93,7 @@ function FieldPreview({ field }: { field: any }) {
       )}
       {field.type === "PHONE_LADA" && (
         <div className="flex gap-2">
-          <div className="noxy-form-control min-h-10 w-20 py-2 text-sm text-text-secondary pointer-events-none">+52</div>
+          <div className="noxy-form-control min-h-10 w-[132px] py-2 text-sm text-text-secondary pointer-events-none">+52 México</div>
           <div className={`${base} flex-1`}>{field.placeholder || "—"}</div>
         </div>
       )}
@@ -97,6 +148,8 @@ export default function FormBuilderPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
   const [appointmentTypeId, setAppointmentTypeId] = useState("");
+  const [accentColor, setAccentColor] = useState("");
+  const [backgroundColor, setBackgroundColor] = useState("");
   const [fields, setFields] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS">("BUILDER");
 
@@ -216,6 +269,8 @@ export default function FormBuilderPage() {
         setRedirectUrl(data.redirectUrl || "");
         setWelcomeEmailId(data.welcomeEmailId || "");
         setAppointmentTypeId(data.appointmentTypeId || "");
+        setAccentColor(data.accentColor || "");
+        setBackgroundColor(data.backgroundColor || "");
         setFields(data.fields || []);
       } else {
         addToast("Formulario no encontrado", "error");
@@ -232,7 +287,7 @@ export default function FormBuilderPage() {
       const res = await fetch(`/api/forms/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, fields: orderedFields })
+        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor: accentColor || null, backgroundColor: backgroundColor || null, fields: orderedFields })
       });
       if (res.ok) {
         addToast("Formulario guardado", "success");
@@ -692,6 +747,41 @@ export default function FormBuilderPage() {
                           <span className={`absolute top-1 w-4 h-4 bg-white rounded-full ${isActive ? "left-5" : "left-1"}`} />
                         </button>
                       </div>
+                    </div>
+                  </section>
+
+                  {/* Apariencia */}
+                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
+                    <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-text-primary">Apariencia</h2>
+                        <p className="text-xs text-text-secondary mt-0.5">Personaliza los colores de la página pública del formulario</p>
+                      </div>
+                      {(accentColor || backgroundColor) && (
+                        <button
+                          type="button"
+                          onClick={() => { setAccentColor(""); setBackgroundColor(""); }}
+                          className="text-xs font-semibold text-text-secondary hover:text-text-primary hover:underline shrink-0"
+                        >
+                          Restablecer
+                        </button>
+                      )}
+                    </div>
+                    <div className="p-6 flex flex-col gap-5">
+                      <ColorSetting
+                        label="Color de acento (botones)"
+                        help={`Vacío = color por defecto (${DEFAULT_ACCENT_COLOR}).`}
+                        value={accentColor}
+                        fallback={DEFAULT_ACCENT_COLOR}
+                        onChange={setAccentColor}
+                      />
+                      <ColorSetting
+                        label="Color de fondo"
+                        help={`Vacío = color por defecto (${DEFAULT_BACKGROUND_COLOR}).`}
+                        value={backgroundColor}
+                        fallback={DEFAULT_BACKGROUND_COLOR}
+                        onChange={setBackgroundColor}
+                      />
                     </div>
                   </section>
 

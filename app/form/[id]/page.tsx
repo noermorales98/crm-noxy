@@ -5,6 +5,16 @@ import { useParams, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle01Icon, ArrowLeft01Icon, ArrowRight01Icon, Clock01Icon, Calendar01Icon, GlobeIcon, ArrowDown01Icon, Search01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
+import { getContrastText } from "@/src/lib/color-utils";
+import { COUNTRY_DIAL_CODES, DEFAULT_DIAL_CODE } from "@/src/lib/country-dial-codes";
+
+const MANUAL_DIAL_VALUE = "__manual";
+
+/** Normaliza una lada escrita a mano: "+" seguido solo de dígitos. */
+function sanitizeDialCode(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, "");
+  return digits ? `+${digits}` : "";
+}
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -44,6 +54,7 @@ export default function PublicFormPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [manualDialCodes, setManualDialCodes] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [successActionMsg, setSuccessActionMsg] = useState("");
@@ -103,6 +114,7 @@ export default function PublicFormPage() {
         data.fields.forEach((f: any) => {
           if (f.type === "CHECKBOX") initialData[f.name] = [];
           else initialData[f.name] = "";
+          if (f.type === "PHONE_LADA") initialData[`${f.name}_code`] = DEFAULT_DIAL_CODE;
         });
         setFormData(initialData);
       }
@@ -213,8 +225,16 @@ export default function PublicFormPage() {
   );
   const tzGroups = [...new Set(filteredTz.map(t => t.group))];
 
+  // Apariencia personalizada del formulario (null = tema por defecto)
+  const accentColor: string | null = formConfig?.accentColor || null;
+  const accentText = accentColor ? getContrastText(accentColor) : undefined;
+  const pageBgStyle = formConfig?.backgroundColor ? { background: formConfig.backgroundColor as string } : undefined;
+  const accentStyle = accentColor
+    ? { backgroundColor: accentColor, borderColor: accentColor, color: accentText }
+    : undefined;
+
   if (isLoading) return (
-    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <p
         role="status"
         aria-live="polite"
@@ -226,7 +246,7 @@ export default function PublicFormPage() {
   );
 
   if (errorMsg && !formConfig) return (
-    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <div role="alert" className="noxy-form-panel p-8 border-red-200 max-w-md w-full text-center">
         <div className="text-red-500 font-bold mb-2">Error</div>
         <p className="text-text-secondary">{errorMsg}</p>
@@ -235,7 +255,7 @@ export default function PublicFormPage() {
   );
 
   if (submitSuccess) return (
-    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4">
+    <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <div role="status" aria-live="polite" className="noxy-form-panel p-10 max-w-md w-full text-center flex flex-col items-center gap-4">
         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={48} color="#22c55e" />
         <p className="text-text-primary font-medium text-lg whitespace-pre-wrap">{successActionMsg}</p>
@@ -248,7 +268,7 @@ export default function PublicFormPage() {
   const firstDay = getFirstDayOfMonth(currentMonth);
 
   return (
-    <div className="min-h-screen bg-surface-app md:py-10">
+    <div className="min-h-screen bg-surface-app md:py-10" style={pageBgStyle}>
       <main className={`${apptType ? "max-w-xl md:max-w-5xl" : "max-w-xl"} mx-auto p-4 pt-10 md:p-10`}>
         <header className="mb-8">
           <h1 className="text-3xl font-extrabold text-text-primary mb-2 leading-tight tracking-tight">{formConfig.name}</h1>
@@ -282,24 +302,44 @@ export default function PublicFormPage() {
                   {field.type === "PHONE" && (
                     <input type="tel" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="noxy-form-control" />
                   )}
-                  {field.type === "PHONE_LADA" && (
-                    <div className="flex gap-2">
-                      <select aria-label="Lada del número de teléfono" required={field.isRequired} value={formData[`${field.name}_code`]} onChange={e => handleInputChange(`${field.name}_code`, e.target.value, field.type)} className="noxy-form-control w-[110px] px-3">
-                        <option value="+52">+52 MX</option>
-                        <option value="+1">+1 US</option>
-                        <option value="+34">+34 ES</option>
-                        <option value="+54">+54 AR</option>
-                        <option value="+57">+57 CO</option>
-                        <option value="+56">+56 CL</option>
-                        <option value="+51">+51 PE</option>
-                        <option value="+593">+593 EC</option>
-                        {/* ingreso manual */}
-                        <option value="">Ingresar manualmente</option>
-
-                      </select>
-                      <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Número de teléfono"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="noxy-form-control flex-1" />
-                    </div>
-                  )}
+                  {field.type === "PHONE_LADA" && (() => {
+                    const codeKey = `${field.name}_code`;
+                    const isManual = !!manualDialCodes[field.name];
+                    return (
+                      <div className="flex gap-2">
+                        <select
+                          aria-label="Lada del número de teléfono"
+                          required={field.isRequired}
+                          value={isManual ? MANUAL_DIAL_VALUE : (formData[codeKey] ?? DEFAULT_DIAL_CODE)}
+                          onChange={e => {
+                            if (e.target.value === MANUAL_DIAL_VALUE) {
+                              setManualDialCodes(prev => ({ ...prev, [field.name]: true }));
+                            } else {
+                              setManualDialCodes(prev => ({ ...prev, [field.name]: false }));
+                              handleInputChange(codeKey, e.target.value, field.type);
+                            }
+                          }}
+                          className="noxy-form-control w-[190px] px-3"
+                        >
+                          {COUNTRY_DIAL_CODES.map(c => (
+                            <option key={c.iso} value={c.dial}>{c.dial} {c.name}</option>
+                          ))}
+                          <option value={MANUAL_DIAL_VALUE}>Otro (escribir manualmente)</option>
+                        </select>
+                        {isManual && (
+                          <input
+                            type="text"
+                            aria-label="Lada manual"
+                            placeholder="+52"
+                            value={formData[codeKey] || ""}
+                            onChange={e => handleInputChange(codeKey, sanitizeDialCode(e.target.value), field.type)}
+                            className="noxy-form-control w-[90px] px-3"
+                          />
+                        )}
+                        <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Número de teléfono"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="noxy-form-control flex-1" />
+                      </div>
+                    );
+                  })()}
                   {field.type === "NUMBER" && (
                     <input type="number" required={field.isRequired} placeholder={field.placeholder || ""} value={formData[field.name]} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="noxy-form-control" />
                   )}
@@ -402,6 +442,7 @@ export default function PublicFormPage() {
                                 ${available && !isSelected ? "hover:bg-nav-hover text-text-primary" : ""}
                                 ${!available ? "text-gray-300 cursor-default" : ""}
                               `}
+                              style={isSelected ? accentStyle : undefined}
                             >
                               {i + 1}
                               {available && !isSelected && <div className="absolute bottom-1 w-1 h-1 bg-green-500 rounded-full" />}
@@ -437,6 +478,7 @@ export default function PublicFormPage() {
                                     ? "bg-action-primary text-action-primary-foreground border-action-primary"
                                     : "border-border-subtle hover:border-action-primary text-text-primary bg-surface-sidebar/50"
                                   }`}
+                                style={selectedSlot === slot ? accentStyle : undefined}
                               >
                                 {formatSlot(slot)}
                               </button>
@@ -520,7 +562,7 @@ export default function PublicFormPage() {
           )}
 
           <div className="pt-6 border-t border-border-subtle">
-            <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting} className="noxy-form-button w-full md:w-auto md:min-w-[200px] px-10 text-base">
+            <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting} className="noxy-form-button w-full md:w-auto md:min-w-[200px] px-10 text-base" style={accentStyle}>
               {isSubmitting ? "Enviando..." : "Enviar Formulario"}
             </button>
           </div>

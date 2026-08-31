@@ -62,6 +62,8 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
         successAction: form.successAction,
         successMessage: form.successMessage,
         redirectUrl: form.redirectUrl,
+        accentColor: form.accentColor,
+        backgroundColor: form.backgroundColor,
         fields: form.fields.map(f => ({
             id: f.id,
             type: f.type,
