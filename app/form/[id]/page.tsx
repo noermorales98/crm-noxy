@@ -292,6 +292,10 @@ export default function PublicFormPage() {
                         <option value="+57">+57 CO</option>
                         <option value="+56">+56 CL</option>
                         <option value="+51">+51 PE</option>
+                        <option value="+593">+593 EC</option>
+                        {/* ingreso manual */}
+                        <option value="">Ingresar manualmente</option>
+
                       </select>
                       <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Número de teléfono"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="noxy-form-control flex-1" />
                     </div>

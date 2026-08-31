@@ -24,6 +24,8 @@ const PHONE_CODES = [
   { code: "+44", flag: "🇬🇧", label: "UK" },
   { code: "+49", flag: "🇩🇪", label: "DE" },
   { code: "+33", flag: "🇫🇷", label: "FR" },
+  //ecuador
+  { code: "+593", flag: "🇪🇨", label: "EC" },
 ];
 
 const MONTH_NAMES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
