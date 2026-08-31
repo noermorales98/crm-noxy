@@ -42,6 +42,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [items, setItems] = useState<ItemRow[]>([{ ...emptyItem }]);
+  const [splitPayment, setSplitPayment] = useState(false);
+  const [depositPercent, setDepositPercent] = useState("50");
 
   const [loading, setLoading] = useState(mode === "edit");
   const [saving, setSaving] = useState(false);
@@ -93,6 +95,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         setTaxRate(String(q.taxRate ?? 16));
         setNotes(q.notes || "");
         setTerms(q.terms || "");
+        setSplitPayment(q.splitPayment === true);
+        setDepositPercent(String(q.depositPercent ?? 50));
         setItems(
           (q.items || []).map((it: any) => ({
             description: it.description,
@@ -146,6 +150,14 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     }
   };
 
+  const splitPreview = useMemo(() => {
+    const pct = parseFloat(depositPercent);
+    if (!splitPayment || !Number.isFinite(pct) || pct <= 0 || pct >= 100) return null;
+    const depositAmount = Math.round(totals.total * (pct / 100) * 100) / 100;
+    const finalAmount = Math.round((totals.total - depositAmount) * 100) / 100;
+    return { pct, depositAmount, finalAmount, finalPct: Math.round((100 - pct) * 100) / 100 };
+  }, [splitPayment, depositPercent, totals.total]);
+
   const itemTotal = (it: ItemRow) => {
     const quantity = parseFloat(it.quantity) || 0;
     const unitPrice = parseFloat(it.unitPrice) || 0;
@@ -160,6 +172,12 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     if (validItems.length === 0) return addToast("Agrega al menos un ítem con descripción", "error");
     if (validItems.some((it) => !it.unitPrice || isNaN(parseFloat(it.unitPrice)))) {
       return addToast("Todos los ítems necesitan un precio unitario", "error");
+    }
+    if (splitPayment) {
+      const pct = parseFloat(depositPercent);
+      if (!Number.isFinite(pct) || pct <= 0 || pct >= 100) {
+        return addToast("El porcentaje de anticipo debe ser un número entre 1 y 99", "error");
+      }
     }
 
     setSaving(true);
@@ -177,6 +195,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         taxRate: parseFloat(taxRate) || 0,
         notes: notes || null,
         terms: terms || null,
+        splitPayment,
+        depositPercent: splitPayment ? parseFloat(depositPercent) : 50,
         items: validItems.map((it) => ({
           description: it.description.trim(),
           quantity: parseFloat(it.quantity) || 1,
@@ -390,6 +410,50 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
             <textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={3} className={inputCls} placeholder="Condiciones de pago, tiempos de entrega, garantías…" />
           </div>
         </div>
+      </section>
+
+      {/* ── Pagos parciales ─────────────────────────────────────────────── */}
+      <section className="bg-white border border-border-subtle rounded-lg p-6">
+        <h2 className="text-sm font-bold text-text-primary mb-1">Pagos parciales</h2>
+        <p className="text-xs text-text-secondary mb-4">
+          Divide el cobro en un pago inicial (anticipo) y un pago final. Se generan dos links de pago cuando el cliente acepta.
+        </p>
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={splitPayment}
+            onChange={(e) => setSplitPayment(e.target.checked)}
+            className="w-4 h-4 rounded accent-gray-900"
+          />
+          <span className="text-sm font-medium text-text-primary">
+            Dividir el cobro en dos pagos (anticipo + pago final)
+          </span>
+        </label>
+        {splitPayment && (
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5 max-w-[220px]">
+              <label className="text-xs font-semibold text-text-secondary">% de anticipo</label>
+              <input
+                type="number"
+                min="1"
+                max="99"
+                step="any"
+                value={depositPercent}
+                onChange={(e) => setDepositPercent(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            {splitPreview ? (
+              <p className="text-sm text-text-secondary">
+                Pago inicial: <span className="font-semibold text-text-primary">{fmt(splitPreview.depositAmount)}</span> ({splitPreview.pct}%)
+                {" · "}
+                Pago final: <span className="font-semibold text-text-primary">{fmt(splitPreview.finalAmount)}</span> ({splitPreview.finalPct}%)
+              </p>
+            ) : (
+              <p className="text-xs text-amber-600">Ingresa un porcentaje entre 1 y 99.</p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* ── Acciones ────────────────────────────────────────────────────── */}

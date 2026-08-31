@@ -21,6 +21,14 @@ interface PublicQuote {
   terms: string | null;
   stripePaymentLinkUrl: string | null;
   paidAt: string | null;
+  splitPayment: boolean;
+  depositPercent: number | null;
+  depositAmount: number | null;
+  finalAmount: number | null;
+  depositUrl: string | null;
+  finalUrl: string | null;
+  depositPaidAt: string | null;
+  finalPaidAt: string | null;
   sender: {
     businessName: string | null;
     logoUrl: string | null;
@@ -44,7 +52,9 @@ function CotizarContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const token = params.token as string;
-  const justPaid = searchParams.get("pagado") === "1";
+  // "1" = pago único, "anticipo" = pago inicial, "final" = pago final
+  const paidParam = searchParams.get("pagado");
+  const justPaid = paidParam === "1" || paidParam === "anticipo" || paidParam === "final";
 
   const [quote, setQuote] = useState<PublicQuote | null>(null);
   const [bank, setBank] = useState<BankData | null>(null);
@@ -76,9 +86,14 @@ function CotizarContent() {
     load();
   }, [load]);
 
-  // Si regresa de Stripe (?pagado=1), reconsultar unas veces esperando el webhook
+  // Si regresa de Stripe (?pagado=…), reconsultar unas veces esperando el webhook
   useEffect(() => {
-    if (!justPaid || !quote || quote.status === "PAGADA") return;
+    if (!justPaid || !quote) return;
+    const alreadyConfirmed =
+      paidParam === "anticipo"
+        ? !!quote.depositPaidAt
+        : quote.status === "PAGADA" || (paidParam === "final" && !!quote.finalPaidAt);
+    if (alreadyConfirmed) return;
     let attempts = 0;
     const interval = setInterval(() => {
       attempts += 1;
@@ -86,7 +101,7 @@ function CotizarContent() {
       if (attempts >= 6) clearInterval(interval);
     }, 3000);
     return () => clearInterval(interval);
-  }, [justPaid, quote, load]);
+  }, [justPaid, paidParam, quote, load]);
 
   const money = (n: number) => {
     try {
@@ -180,7 +195,13 @@ function CotizarContent() {
 
   const senderName = quote.sender.businessName || "Noxy CRM";
   const canRespond = quote.status === "ENVIADA";
-  const isAccepted = quote.status === "ACEPTADA";
+  const isPayable = quote.status === "ACEPTADA" || quote.status === "PARCIAL";
+  const isSplit = quote.splitPayment === true;
+  const depositPaid = !!quote.depositPaidAt;
+  const finalPaid = !!quote.finalPaidAt || quote.status === "PAGADA";
+  const verifyingPayment =
+    justPaid &&
+    (paidParam === "anticipo" ? !depositPaid : quote.status !== "PAGADA" && !(paidParam === "final" && finalPaid));
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] py-10 px-4">
@@ -236,7 +257,16 @@ function CotizarContent() {
             <p className="text-gray-500 text-sm">Esta cotización aún no ha sido enviada formalmente. Vuelve pronto o contacta a {senderName}.</p>
           </div>
         )}
-        {justPaid && quote.status !== "PAGADA" && (
+        {quote.status === "PARCIAL" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-center">
+            <p className="text-amber-700 font-semibold">Anticipo recibido</p>
+            <p className="text-amber-600 text-sm">
+              Gracias, {quote.clientName}. Tu pago inicial fue confirmado. Cuando estés listo, realiza el pago final
+              {quote.finalAmount != null ? ` por ${money(quote.finalAmount)}` : ""}.
+            </p>
+          </div>
+        )}
+        {verifyingPayment && (
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-center">
             <p className="text-blue-700 font-semibold">Verificando tu pago…</p>
             <p className="text-blue-600 text-sm">Estamos confirmando el pago con Stripe. Esto puede tardar unos segundos.</p>
@@ -364,10 +394,67 @@ function CotizarContent() {
           </div>
         )}
 
-        {isAccepted && (
+        {isPayable && (
           <div className="flex flex-col gap-4">
             {/* Pago con tarjeta */}
-            {stripeUrl && (
+            {isSplit ? (
+              (quote.depositUrl || quote.finalUrl) && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <p className="font-semibold text-gray-900 mb-1">Pagar con tarjeta</p>
+                  <p className="text-sm text-gray-500 mb-4">
+                    El cobro está dividido en dos pagos seguros procesados por Stripe.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Pago inicial (anticipo) */}
+                    <div className="border border-gray-200 rounded-lg p-4 flex flex-col gap-2">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                        Pago inicial{quote.depositPercent != null ? ` (${quote.depositPercent}%)` : ""}
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {quote.depositAmount != null ? money(quote.depositAmount) : "—"}
+                      </p>
+                      {depositPaid ? (
+                        <p className="mt-auto flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-semibold">
+                          ✓ Pagado
+                        </p>
+                      ) : quote.depositUrl ? (
+                        <a
+                          href={quote.depositUrl}
+                          className="mt-auto block w-full text-center bg-violet-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-violet-700 transition-colors"
+                        >
+                          Pagar anticipo
+                        </a>
+                      ) : (
+                        <p className="mt-auto text-xs text-gray-400 italic">Link no disponible aún.</p>
+                      )}
+                    </div>
+                    {/* Pago final */}
+                    <div className="border border-gray-200 rounded-lg p-4 flex flex-col gap-2">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                        Pago final{quote.depositPercent != null ? ` (${Math.round((100 - quote.depositPercent) * 100) / 100}%)` : ""}
+                      </p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {quote.finalAmount != null ? money(quote.finalAmount) : "—"}
+                      </p>
+                      {finalPaid ? (
+                        <p className="mt-auto flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-green-50 text-green-700 text-sm font-semibold">
+                          ✓ Pagado
+                        </p>
+                      ) : quote.finalUrl ? (
+                        <a
+                          href={quote.finalUrl}
+                          className="mt-auto block w-full text-center bg-violet-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-violet-700 transition-colors"
+                        >
+                          Pagar pago final
+                        </a>
+                      ) : (
+                        <p className="mt-auto text-xs text-gray-400 italic">Link no disponible aún.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            ) : stripeUrl && (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <p className="font-semibold text-gray-900 mb-1">Pagar con tarjeta</p>
                 <p className="text-sm text-gray-500 mb-4">Pago seguro procesado por Stripe por {money(quote.total)}.</p>
@@ -421,7 +508,7 @@ function CotizarContent() {
               </div>
             )}
 
-            {!stripeUrl && !(bank && (bank.bankClabe || bank.bankName)) && (
+            {!stripeUrl && !(isSplit && (quote.depositUrl || quote.finalUrl)) && !(bank && (bank.bankClabe || bank.bankName)) && (
               <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
                 <p className="font-semibold text-gray-900 mb-1">Cotización aceptada</p>
                 <p className="text-sm text-gray-500">

@@ -65,6 +65,7 @@ export async function POST(req: Request) {
     const {
       contactId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
       currency, validUntil, taxRate, notes, terms, items, status, senderCompanyId,
+      splitPayment, depositPercent,
     } = body;
 
     // ── Validaciones ────────────────────────────────────────────────────────
@@ -88,6 +89,13 @@ export async function POST(req: Request) {
     const rate = taxRate != null ? Number(taxRate) : 16;
     if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
       return NextResponse.json({ error: "La tasa de impuesto debe ser un número entre 0 y 100" }, { status: 400 });
+    }
+
+    // Cobro en dos parcialidades (anticipo + pago final)
+    const split = splitPayment === true;
+    const deposit = depositPercent != null ? Number(depositPercent) : 50;
+    if (split && (!Number.isFinite(deposit) || deposit <= 0 || deposit >= 100)) {
+      return NextResponse.json({ error: "El porcentaje de anticipo debe ser mayor a 0 y menor a 100" }, { status: 400 });
     }
 
     // Verificar contacto dentro de la organización
@@ -133,6 +141,8 @@ export async function POST(req: Request) {
         total: totals.total,
         notes: notes || null,
         terms: terms || null,
+        splitPayment: split,
+        depositPercent: split ? deposit : 50,
         notifyEmail: session.user.email || null,
         createdById: session.user.id || null,
         organizationId,

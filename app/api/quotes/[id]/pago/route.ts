@@ -32,6 +32,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         paidAt: new Date(),
         paymentMethod: method,
         transferReference: reference,
+        ...(quote.splitPayment ? { finalPaidAt: quote.finalPaidAt ?? new Date() } : {}),
         events: {
           create: {
             type: "PAGO_CONFIRMADO",

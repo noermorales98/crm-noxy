@@ -22,6 +22,8 @@ const EVENT_LABELS: Record<string, string> = {
   ACEPTADA: "Aceptada",
   RECHAZADA: "Rechazada",
   PAGO_STRIPE: "Pago con Stripe",
+  PAGO_ANTICIPO: "Anticipo recibido",
+  PAGO_FINAL: "Pago final recibido",
   COMPROBANTE_SUBIDO: "Comprobante recibido",
   PAGO_CONFIRMADO: "Pago confirmado",
   VENCIDA: "Vencida",
@@ -112,10 +114,23 @@ function QuoteDetailContent() {
       const res = await fetch(`/api/quotes/${quote.id}/stripe`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) return addToast(data.error || "Error generando link de Stripe", "error");
-      await navigator.clipboard.writeText(data.url).catch(() => {});
-      addToast("Link de pago de Stripe generado y copiado.", "success");
+      const firstUrl = data.url || data.depositUrl || data.finalUrl;
+      if (firstUrl) await navigator.clipboard.writeText(firstUrl).catch(() => {});
+      addToast(
+        data.splitPayment
+          ? "Links de pago de Stripe generados (anticipo y pago final)."
+          : "Link de pago de Stripe generado y copiado.",
+        "success"
+      );
       fetchQuote();
     });
+
+  const handleCopyPaymentLink = (url: string, label: string) => {
+    navigator.clipboard
+      .writeText(url)
+      .then(() => addToast(`${label} copiado al portapapeles.`, "success"))
+      .catch(() => addToast(url, "info"));
+  };
 
   const handleMarkPaid = () =>
     runAction("pago", async () => {
@@ -183,7 +198,17 @@ function QuoteDetailContent() {
 
   const canEdit = quote.status === "BORRADOR";
   const canSend = ["BORRADOR", "ENVIADA", "ACEPTADA"].includes(quote.status);
-  const canPay = ["ENVIADA", "ACEPTADA"].includes(quote.status);
+  const canPay = ["ENVIADA", "ACEPTADA", "PARCIAL"].includes(quote.status);
+
+  // Montos de las parcialidades (si aplica cobro dividido)
+  const splitInfo = quote.splitPayment
+    ? (() => {
+        const pct = Number(quote.depositPercent) || 50;
+        const depositAmount = Math.round(quote.total * (pct / 100) * 100) / 100;
+        const finalAmount = Math.round((quote.total - depositAmount) * 100) / 100;
+        return { pct, depositAmount, finalAmount, finalPct: Math.round((100 - pct) * 100) / 100 };
+      })()
+    : null;
 
   // Remitente: empresa del CRM si hay, si no los datos manuales de configuración
   const senderName = quote.senderCompany?.name || settings?.businessName || null;
@@ -266,7 +291,20 @@ function QuoteDetailContent() {
               <HugeiconsIcon icon={Link01Icon} size={15} />
               Copiar link público
             </button>
-            {quote.stripePaymentLinkUrl ? (
+            {quote.splitPayment ? (
+              (quote.stripeDepositLinkUrl && quote.stripeFinalLinkUrl) ? null : (
+                canPay && (
+                  <button
+                    onClick={handleStripe}
+                    disabled={actionLoading === "stripe"}
+                    className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
+                  >
+                    <HugeiconsIcon icon={DollarCircleIcon} size={15} />
+                    {actionLoading === "stripe" ? "Generando…" : "Generar links Stripe"}
+                  </button>
+                )
+              )
+            ) : quote.stripePaymentLinkUrl ? (
               <a
                 href={quote.stripePaymentLinkUrl}
                 target="_blank"
@@ -308,6 +346,77 @@ function QuoteDetailContent() {
             </button>
           </div>
         </div>
+
+        {/* ── Cobro en parcialidades ────────────────────────────────────── */}
+        {quote.splitPayment && splitInfo && (
+          <div className="bg-white border border-border-subtle rounded-lg p-6 mb-4">
+            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-4">
+              Cobro en dos pagos
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {([
+                {
+                  label: `Anticipo (${splitInfo.pct}%)`,
+                  amount: splitInfo.depositAmount,
+                  url: quote.stripeDepositLinkUrl as string | null,
+                  paidAt: quote.depositPaidAt as string | null,
+                },
+                {
+                  label: `Pago final (${splitInfo.finalPct}%)`,
+                  amount: splitInfo.finalAmount,
+                  url: quote.stripeFinalLinkUrl as string | null,
+                  paidAt: quote.finalPaidAt as string | null,
+                },
+              ]).map((part) => (
+                <div
+                  key={part.label}
+                  className="border border-border-subtle rounded-lg p-4 flex flex-col gap-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-text-primary">{part.label}</p>
+                    {part.paidAt && (
+                      <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="#16a34a" />
+                        Pagado
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-lg font-bold text-text-primary">
+                    {formatQuoteMoney(part.amount, quote.currency)}
+                  </p>
+                  {part.paidAt ? (
+                    <p className="text-xs text-text-secondary">
+                      Cobrado el {new Date(part.paidAt).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
+                    </p>
+                  ) : part.url ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <a
+                        href={part.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1.5 text-sm font-medium text-violet-700 hover:underline"
+                      >
+                        <HugeiconsIcon icon={DollarCircleIcon} size={14} color="#7c3aed" />
+                        Abrir link de pago
+                      </a>
+                      <button
+                        onClick={() => handleCopyPaymentLink(part.url!, part.label)}
+                        className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                      >
+                        <HugeiconsIcon icon={Link01Icon} size={13} />
+                        Copiar
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-text-secondary italic">
+                      Sin link de Stripe. Usa “Generar links Stripe” para crearlo.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
           {/* ── Ítems y condiciones ─────────────────────────────────────── */}

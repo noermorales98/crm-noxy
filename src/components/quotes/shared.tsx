@@ -2,6 +2,7 @@ export const QUOTE_STATUS_META: Record<string, { label: string; className: strin
   BORRADOR: { label: "Borrador", className: "bg-gray-100 text-gray-600" },
   ENVIADA: { label: "Enviada", className: "bg-blue-50 text-blue-600" },
   ACEPTADA: { label: "Aceptada", className: "bg-amber-50 text-amber-600" },
+  PARCIAL: { label: "Parcialmente pagada", className: "bg-orange-50 text-orange-600" },
   PAGADA: { label: "Pagada", className: "bg-green-50 text-green-600" },
   VENCIDA: { label: "Vencida", className: "bg-red-50 text-red-500" },
   RECHAZADA: { label: "Rechazada", className: "bg-rose-50 text-rose-600" },

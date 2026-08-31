@@ -53,6 +53,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const {
       contactId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
       currency, validUntil, taxRate, notes, terms, items, senderCompanyId,
+      splitPayment, depositPercent,
     } = body;
 
     if (!clientName || !String(clientName).trim()) {
@@ -75,6 +76,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const rate = taxRate != null ? Number(taxRate) : existing.taxRate;
     if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
       return NextResponse.json({ error: "La tasa de impuesto debe ser un número entre 0 y 100" }, { status: 400 });
+    }
+
+    // Cobro en dos parcialidades (anticipo + pago final)
+    const split = splitPayment === true;
+    const deposit = depositPercent != null ? Number(depositPercent) : 50;
+    if (split && (!Number.isFinite(deposit) || deposit <= 0 || deposit >= 100)) {
+      return NextResponse.json({ error: "El porcentaje de anticipo debe ser mayor a 0 y menor a 100" }, { status: 400 });
     }
     if (contactId) {
       const contact = await prisma.contact.findFirst({ where: { id: contactId, organizationId } });
@@ -107,6 +115,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
           total: totals.total,
           notes: notes || null,
           terms: terms || null,
+          splitPayment: split,
+          depositPercent: split ? deposit : 50,
           items: { create: totals.items },
         },
         include: { items: { orderBy: { order: "asc" } } },

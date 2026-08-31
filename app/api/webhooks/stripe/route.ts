@@ -68,38 +68,99 @@ export async function POST(req: Request) {
           where: { id: quoteId },
           include: { senderCompany: true },
         });
-        if (quote && quote.status !== "PAGADA") {
-          await prisma.quote.update({
-            where: { id: quote.id },
-            data: {
-              status: "PAGADA",
-              paidAt: new Date(),
-              paymentMethod: "stripe",
-              events: {
-                create: {
-                  type: "PAGO_STRIPE",
-                  description: `Pago con Stripe confirmado (sesión ${checkoutSession.id})`,
-                  actor: "cliente",
-                  organizationId: quote.organizationId,
-                },
-              },
-            },
-          });
-          console.log(`Quote ${quote.folio} marked as PAGADA via Stripe webhook`);
+        if (quote) {
+          const installment = checkoutSession.metadata?.installment || "full";
+          const paidAmount = (checkoutSession.amount_total ?? Math.round(quote.total * 100)) / 100;
+          const { notifyQuoteEvent, formatMoney, computeQuoteInstallments } = await import("@/src/lib/quotes");
 
-          const { notifyQuoteEvent, formatMoney } = await import("@/src/lib/quotes");
-          await notifyQuoteEvent({
-            company: quote.senderCompany,
-            toOwner: quote.notifyEmail,
-            ownerSubject: `Pago recibido — Cotización ${quote.folio}`,
-            ownerBody: `<p>Se recibió el pago con Stripe de la cotización <strong>${quote.folio}</strong>
-              por ${formatMoney(quote.total, quote.currency)} (${quote.clientName}).</p>`,
-            toClient: quote.clientEmail,
-            clientSubject: `Confirmación de pago — ${quote.folio}`,
-            clientBody: `<p>Hola ${quote.clientName},</p>
-              <p>Confirmamos tu pago por <strong>${formatMoney(quote.total, quote.currency)}</strong>
-              correspondiente a la cotización <strong>${quote.folio}</strong>. ¡Gracias!</p>`,
-          });
+          if (installment === "deposit") {
+            // Anticipo: idempotente por depositPaidAt
+            if (!quote.depositPaidAt) {
+              const { finalAmount } = computeQuoteInstallments(quote.total, quote.depositPercent);
+              const now = new Date();
+              const goPartial = quote.splitPayment && quote.status !== "PAGADA";
+              await prisma.quote.update({
+                where: { id: quote.id },
+                data: {
+                  depositPaidAt: now,
+                  paymentMethod: "stripe",
+                  ...(goPartial ? { status: "PARCIAL" } : {}),
+                  events: {
+                    create: {
+                      type: "PAGO_ANTICIPO",
+                      description: `Anticipo de ${formatMoney(paidAmount, quote.currency)} confirmado con Stripe (sesión ${checkoutSession.id}). Restan ${formatMoney(finalAmount, quote.currency)} por liquidar.`,
+                      actor: "cliente",
+                      organizationId: quote.organizationId,
+                    },
+                  },
+                },
+              });
+              console.log(`Quote ${quote.folio} anticipo registrado via Stripe webhook`);
+
+              await notifyQuoteEvent({
+                company: quote.senderCompany,
+                toOwner: quote.notifyEmail,
+                ownerSubject: `Anticipo recibido — Cotización ${quote.folio}`,
+                ownerBody: `<p>Se recibió el anticipo con Stripe de la cotización <strong>${quote.folio}</strong>
+                  por ${formatMoney(paidAmount, quote.currency)} (${quote.clientName}).</p>
+                  <p>Resta por liquidar: <strong>${formatMoney(finalAmount, quote.currency)}</strong>.</p>`,
+                toClient: quote.clientEmail,
+                clientSubject: `Anticipo recibido — ${quote.folio}`,
+                clientBody: `<p>Hola ${quote.clientName},</p>
+                  <p>Confirmamos tu anticipo por <strong>${formatMoney(paidAmount, quote.currency)}</strong>
+                  correspondiente a la cotización <strong>${quote.folio}</strong>.</p>
+                  <p>El pago final será de <strong>${formatMoney(finalAmount, quote.currency)}</strong>. ¡Gracias!</p>`,
+              });
+            }
+          } else {
+            // Pago final o pago único: idempotente por status PAGADA
+            if (quote.status !== "PAGADA") {
+              const isSplit = quote.splitPayment;
+              const now = new Date();
+              await prisma.quote.update({
+                where: { id: quote.id },
+                data: {
+                  status: "PAGADA",
+                  paidAt: now,
+                  paymentMethod: "stripe",
+                  ...(isSplit ? { finalPaidAt: now } : {}),
+                  events: {
+                    create: {
+                      type: isSplit ? "PAGO_FINAL" : "PAGO_STRIPE",
+                      description: isSplit
+                        ? `Pago final de ${formatMoney(paidAmount, quote.currency)} confirmado con Stripe (sesión ${checkoutSession.id}). Cotización liquidada.`
+                        : `Pago con Stripe confirmado (sesión ${checkoutSession.id})`,
+                      actor: "cliente",
+                      organizationId: quote.organizationId,
+                    },
+                  },
+                },
+              });
+              console.log(`Quote ${quote.folio} marked as PAGADA via Stripe webhook`);
+
+              await notifyQuoteEvent({
+                company: quote.senderCompany,
+                toOwner: quote.notifyEmail,
+                ownerSubject: `Pago recibido — Cotización ${quote.folio}`,
+                ownerBody: isSplit
+                  ? `<p>Se recibió el pago final con Stripe de la cotización <strong>${quote.folio}</strong>
+                    por ${formatMoney(paidAmount, quote.currency)} (${quote.clientName}).</p>
+                    <p>La cotización quedó <strong>liquidada</strong> por un total de ${formatMoney(quote.total, quote.currency)}.</p>`
+                  : `<p>Se recibió el pago con Stripe de la cotización <strong>${quote.folio}</strong>
+                    por ${formatMoney(quote.total, quote.currency)} (${quote.clientName}).</p>`,
+                toClient: quote.clientEmail,
+                clientSubject: `Confirmación de pago — ${quote.folio}`,
+                clientBody: isSplit
+                  ? `<p>Hola ${quote.clientName},</p>
+                    <p>Confirmamos tu pago final por <strong>${formatMoney(paidAmount, quote.currency)}</strong>
+                    correspondiente a la cotización <strong>${quote.folio}</strong>.</p>
+                    <p>Tu cotización quedó <strong>liquidada</strong>. ¡Gracias!</p>`
+                  : `<p>Hola ${quote.clientName},</p>
+                    <p>Confirmamos tu pago por <strong>${formatMoney(quote.total, quote.currency)}</strong>
+                    correspondiente a la cotización <strong>${quote.folio}</strong>. ¡Gracias!</p>`,
+              });
+            }
+          }
         }
       } catch (err) {
         console.error("Error updating quote from webhook:", err);

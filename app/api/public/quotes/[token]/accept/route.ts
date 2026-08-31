@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
-import { createQuoteStripeLink, formatMoney, isQuoteExpired, notifyQuoteEvent, quotePublicUrl } from "@/src/lib/quotes";
+import { createQuoteStripeLinks, formatMoney, isQuoteExpired, notifyQuoteEvent, quotePublicUrl, QuoteStripeLinks } from "@/src/lib/quotes";
 
 /** El cliente acepta la cotización desde la vista pública. */
 export async function POST(_req: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -63,11 +63,13 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
       });
     }
 
-    // Intentar generar Payment Link de Stripe; si no está configurado, ofrecer transferencia
+    // Intentar generar Payment Links de Stripe; si no está configurado, ofrecer transferencia
     let stripeUrl: string | null = null;
     let stripeError: string | null = null;
+    let links: QuoteStripeLinks = {};
     try {
-      stripeUrl = await createQuoteStripeLink(quote.id);
+      links = await createQuoteStripeLinks(quote.id);
+      stripeUrl = links.fullUrl || links.depositUrl || null;
     } catch (err: any) {
       stripeError = err.message || "No se pudo generar el link de pago";
     }
@@ -81,6 +83,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
       status: "ACEPTADA",
       stripeUrl,
       stripeError,
+      splitPayment: quote.splitPayment,
+      depositUrl: links.depositUrl || null,
+      finalUrl: links.finalUrl || null,
+      depositAmount: links.depositAmount ?? null,
+      finalAmount: links.finalAmount ?? null,
       bank: settings
         ? {
             bankName: settings.bankName,

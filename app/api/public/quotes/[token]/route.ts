@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
-import { effectiveQuoteStatus, resolveQuoteSender } from "@/src/lib/quotes";
+import { effectiveQuoteStatus, resolveQuoteSender, computeQuoteInstallments } from "@/src/lib/quotes";
 
 /** Vista pública de una cotización (sin auth, por token). */
 export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
@@ -21,6 +21,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
 
     const status = effectiveQuoteStatus(quote);
     const sender = resolveQuoteSender(settings, quote.senderCompany as any);
+
+    // Datos de cobro expuestos solo cuando la cotización ya fue aceptada
+    const payable = ["ACEPTADA", "PARCIAL"].includes(quote.status);
+    const installments = quote.splitPayment
+      ? computeQuoteInstallments(quote.total, quote.depositPercent)
+      : null;
 
     // Registrar primera vista del cliente (solo si sigue en ENVIADA)
     if (quote.status === "ENVIADA") {
@@ -55,10 +61,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
       total: quote.total,
       notes: quote.notes,
       terms: quote.terms,
-      stripePaymentLinkUrl: quote.status === "ACEPTADA" ? quote.stripePaymentLinkUrl : null,
+      stripePaymentLinkUrl: payable ? quote.stripePaymentLinkUrl : null,
       paymentMethod: quote.paymentMethod,
       paidAt: quote.paidAt,
-      bank: quote.status === "ACEPTADA"
+      splitPayment: payable ? quote.splitPayment : false,
+      depositPercent: payable && quote.splitPayment ? quote.depositPercent : null,
+      depositAmount: payable && installments ? installments.depositAmount : null,
+      finalAmount: payable && installments ? installments.finalAmount : null,
+      depositUrl: payable ? quote.stripeDepositLinkUrl : null,
+      finalUrl: payable ? quote.stripeFinalLinkUrl : null,
+      depositPaidAt: payable ? quote.depositPaidAt : null,
+      finalPaidAt: payable ? quote.finalPaidAt : null,
+      bank: payable
         ? {
             bankName: sender.bankName,
             bankBeneficiary: sender.bankBeneficiary,

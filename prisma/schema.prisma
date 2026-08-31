@@ -1203,6 +1203,7 @@ enum QuoteStatus {
   BORRADOR
   ENVIADA
   ACEPTADA
+  PARCIAL
   PAGADA
   VENCIDA
   RECHAZADA
@@ -1216,6 +1217,8 @@ enum QuoteEventType {
   ACEPTADA
   RECHAZADA
   PAGO_STRIPE
+  PAGO_ANTICIPO
+  PAGO_FINAL
   COMPROBANTE_SUBIDO
   PAGO_CONFIRMADO
   VENCIDA
@@ -1303,6 +1306,16 @@ model Quote {
   acceptedAt           DateTime?
   paidAt               DateTime?
   transferReference    String? @db.Text
+
+  // Cobro en dos parcialidades (anticipo + pago final)
+  splitPayment         Boolean   @default(false)
+  depositPercent       Float     @default(50) // % del total cobrado al inicio; el final es 100 - depositPercent
+  stripeDepositLinkId  String?
+  stripeDepositLinkUrl String?
+  stripeFinalLinkId    String?
+  stripeFinalLinkUrl   String?
+  depositPaidAt        DateTime?
+  finalPaidAt          DateTime?
 
   notifyEmail String? // correo del remitente a notificar (creador)
   createdById String?

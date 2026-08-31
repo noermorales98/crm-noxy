@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
-import { createQuoteStripeLink } from "@/src/lib/quotes";
+import { createQuoteStripeLinks } from "@/src/lib/quotes";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,8 +16,15 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     });
     if (!quote) return NextResponse.json({ error: "Cotización no encontrada" }, { status: 404 });
 
-    const url = await createQuoteStripeLink(quote.id);
-    return NextResponse.json({ url });
+    const links = await createQuoteStripeLinks(quote.id);
+    return NextResponse.json({
+      url: links.fullUrl || null,
+      depositUrl: links.depositUrl || null,
+      finalUrl: links.finalUrl || null,
+      depositAmount: links.depositAmount ?? null,
+      finalAmount: links.finalAmount ?? null,
+      splitPayment: quote.splitPayment,
+    });
   } catch (error: any) {
     console.error("POST /api/quotes/[id]/stripe error:", error);
     return NextResponse.json({ error: error.message || "Error generando link de Stripe" }, { status: 500 });

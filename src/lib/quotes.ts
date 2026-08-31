@@ -4,7 +4,7 @@ import { getPublicBaseUrl } from "@/src/lib/url";
 import nodemailer from "nodemailer";
 import Stripe from "stripe";
 
-export const QUOTE_STATUSES = ["BORRADOR", "ENVIADA", "ACEPTADA", "PAGADA", "VENCIDA", "RECHAZADA"] as const;
+export const QUOTE_STATUSES = ["BORRADOR", "ENVIADA", "ACEPTADA", "PARCIAL", "PAGADA", "VENCIDA", "RECHAZADA"] as const;
 export type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 
 export interface QuoteItemInput {
@@ -182,48 +182,147 @@ export async function getStripeWebhookSecrets(): Promise<string[]> {
   return secrets;
 }
 
-/** Crea (o reutiliza) un Payment Link de Stripe por el total de la cotización. */
-export async function createQuoteStripeLink(quoteId: string): Promise<string> {
+/** Montos de las dos parcialidades: el anticipo se redondea y el final es el residuo. */
+export function computeQuoteInstallments(total: number, depositPercent: number): { depositAmount: number; finalAmount: number } {
+  const depositAmount = Math.round(total * (depositPercent / 100) * 100) / 100;
+  const finalAmount = Math.round((total - depositAmount) * 100) / 100;
+  return { depositAmount, finalAmount };
+}
+
+export interface QuoteStripeLinks {
+  fullUrl?: string | null;
+  depositUrl?: string | null;
+  finalUrl?: string | null;
+  depositAmount?: number;
+  finalAmount?: number;
+}
+
+/**
+ * Crea (o reutiliza) los Payment Links de Stripe de la cotización.
+ * Si `splitPayment` está activo genera dos links (anticipo + pago final);
+ * si no, un solo link por el total.
+ */
+export async function createQuoteStripeLinks(quoteId: string): Promise<QuoteStripeLinks> {
   const quote = await prisma.quote.findUnique({ where: { id: quoteId } });
   if (!quote) throw new Error("Cotización no encontrada");
 
-  if (quote.stripePaymentLinkUrl) return quote.stripePaymentLinkUrl;
+  if (!Number.isFinite(quote.total) || quote.total <= 0) {
+    throw new Error("La cotización no tiene un monto total válido");
+  }
+
+  // ── Pago único (comportamiento original) ────────────────────────────────
+  if (!quote.splitPayment) {
+    if (quote.stripePaymentLinkUrl) return { fullUrl: quote.stripePaymentLinkUrl };
+
+    const secretKey = await getStripeSecretKey(quote.organizationId);
+    if (!secretKey) {
+      throw new Error("Stripe no está configurado. Agrega tu clave en Cotizaciones → Configuración.");
+    }
+
+    const stripe = new Stripe(secretKey, { apiVersion: "2025-03-31.basil" });
+    const baseUrl = getPublicBaseUrl();
+
+    const paymentLink = await stripe.paymentLinks.create({
+      line_items: [
+        {
+          price_data: {
+            currency: quote.currency.toLowerCase(),
+            unit_amount: Math.round(quote.total * 100),
+            product_data: { name: `Cotización ${quote.folio} — ${quote.clientName}` },
+          },
+          quantity: 1,
+        },
+      ],
+      after_completion: {
+        type: "redirect",
+        redirect: { url: `${baseUrl}/cotizar/${quote.publicToken}?pagado=1` },
+      },
+      metadata: { type: "quote", quoteId: quote.id, organizationId: quote.organizationId, installment: "full" },
+    });
+
+    await prisma.quote.update({
+      where: { id: quote.id },
+      data: { stripePaymentLinkId: paymentLink.id, stripePaymentLinkUrl: paymentLink.url },
+    });
+
+    return { fullUrl: paymentLink.url };
+  }
+
+  // ── Pago en dos parcialidades (anticipo + pago final) ──────────────────
+  const { depositAmount, finalAmount } = computeQuoteInstallments(quote.total, quote.depositPercent);
+
+  if (quote.stripeDepositLinkUrl && quote.stripeFinalLinkUrl) {
+    return {
+      depositUrl: quote.stripeDepositLinkUrl,
+      finalUrl: quote.stripeFinalLinkUrl,
+      depositAmount,
+      finalAmount,
+    };
+  }
 
   const secretKey = await getStripeSecretKey(quote.organizationId);
   if (!secretKey) {
     throw new Error("Stripe no está configurado. Agrega tu clave en Cotizaciones → Configuración.");
   }
-  if (!Number.isFinite(quote.total) || quote.total <= 0) {
-    throw new Error("La cotización no tiene un monto total válido");
-  }
 
   const stripe = new Stripe(secretKey, { apiVersion: "2025-03-31.basil" });
   const baseUrl = getPublicBaseUrl();
 
-  const paymentLink = await stripe.paymentLinks.create({
-    line_items: [
-      {
-        price_data: {
-          currency: quote.currency.toLowerCase(),
-          unit_amount: Math.round(quote.total * 100),
-          product_data: { name: `Cotización ${quote.folio} — ${quote.clientName}` },
+  const buildLink = (opts: { amount: number; name: string; installment: string }) =>
+    stripe.paymentLinks.create({
+      line_items: [
+        {
+          price_data: {
+            currency: quote.currency.toLowerCase(),
+            unit_amount: Math.round(opts.amount * 100),
+            product_data: { name: opts.name },
+          },
+          quantity: 1,
         },
-        quantity: 1,
+      ],
+      after_completion: {
+        type: "redirect",
+        redirect: { url: `${baseUrl}/cotizar/${quote.publicToken}?pagado=${opts.installment === "deposit" ? "anticipo" : "final"}` },
       },
-    ],
-    after_completion: {
-      type: "redirect",
-      redirect: { url: `${baseUrl}/cotizar/${quote.publicToken}?pagado=1` },
-    },
-    metadata: { type: "quote", quoteId: quote.id, organizationId: quote.organizationId },
-  });
+      metadata: { type: "quote", quoteId: quote.id, organizationId: quote.organizationId, installment: opts.installment },
+    });
+
+  // Reutiliza el link ya persistido o lo crea en Stripe
+  let depositLinkId = quote.stripeDepositLinkId;
+  let depositLinkUrl = quote.stripeDepositLinkUrl;
+  if (!depositLinkUrl) {
+    const link = await buildLink({
+      amount: depositAmount,
+      name: `Anticipo ${quote.depositPercent}% — Cotización ${quote.folio} — ${quote.clientName}`,
+      installment: "deposit",
+    });
+    depositLinkId = link.id;
+    depositLinkUrl = link.url;
+  }
+
+  let finalLinkId = quote.stripeFinalLinkId;
+  let finalLinkUrl = quote.stripeFinalLinkUrl;
+  if (!finalLinkUrl) {
+    const link = await buildLink({
+      amount: finalAmount,
+      name: `Pago final — Cotización ${quote.folio} — ${quote.clientName}`,
+      installment: "final",
+    });
+    finalLinkId = link.id;
+    finalLinkUrl = link.url;
+  }
 
   await prisma.quote.update({
     where: { id: quote.id },
-    data: { stripePaymentLinkId: paymentLink.id, stripePaymentLinkUrl: paymentLink.url },
+    data: {
+      stripeDepositLinkId: depositLinkId,
+      stripeDepositLinkUrl: depositLinkUrl,
+      stripeFinalLinkId: finalLinkId,
+      stripeFinalLinkUrl: finalLinkUrl,
+    },
   });
 
-  return paymentLink.url;
+  return { depositUrl: depositLinkUrl, finalUrl: finalLinkUrl, depositAmount, finalAmount };
 }
 
 // ─── Notificaciones por correo ────────────────────────────────────────────────
