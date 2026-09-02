@@ -62,7 +62,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     }
 
     const body = await req.json();
-    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, fields } = body;
+    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, showNoxyBrand, fields } = body;
 
     // Colores de apariencia: hex "#RGB" o "#RRGGBB", o vacío/null para quitar
     const hexRe = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -91,7 +91,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                welcomeEmailId: welcomeEmailId || null,
                appointmentTypeId: appointmentTypeId || null,
                accentColor: cleanColor(accentColor),
-               backgroundColor: cleanColor(backgroundColor)
+               backgroundColor: cleanColor(backgroundColor),
+               ...(typeof showNoxyBrand === "boolean" ? { showNoxyBrand } : {}),
             }
         });
 

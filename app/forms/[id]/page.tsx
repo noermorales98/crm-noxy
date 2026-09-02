@@ -7,6 +7,7 @@ import { ArrowLeft01Icon, SaveIcon, Add01Icon, HandGripIcon, Delete01Icon, Setti
 import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
+import FormWhatsAppRecipients from "@/src/components/FormWhatsAppRecipients";
 
 const FIELD_TYPES = [
   { value: "TEXT", label: "Texto Corto" },
@@ -92,9 +93,9 @@ function FieldPreview({ field }: { field: any }) {
         </div>
       )}
       {field.type === "PHONE_LADA" && (
-        <div className="flex gap-2">
-          <div className="noxy-form-control min-h-10 w-[132px] py-2 text-sm text-text-secondary pointer-events-none">+52 México</div>
-          <div className={`${base} flex-1`}>{field.placeholder || "—"}</div>
+        <div className="flex flex-col gap-2">
+          <div className="noxy-form-control min-h-10 py-2 text-sm text-text-secondary pointer-events-none">🇲🇽 +52 México</div>
+          <div className={base}>{field.placeholder || "Número de teléfono"}</div>
         </div>
       )}
       {field.type === "TEXTAREA" && (
@@ -150,6 +151,7 @@ export default function FormBuilderPage() {
   const [appointmentTypeId, setAppointmentTypeId] = useState("");
   const [accentColor, setAccentColor] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
+  const [showNoxyBrand, setShowNoxyBrand] = useState(true);
   const [fields, setFields] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS">("BUILDER");
 
@@ -271,6 +273,7 @@ export default function FormBuilderPage() {
         setAppointmentTypeId(data.appointmentTypeId || "");
         setAccentColor(data.accentColor || "");
         setBackgroundColor(data.backgroundColor || "");
+        setShowNoxyBrand(data.showNoxyBrand !== false);
         setFields(data.fields || []);
       } else {
         addToast("Formulario no encontrado", "error");
@@ -287,7 +290,7 @@ export default function FormBuilderPage() {
       const res = await fetch(`/api/forms/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor: accentColor || null, backgroundColor: backgroundColor || null, fields: orderedFields })
+        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor: accentColor || null, backgroundColor: backgroundColor || null, showNoxyBrand, fields: orderedFields })
       });
       if (res.ok) {
         addToast("Formulario guardado", "success");
@@ -782,6 +785,20 @@ export default function FormBuilderPage() {
                         fallback={DEFAULT_BACKGROUND_COLOR}
                         onChange={setBackgroundColor}
                       />
+                      <div className="flex items-center justify-between py-3 px-4 bg-surface-sidebar rounded-lg border border-border-subtle">
+                        <div>
+                          <p className="text-sm font-semibold text-text-primary">Leyenda “Desarrollado por Noxy”</p>
+                          <p className="text-xs text-text-secondary">Aparece al pie de la página pública del formulario</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowNoxyBrand(v => !v)}
+                          className={`relative w-10 h-6 rounded-full shrink-0 ${showNoxyBrand ? "bg-action-primary" : "bg-nav-active"}`}
+                          aria-pressed={showNoxyBrand}
+                        >
+                          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full ${showNoxyBrand ? "left-5" : "left-1"}`} />
+                        </button>
+                      </div>
                     </div>
                   </section>
 
@@ -871,6 +888,8 @@ export default function FormBuilderPage() {
                       </select>
                     </div>
                   </section>
+
+                  <FormWhatsAppRecipients formId={id} />
 
                   {/* Share */}
                   <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">

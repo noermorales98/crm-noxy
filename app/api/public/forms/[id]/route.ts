@@ -64,6 +64,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
         redirectUrl: form.redirectUrl,
         accentColor: form.accentColor,
         backgroundColor: form.backgroundColor,
+        showNoxyBrand: form.showNoxyBrand,
         fields: form.fields.map(f => ({
             id: f.id,
             type: f.type,

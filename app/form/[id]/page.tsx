@@ -6,14 +6,26 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle01Icon, ArrowLeft01Icon, ArrowRight01Icon, Clock01Icon, Calendar01Icon, GlobeIcon, ArrowDown01Icon, Search01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { getContrastText } from "@/src/lib/color-utils";
-import { COUNTRY_DIAL_CODES, DEFAULT_DIAL_CODE } from "@/src/lib/country-dial-codes";
-
-const MANUAL_DIAL_VALUE = "__manual";
+import { DEFAULT_DIAL_CODE } from "@/src/lib/country-dial-codes";
+import DialCodePicker from "@/src/components/DialCodePicker";
 
 /** Normaliza una lada escrita a mano: "+" seguido solo de dígitos. */
 function sanitizeDialCode(raw: string): string {
   const digits = raw.replace(/[^0-9]/g, "");
   return digits ? `+${digits}` : "";
+}
+
+/** Navega la ventana padre cuando el formulario está embebido en un iframe. */
+function navigateAfterFormSubmit(url: string) {
+  try {
+    if (window.top && window.self !== window.top) {
+      window.top.location.href = url;
+      return;
+    }
+  } catch {
+    /* sandbox u origen cruzado */
+  }
+  window.location.href = url;
 }
 
 const DAYS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -202,7 +214,7 @@ export default function PublicFormPage() {
       const data = await res.json();
       if (res.ok) {
         if (data.action === "REDIRECT" && data.redirectUrl) {
-          window.location.href = data.redirectUrl;
+          navigateAfterFormSubmit(data.redirectUrl);
         } else {
           setSubmitSuccess(true);
           setSuccessActionMsg(data.message || "Form submitted successfully!");
@@ -306,26 +318,19 @@ export default function PublicFormPage() {
                     const codeKey = `${field.name}_code`;
                     const isManual = !!manualDialCodes[field.name];
                     return (
-                      <div className="flex gap-2">
-                        <select
-                          aria-label="Lada del número de teléfono"
-                          required={field.isRequired}
-                          value={isManual ? MANUAL_DIAL_VALUE : (formData[codeKey] ?? DEFAULT_DIAL_CODE)}
-                          onChange={e => {
-                            if (e.target.value === MANUAL_DIAL_VALUE) {
-                              setManualDialCodes(prev => ({ ...prev, [field.name]: true }));
-                            } else {
-                              setManualDialCodes(prev => ({ ...prev, [field.name]: false }));
-                              handleInputChange(codeKey, e.target.value, field.type);
-                            }
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <DialCodePicker
+                          value={formData[codeKey] ?? DEFAULT_DIAL_CODE}
+                          isManual={isManual}
+                          onChange={(dial) => {
+                            setManualDialCodes(prev => ({ ...prev, [field.name]: false }));
+                            handleInputChange(codeKey, dial, field.type);
                           }}
-                          className="noxy-form-control w-[190px] px-3"
-                        >
-                          {COUNTRY_DIAL_CODES.map(c => (
-                            <option key={c.iso} value={c.dial}>{c.dial} {c.name}</option>
-                          ))}
-                          <option value={MANUAL_DIAL_VALUE}>Otro (escribir manualmente)</option>
-                        </select>
+                          onSelectManual={() => {
+                            setManualDialCodes(prev => ({ ...prev, [field.name]: true }));
+                            handleInputChange(codeKey, formData[codeKey] || "+", field.type);
+                          }}
+                        />
                         {isManual && (
                           <input
                             type="text"
@@ -333,10 +338,17 @@ export default function PublicFormPage() {
                             placeholder="+52"
                             value={formData[codeKey] || ""}
                             onChange={e => handleInputChange(codeKey, sanitizeDialCode(e.target.value), field.type)}
-                            className="noxy-form-control w-[90px] px-3"
+                            className="noxy-form-control w-full sm:w-[90px] px-3"
                           />
                         )}
-                        <input type="tel" required={field.isRequired} placeholder={field.placeholder || "Número de teléfono"} value={formData[`${field.name}_number`]} onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)} className="noxy-form-control flex-1" />
+                        <input
+                          type="tel"
+                          required={field.isRequired}
+                          placeholder={field.placeholder || "Número de teléfono"}
+                          value={formData[`${field.name}_number`]}
+                          onChange={e => handleInputChange(`${field.name}_number`, e.target.value, field.type)}
+                          className="noxy-form-control w-full sm:flex-1"
+                        />
                       </div>
                     );
                   })()}
@@ -568,11 +580,13 @@ export default function PublicFormPage() {
           </div>
         </form>
 
-        <footer className="mt-12 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-sidebar rounded-full border border-border-subtle">
-            <span className="text-xs text-text-secondary-strong font-semibold">Desarrollado por Noxy</span>
-          </div>
-        </footer>
+        {formConfig.showNoxyBrand !== false && (
+          <footer className="mt-12 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-sidebar rounded-full border border-border-subtle">
+              <span className="text-xs text-text-secondary-strong font-semibold">Desarrollado por Noxy</span>
+            </div>
+          </footer>
+        )}
       </main>
     </div>
   );

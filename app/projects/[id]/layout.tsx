@@ -27,6 +27,20 @@ export default async function ProjectLayout({ children, params }: { children: Re
     where: { entityType: "PROJECT", entityId: project.id },
   });
 
+  const projectForms = await prisma.form.findMany({
+    where: { projectId: project.id },
+    select: { id: true },
+  });
+  const submissionsCount =
+    projectForms.length === 0
+      ? 0
+      : await prisma.contact.count({
+          where: {
+            organizationId: currentOrganizationId,
+            sourceFormId: { in: projectForms.map((f) => f.id) },
+          },
+        });
+
   return (
     <>
       <ProjectHeaderSetter
@@ -40,7 +54,12 @@ export default async function ProjectLayout({ children, params }: { children: Re
         }}
       />
       <div className="flex-1 min-h-0 flex flex-col overflow-y-auto bg-surface-app">
-        <ProjectWorkspaceHeader project={project} tasksCount={project._count.tasks} docsCount={docsCount} />
+        <ProjectWorkspaceHeader
+          project={project}
+          tasksCount={project._count.tasks}
+          docsCount={docsCount}
+          submissionsCount={submissionsCount}
+        />
         {children}
       </div>
     </>

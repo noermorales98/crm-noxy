@@ -37,7 +37,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         welcomeEmail: true,
         appointmentType: {
           include: { schedule: { include: { slots: true } } }
-        }
+        },
+        whatsAppRecipients: { select: { phone: true, apiKey: true } },
       }
     });
 
@@ -204,7 +205,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           organizationId: form.organizationId,
           contactId: newContact.id,
           formId: form.id,
-          assignedToId: owner.userId
+          assignedToId: owner.userId,
+          ...(form.projectId ? { projectId: form.projectId } : {}),
         }
       });
 
@@ -258,7 +260,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         }
       }
 
-      // 3b. Notificación por WhatsApp vía CallMeBot
+      // 3b. Notificación por WhatsApp vía CallMeBot (owner)
       if (owner.user?.callMeBot?.phone && owner.user?.callMeBot?.apiKey) {
         const waMsg = [
           `🔔 *Nuevo lead - ${form.name}${variant ? ` › ${variant.name}` : ""}*`,
@@ -276,6 +278,31 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           waMsg
         ).catch(err => console.error("WhatsApp notification error:", err));
       }
+    }
+
+    const extraRecipients = form.whatsAppRecipients ?? [];
+    if (extraRecipients.length > 0) {
+      const extraName = `${firstName}${lastName ? " " + lastName : ""}`;
+      const extraAppointment = submissionData["__appointment_slot"]
+        ? `\n📅 Cita agendada: ${new Date(submissionData["__appointment_slot"]).toLocaleString("es-MX", { dateStyle: "full", timeStyle: "short" })}`
+        : "";
+      const extraMsg = [
+        `🔔 *Nuevo lead - ${form.name}${variant ? ` › ${variant.name}` : ""}*`,
+        `👤 ${extraName}`,
+        email ? `📧 ${email}` : null,
+        phone ? `📞 ${phone}` : null,
+        variant ? `🏷️ Variante: ${variant.name}` : null,
+        extraAppointment || null,
+        customNotes.length > 0 ? `📋 ${customNotes.join(" | ")}` : null,
+      ].filter(Boolean).join("\n");
+
+      await Promise.all(
+        extraRecipients.map((r) =>
+          sendWhatsAppNotification(r.phone, r.apiKey, extraMsg).catch((err) =>
+            console.error("WhatsApp extra recipient error:", err)
+          )
+        )
+      );
     }
 
     // 4. Trigger Welcome Email if configured

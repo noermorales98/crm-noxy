@@ -202,6 +202,9 @@ model Project {
   emailAccountCompanyId String?
   emailAccountCompany   Company? @relation("ProjectEmailAccount", fields: [emailAccountCompanyId], references: [id], onDelete: SetNull)
 
+  publicToken String?  @unique
+  isPublic    Boolean  @default(false)
+
   @@index([organizationId])
   @@index([companyId])
   @@index([contactId])
@@ -704,6 +707,7 @@ model Form {
   // Apariencia de la página pública (hex, p. ej. "#7c3aed"); null = tema por defecto
   accentColor     String?
   backgroundColor String?
+  showNoxyBrand   Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -717,17 +721,30 @@ model Form {
   appointmentTypeId String?
   appointmentType   AppointmentType? @relation("FormAppointmentType", fields: [appointmentTypeId], references: [id], onDelete: SetNull)
 
-  fields            FormField[]
-  tasks             Task[]
-  contacts          Contact[]       @relation("FormContacts")
-  targetedCampaigns EmailCampaign[] @relation("FormTargetCampaigns")
-  variants          FormVariant[]
+  fields             FormField[]
+  tasks              Task[]
+  contacts           Contact[]       @relation("FormContacts")
+  targetedCampaigns  EmailCampaign[] @relation("FormTargetCampaigns")
+  variants           FormVariant[]
+  whatsAppRecipients FormWhatsAppRecipient[]
 
   @@index([organizationId])
   @@index([companyId])
   @@index([projectId])
   @@index([welcomeEmailId])
   @@index([appointmentTypeId])
+}
+
+model FormWhatsAppRecipient {
+  id        String   @id @default(cuid())
+  formId    String
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  label     String?
+  phone     String
+  apiKey    String
+  createdAt DateTime @default(now())
+
+  @@index([formId])
 }
 
 model FormField {

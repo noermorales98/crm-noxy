@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import DashboardShell from "@/src/components/DashboardShell";
 import { CrmThemeProvider } from "@/src/context/CrmThemeContext";
 
-const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/", "/calendario/"];
+const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/", "/calendario/", "/proyecto/"];
 
 function isPublicRoute(pathname: string): boolean {
   if (pathname === "/login" || pathname === "/register") return true;

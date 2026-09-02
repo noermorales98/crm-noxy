@@ -1,42 +1,43 @@
 import { prisma } from "@/src/lib/db";
-import { auth } from "@/auth";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkSquare01Icon, FolderIcon, UserMultipleIcon, Mail01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkSquare01Icon, FolderIcon, UserMultipleIcon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import PageIcon from "@/src/components/kb/PageIcon";
+import { getPublicProjectByToken } from "@/src/lib/project-public";
 
-export default async function ProjectOverviewPage(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
-  const session = await auth();
-  if (!session?.user) return <div>Access Denied</div>;
-  const currentOrganizationId = (session as any).currentOrganizationId;
+export default async function PublicProjectOverviewPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const project = await getPublicProjectByToken(token);
+  if (!project) notFound();
 
-  const project = await prisma.project.findFirst({ where: { id, organizationId: currentOrganizationId } });
-  if (!project) return notFound();
+  const formIds = (
+    await prisma.form.findMany({ where: { projectId: project.id }, select: { id: true } })
+  ).map((f) => f.id);
 
-  const [pendingTasksCount, tasksTotal, recentTasks, forms, campaignsCount, docsCount, docsRelations] = await Promise.all([
-    prisma.task.count({ where: { projectId: id, isCompleted: false } }),
-    prisma.task.count({ where: { projectId: id } }),
-    prisma.task.findMany({ where: { projectId: id }, orderBy: { createdAt: "desc" }, take: 5 }),
-    prisma.form.findMany({ where: { projectId: id }, select: { id: true } }),
-    prisma.emailCampaign.count({ where: { projectId: id } }),
-    prisma.kbPageRelation.count({ where: { entityType: "PROJECT", entityId: id } }),
+  const [pendingTasksCount, recentTasks, docsRelations, submissionsCount, recentSubmissions] = await Promise.all([
+    prisma.task.count({ where: { projectId: project.id, isCompleted: false } }),
+    prisma.task.findMany({
+      where: { projectId: project.id },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: { id: true, title: true, isCompleted: true },
+    }),
     prisma.kbPageRelation.findMany({
-      where: { entityType: "PROJECT", entityId: id },
+      where: { entityType: "PROJECT", entityId: project.id },
       include: { page: { select: { id: true, title: true, emoji: true, isFolder: true } } },
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
-  ]);
-
-  const formIds = forms.map((f) => f.id);
-  const [submissionsCount, recentSubmissions] = formIds.length === 0
-    ? [0, [] as { id: string; firstName: string; lastName: string | null; createdAt: Date; sourceForm: { name: string } | null }[]]
-    : await Promise.all([
-        prisma.contact.count({ where: { organizationId: currentOrganizationId, sourceFormId: { in: formIds } } }),
-        prisma.contact.findMany({
-          where: { organizationId: currentOrganizationId, sourceFormId: { in: formIds } },
+    formIds.length === 0
+      ? Promise.resolve(0)
+      : prisma.contact.count({
+          where: { organizationId: project.organizationId, sourceFormId: { in: formIds } },
+        }),
+    formIds.length === 0
+      ? Promise.resolve([] as { id: string; firstName: string; lastName: string | null; createdAt: Date; sourceForm: { name: string } | null }[])
+      : prisma.contact.findMany({
+          where: { organizationId: project.organizationId, sourceFormId: { in: formIds } },
           orderBy: { createdAt: "desc" },
           take: 5,
           select: {
@@ -47,18 +48,25 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
             sourceForm: { select: { name: true } },
           },
         }),
-      ]);
+  ]);
+
+  const docsCount = await prisma.kbPageRelation.count({
+    where: { entityType: "PROJECT", entityId: project.id },
+  });
 
   const stats = [
-    { label: "Tareas pendientes", value: pendingTasksCount, icon: CheckmarkSquare01Icon, color: "#ef4444", href: `/projects/${id}/tareas` },
-    { label: "Docs vinculados", value: docsCount, icon: FolderIcon, color: "#0891b2", href: `/projects/${id}/docs` },
-    { label: "Registrados", value: submissionsCount, icon: UserMultipleIcon, color: "#22c55e", href: `/projects/${id}/registros` },
-    { label: "Campañas", value: campaignsCount, icon: Mail01Icon, color: "#f97316", href: `/projects/${id}/info` },
+    { label: "Tareas pendientes", value: pendingTasksCount, icon: CheckmarkSquare01Icon, color: "#ef4444", href: `/proyecto/${token}/tareas` },
+    { label: "Docs vinculados", value: docsCount, icon: FolderIcon, color: "#0891b2", href: `/proyecto/${token}/docs` },
+    { label: "Registrados", value: submissionsCount, icon: UserMultipleIcon, color: "#22c55e", href: `/proyecto/${token}/registros` },
   ];
 
   return (
     <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {project.description && (
+        <p className="text-sm text-text-secondary">{project.description}</p>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((s) => (
           <Link key={s.label} href={s.href} className="bg-white border border-border-subtle rounded-lg p-4 hover:bg-nav-hover transition-colors">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: `${s.color}1A` }}>
@@ -74,12 +82,12 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
         <div className="bg-white border border-border-subtle rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-text-primary text-sm">Últimas tareas</h3>
-            <Link href={`/projects/${id}/tareas`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+            <Link href={`/proyecto/${token}/tareas`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
               Ver todas <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </Link>
           </div>
           {recentTasks.length === 0 ? (
-            <p className="text-sm text-text-secondary text-center py-8">Sin tareas vinculadas todavía</p>
+            <p className="text-sm text-text-secondary text-center py-8">Sin tareas todavía</p>
           ) : (
             <ul className="divide-y divide-gray-50">
               {recentTasks.map((t) => (
@@ -92,15 +100,12 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
               ))}
             </ul>
           )}
-          {tasksTotal > 0 && (
-            <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-border-subtle">{tasksTotal} tareas en total</p>
-          )}
         </div>
 
         <div className="bg-white border border-border-subtle rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-text-primary text-sm">Últimos docs</h3>
-            <Link href={`/projects/${id}/docs`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+            <Link href={`/proyecto/${token}/docs`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
               Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </Link>
           </div>
@@ -110,7 +115,7 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
             <ul className="divide-y divide-gray-50">
               {docsRelations.map((r) => (
                 <li key={r.id} className="py-2.5">
-                  <Link href={`/kb/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-primary">
+                  <Link href={`/proyecto/${token}/docs/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-primary">
                     <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
                     <span className="truncate">{r.page.title}</span>
                   </Link>
@@ -124,7 +129,7 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
       <div className="bg-white border border-border-subtle rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-text-primary text-sm">Últimos registros</h3>
-          <Link href={`/projects/${id}/registros`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+          <Link href={`/proyecto/${token}/registros`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
             Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
           </Link>
         </div>
@@ -148,9 +153,6 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
               </li>
             ))}
           </ul>
-        )}
-        {submissionsCount > 0 && (
-          <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-border-subtle">{submissionsCount} registros en total</p>
         )}
       </div>
     </div>

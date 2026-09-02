@@ -9,6 +9,7 @@ import ProjectAssociationsEditor from "@/src/components/ProjectAssociationsEdito
 const SECTION_LABELS: { match: (path: string) => boolean; label: string }[] = [
   { match: (p) => p.endsWith("/tareas"), label: "Tareas" },
   { match: (p) => p.endsWith("/docs"), label: "Docs" },
+  { match: (p) => p.includes("/registros"), label: "Registrados" },
   { match: (p) => p.endsWith("/correo"), label: "Correo" },
   { match: (p) => p.endsWith("/info"), label: "Info" },
   { match: (p) => p.endsWith("/actividad"), label: "Actividad" },

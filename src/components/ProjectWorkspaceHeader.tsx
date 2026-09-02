@@ -10,6 +10,7 @@ import {
   Mail01Icon,
   LockPasswordIcon,
 } from "@hugeicons/core-free-icons";
+import ProjectSharePanel from "@/src/components/ProjectSharePanel";
 interface ProjectWorkspaceHeaderProps {
   project: {
     id: string;
@@ -26,9 +27,10 @@ interface ProjectWorkspaceHeaderProps {
   };
   tasksCount: number;
   docsCount: number;
+  submissionsCount: number;
 }
 
-export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount }: ProjectWorkspaceHeaderProps) {
+export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount, submissionsCount }: ProjectWorkspaceHeaderProps) {
   const pathname = usePathname();
   const base = `/projects/${project.id}`;
 
@@ -36,6 +38,7 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount 
     { href: base, label: "Resumen", exact: true },
     { href: `${base}/tareas`, label: "Tareas", count: tasksCount },
     { href: `${base}/docs`, label: "Docs", count: docsCount },
+    { href: `${base}/registros`, label: "Registrados", count: submissionsCount },
     ...(project.emailAccountCompanyId ? [{ href: `${base}/correo`, label: "Correo" }] : []),
     { href: `${base}/info`, label: "Info" },
     { href: `${base}/actividad`, label: "Actividad" },
@@ -79,14 +82,15 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount 
           </div>
         )}
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1 overflow-x-auto">
           {tabs.map((tab) => {
             const isActive = tab.exact ? pathname === tab.href : pathname === tab.href || pathname?.startsWith(tab.href + "/");
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px ${
+                className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap ${
                   isActive ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"
                 }`}
               >
@@ -99,6 +103,10 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount 
               </Link>
             );
           })}
+          </div>
+          <div className="shrink-0 pb-1.5">
+            <ProjectSharePanel projectId={project.id} />
+          </div>
         </div>
       </div>
     </div>

@@ -18,7 +18,7 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
       contact: { select: { id: true, firstName: true, lastName: true } },
       client: { select: { id: true, name: true } },
       emailAccountCompany: { select: { id: true, name: true } },
-      forms: { orderBy: { createdAt: "desc" } },
+      forms: { orderBy: { createdAt: "desc" }, include: { _count: { select: { contacts: true } } } },
       campaigns: { orderBy: { createdAt: "desc" } },
     },
   });
@@ -75,9 +75,13 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
           ) : (
             <ul className="divide-y divide-gray-50">
               {project.forms.map((f) => (
-                <li key={f.id} className="py-2.5 flex items-center justify-between">
-                  <span className="text-sm font-medium text-text-primary truncate">{f.name}</span>
-                  <span className="text-xs text-text-secondary shrink-0">{f.isActive ? "Activo" : "Inactivo"}</span>
+                <li key={f.id} className="py-2.5 flex items-center justify-between gap-2">
+                  <Link href={`/projects/${id}/registros?formId=${f.id}`} className="text-sm font-medium text-text-primary truncate hover:text-action-primary">
+                    {f.name}
+                  </Link>
+                  <span className="text-xs text-text-secondary shrink-0">
+                    {f._count.contacts} · {f.isActive ? "Activo" : "Inactivo"}
+                  </span>
                 </li>
               ))}
             </ul>

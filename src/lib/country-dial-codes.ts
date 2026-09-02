@@ -10,6 +10,30 @@ export interface CountryDialCode {
 
 export const DEFAULT_DIAL_CODE = "+52";
 
+export function isoToFlag(iso: string): string {
+  if (!iso || iso.length !== 2) return "🌐";
+  const code = iso.toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return "🌐";
+  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+}
+
+export function findCountryByDial(dial: string, preferredIso?: string | null) {
+  const matches = COUNTRY_DIAL_CODES.filter((c) => c.dial === dial);
+  if (preferredIso) {
+    const preferred = matches.find((c) => c.iso === preferredIso);
+    if (preferred) return preferred;
+  }
+  return matches[0] ?? null;
+}
+
+export function normalizeCountrySearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export const COUNTRY_DIAL_CODES: CountryDialCode[] = [
   { name: "México", dial: "+52", iso: "MX" },
   { name: "Afganistán", dial: "+93", iso: "AF" },
