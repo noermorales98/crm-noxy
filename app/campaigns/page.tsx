@@ -22,7 +22,26 @@ type Campaign = {
   project?: { name: string };
   targetForm?: { name: string };
   _count: { logs: number };
+  logsByStatus?: Record<string, number>;
 };
+
+function formatDispatchToast(data: {
+  successful?: number;
+  failed?: number;
+  pending?: number;
+  processed?: number;
+  message?: string;
+}) {
+  const successful = data.successful ?? 0;
+  const failed = data.failed ?? 0;
+  const pending = data.pending ?? 0;
+  if ((data.processed ?? 0) === 0 && successful === 0 && failed === 0) {
+    return pending > 0
+      ? `No hay correos vencidos por enviar. Quedan ${pending} en cola.`
+      : "No hay correos pendientes en la cola.";
+  }
+  return `Se enviaron ${successful}. Fallaron ${failed}. Quedan ${pending} en cola.`;
+}
 
 type StepDraft = { delayDays: string; subject: string; body: string };
 
@@ -191,13 +210,11 @@ export default function CampaignsPage() {
       if (!res.ok) { const data = await res.json(); addToast(data.error || "Failed to schedule campaign", "error"); return; }
       const result = await res.json();
       addToast(
-        result.totalMessages > result.totalScheduled
-          ? `¡Listo! Se programaron ${result.totalMessages} mensajes para ${result.totalScheduled} destinatarios.`
-          : `¡Listo! Se programaron ${result.totalScheduled} correos para envío.`,
-        "success"
+        `Se enviaron ${result.successful ?? 0}. Fallaron ${result.failed ?? 0}. Quedan ${result.pending ?? 0} en cola.`,
+        result.failed > 0 && result.successful === 0 ? "error" : "success"
       );
       fetchCampaigns();
-    } catch (error) { addToast("An unexpected error occurred.", "error"); }
+    } catch (error) { addToast("Ocurrió un error inesperado.", "error"); }
   };
 
   const handleProcessQueue = async () => {
@@ -206,10 +223,20 @@ export default function CampaignsPage() {
       const res = await fetch("/api/cron/process-emails");
       const data = await res.json();
       if (res.ok) {
-        addToast(data.message === "No pending emails to process" ? "Queue is empty. No pending emails to process." : "Queue processing triggered successfully!", "success");
+        addToast(
+          formatDispatchToast(data),
+          data.failed > 0 && data.successful === 0 ? "error" : "success"
+        );
         fetchCampaigns();
-      } else { addToast(data.error || "Failed to process queue.", "error"); }
-    } catch (error) { addToast("Error contacting the cron dispatcher.", "error"); }
+      } else {
+        addToast(
+          data.error === "Unauthorized"
+            ? "No autorizado para procesar la cola."
+            : (data.error || "No se pudo procesar la cola."),
+          "error"
+        );
+      }
+    } catch (error) { addToast("Error al contactar el despachador de la cola.", "error"); }
     finally { setIsProcessingQueue(false); }
   };
 
@@ -271,11 +298,18 @@ export default function CampaignsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
-                        {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-nav-hover text-action-primary"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
-                        {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> Completada</span>}
+                        <div className="flex flex-col items-start gap-1">
+                          {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
+                          {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-nav-hover text-action-primary"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
+                          {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> Completada</span>}
+                          {camp.status === "SENDING" && (
+                            <span className="text-[11px] text-text-secondary font-medium">
+                              {camp.logsByStatus?.PENDING ?? 0} pendientes · {camp.logsByStatus?.SENT ?? 0} enviados · {camp.logsByStatus?.FAILED ?? 0} fallidos
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary font-medium">{camp._count.logs > 0 ? camp._count.logs.toLocaleString() : "—"}</td>
+                      <td className="px-6 py-4 text-sm text-text-secondary font-medium">{(camp.logsByStatus?.SENT ?? camp._count.logs) > 0 ? (camp.logsByStatus?.SENT ?? camp._count.logs).toLocaleString() : "—"}</td>
                       <td className="px-6 py-4 text-sm text-text-secondary">{new Date(camp.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">

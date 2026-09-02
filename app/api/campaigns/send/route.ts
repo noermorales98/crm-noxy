@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { processCampaignEmails } from "@/src/lib/process-campaign-emails";
 
 export async function POST(req: Request) {
   try {
@@ -102,13 +103,21 @@ export async function POST(req: Request) {
       })
     ]);
 
-    // Ideally here we would trigger an external Queue (Upstash QStash, etc)
-    // For MVPs, we rely on the Vercel cron job picking up the PENDING logs later
-    const totalLogs = logsData.length;
+    const dispatch = hasFutureStart
+      ? { processed: 0, successful: 0, failed: 0, pending: logsData.length }
+      : await processCampaignEmails({ organizationId: currentOrganizationId, campaignId, take: 50 });
+
+    const pending = await prisma.emailLog.count({
+      where: { campaignId, status: "PENDING" },
+    });
+
     return NextResponse.json({
-      message: "Campaign scheduled successfully. Cron will dispatch it shortly.",
+      message: "Campaign scheduled successfully.",
       totalScheduled: contacts.length,
-      totalMessages: totalLogs,
+      totalMessages: logsData.length,
+      successful: dispatch.successful,
+      failed: dispatch.failed,
+      pending,
     }, { status: 200 });
   } catch (error: any) {
     console.error("POST /api/campaigns/send error:", error);

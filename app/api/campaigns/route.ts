@@ -42,19 +42,37 @@ export async function GET(req: Request) {
     });
 
     // Próximo envío programado por campaña (menor scheduledAt futuro entre PENDING)
-    const nextByCampaign = await prisma.emailLog.groupBy({
-      by: ["campaignId"],
-      where: { status: "PENDING", scheduledAt: { gt: new Date() } },
-      _min: { scheduledAt: true },
-    });
+    const campaignIds = campaigns.map((c) => c.id);
+    const [nextByCampaign, logCounts] = campaignIds.length === 0
+      ? [[], []] as const
+      : await Promise.all([
+          prisma.emailLog.groupBy({
+            by: ["campaignId"],
+            where: { campaignId: { in: campaignIds }, status: "PENDING", scheduledAt: { gt: new Date() } },
+            _min: { scheduledAt: true },
+          }),
+          prisma.emailLog.groupBy({
+            by: ["campaignId", "status"],
+            where: { campaignId: { in: campaignIds } },
+            _count: { _all: true },
+          }),
+        ]);
+
     const nextMap = new Map(
       nextByCampaign.map((row) => [row.campaignId, row._min.scheduledAt])
     );
+    const logsByCampaign = new Map<string, Record<string, number>>();
+    for (const row of logCounts) {
+      const current = logsByCampaign.get(row.campaignId) ?? {};
+      current[row.status] = row._count._all;
+      logsByCampaign.set(row.campaignId, current);
+    }
 
     return NextResponse.json(
       campaigns.map((campaign) => ({
         ...campaign,
         nextScheduledAt: nextMap.get(campaign.id) ?? null,
+        logsByStatus: logsByCampaign.get(campaign.id) ?? {},
       }))
     );
   } catch (error: any) {
