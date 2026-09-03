@@ -6,7 +6,11 @@ function corsResponse(body: any, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
   headers.set('Access-Control-Allow-Origin', '*');
   headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  headers.set('Content-Type', 'application/json');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Accept, Accept-Language');
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  // Prevent caching issues that could affect form availability
+  headers.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
+  headers.set('Vary', 'Accept-Encoding, Accept-Language');
   return new NextResponse(JSON.stringify(body), { ...init, headers });
 }
 
@@ -16,6 +20,8 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Accept, Accept-Language",
+      "Access-Control-Max-Age": "86400",
     },
   });
 }
