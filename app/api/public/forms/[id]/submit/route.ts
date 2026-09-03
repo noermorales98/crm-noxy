@@ -11,7 +11,8 @@ export async function OPTIONS() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Content-Type, Accept, Accept-Language",
+      "Access-Control-Max-Age": "86400",
     },
   });
 }
@@ -20,7 +21,9 @@ export async function OPTIONS() {
 function corsResponse(body: any, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
   headers.set('Access-Control-Allow-Origin', '*');
-  headers.set('Content-Type', 'application/json');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Accept, Accept-Language');
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   return new NextResponse(JSON.stringify(body), { ...init, headers });
 }
 

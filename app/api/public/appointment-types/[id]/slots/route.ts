@@ -5,7 +5,11 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Accept, Accept-Language",
+    "Access-Control-Max-Age": "86400",
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=120",
+    "Vary": "Accept-Encoding",
   };
 }
 

@@ -116,22 +116,46 @@ export default function PublicFormPage() {
 
   const fetchFormDefinition = async () => {
     try {
-      const res = await fetch(`/api/public/forms/${id}`);
-      const data = await res.json();
+      // Add timeout to detect slow or hanging connections
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+      
+      const res = await fetch(`/api/public/forms/${id}`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache'
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (!res.ok) {
-        setErrorMsg(data.error || "Failed to load form.");
-      } else {
-        setFormConfig(data);
-        const initialData: Record<string, any> = {};
-        data.fields.forEach((f: any) => {
-          if (f.type === "CHECKBOX") initialData[f.name] = [];
-          else initialData[f.name] = "";
-          if (f.type === "PHONE_LADA") initialData[`${f.name}_code`] = DEFAULT_DIAL_CODE;
-        });
-        setFormData(initialData);
+        const data = await res.json().catch(() => ({ error: `Server error: ${res.status}` }));
+        setErrorMsg(data.error || `No se pudo cargar el formulario (Error ${res.status})`);
+        console.error("Form load failed:", { status: res.status, error: data });
+        return;
       }
-    } catch {
-      setErrorMsg("Could not connect to the server.");
+      
+      const data = await res.json();
+      setFormConfig(data);
+      const initialData: Record<string, any> = {};
+      data.fields.forEach((f: any) => {
+        if (f.type === "CHECKBOX") initialData[f.name] = [];
+        else initialData[f.name] = "";
+        if (f.type === "PHONE_LADA") initialData[`${f.name}_code`] = DEFAULT_DIAL_CODE;
+      });
+      setFormData(initialData);
+    } catch (error: any) {
+      console.error("Form fetch error:", error);
+      if (error.name === 'AbortError') {
+        setErrorMsg("La conexión está tardando demasiado. Por favor, verifica tu conexión a internet e intenta de nuevo.");
+      } else if (error.message?.includes('Failed to fetch')) {
+        setErrorMsg("No se pudo conectar al servidor. Verifica tu conexión a internet.");
+      } else {
+        setErrorMsg("Ocurrió un error al cargar el formulario. Por favor, intenta de nuevo.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -206,13 +230,23 @@ export default function PublicFormPage() {
       payload["__variant_id"] = variantId;
     }
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for submit
+      
       const res = await fetch(`/api/public/forms/${id}/submit`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
-      const data = await res.json();
+      
+      clearTimeout(timeoutId);
+      
       if (res.ok) {
+        const data = await res.json();
         if (data.action === "REDIRECT" && data.redirectUrl) {
           navigateAfterFormSubmit(data.redirectUrl);
         } else {
@@ -220,10 +254,17 @@ export default function PublicFormPage() {
           setSuccessActionMsg(data.message || "Form submitted successfully!");
         }
       } else {
-        setErrorMsg(data.error || "Failed to submit form.");
+        const data = await res.json().catch(() => ({ error: `Error ${res.status}` }));
+        setErrorMsg(data.error || "No se pudo enviar el formulario. Intenta de nuevo.");
+        console.error("Form submit failed:", { status: res.status, error: data });
       }
-    } catch {
-      setErrorMsg("Check your connection and try again.");
+    } catch (error: any) {
+      console.error("Form submit error:", error);
+      if (error.name === 'AbortError') {
+        setErrorMsg("El envío está tardando demasiado. Verifica tu conexión e intenta de nuevo.");
+      } else {
+        setErrorMsg("Verifica tu conexión a internet e intenta de nuevo.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -247,21 +288,41 @@ export default function PublicFormPage() {
 
   if (isLoading) return (
     <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
-      <p
-        role="status"
-        aria-live="polite"
-        className="noxy-form-panel w-full max-w-sm px-6 py-5 text-center text-sm font-semibold text-text-secondary"
-      >
-        Cargando formulario…
-      </p>
+      <div className="noxy-form-panel w-full max-w-sm px-6 py-5 text-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-action-primary border-t-transparent rounded-full animate-spin"></div>
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-sm font-semibold text-text-secondary"
+          >
+            Cargando formulario…
+          </p>
+        </div>
+      </div>
     </div>
   );
 
   if (errorMsg && !formConfig) return (
     <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <div role="alert" className="noxy-form-panel p-8 border-red-200 max-w-md w-full text-center">
-        <div className="text-red-500 font-bold mb-2">Error</div>
-        <p className="text-text-secondary">{errorMsg}</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-red-500 font-bold text-lg">⚠️ Error al cargar</div>
+          <p className="text-text-secondary text-sm leading-relaxed">{errorMsg}</p>
+          <button
+            onClick={() => {
+              setErrorMsg(null);
+              setIsLoading(true);
+              fetchFormDefinition();
+            }}
+            className="mt-2 px-6 py-2.5 bg-action-primary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Reintentar
+          </button>
+          <p className="text-xs text-text-secondary mt-2">
+            Si el problema persiste, contacta al administrador del formulario.
+          </p>
+        </div>
       </div>
     </div>
   );
