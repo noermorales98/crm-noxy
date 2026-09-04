@@ -8,6 +8,7 @@ import { useToast } from "@/src/context/ToastContext";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 import FormWhatsAppRecipients from "@/src/components/FormWhatsAppRecipients";
+import FormApiConfig from "@/src/components/FormApiConfig";
 
 const FIELD_TYPES = [
   { value: "TEXT", label: "Texto Corto" },
@@ -153,7 +154,7 @@ export default function FormBuilderPage() {
   const [backgroundColor, setBackgroundColor] = useState("");
   const [showNoxyBrand, setShowNoxyBrand] = useState(true);
   const [fields, setFields] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS">("BUILDER");
+  const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS" | "API">("BUILDER");
 
   // Variants state
   const [variants, setVariants] = useState<any[]>([]);
@@ -390,6 +391,13 @@ export default function FormBuilderPage() {
                 {variants.length > 0 && (
                   <span className="bg-nav-active text-text-primary rounded-full px-1.5 py-0 text-[10px] font-bold">{variants.length}</span>
                 )}
+              </button>
+              <button
+                onClick={() => setActiveTab("API")}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "API" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
+              >
+                <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
+                API
               </button>
             </div>
 
@@ -706,6 +714,13 @@ export default function FormBuilderPage() {
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* API TAB */}
+            {activeTab === "API" && (
+              <div className="overflow-y-auto h-full">
+                <FormApiConfig formId={id as string} />
               </div>
             )}
 
