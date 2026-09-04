@@ -313,9 +313,7 @@
 }
 
 .experience .textarea:focus-visible {
-  outline: 2px solid #007AFF;
-  outline-offset: 4px;
-  border-radius: 8px;
+  outline: none;
 }
 
 .experience .typewriter {

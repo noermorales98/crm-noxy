@@ -504,8 +504,11 @@
   padding-top: 16px;
 }
 
+.textarea:focus-visible {
+  outline: none;
+}
+
 .suggestion:focus-visible,
-.textarea:focus-visible,
 .stopButton:focus-visible,
 .iconButton:focus-visible,
 .metaButton:focus-visible,

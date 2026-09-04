@@ -32,21 +32,37 @@ test("section switching closes before every route push", () => {
   assert.match(sidebarComponentSource, /<SectionSwitcher[\s\S]*?onNavigate=\{onNavigate\}[\s\S]*?\/>/);
 });
 
-test("assistant destinations and delete redirect close before navigation", () => {
+test("assistant conversation destinations keep the floating panel open", () => {
   const newConversationLink = staticLinkTag("/assistant/new");
   assert.match(newConversationLink, /\bprefetch\b/);
-  assert.match(newConversationLink, /onClick=\{onNavigate\}/);
+  assert.doesNotMatch(newConversationLink, /onClick=\{onNavigate\}/);
 
   const conversationLink = assistantNavSource.match(/<Link\s+href=\{`\/assistant\/\$\{conv\.id\}`\}[\s\S]*?>/)?.[0];
   assert.ok(conversationLink, "Missing conversation Link");
-  assert.match(conversationLink, /onClick=\{onNavigate\}/);
+  assert.doesNotMatch(conversationLink, /onClick=\{onNavigate\}/);
 
   assert.match(
     assistantNavSource,
-    /if \(pathname === `\/assistant\/\$\{id\}`\) \{[\s\S]*?onNavigate\?\.\(\);[\s\S]*?router\.push\("\/assistant\/new"\);[\s\S]*?\}/,
+    /if \(pathname === `\/assistant\/\$\{id\}`\) \{[\s\S]*?router\.push\("\/assistant\/new"\);[\s\S]*?\}/,
+  );
+  assert.doesNotMatch(
+    assistantNavSource,
+    /if \(pathname === `\/assistant\/\$\{id\}`\) \{[\s\S]*?onNavigate\?\.\(\);/,
   );
   assert.doesNotMatch(sidebarSource, /const createNew = \(\) =>/);
   assert.match(shellSource, /onNavigate=\{closeForNavigation\}/);
+  assert.match(shellSource, /writeAssistantSidebarStoredState/);
+  assert.doesNotMatch(shellSource, /dispatch\(\{ type: "navigate" \}\)/);
+  assert.match(shellSource, /dispatch\(\{ type: "close" \}\)/);
+});
+
+test("floating sidebar uses liquid glass surfaces", () => {
+  assert.match(
+    sidebarComponentSource,
+    /variant === "floating"[\s\S]*?bg-white\/60[\s\S]*?backdrop-blur-\[28px\][\s\S]*?backdrop-saturate-\[1\.3\]/,
+  );
+  assert.match(shellSource, /bg-white\/60/);
+  assert.match(shellSource, /backdrop-blur-\[24px\]/);
 });
 
 test("user-menu destinations and sign out close the floating panel", () => {

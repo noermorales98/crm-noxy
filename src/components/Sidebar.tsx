@@ -601,10 +601,9 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
 
 interface AssistantNavProps {
   onSearchOpen: () => void;
-  onNavigate?: () => void;
 }
 
-function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
+function AssistantNav({ onSearchOpen }: AssistantNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { data: session } = useSession();
@@ -621,7 +620,6 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
       await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
       void refreshConversations();
       if (pathname === `/assistant/${id}`) {
-        onNavigate?.();
         router.push("/assistant/new");
       }
     } finally {
@@ -635,7 +633,6 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
         <Link
           href="/assistant/new"
           prefetch
-          onClick={onNavigate}
           className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
           <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
@@ -698,7 +695,6 @@ function AssistantNav({ onSearchOpen, onNavigate }: AssistantNavProps) {
                     <div key={conv.id} className="group relative">
                       <Link
                         href={`/assistant/${conv.id}`}
-                        onClick={onNavigate}
                         className={`${navItemClass(isActive)} pr-8 w-full`}
                       >
                         <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
@@ -829,7 +825,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const isAssistant = activeTab === "assistant";
   const shellClass =
     variant === "floating"
-      ? "flex h-full w-full flex-col overflow-hidden rounded-surface bg-white shadow-sm"
+      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-black/[0.08] bg-white/60 shadow-none backdrop-blur-[28px] backdrop-saturate-[1.3]"
       : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
 
   return (
@@ -856,7 +852,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             <VaultNav />
           </div>
           <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
-            <AssistantNav onSearchOpen={openSearch} onNavigate={onNavigate} />
+            <AssistantNav onSearchOpen={openSearch} />
           </div>
           <div className={activeTab === "content" ? "flex flex-col h-full" : "hidden"}>
             <ContentNav onNavigate={onNavigate} />

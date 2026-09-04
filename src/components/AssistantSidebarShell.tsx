@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { PanelLeftOpen, X } from "lucide-react";
-import { usePathname } from "next/navigation";
 import Sidebar from "@/src/components/Sidebar";
 import {
   assistantNewSidebarReducer,
   getSidebarFocusTarget,
+  readAssistantSidebarStoredState,
+  writeAssistantSidebarStoredState,
 } from "./assistant-new-sidebar-state";
 
 const FOCUSABLE_SELECTOR = [
@@ -23,10 +24,13 @@ const PANEL_BASE_CLASSES =
 const OPEN_PANEL_CLASSES = `${PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
 const CLOSED_PANEL_CLASSES = `${PANEL_BASE_CLASSES} -translate-x-[calc(100%+32px)] opacity-0 pointer-events-none`;
 
+const GLASS_CONTROL_CLASSES =
+  "border border-black/[0.08] bg-white/60 text-action-primary shadow-none backdrop-blur-[24px] backdrop-saturate-[1.3] transition-colors duration-200 hover:bg-white/75 motion-reduce:transition-none";
+
 export default function AssistantSidebarShell() {
-  const pathname = usePathname();
   const [state, dispatch] = useReducer(assistantNewSidebarReducer, "closed");
   const [isMobile, setIsMobile] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -34,12 +38,19 @@ export default function AssistantSidebarShell() {
   const isOpen = state === "open";
 
   useEffect(() => {
-    dispatch({ type: "navigate" });
-  }, [pathname]);
+    const stored = readAssistantSidebarStoredState();
+    if (stored === "open") dispatch({ type: "open" });
+    setHasHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    writeAssistantSidebarStoredState(state);
+  }, [hasHydrated, state]);
 
   const closeForNavigation = useCallback(() => {
     restoreFocusRef.current = true;
-    dispatch({ type: "navigate" });
+    dispatch({ type: "close" });
   }, []);
 
   const closeAndRestoreFocus = useCallback(() => {
@@ -108,7 +119,7 @@ export default function AssistantSidebarShell() {
           aria-expanded={false}
           aria-controls="assistant-sidebar"
           onClick={() => dispatch({ type: "open" })}
-          className="fixed left-4 top-5 z-50 flex size-11 items-center justify-center rounded-control border border-border-subtle bg-white text-action-primary shadow-sm transition-colors duration-200 hover:border-brand-memory hover:bg-nav-hover motion-reduce:transition-none"
+          className={`fixed left-4 top-5 z-50 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
         >
           <PanelLeftOpen size={19} strokeWidth={1.8} aria-hidden="true" />
         </button>
@@ -141,7 +152,7 @@ export default function AssistantSidebarShell() {
           aria-expanded={true}
           aria-controls="assistant-sidebar"
           onClick={closeAndRestoreFocus}
-          className="absolute -right-4 top-3 z-10 flex size-9 items-center justify-center rounded-control border border-border-subtle bg-white text-action-primary shadow-sm transition-colors duration-200 hover:border-brand-memory hover:bg-nav-hover motion-reduce:transition-none"
+          className={`absolute -right-4 top-3 z-10 flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
         >
           <X size={17} strokeWidth={1.8} aria-hidden="true" />
         </button>
