@@ -727,6 +727,7 @@ model Form {
   targetedCampaigns  EmailCampaign[] @relation("FormTargetCampaigns")
   variants           FormVariant[]
   whatsAppRecipients FormWhatsAppRecipient[]
+  apiConfig          FormApiConfig?
 
   @@index([organizationId])
   @@index([companyId])
@@ -745,6 +746,22 @@ model FormWhatsAppRecipient {
   createdAt DateTime @default(now())
 
   @@index([formId])
+}
+
+model FormApiConfig {
+  id        String   @id @default(cuid())
+  formId    String   @unique
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  
+  isEnabled Boolean  @default(false)
+  isPublic  Boolean  @default(false) // true = GET sin tokens, false = requiere token
+  apiToken  String?  @unique // Bearer token para acceso privado
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([formId])
+  @@index([apiToken])
 }
 
 model FormField {
