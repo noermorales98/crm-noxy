@@ -1,0 +1,60 @@
+---
+description: Apple HIG design review and improvement
+globs: ["**/*.tsx", "**/*.ts", "**/*.jsx", "**/*.js", "**/*.css", "**/*.module.css"]
+---
+
+# Apple Design Skill
+
+Cross-platform UI/UX design reviewer grounded in Apple's Human Interface Guidelines (HIG), adapted as universal design rules for web and desktop apps.
+
+## Liquid Glass Implementation
+
+Liquid Glass is Apple's design language that creates a distinct functional layer for controls and navigation elements that floats above the content layer with blur and translucency.
+
+### Visual Properties for Web (CSS)
+- **Blur radius**: 20-40px for regular variant, 10-20px for clear variant  
+- **Background opacity**: 0.6-0.8 for regular, 0.3-0.5 for clear
+- **Saturation boost**: 1.2-1.5x via `backdrop-filter: saturate()`
+- **Implementation**: Use `backdrop-filter: blur()` with semi-transparent backgrounds
+
+### When to Use Liquid Glass
+✅ **Use for:**
+- Navigation bars and toolbars
+- Bottom tab bars
+- Floating action buttons
+- Input fields and composer areas
+- System-level overlays
+
+❌ **Don't use for:**
+- Content layer (cards, list items, main backgrounds)
+- Decorative purposes
+- Multiple custom controls simultaneously
+
+## Color Guidelines
+- Use system-defined semantic colors
+- Provide light and dark mode variants
+- Ensure minimum 4.5:1 contrast ratio for text
+- Use color sparingly for emphasis
+- Avoid relying solely on color to convey information
+
+## Typography
+- **Mobile default**: 17pt (minimum 11pt)
+- **Desktop default**: 13pt (minimum 10pt)
+- Use font weights: Regular (400), Medium (500), Semibold (600), Bold (700)
+- Avoid light weights (100-300) for small text
+- Support scalable text sizes
+- Maintain hierarchy through size, weight, and spacing
+
+## Layout & Spacing
+- Use generous spacing for hierarchy
+- Maintain consistent alignment
+- Support responsive layouts
+- Respect platform safe areas
+- Use semantic spacing scales
+
+## Accessibility
+- Minimum touch target: 44pt on mobile, 24pt on desktop
+- Support scalable text
+- Provide alternative ways to convey information beyond color
+- Test with high contrast modes
+- Ensure keyboard navigation support
