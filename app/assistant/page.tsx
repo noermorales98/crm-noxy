@@ -17,19 +17,5 @@ export default async function AssistantPage() {
     },
   });
 
-  const latest = await prisma.aiConversation.findFirst({
-    where: {
-      userId: session.user.id!,
-      organizationId: orgId,
-      messages: { some: {} },
-    },
-    orderBy: { updatedAt: "desc" },
-    select: { id: true },
-  });
-
-  if (latest) {
-    redirect(`/assistant/${latest.id}`);
-  }
-
   redirect("/assistant/new");
 }

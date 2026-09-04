@@ -8,9 +8,9 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #eef1f7;
-  color: #17243b;
-  font-family: "Open Sauce Two", system-ui, sans-serif;
+  background: #FAFBFC;
+  color: #1D1D1F;
+  font-family: "Open Sauce Two", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 .experience .content {
@@ -30,17 +30,19 @@
   z-index: 0;
   top: 50%;
   pointer-events: none;
-  opacity: 0.72;
+  opacity: 0.05;
 }
 
 .experience .left {
   left: 0;
   transform: translate(-54%, -50%);
+  display: none;
 }
 
 .experience .right {
   right: 0;
   transform: translate(54%, -50%);
+  display: none;
 }
 
 .experience .visualStage {
@@ -242,13 +244,13 @@
 }
 
 .experience .heading {
-  margin: 5px 0 0;
-  color: #18243a;
-  font-size: 32px;
+  margin: 8px 0 0;
+  color: #1D1D1F;
+  font-size: 40px;
   font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 33px;
-  animation: headingEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  animation: headingEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
 .experience .heading span {
@@ -256,37 +258,26 @@
 }
 
 .experience .subtitle {
-  margin: 10px 0 22px;
-  color: #5f6f88;
-  font-size: 14px;
-  font-weight: 450;
-  line-height: 20px;
-  animation: subtitleEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both;
+  margin: 12px 0 32px;
+  color: #86868B;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  animation: subtitleEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
 }
 
 .experience .promptOuter {
-  width: min(702px, 100%);
-  padding: 4px;
-  border: 1px solid rgb(255 255 255 / 0.82);
-  border-radius: 24px;
-  background: rgb(255 255 255 / 0.42);
-  backdrop-filter: blur(20px) saturate(130%);
-  -webkit-backdrop-filter: blur(20px) saturate(130%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.82),
-    0 20px 60px rgb(73 98 132 / 0.12);
-  animation: promptEnter 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.62s both;
+  width: min(680px, 100%);
+  animation: promptEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
 }
 
 .experience .promptInner {
-  min-height: 116px;
-  padding: 14px 12px 10px 17px;
-  border: 1px solid rgb(209 220 235 / 0.9);
-  border-radius: 20px;
-  background: rgb(255 255 255 / 0.95);
-  box-shadow:
-    inset 0 1px 0 #ffffff,
-    0 7px 18px rgb(63 85 115 / 0.08);
+  min-height: 100px;
+  padding: 16px 16px 12px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(24px);
 }
 
 .experience .textareaArea {
@@ -300,30 +291,30 @@
   z-index: 1;
   display: block;
   width: 100%;
-  min-height: 28px;
-  max-height: 58px;
+  min-height: 24px;
+  max-height: 48px;
   resize: none;
   overflow-y: auto;
   border: 0;
   outline: 0;
   background: transparent;
-  color: #263852;
+  color: #1D1D1F;
   font: inherit;
   font-size: 15px;
-  font-weight: 450;
-  line-height: 22px;
-  caret-color: #3d82de;
+  font-weight: 400;
+  line-height: 1.47;
+  caret-color: #007AFF;
 }
 
 .experience .textarea:disabled {
   cursor: not-allowed;
-  opacity: 0.55;
+  opacity: 0.4;
 }
 
 .experience .textarea:focus-visible {
-  outline: 3px solid #2563a9;
-  outline-offset: 5px;
-  border-radius: 6px;
+  outline: 2px solid #007AFF;
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
 .experience .typewriter {
@@ -333,10 +324,10 @@
   left: 0;
   display: inline-flex;
   align-items: center;
-  color: #64748b;
+  color: #86868B;
   font-size: 15px;
-  font-weight: 450;
-  line-height: 22px;
+  font-weight: 400;
+  line-height: 1.47;
   opacity: 0;
   pointer-events: none;
 }
@@ -349,10 +340,10 @@
   display: inline-block;
   width: 2px;
   height: 18px;
-  margin-left: 2px;
-  border-radius: 2px;
-  background: #3d82de;
-  animation: promptCaretBlink 1s steps(1, end) infinite;
+  margin-left: 3px;
+  border-radius: 1px;
+  background: #007AFF;
+  animation: promptCaretBlink 1.2s steps(1, end) infinite;
 }
 
 .experience .promptToolbar {
@@ -368,55 +359,54 @@
 }
 
 .experience .modelSelector > div > button {
-  min-height: 34px;
-  max-width: 175px;
-  border: 1px solid #dce5f0;
+  min-height: 32px;
+  max-width: 180px;
+  border: none;
   border-radius: 999px;
-  background: #f5f8fc;
-  color: #465a74;
-  font-size: 12px;
-  font-weight: 600;
+  background: rgba(0, 0, 0, 0.04);
+  color: #86868B;
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .experience .modelSelector > div > button:hover {
-  border-color: #bdd3ee;
-  background: #edf4fc;
-  color: #263852;
+  background: rgba(0, 0, 0, 0.06);
+  color: #1D1D1F;
 }
 
 .experience .modelSelector > div > button:focus-visible {
-  outline: 3px solid #2563a9;
+  outline: 2px solid #007AFF;
   outline-offset: 2px;
 }
 
 .sendButton:active:not(:disabled) {
-  transform: scale(0.96);
+  transform: scale(0.95);
 }
 
 .sendButton:focus-visible,
 .experience .footer a:focus-visible {
-  outline: 3px solid #2563a9;
+  outline: 2px solid #007AFF;
   outline-offset: 2px;
 }
 
 .sendButton {
   position: relative;
   display: grid;
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 14px;
+  border-radius: 50%;
   background: transparent;
   cursor: pointer;
-  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
 }
 
 .sendButton:disabled {
   cursor: not-allowed;
-  opacity: 0.38;
+  opacity: 0.3;
 }
 
 .sendHalo,
@@ -428,77 +418,33 @@
 }
 
 .sendHalo {
-  inset: -8px;
-  border-radius: 20px;
-  background: radial-gradient(circle, rgb(73 151 255 / 0.24), transparent 66%);
-  opacity: 0;
-  transform: scale(0.8);
-  transition: opacity 260ms ease, transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sendButton:hover:not(:disabled) .sendHalo,
-.sendButton:focus-visible:not(:disabled) .sendHalo {
-  opacity: 1;
-  transform: scale(1);
+  display: none;
 }
 
 .sendFallbackBorder,
 .sendRing {
-  inset: 2px;
-  border-radius: 14px;
-}
-
-.sendFallbackBorder {
-  border: 1px solid #a8c8ee;
-  background: #f7faff;
-}
-
-.sendRing {
-  --ring-angle: 0deg;
-  padding: 1.5px;
-  background: conic-gradient(
-    from var(--ring-angle),
-    transparent 0deg,
-    #a9cffb 95deg,
-    #3d82de 178deg,
-    #d9edff 260deg,
-    transparent 340deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  display: none;
 }
 
 .sendInner {
-  inset: 5px;
+  inset: 0;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.42);
-  border-radius: 11px;
-  background: #3d82de;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    0 7px 14px rgb(61 130 222 / 0.25);
+  border: none;
+  border-radius: 50%;
+  background: #1D1D1F;
+  transition: background 200ms ease;
+}
+
+.sendButton:hover:not(:disabled) .sendInner {
+  background: #000000;
 }
 
 .sendDots {
-  position: absolute;
-  inset: 0;
-  width: 36px;
-  height: 36px;
-  opacity: 0.55;
+  display: none;
 }
 
 .sendShine {
-  position: absolute;
-  z-index: 1;
-  top: -10px;
-  bottom: -10px;
-  left: -20px;
-  width: 14px;
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.72), transparent);
-  filter: blur(1px);
-  transform: translateX(0) rotate(18deg);
-  animation: sendShine 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: none;
 }
 
 .arrowRest,
@@ -513,8 +459,9 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  color: #FFFFFF;
   transform: translate(-50%, -50%);
 }
 
@@ -527,36 +474,36 @@
 }
 
 .arrowCycle .arrowOutgoing {
-  animation: arrowOut 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: arrowOut 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .arrowCycle .arrowIncoming {
-  animation: arrowIn 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: arrowIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .experience .footer {
   position: absolute;
   z-index: 2;
   right: 20px;
-  bottom: 17px;
+  bottom: 20px;
   left: 20px;
-  color: #606f84;
-  font-size: 10.5px;
-  font-weight: 450;
-  line-height: 16px;
+  color: #86868B;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
   text-align: center;
 }
 
 .experience .footer a {
-  border-radius: 3px;
-  color: #50637d;
+  border-radius: 4px;
+  color: #86868B;
   text-decoration: underline;
-  text-decoration-color: #9aabc0;
+  text-decoration-color: rgba(134, 134, 139, 0.4);
   text-underline-offset: 2px;
 }
 
 .experience .footer a:hover {
-  color: #294d75;
+  color: #1D1D1F;
 }
 
 .experience .srOnly {
@@ -629,7 +576,7 @@
     transform: translateY(0) rotate(-16deg);
   }
   50% {
-    transform: translateY(-8px) rotate(-13deg);
+    transform: translateY(-4px) rotate(-15deg);
   }
 }
 
@@ -639,7 +586,7 @@
     transform: translateY(0) rotate(24deg);
   }
   50% {
-    transform: translateY(-10px) rotate(20deg);
+    transform: translateY(-5px) rotate(23deg);
   }
 }
 
@@ -649,14 +596,14 @@
     transform: translateY(0) rotate(-4deg);
   }
   50% {
-    transform: translateY(-7px) rotate(-7deg);
+    transform: translateY(-3px) rotate(-5deg);
   }
 }
 
 @keyframes headingEnter {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -667,7 +614,7 @@
 @keyframes subtitleEnter {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -678,11 +625,11 @@
 @keyframes promptEnter {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 
@@ -697,37 +644,21 @@
   }
 }
 
-@keyframes sendShine {
-  from {
-    opacity: 0;
-    transform: translateX(0) rotate(18deg);
-  }
-  20% {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-    transform: translateX(72px) rotate(18deg);
-  }
-}
-
 @keyframes arrowOut {
   0% {
     opacity: 1;
     transform: translate(-50%, -50%);
   }
-  58%,
   100% {
     opacity: 0;
-    transform: translate(-50%, -130%);
+    transform: translate(-50%, -100%);
   }
 }
 
 @keyframes arrowIn {
-  0%,
-  42% {
+  0% {
     opacity: 0;
-    transform: translate(-50%, 30%);
+    transform: translate(-50%, 20%);
   }
   100% {
     opacity: 1;
@@ -745,7 +676,7 @@
 
 @media (max-width: 767px) {
   .experience {
-    padding-inline: 16px;
+    padding-inline: 20px;
   }
 
   .experience .content {
@@ -757,32 +688,31 @@
   }
 
   .experience .left {
-    opacity: 0.4;
-    transform: translate(-69%, -50%) scale(0.84);
+    display: none;
   }
 
   .experience .heading {
-    font-size: 28px;
-    line-height: 29px;
+    font-size: 32px;
+    line-height: 1.1;
   }
 
   .experience .visualStage {
-    transform: scale(0.88);
-    margin-block: -13px;
+    transform: scale(0.9);
+    margin-block: -10px;
   }
 
   .experience .promptInner {
-    padding-left: 13px;
+    padding-left: 16px;
   }
 
   .experience .modelSelector > div > button {
-    max-width: 145px;
+    max-width: 160px;
   }
 
   .experience .modelSelector > div > div {
     right: auto;
     left: 0;
-    width: min(288px, calc(100vw - 48px));
+    width: min(300px, calc(100vw - 48px));
   }
 }
 
