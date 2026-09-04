@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import {
-  ASSISTANT_SIDEBAR_STORAGE_KEY,
+  ASSISTANT_SIDEBAR_MODE_STORAGE_KEY,
+  INITIAL_ASSISTANT_SIDEBAR_STATE,
   assistantNewSidebarReducer,
   getSidebarFocusTarget,
   isAssistantRoute,
-  readAssistantSidebarStoredState,
-  writeAssistantSidebarStoredState,
+  isAssistantSidebarVisible,
+  readAssistantSidebarStoredMode,
+  writeAssistantSidebarStoredMode,
 } from "./assistant-new-sidebar-state.ts";
 
 test("floating sidebar is available on supported assistant routes", () => {
@@ -18,16 +20,44 @@ test("floating sidebar is available on supported assistant routes", () => {
   assert.equal(isAssistantRoute("/contacts"), false);
 });
 
-test("assistant new sidebar supports explicit open, close, and toggle actions", () => {
-  assert.equal(assistantNewSidebarReducer("closed", { type: "open" }), "open");
-  assert.equal(assistantNewSidebarReducer("open", { type: "close" }), "closed");
-  assert.equal(assistantNewSidebarReducer("closed", { type: "toggle" }), "open");
-  assert.equal(assistantNewSidebarReducer("open", { type: "toggle" }), "closed");
-  assert.equal(assistantNewSidebarReducer("open", { type: "navigate" }), "open");
-  assert.equal(assistantNewSidebarReducer("closed", { type: "navigate" }), "closed");
+test("assistant sidebar supports pin, unpin, and peek actions", () => {
+  assert.deepEqual(assistantNewSidebarReducer(INITIAL_ASSISTANT_SIDEBAR_STATE, { type: "peekOpen" }), {
+    mode: "auto",
+    peek: true,
+  });
+  assert.deepEqual(
+    assistantNewSidebarReducer({ mode: "auto", peek: true }, { type: "peekClose" }),
+    { mode: "auto", peek: false },
+  );
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "auto", peek: true }, { type: "pin" }), {
+    mode: "pinned",
+    peek: false,
+  });
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "pinned", peek: false }, { type: "unpin" }), {
+    mode: "auto",
+    peek: false,
+  });
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "pinned", peek: false }, { type: "peekClose" }), {
+    mode: "pinned",
+    peek: false,
+  });
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "auto", peek: true }, { type: "navigate" }), {
+    mode: "auto",
+    peek: true,
+  });
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "auto", peek: false }, { type: "mobileOpen" }), {
+    mode: "auto",
+    peek: true,
+  });
 });
 
-test("assistant sidebar session storage restores and persists open state", () => {
+test("assistant sidebar visibility follows pin or peek", () => {
+  assert.equal(isAssistantSidebarVisible({ mode: "auto", peek: false }), false);
+  assert.equal(isAssistantSidebarVisible({ mode: "auto", peek: true }), true);
+  assert.equal(isAssistantSidebarVisible({ mode: "pinned", peek: false }), true);
+});
+
+test("assistant sidebar session storage restores and persists mode", () => {
   const memory = new Map<string, string>();
   const previousStorage = globalThis.sessionStorage;
   Object.defineProperty(globalThis, "sessionStorage", {
@@ -44,12 +74,12 @@ test("assistant sidebar session storage restores and persists open state", () =>
   });
 
   try {
-    assert.equal(readAssistantSidebarStoredState(), "closed");
-    writeAssistantSidebarStoredState("open");
-    assert.equal(memory.get(ASSISTANT_SIDEBAR_STORAGE_KEY), "open");
-    assert.equal(readAssistantSidebarStoredState(), "open");
-    writeAssistantSidebarStoredState("closed");
-    assert.equal(readAssistantSidebarStoredState(), "closed");
+    assert.equal(readAssistantSidebarStoredMode(), "auto");
+    writeAssistantSidebarStoredMode("pinned");
+    assert.equal(memory.get(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY), "pinned");
+    assert.equal(readAssistantSidebarStoredMode(), "pinned");
+    writeAssistantSidebarStoredMode("auto");
+    assert.equal(readAssistantSidebarStoredMode(), "auto");
   } finally {
     Object.defineProperty(globalThis, "sessionStorage", {
       configurable: true,

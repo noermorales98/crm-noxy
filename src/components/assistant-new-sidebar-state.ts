@@ -1,27 +1,58 @@
-export type AssistantNewSidebarState = "closed" | "open";
+export type AssistantSidebarMode = "pinned" | "auto";
+
+export type AssistantSidebarState = {
+  mode: AssistantSidebarMode;
+  peek: boolean;
+};
+
 export type SidebarFocusDirection = "forward" | "backward";
 
-export type AssistantNewSidebarAction =
-  | { type: "open" }
-  | { type: "close" }
-  | { type: "toggle" }
+export type AssistantSidebarAction =
+  | { type: "pin" }
+  | { type: "unpin" }
+  | { type: "peekOpen" }
+  | { type: "peekClose" }
+  | { type: "mobileOpen" }
   | { type: "navigate" };
+
+export const INITIAL_ASSISTANT_SIDEBAR_STATE: AssistantSidebarState = {
+  mode: "auto",
+  peek: false,
+};
 
 export function isAssistantRoute(pathname: string): boolean {
   return /^\/assistant(?:\/new|\/[^/]+)?$/.test(pathname);
 }
 
-export function assistantNewSidebarReducer(
-  state: AssistantNewSidebarState,
-  action: AssistantNewSidebarAction,
-): AssistantNewSidebarState {
-  if (action.type === "open") return "open";
-  if (action.type === "close") return "closed";
-  if (action.type === "navigate") return state;
-  return state === "open" ? "closed" : "open";
+export function isAssistantSidebarVisible(state: AssistantSidebarState): boolean {
+  return state.mode === "pinned" || state.peek;
 }
 
-export const ASSISTANT_SIDEBAR_STORAGE_KEY = "assistant-sidebar-open";
+export function assistantNewSidebarReducer(
+  state: AssistantSidebarState,
+  action: AssistantSidebarAction,
+): AssistantSidebarState {
+  switch (action.type) {
+    case "pin":
+      return { mode: "pinned", peek: false };
+    case "unpin":
+      return { mode: "auto", peek: false };
+    case "peekOpen":
+      if (state.mode === "pinned") return state;
+      return { ...state, peek: true };
+    case "peekClose":
+      if (state.mode === "pinned") return state;
+      return { ...state, peek: false };
+    case "mobileOpen":
+      return { ...state, peek: true };
+    case "navigate":
+      return state;
+    default:
+      return state;
+  }
+}
+
+export const ASSISTANT_SIDEBAR_MODE_STORAGE_KEY = "assistant-sidebar-mode";
 
 function canUseSessionStorage(): boolean {
   try {
@@ -31,19 +62,21 @@ function canUseSessionStorage(): boolean {
   }
 }
 
-export function readAssistantSidebarStoredState(): AssistantNewSidebarState {
-  if (!canUseSessionStorage()) return "closed";
+export function readAssistantSidebarStoredMode(): AssistantSidebarMode {
+  if (!canUseSessionStorage()) return "auto";
   try {
-    return globalThis.sessionStorage.getItem(ASSISTANT_SIDEBAR_STORAGE_KEY) === "open" ? "open" : "closed";
+    return globalThis.sessionStorage.getItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY) === "pinned"
+      ? "pinned"
+      : "auto";
   } catch {
-    return "closed";
+    return "auto";
   }
 }
 
-export function writeAssistantSidebarStoredState(state: AssistantNewSidebarState): void {
+export function writeAssistantSidebarStoredMode(mode: AssistantSidebarMode): void {
   if (!canUseSessionStorage()) return;
   try {
-    globalThis.sessionStorage.setItem(ASSISTANT_SIDEBAR_STORAGE_KEY, state);
+    globalThis.sessionStorage.setItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY, mode);
   } catch {
     // Ignore quota / private-mode failures.
   }

@@ -51,18 +51,24 @@ test("assistant conversation destinations keep the floating panel open", () => {
   );
   assert.doesNotMatch(sidebarSource, /const createNew = \(\) =>/);
   assert.match(shellSource, /onNavigate=\{closeForNavigation\}/);
-  assert.match(shellSource, /writeAssistantSidebarStoredState/);
+  assert.match(shellSource, /writeAssistantSidebarStoredMode/);
   assert.doesNotMatch(shellSource, /dispatch\(\{ type: "navigate" \}\)/);
-  assert.match(shellSource, /dispatch\(\{ type: "close" \}\)/);
+  assert.match(shellSource, /dispatch\(\{ type: "unpin" \}\)/);
 });
 
-test("floating sidebar uses liquid glass surfaces", () => {
+test("floating sidebar uses clear liquid glass and pin hover peek", () => {
   assert.match(
     sidebarComponentSource,
-    /variant === "floating"[\s\S]*?bg-white\/60[\s\S]*?backdrop-blur-\[28px\][\s\S]*?backdrop-saturate-\[1\.3\]/,
+    /variant === "floating"[\s\S]*?bg-white\/45[\s\S]*?backdrop-blur-\[32px\][\s\S]*?backdrop-saturate-\[1\.35\]/,
   );
-  assert.match(shellSource, /bg-white\/60/);
-  assert.match(shellSource, /backdrop-blur-\[24px\]/);
+  assert.match(shellSource, /bg-white\/45/);
+  assert.match(shellSource, /backdrop-blur-\[28px\]/);
+  assert.match(shellSource, /data-assistant-sidebar-edge/);
+  assert.match(shellSource, /aria-label="Fijar barra lateral"/);
+  assert.match(shellSource, /dispatch\(\{ type: "peekOpen" \}\)/);
+  assert.match(shellSource, /dispatch\(\{ type: "peekClose" \}\)/);
+  assert.match(shellSource, /PanelLeftOpen/);
+  assert.match(shellSource, /if \(isMobile\)/);
 });
 
 test("user-menu destinations and sign out close the floating panel", () => {

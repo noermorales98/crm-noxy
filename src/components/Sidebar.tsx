@@ -825,7 +825,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const isAssistant = activeTab === "assistant";
   const shellClass =
     variant === "floating"
-      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-black/[0.08] bg-white/60 shadow-none backdrop-blur-[28px] backdrop-saturate-[1.3]"
+      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-black/[0.06] bg-white/45 shadow-none backdrop-blur-[32px] backdrop-saturate-[1.35]"
       : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
 
   return (
