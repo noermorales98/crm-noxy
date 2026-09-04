@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Copy01Icon, RefreshIcon, CheckmarkCircle01Icon, LinkSquare02Icon, Code02Icon } from "@hugeicons/core-free-icons";
+import { Copy01Icon, RefreshIcon, CheckmarkCircle01Icon, LinkSquare02Icon, CodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useToast } from "@/src/context/ToastContext";
 
@@ -18,7 +18,7 @@ interface FormApiConfigProps {
 }
 
 export default function FormApiConfig({ formId }: FormApiConfigProps) {
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,7 +43,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
       }
     } catch (error) {
       console.error("Error fetching API config:", error);
-      showToast("Error al cargar la configuración", "error");
+      addToast("Error al cargar la configuración", "error");
     } finally {
       setLoading(false);
     }
@@ -61,13 +61,13 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
       if (res.ok) {
         const data = await res.json();
         setConfig(data.data);
-        showToast("Configuración guardada exitosamente", "success");
+        addToast("Configuración guardada exitosamente", "success");
       } else {
         throw new Error("Error al guardar");
       }
     } catch (error) {
       console.error("Error saving config:", error);
-      showToast("Error al guardar la configuración", "error");
+      addToast("Error al guardar la configuración", "error");
     } finally {
       setSaving(false);
     }
@@ -85,13 +85,13 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
       if (res.ok) {
         const data = await res.json();
         setConfig(data.data);
-        showToast("Token regenerado exitosamente", "success");
+        addToast("Token regenerado exitosamente", "success");
       } else {
         throw new Error("Error al regenerar token");
       }
     } catch (error) {
       console.error("Error regenerating token:", error);
-      showToast("Error al regenerar el token", "error");
+      addToast("Error al regenerar el token", "error");
     } finally {
       setRegenerating(false);
     }
@@ -101,10 +101,10 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      showToast("Copiado al portapapeles", "success");
+      addToast("Copiado al portapapeles", "success");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      showToast("Error al copiar", "error");
+      addToast("Error al copiar", "error");
     }
   };
 
@@ -128,7 +128,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
     <div className="p-6 space-y-6">
       <div className="flex items-start gap-4">
         <div className="p-3 rounded-lg bg-surface-sidebar">
-          <HugeiconsIcon icon={Code02Icon} className="w-6 h-6 text-action-primary" />
+          <HugeiconsIcon icon={CodeIcon} className="w-6 h-6 text-action-primary" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-text-primary mb-1">API de Leads</h3>

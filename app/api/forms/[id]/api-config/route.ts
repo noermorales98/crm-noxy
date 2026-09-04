@@ -102,7 +102,11 @@ export async function POST(
     const body = await req.json();
     const { isEnabled, isPublic } = body;
 
-    const apiToken = !isPublic ? generateApiToken() : null;
+    const existing = await prisma.formApiConfig.findUnique({ where: { formId } });
+    const wantsPrivate = isPublic === false || (isPublic === undefined && existing?.isPublic === false);
+    // Solo emitir token nuevo al crear en modo privado o al pasar de público → privado sin token.
+    const shouldIssueToken =
+      wantsPrivate && (!existing || existing.isPublic === true || !existing.apiToken);
 
     const apiConfig = await prisma.formApiConfig.upsert({
       where: {
@@ -112,12 +116,13 @@ export async function POST(
         formId,
         isEnabled: isEnabled ?? false,
         isPublic: isPublic ?? false,
-        apiToken,
+        apiToken: wantsPrivate ? generateApiToken() : null,
       },
       update: {
-        isEnabled: isEnabled ?? false,
-        isPublic: isPublic ?? false,
-        ...(isPublic === false && { apiToken }),
+        ...(typeof isEnabled === "boolean" ? { isEnabled } : {}),
+        ...(typeof isPublic === "boolean" ? { isPublic } : {}),
+        ...(shouldIssueToken ? { apiToken: generateApiToken() } : {}),
+        ...(isPublic === true ? { apiToken: null } : {}),
       },
     });
 
