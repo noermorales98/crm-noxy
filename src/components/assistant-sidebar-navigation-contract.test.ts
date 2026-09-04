@@ -61,10 +61,19 @@ test("floating sidebar uses clear liquid glass and pin hover peek", () => {
     sidebarComponentSource,
     /variant === "floating"[\s\S]*?bg-white\/45[\s\S]*?backdrop-blur-\[32px\][\s\S]*?backdrop-saturate-\[1\.35\]/,
   );
+  assert.match(
+    sidebarComponentSource,
+    /variant === "pinned"[\s\S]*?border-r border-black\/\[0\.06\][\s\S]*?bg-white\/45/,
+  );
   assert.match(shellSource, /bg-white\/45/);
   assert.match(shellSource, /backdrop-blur-\[28px\]/);
   assert.match(shellSource, /data-assistant-sidebar-edge/);
+  assert.match(shellSource, /data-assistant-sidebar-pin-hint/);
+  assert.match(shellSource, /data-assistant-sidebar-pinned/);
+  assert.match(shellSource, /variant="pinned"/);
+  assert.match(shellSource, /relative z-20 flex h-full w-64 shrink-0/);
   assert.match(shellSource, /aria-label="Fijar barra lateral"/);
+  assert.match(shellSource, /title="Fijar barra lateral"/);
   assert.match(shellSource, /dispatch\(\{ type: "peekOpen" \}\)/);
   assert.match(shellSource, /dispatch\(\{ type: "peekClose" \}\)/);
   assert.match(shellSource, /PanelLeftOpen/);

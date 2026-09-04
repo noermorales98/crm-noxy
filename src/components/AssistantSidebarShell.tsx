@@ -137,19 +137,17 @@ export default function AssistantSidebarShell() {
     [isPinned],
   );
 
-  const panelControls = (
+  const peekControls = (
     <div className="absolute -right-4 top-3 z-10 flex flex-col gap-1.5">
-      {!isPinned && (
-        <button
-          type="button"
-          aria-label="Fijar barra lateral"
-          aria-pressed={false}
-          onClick={() => dispatch({ type: "pin" })}
-          className={`flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
-        >
-          <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
-        </button>
-      )}
+      <button
+        type="button"
+        aria-label="Fijar barra lateral"
+        aria-pressed={false}
+        onClick={() => dispatch({ type: "pin" })}
+        className={`flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+      >
+        <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
+      </button>
       <button
         ref={hideButtonRef}
         type="button"
@@ -159,11 +157,7 @@ export default function AssistantSidebarShell() {
         onClick={hideSidebar}
         className={`flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
       >
-        {isPinned ? (
-          <PinOff size={16} strokeWidth={1.8} aria-hidden="true" />
-        ) : (
-          <X size={17} strokeWidth={1.8} aria-hidden="true" />
-        )}
+        <X size={17} strokeWidth={1.8} aria-hidden="true" />
       </button>
     </div>
   );
@@ -205,33 +199,71 @@ export default function AssistantSidebarShell() {
           aria-label={isVisible ? "Barra lateral principal" : undefined}
           className={isVisible ? MOBILE_OPEN_PANEL_CLASSES : MOBILE_CLOSED_PANEL_CLASSES}
         >
-          {panelControls}
+          {peekControls}
           <Sidebar variant="floating" onNavigate={closeForNavigation} />
         </div>
       </>
     );
   }
 
-  return (
-    <div
-      ref={hoverHostRef}
-      data-assistant-sidebar-edge
-      className={`fixed inset-y-0 left-0 z-[70] ${isVisible || isPinned ? HOVER_HOST_OPEN_WIDTH : "w-3"}`}
-      onPointerEnter={() => {
-        if (!isPinned) dispatch({ type: "peekOpen" });
-      }}
-      onPointerLeave={handleHoverHostLeave}
-    >
+  if (isPinned) {
+    return (
       <div
         ref={panelRef}
         id="assistant-sidebar"
-        inert={!isVisible}
-        aria-hidden={!isVisible}
-        className={isVisible ? OPEN_PANEL_CLASSES : CLOSED_PANEL_CLASSES}
+        data-assistant-sidebar-pinned
+        className="relative z-20 flex h-full w-64 shrink-0 flex-col transition-[width,opacity] duration-200 motion-reduce:transition-none"
       >
-        {panelControls}
-        <Sidebar variant="floating" onNavigate={closeForNavigation} />
+        <button
+          ref={hideButtonRef}
+          type="button"
+          aria-label="Ocultar barra lateral"
+          aria-expanded={true}
+          aria-controls="assistant-sidebar"
+          aria-pressed={true}
+          onClick={hideSidebar}
+          className={`absolute right-2 top-3 z-10 flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        >
+          <PinOff size={16} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+        <Sidebar variant="pinned" onNavigate={closeForNavigation} />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      {!isVisible && (
+        <button
+          type="button"
+          data-assistant-sidebar-pin-hint
+          aria-label="Fijar barra lateral"
+          title="Fijar barra lateral"
+          onClick={() => dispatch({ type: "pin" })}
+          className={`fixed left-4 top-5 z-[75] flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        >
+          <Pin size={18} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+      )}
+
+      <div
+        ref={hoverHostRef}
+        data-assistant-sidebar-edge
+        className={`pointer-events-auto fixed inset-y-0 left-0 z-[70] ${isVisible ? HOVER_HOST_OPEN_WIDTH : "w-3"}`}
+        onPointerEnter={() => dispatch({ type: "peekOpen" })}
+        onPointerLeave={handleHoverHostLeave}
+      >
+        <div
+          ref={panelRef}
+          id="assistant-sidebar"
+          inert={!isVisible}
+          aria-hidden={!isVisible}
+          className={isVisible ? OPEN_PANEL_CLASSES : CLOSED_PANEL_CLASSES}
+        >
+          {peekControls}
+          <Sidebar variant="floating" onNavigate={closeForNavigation} />
+        </div>
+      </div>
+    </>
   );
 }

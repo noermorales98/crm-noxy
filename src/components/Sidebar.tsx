@@ -59,7 +59,7 @@ const itemIdle = "text-text-primary";
 const sectionLabelClass = "px-3 pt-6 pb-2 text-xs font-semibold text-text-secondary-strong";
 
 interface SidebarProps {
-  variant?: "docked" | "floating";
+  variant?: "docked" | "floating" | "pinned";
   onNavigate?: () => void;
 }
 
@@ -826,7 +826,9 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const shellClass =
     variant === "floating"
       ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-black/[0.06] bg-white/45 shadow-none backdrop-blur-[32px] backdrop-saturate-[1.35]"
-      : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
+      : variant === "pinned"
+        ? "flex h-full w-full flex-col overflow-hidden border-r border-black/[0.06] bg-white/45 shadow-none backdrop-blur-[32px] backdrop-saturate-[1.35]"
+        : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
 
   return (
     <>
