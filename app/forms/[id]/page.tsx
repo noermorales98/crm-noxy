@@ -9,6 +9,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 import FormWhatsAppRecipients from "@/src/components/FormWhatsAppRecipients";
 import FormApiConfig from "@/src/components/FormApiConfig";
+import FormApiAccess from "@/src/components/FormApiAccess";
 
 const FIELD_TYPES = [
   { value: "TEXT", label: "Texto Corto" },
@@ -153,6 +154,9 @@ export default function FormBuilderPage() {
   const [accentColor, setAccentColor] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
   const [showNoxyBrand, setShowNoxyBrand] = useState(true);
+  const [apiEnabled, setApiEnabled] = useState(false);
+  const [apiAuthRequired, setApiAuthRequired] = useState(true);
+  const [apiToken, setApiToken] = useState("");
   const [fields, setFields] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"BUILDER" | "SETTINGS" | "VARIANTS" | "API">("BUILDER");
 
@@ -275,6 +279,9 @@ export default function FormBuilderPage() {
         setAccentColor(data.accentColor || "");
         setBackgroundColor(data.backgroundColor || "");
         setShowNoxyBrand(data.showNoxyBrand !== false);
+        setApiEnabled(Boolean(data.apiEnabled));
+        setApiAuthRequired(data.apiAuthRequired !== false);
+        setApiToken(data.apiToken || "");
         setFields(data.fields || []);
       } else {
         addToast("Formulario no encontrado", "error");
@@ -291,7 +298,7 @@ export default function FormBuilderPage() {
       const res = await fetch(`/api/forms/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor: accentColor || null, backgroundColor: backgroundColor || null, showNoxyBrand, fields: orderedFields })
+        body: JSON.stringify({ name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor: accentColor || null, backgroundColor: backgroundColor || null, showNoxyBrand, apiEnabled, apiAuthRequired, fields: orderedFields })
       });
       if (res.ok) {
         addToast("Formulario guardado", "success");
@@ -905,6 +912,16 @@ export default function FormBuilderPage() {
                   </section>
 
                   <FormWhatsAppRecipients formId={id} />
+
+                  <FormApiAccess
+                    formId={id}
+                    apiEnabled={apiEnabled}
+                    apiAuthRequired={apiAuthRequired}
+                    apiToken={apiToken}
+                    onEnabledChange={setApiEnabled}
+                    onAuthRequiredChange={setApiAuthRequired}
+                    onTokenChange={setApiToken}
+                  />
 
                   {/* Share */}
                   <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">

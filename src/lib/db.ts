@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 // Bump key when Prisma schema changes so dev HMR doesn't keep a stale client.
-const PRISMA_CLIENT_KEY = "prisma_v11";
+const PRISMA_CLIENT_KEY = "prisma_v14";
 
 const globalForPrisma = globalThis as unknown as Record<string, PrismaClient | undefined>;
 

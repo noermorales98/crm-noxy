@@ -81,6 +81,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
   const [preferredKey, setPreferredKey] = useState<"1" | "2">("1");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const streamingIdRef = useRef<string | null>(null);
   const messagesRef = useRef(messages);
   const activeConversationIdRef = useRef(conversationId);
@@ -109,7 +110,11 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     setModel(getStored("assistant-model", DEFAULT_MODEL_ID));
     setPreferredKey((getStored("assistant-preferred-key", "1") as "1" | "2"));
   }, []);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+    scrollArea.scrollTo({ top: scrollArea.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   const switchModel = (newModelId: string) => {
     setModel(newModelId);
@@ -318,7 +323,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     <div className={styles.experience}>
       <PixelGrid side="left" />
       <PixelGrid side="right" />
-      <div className={styles.scrollArea}>
+      <div ref={scrollAreaRef} className={styles.scrollArea}>
         <div className={styles.messageColumn}>
           {isEmpty ? (
             <div className={styles.emptyState}>

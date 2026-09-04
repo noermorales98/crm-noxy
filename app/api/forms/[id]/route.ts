@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { generateFormApiToken } from "@/src/lib/form-entries-api";
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -62,7 +63,7 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     }
 
     const body = await req.json();
-    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, showNoxyBrand, fields } = body;
+    const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, showNoxyBrand, apiEnabled, apiAuthRequired, fields } = body;
 
     // Colores de apariencia: hex "#RGB" o "#RRGGBB", o vacío/null para quitar
     const hexRe = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -75,6 +76,10 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       if (value == null || String(value).trim() === "") return null;
       return String(value).trim();
     };
+
+    const nextAuthRequired = typeof apiAuthRequired === "boolean" ? apiAuthRequired : existingForm.apiAuthRequired;
+    const shouldIssueToken = nextAuthRequired && !existingForm.apiToken;
+    const apiToken = shouldIssueToken ? generateFormApiToken() : undefined;
 
     // Use a transaction to safely update the form and recreate its fields
     const updatedForm = await prisma.$transaction(async (tx) => {
@@ -93,6 +98,9 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
                accentColor: cleanColor(accentColor),
                backgroundColor: cleanColor(backgroundColor),
                ...(typeof showNoxyBrand === "boolean" ? { showNoxyBrand } : {}),
+               ...(typeof apiEnabled === "boolean" ? { apiEnabled } : {}),
+               ...(typeof apiAuthRequired === "boolean" ? { apiAuthRequired } : {}),
+               ...(apiToken ? { apiToken } : {}),
             }
         });
 

@@ -709,6 +709,11 @@ model Form {
   backgroundColor String?
   showNoxyBrand   Boolean @default(true)
 
+  // API GET de registros: desactivada por defecto. Si apiAuthRequired, exige Bearer.
+  apiEnabled      Boolean @default(false)
+  apiAuthRequired Boolean @default(true)
+  apiToken        String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
