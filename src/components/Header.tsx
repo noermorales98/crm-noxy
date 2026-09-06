@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useHeader, type HeaderAction } from "@/src/context/HeaderContext";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
+import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -80,11 +81,12 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="crm-header-chrome crm-safe-top sticky top-0 z-30 shrink-0 lg:static lg:z-auto">
-      <div className="flex h-14 items-center justify-between gap-2 overflow-hidden pl-16 pr-3 sm:gap-3 sm:pr-4 lg:px-6">
+    <header className="crm-header-chrome crm-safe-top sticky top-0 z-40 shrink-0 lg:static lg:z-auto">
+      <div className="relative flex h-14 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
 
       {/* Page title */}
       <div className="flex min-w-0 items-center gap-2">
+        <MobileSidebarToggle />
         {config.backHref && (
           <Link
             href={config.backHref}
@@ -132,7 +134,7 @@ export default function Header() {
             </button>
 
             {sortOpen && (
-              <div className="crm-floating-menu absolute left-0 mt-2 w-48 bg-surface-elevated rounded-lg py-1 z-40">
+              <div className="crm-floating-menu absolute left-0 z-[80] mt-2 w-48 rounded-lg bg-surface-elevated py-1">
                 {config.sortOptions!.map((opt) => (
                   <button
                     key={opt.value}
@@ -183,7 +185,7 @@ export default function Header() {
             </button>
 
             {filtersOpen && (
-              <div className="crm-floating-menu absolute left-0 mt-2 w-56 bg-surface-elevated rounded-lg p-4 z-40 flex flex-col gap-4">
+              <div className="crm-floating-menu absolute left-0 z-[80] mt-2 flex w-56 flex-col gap-4 rounded-lg bg-surface-elevated p-4">
                 {config.filterGroups!.map((group) => (
                   <div key={group.key}>
                     <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">{group.label}</p>
@@ -247,7 +249,7 @@ export default function Header() {
           </button>
 
           {notifOpen && (
-            <div className="crm-floating-menu absolute right-0 mt-2 w-80 bg-surface-elevated rounded-lg overflow-hidden z-50">
+            <div className="crm-floating-menu absolute right-0 z-[80] mt-2 w-80 overflow-hidden rounded-lg bg-surface-elevated">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
                 <p className="text-sm font-bold text-text-primary">Notificaciones</p>
@@ -307,7 +309,7 @@ export default function Header() {
           </button>
 
           {userMenuOpen && (
-            <div className="crm-floating-menu absolute right-0 mt-2 w-52 bg-surface-elevated rounded-lg py-1 z-50">
+            <div className="crm-floating-menu absolute right-0 z-[80] mt-2 w-52 rounded-lg bg-surface-elevated py-1">
               <div className="px-4 py-3 border-b border-border-subtle">
                 <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                 <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
@@ -382,7 +384,7 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
           {icon}
         </button>
         {open && (
-          <div className="crm-floating-menu absolute right-0 mt-2 w-56 bg-surface-elevated rounded-lg py-1 z-40">
+          <div className="crm-floating-menu absolute right-0 z-[80] mt-2 w-56 rounded-lg bg-surface-elevated py-1">
             {action.menu.map((item) => (
               <button
                 key={item.label}

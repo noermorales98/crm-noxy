@@ -79,22 +79,22 @@ export default function KbHomePage() {
   const filtered = pages;
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
 
           {/* Page header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-action-primary flex items-center justify-center">
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-action-primary">
                 <BookOpen size={18} color="white" />
               </div>
               <p className="text-sm text-text-secondary">Documentación, guías y notas del equipo</p>
             </div>
             {/* Extra actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => createPage(true)}
                 disabled={creating}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border-subtle bg-white text-sm text-text-secondary hover:bg-surface-sidebar transition-colors disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-sidebar disabled:opacity-50 sm:flex-none"
               >
                 <Folder size={14} />
                 Nueva carpeta
@@ -102,7 +102,7 @@ export default function KbHomePage() {
               <button
                 onClick={() => createPage(false)}
                 disabled={creating}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:bg-black transition-colors disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-action-primary px-3 py-2 text-sm font-medium text-action-primary-foreground transition-colors hover:bg-black disabled:opacity-50 sm:flex-none"
               >
                 <Plus size={14} />
                 Nueva página
@@ -111,17 +111,17 @@ export default function KbHomePage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-3 sm:gap-4">
             {[
               { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-action-primary bg-nav-hover" },
               { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
               { label: "Borradores",  value: pages.filter(p => !p.isFolder && !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white rounded-lg border border-border-subtle p-5 flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${stat.color}`}>
+              <div key={stat.label} className="flex items-center gap-4 rounded-lg border border-border-subtle bg-white p-4 sm:p-5">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.color}`}>
                   <stat.icon size={18} />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-2xl font-bold text-text-primary">{stat.value}</p>
                   <p className="text-xs text-text-secondary">{stat.label}</p>
                 </div>

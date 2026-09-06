@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download, History } from "lucide-react";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
+import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import KbSharePanel from "@/src/components/kb/KbSharePanel";
 import {
   KB_MARKDOWN_THEMES,
@@ -104,6 +105,7 @@ export default function KbEditorNavbar({
       <div className="flex h-12 items-center gap-2 overflow-hidden px-3 sm:h-14 sm:gap-3 sm:px-4">
         {/* Breadcrumbs / title */}
         <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-text-secondary sm:max-w-[28%] sm:flex-none">
+          <MobileSidebarToggle />
           <Link
             href="/kb"
             className="flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:font-medium"

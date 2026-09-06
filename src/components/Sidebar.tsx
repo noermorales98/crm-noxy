@@ -868,7 +868,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => { setSidebarNotifOpen(v => !v); setSidebarUserOpen(false); }}
-                className="relative min-h-11 min-w-11 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+                className="relative flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
                 title="Notificaciones"
               >
                 <HugeiconsIcon icon={Notification01Icon} size={16} />
@@ -936,14 +936,14 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             <div className="relative ml-auto" ref={userRef}>
               <button
                 onClick={() => { setSidebarUserOpen(v => !v); setSidebarNotifOpen(false); }}
-                className="min-h-11 min-w-11 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+                className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
                 title={session?.user?.name || "Usuario"}
               >
-                <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
+                <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="h-full w-full object-cover" />
               </button>
 
               {sidebarUserOpen && (
-                <div className="crm-floating-menu absolute bottom-full right-0 mb-2 w-52 bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle">
+                <div className="crm-floating-menu absolute bottom-full right-0 z-[80] mb-2 w-52 rounded-lg border border-border-subtle bg-surface-elevated py-1">
                   <div className="px-4 py-3 border-b border-border-subtle">
                     <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                     <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>

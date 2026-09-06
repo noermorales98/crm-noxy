@@ -187,9 +187,9 @@ export function AiFloatingBubble() {
 
   return (
     <>
-      {/* Panel */}
+      {/* Panel — desktop / tablet only */}
       {isOpen && (
-        <div className="fixed bottom-[88px] right-4 sm:right-6 z-50 h-[min(520px,calc(100vh-7rem))] w-[calc(100vw-2rem)] sm:w-[380px] bg-white rounded-surface shadow-md border border-border-subtle flex flex-col overflow-hidden">
+        <div className="fixed bottom-[88px] right-4 z-50 hidden h-[min(520px,calc(100vh-7rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-surface border border-border-subtle bg-white shadow-md sm:right-6 sm:w-[380px] lg:flex">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
             <div className="flex items-center">
@@ -266,12 +266,12 @@ export function AiFloatingBubble() {
         </div>
       )}
 
-      {/* Bubble button */}
+      {/* Bubble button — desktop only; mobile uses /assistant tab */}
       <button
         onClick={toggle}
         aria-label={isOpen ? "Cerrar asistente IA" : "Abrir asistente IA"}
         aria-expanded={isOpen}
-        className="fixed bottom-6 right-6 z-50 w-[52px] h-[52px] rounded-full flex items-center justify-center bg-action-primary text-action-primary-foreground shadow-md hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+        className="fixed bottom-6 right-6 z-50 hidden h-[52px] w-[52px] items-center justify-center rounded-full bg-action-primary text-action-primary-foreground shadow-md transition-colors duration-200 hover:bg-action-secondary motion-reduce:transition-none lg:flex"
       >
         <HugeiconsIcon icon={AiChatIcon} size={22} color="white" />
       </button>

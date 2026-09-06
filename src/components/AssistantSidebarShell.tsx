@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { PanelLeftOpen, Pin, PinOff, X } from "lucide-react";
+import { Pin, PinOff, X } from "lucide-react";
 import Sidebar from "@/src/components/Sidebar";
 import {
   INITIAL_ASSISTANT_SIDEBAR_STATE,
@@ -173,20 +173,6 @@ export default function AssistantSidebarShell() {
   if (isMobile) {
     return (
       <>
-        {!isVisible && (
-          <button
-            ref={openButtonRef}
-            type="button"
-            aria-label="Mostrar barra lateral"
-            aria-expanded={false}
-            aria-controls="assistant-sidebar"
-            onClick={openFromMobileButton}
-            className={`fixed left-4 top-[max(1.25rem,calc(env(safe-area-inset-top)+0.75rem))] z-50 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
-          >
-            <PanelLeftOpen size={19} strokeWidth={1.8} aria-hidden="true" />
-          </button>
-        )}
-
         {isVisible && (
           <button
             type="button"

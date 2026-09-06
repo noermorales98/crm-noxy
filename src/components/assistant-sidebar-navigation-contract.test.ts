@@ -57,16 +57,9 @@ test("assistant conversation destinations keep the floating panel open", () => {
 });
 
 test("floating sidebar uses clear liquid glass and pin hover peek", () => {
-  assert.match(
-    sidebarComponentSource,
-    /variant === "floating"[\s\S]*?bg-white\/45[\s\S]*?backdrop-blur-\[32px\][\s\S]*?backdrop-saturate-\[1\.35\]/,
-  );
-  assert.match(
-    sidebarComponentSource,
-    /variant === "pinned"[\s\S]*?border-r border-black\/\[0\.06\][\s\S]*?bg-white\/45/,
-  );
-  assert.match(shellSource, /bg-white\/45/);
-  assert.match(shellSource, /backdrop-blur-\[28px\]/);
+  assert.match(sidebarComponentSource, /variant === "floating"[\s\S]*?crm-glass/);
+  assert.match(sidebarComponentSource, /variant === "pinned"[\s\S]*?crm-glass/);
+  assert.match(shellSource, /crm-glass-clear/);
   assert.match(shellSource, /data-assistant-sidebar-edge/);
   assert.match(shellSource, /data-assistant-sidebar-pin-hint/);
   assert.match(shellSource, /data-assistant-sidebar-pinned/);
@@ -76,7 +69,7 @@ test("floating sidebar uses clear liquid glass and pin hover peek", () => {
   assert.match(shellSource, /title="Fijar barra lateral"/);
   assert.match(shellSource, /dispatch\(\{ type: "peekOpen" \}\)/);
   assert.match(shellSource, /dispatch\(\{ type: "peekClose" \}\)/);
-  assert.match(shellSource, /PanelLeftOpen/);
+  assert.match(shellSource, /registerOpenMobileSidebar/);
   assert.match(shellSource, /if \(isMobile\)/);
 });
 

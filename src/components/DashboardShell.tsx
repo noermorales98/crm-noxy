@@ -4,6 +4,7 @@ import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
 import MobileBottomTabBar from "@/src/components/MobileBottomTabBar";
+import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import { isAssistantRoute } from "@/src/components/assistant-new-sidebar-state";
 import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
@@ -23,6 +24,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const { themeId, theme } = useCrmTheme();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
   const useFloatingAssistantSidebar = isAssistantRoute(pathname ?? "");
+  const showAssistantMobileChrome =
+    hideHeader && (pathname ?? "").startsWith("/assistant");
 
   return (
     <SearchProvider>
@@ -48,6 +51,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               )}
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-app">
                 {!hideHeader && <Header />}
+                {showAssistantMobileChrome && (
+                  <div className="crm-header-chrome crm-safe-top shrink-0 lg:hidden">
+                    <div className="flex h-12 items-center gap-2 px-3">
+                      <MobileSidebarToggle />
+                      <span className="truncate text-sm font-semibold text-text-primary">
+                        Asistente
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div
                   className={`crm-mobile-tab-offset flex min-h-0 flex-1 flex-col overflow-hidden ${
                     hideHeader ? "bg-transparent" : ""

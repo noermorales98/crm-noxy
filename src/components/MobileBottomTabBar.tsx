@@ -95,100 +95,104 @@ export default function MobileBottomTabBar() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="crm-safe-x crm-safe-bottom fixed inset-x-0 bottom-0 z-[55] lg:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-4 pb-3 lg:hidden crm-safe-bottom"
     >
-      {moreOpen && (
-        <div className="absolute inset-x-0 bottom-full mb-2 px-3">
-          <div
-            ref={sheetRef}
-            role="menu"
-            className="crm-glass mx-auto max-w-md overflow-hidden rounded-surface"
-          >
-            {MORE_ITEMS.map((item) => {
-              const isActive =
-                item.id === "vault"
-                  ? pathname.startsWith("/boveda")
-                  : pathname.startsWith("/contenido");
+      <div className="relative mx-auto w-full max-w-sm pointer-events-auto">
+        {moreOpen && (
+          <div className="absolute inset-x-0 bottom-full mb-2">
+            <div
+              ref={sheetRef}
+              role="menu"
+              className="crm-glass overflow-hidden rounded-[22px]"
+            >
+              {MORE_ITEMS.map((item) => {
+                const isActive =
+                  item.id === "vault"
+                    ? pathname.startsWith("/boveda")
+                    : pathname.startsWith("/contenido");
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMoreOpen(false);
+                      router.push(item.href);
+                    }}
+                    className={`flex w-full min-h-11 items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-nav-active text-action-primary"
+                        : "text-text-primary hover:bg-nav-hover"
+                    }`}
+                  >
+                    <HugeiconsIcon icon={item.icon} size={20} />
+                    {item.label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMoreOpen(false);
+                  openMobileSidebar();
+                }}
+                className="flex w-full min-h-11 items-center gap-3 border-t border-black/[0.06] px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-nav-hover"
+              >
+                <HugeiconsIcon icon={Menu01Icon} size={20} />
+                Menú lateral
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="crm-glass rounded-full border border-white/40 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(11,11,24,0.12)]">
+          <ul className="flex items-stretch justify-between gap-0.5">
+            {PRIMARY_TABS.map((tab) => {
+              const isActive = active === tab.id;
               return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMoreOpen(false);
-                    router.push(item.href);
-                  }}
-                  className={`flex w-full min-h-11 items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-nav-active text-action-primary"
-                      : "text-text-primary hover:bg-nav-hover"
-                  }`}
-                >
-                  <HugeiconsIcon icon={item.icon} size={20} />
-                  {item.label}
-                </button>
+                <li key={tab.id} className="flex-1">
+                  <button
+                    type="button"
+                    onClick={() => router.push(tab.href)}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`relative flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 text-[10px] font-semibold transition-colors ${
+                      isActive
+                        ? "bg-white/70 text-action-primary"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    <span className="relative">
+                      <HugeiconsIcon icon={tab.icon} size={20} />
+                      {tab.id === "mail" && unreadEmailCount > 0 && (
+                        <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
+                          {unreadEmailCount > 99 ? "99+" : unreadEmailCount}
+                        </span>
+                      )}
+                    </span>
+                    <span className="truncate">{tab.label}</span>
+                  </button>
+                </li>
               );
             })}
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setMoreOpen(false);
-                openMobileSidebar();
-              }}
-              className="flex w-full min-h-11 items-center gap-3 border-t border-black/[0.06] px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-nav-hover"
-            >
-              <HugeiconsIcon icon={Menu01Icon} size={20} />
-              Menú lateral
-            </button>
-          </div>
+            <li className="flex-1">
+              <button
+                type="button"
+                onClick={() => setMoreOpen((v) => !v)}
+                aria-expanded={moreOpen}
+                aria-haspopup="menu"
+                className={`flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 text-[10px] font-semibold transition-colors ${
+                  active === "more" || moreOpen
+                    ? "bg-white/70 text-action-primary"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                <HugeiconsIcon icon={MoreHorizontalCircle01Icon} size={20} />
+                <span>Más</span>
+              </button>
+            </li>
+          </ul>
         </div>
-      )}
-
-      <div className="crm-glass border-t border-black/[0.06]">
-        <ul className="mx-auto flex max-w-lg items-stretch justify-between px-1 pt-1">
-          {PRIMARY_TABS.map((tab) => {
-            const isActive = active === tab.id;
-            return (
-              <li key={tab.id} className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => router.push(tab.href)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={`relative flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-1.5 text-[10px] font-semibold transition-colors ${
-                    isActive ? "text-action-primary" : "text-text-secondary hover:text-text-primary"
-                  }`}
-                >
-                  <span className="relative">
-                    <HugeiconsIcon icon={tab.icon} size={22} />
-                    {tab.id === "mail" && unreadEmailCount > 0 && (
-                      <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
-                        {unreadEmailCount > 99 ? "99+" : unreadEmailCount}
-                      </span>
-                    )}
-                  </span>
-                  <span className="truncate">{tab.label}</span>
-                </button>
-              </li>
-            );
-          })}
-          <li className="flex-1">
-            <button
-              type="button"
-              onClick={() => setMoreOpen((v) => !v)}
-              aria-expanded={moreOpen}
-              aria-haspopup="menu"
-              className={`flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-1.5 text-[10px] font-semibold transition-colors ${
-                active === "more" || moreOpen
-                  ? "text-action-primary"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              <HugeiconsIcon icon={MoreHorizontalCircle01Icon} size={22} />
-              <span>Más</span>
-            </button>
-          </li>
-        </ul>
       </div>
     </nav>
   );
