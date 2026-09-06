@@ -630,7 +630,7 @@ function EmailsPageInner() {
           </div>
 
           {/* Email list */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto">
             {isLoadingEmails ? (
               <div className="flex items-center justify-center py-16">
                 <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
@@ -875,7 +875,7 @@ function EmailsPageInner() {
               </div>
 
               {/* Email body */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto p-6">
                 {selectedEmail.attachments.length > 0 && (
                   <div className="mb-4 flex flex-wrap gap-2">
                     {selectedEmail.attachments.map((att) => (

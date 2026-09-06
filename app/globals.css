@@ -96,6 +96,15 @@ body {
     backdrop-filter: blur(32px) saturate(1.35);
   }
 
+  /* Floating mobile tab pill — white glass over transparent chrome */
+  .crm-glass-pill {
+    background-color: rgb(255 255 255 / 0.78);
+    border: 1px solid rgb(255 255 255 / 0.55);
+    box-shadow: 0 8px 32px rgba(11, 11, 24, 0.12);
+    -webkit-backdrop-filter: blur(36px) saturate(1.45);
+    backdrop-filter: blur(36px) saturate(1.45);
+  }
+
   .crm-glass-clear {
     background-color: rgb(255 255 255 / 0.45);
     border: 1px solid rgb(11 11 24 / 0.06);
@@ -117,7 +126,8 @@ body {
     padding-right: env(safe-area-inset-right, 0px);
   }
 
-  .crm-mobile-tab-offset {
+  /* Clearance inside scroll areas — does not paint a gray band behind the pill */
+  .crm-mobile-bottom-clearance {
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
   }
 
@@ -131,7 +141,7 @@ body {
   }
 
   @media (min-width: 1024px) {
-    .crm-mobile-tab-offset {
+    .crm-mobile-bottom-clearance {
       padding-bottom: 0;
     }
 

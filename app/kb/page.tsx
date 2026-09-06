@@ -79,7 +79,7 @@ export default function KbHomePage() {
   const filtered = pages;
 
   return (
-    <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
+    <main className="crm-mobile-bottom-clearance min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
 
           {/* Page header */}
           <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">

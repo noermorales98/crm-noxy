@@ -35,7 +35,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ notifications, unreadCount }, { status: 200 });
   } catch (error: any) {
-    console.error("GET /api/notifications error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const { jsonFromUnknownError } = await import("@/src/lib/api-db");
+    return jsonFromUnknownError(error, "Internal Server Error");
   }
 }

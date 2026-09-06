@@ -107,8 +107,27 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             : "/api/notifications";
 
         const res = await fetch(url);
-        if (!res.ok) return;
+        if (!res.ok) {
+          if (res.status === 503) {
+            try {
+              const body = await res.json();
+              if (body?.code === "DB_UNAVAILABLE" && typeof window !== "undefined") {
+                window.dispatchEvent(
+                  new CustomEvent("crm:db-unavailable", {
+                    detail: { message: body.error as string | undefined },
+                  }),
+                );
+              }
+            } catch {
+              // ignore JSON parse errors
+            }
+          }
+          return;
+        }
         const data = await res.json();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("crm:db-available"));
+        }
 
         const incoming: AppNotification[] = data.notifications ?? [];
 

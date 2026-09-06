@@ -17,34 +17,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-          include: {
-             organizations: {
-               include: {
-                 organization: true
-               }
-             }
-          }
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email as string },
+            include: {
+              organizations: {
+                include: {
+                  organization: true,
+                },
+              },
+            },
+          });
 
-        if (!user) {
+          if (!user) {
+            return null;
+          }
+
+          const isPasswordValid = await verifyPassword(
+            credentials.password as string,
+            user.passwordHash,
+          );
+
+          if (!isPasswordValid) return null;
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            currentOrganizationId: user.organizations[0]?.organizationId || null,
+          };
+        } catch (error) {
+          // Avoid opaque 500s when Hostinger hits max_connections_per_hour
+          console.error("[auth] authorize failed", error);
           return null;
         }
-
-        const isPasswordValid = await verifyPassword(
-          credentials.password as string,
-          user.passwordHash
-        );
-
-        if (!isPasswordValid) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          currentOrganizationId: user.organizations[0]?.organizationId || null
-        };
       },
     }),
   ],

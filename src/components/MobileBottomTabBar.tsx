@@ -103,7 +103,7 @@ export default function MobileBottomTabBar() {
             <div
               ref={sheetRef}
               role="menu"
-              className="crm-glass overflow-hidden rounded-[22px]"
+              className="crm-glass-pill overflow-hidden rounded-[22px]"
             >
               {MORE_ITEMS.map((item) => {
                 const isActive =
@@ -146,7 +146,7 @@ export default function MobileBottomTabBar() {
           </div>
         )}
 
-        <div className="crm-glass rounded-full border border-white/40 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(11,11,24,0.12)]">
+        <div className="crm-glass-pill rounded-full px-1.5 py-1.5">
           <ul className="flex items-stretch justify-between gap-0.5">
             {PRIMARY_TABS.map((tab) => {
               const isActive = active === tab.id;
@@ -158,7 +158,7 @@ export default function MobileBottomTabBar() {
                     aria-current={isActive ? "page" : undefined}
                     className={`relative flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 text-[10px] font-semibold transition-colors ${
                       isActive
-                        ? "bg-white/70 text-action-primary"
+                        ? "bg-white/80 text-action-primary"
                         : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
