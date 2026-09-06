@@ -825,9 +825,9 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const isAssistant = activeTab === "assistant";
   const shellClass =
     variant === "floating"
-      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-black/[0.06] bg-white/45 shadow-none backdrop-blur-[32px] backdrop-saturate-[1.35]"
+      ? "crm-glass flex h-full w-full flex-col overflow-hidden rounded-surface"
       : variant === "pinned"
-        ? "flex h-full w-full flex-col overflow-hidden border-r border-black/[0.06] bg-white/45 shadow-none backdrop-blur-[32px] backdrop-saturate-[1.35]"
+        ? "crm-glass flex h-full w-full flex-col overflow-hidden border-r"
         : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
 
   return (
@@ -868,7 +868,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => { setSidebarNotifOpen(v => !v); setSidebarUserOpen(false); }}
-                className="relative w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+                className="relative min-h-11 min-w-11 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
                 title="Notificaciones"
               >
                 <HugeiconsIcon icon={Notification01Icon} size={16} />
@@ -936,7 +936,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             <div className="relative ml-auto" ref={userRef}>
               <button
                 onClick={() => { setSidebarUserOpen(v => !v); setSidebarNotifOpen(false); }}
-                className="w-8 h-8 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+                className="min-h-11 min-w-11 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
                 title={session?.user?.name || "Usuario"}
               >
                 <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />

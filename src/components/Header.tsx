@@ -80,14 +80,14 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="h-16 pl-20 pr-4 sm:pl-20 sm:pr-6 lg:px-6 flex items-center justify-between gap-3 sm:gap-4 bg-surface-app flex-shrink-0">
+    <header className="crm-header-chrome crm-safe-top sticky top-0 z-30 flex min-h-16 flex-shrink-0 items-center justify-between gap-3 pl-20 pr-4 sm:gap-4 sm:pl-20 sm:pr-6 lg:static lg:z-auto lg:px-6">
 
       {/* Page title */}
       <div className="flex items-center gap-2.5 min-w-0">
         {config.backHref && (
           <Link
             href={config.backHref}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
             title="Regresar"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
@@ -113,7 +113,7 @@ export default function Header() {
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => { setSortOpen(!sortOpen); setFiltersOpen(false); setNotifOpen(false); }}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
+              className={`flex min-h-11 items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
                 sortField
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
@@ -164,7 +164,7 @@ export default function Header() {
           <div className="relative" ref={filtersRef}>
             <button
               onClick={() => { setFiltersOpen(!filtersOpen); setSortOpen(false); setNotifOpen(false); }}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
+              className={`flex min-h-11 items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
                 activeFilterCount > 0
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
@@ -213,7 +213,7 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className="flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
+            className="flex min-h-11 items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             {config.addButton.label}
@@ -232,7 +232,7 @@ export default function Header() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); setSortOpen(false); setFiltersOpen(false); }}
-            className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+            className="relative min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-white/80 text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
             title="Notificaciones"
           >
             <HugeiconsIcon icon={Notification01Icon} size={17} />
@@ -297,7 +297,7 @@ export default function Header() {
         <div className="relative ml-1" ref={userMenuRef}>
           <button
             onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-            className="w-8 h-8 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+            className="min-h-11 min-w-11 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
             title={session?.user?.name || "Usuario"}
           >
             <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
@@ -358,10 +358,10 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const buttonClass = `relative w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
+  const buttonClass = `relative min-h-11 min-w-11 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
     action.active
       ? "bg-action-primary text-action-primary-foreground hover:opacity-90"
-      : "bg-white text-text-secondary hover:text-text-primary hover:bg-nav-hover"
+      : "bg-white/80 text-text-secondary hover:text-text-primary hover:bg-nav-hover"
   }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
 

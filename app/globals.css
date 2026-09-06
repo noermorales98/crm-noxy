@@ -87,6 +87,62 @@ body {
 }
 
 @layer components {
+  /* Liquid Glass — chrome only (nav / toolbars / floating controls) */
+  .crm-glass {
+    background-color: rgb(255 255 255 / 0.72);
+    border: 1px solid rgb(11 11 24 / 0.06);
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(32px) saturate(1.35);
+    backdrop-filter: blur(32px) saturate(1.35);
+  }
+
+  .crm-glass-clear {
+    background-color: rgb(255 255 255 / 0.45);
+    border: 1px solid rgb(11 11 24 / 0.06);
+    box-shadow: none;
+    -webkit-backdrop-filter: blur(28px) saturate(1.3);
+    backdrop-filter: blur(28px) saturate(1.3);
+  }
+
+  .crm-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .crm-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .crm-safe-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  .crm-mobile-tab-offset {
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 1023px) {
+    .crm-header-chrome {
+      background-color: rgb(255 255 255 / 0.72);
+      border-bottom: 1px solid rgb(11 11 24 / 0.06);
+      -webkit-backdrop-filter: blur(32px) saturate(1.35);
+      backdrop-filter: blur(32px) saturate(1.35);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .crm-mobile-tab-offset {
+      padding-bottom: 0;
+    }
+
+    .crm-header-chrome {
+      background-color: var(--surface-app);
+      border-bottom: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
   .crm-card {
     @apply overflow-hidden bg-surface-elevated rounded-surface border border-border-subtle p-5;
   }

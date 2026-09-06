@@ -11,6 +11,7 @@ import {
   readAssistantSidebarStoredMode,
   writeAssistantSidebarStoredMode,
 } from "./assistant-new-sidebar-state";
+import { useOptionalMobileChrome } from "@/src/context/MobileChromeContext";
 
 const FOCUSABLE_SELECTOR = [
   "a[href]",
@@ -27,12 +28,12 @@ const OPEN_PANEL_CLASSES = `${PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
 const CLOSED_PANEL_CLASSES = `${PANEL_BASE_CLASSES} -translate-x-[calc(100%+32px)] opacity-0 pointer-events-none`;
 
 const MOBILE_PANEL_BASE_CLASSES =
-  "fixed bottom-3 left-3 top-3 z-[70] w-64 max-w-[calc(100vw-24px)] transition-[transform,opacity] duration-200 motion-reduce:transition-none";
+  "fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[70] w-64 max-w-[calc(100vw-24px)] bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] transition-[transform,opacity] duration-200 motion-reduce:transition-none";
 const MOBILE_OPEN_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
 const MOBILE_CLOSED_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} -translate-x-[calc(100%+32px)] opacity-0 pointer-events-none`;
 
 const GLASS_CONTROL_CLASSES =
-  "border border-black/[0.06] bg-white/45 text-action-primary shadow-none backdrop-blur-[28px] backdrop-saturate-[1.3] transition-colors duration-200 hover:bg-white/60 motion-reduce:transition-none";
+  "crm-glass-clear text-action-primary transition-colors duration-200 hover:bg-white/60 motion-reduce:transition-none";
 
 const HOVER_HOST_OPEN_WIDTH = "w-[17.5rem]";
 
@@ -46,6 +47,7 @@ export default function AssistantSidebarShell() {
   const hoverHostRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef(false);
   const openedByMobileButtonRef = useRef(false);
+  const mobileChrome = useOptionalMobileChrome();
   const isVisible = isAssistantSidebarVisible(state);
   const isPinned = state.mode === "pinned";
 
@@ -74,6 +76,12 @@ export default function AssistantSidebarShell() {
     openedByMobileButtonRef.current = true;
     dispatch({ type: "mobileOpen" });
   }, []);
+
+  useEffect(() => {
+    if (!mobileChrome) return;
+    mobileChrome.registerOpenMobileSidebar(openFromMobileButton);
+    return () => mobileChrome.registerOpenMobileSidebar(null);
+  }, [mobileChrome, openFromMobileButton]);
 
   useEffect(() => {
     if (isVisible && isMobile && openedByMobileButtonRef.current) {
@@ -144,7 +152,7 @@ export default function AssistantSidebarShell() {
         aria-label="Fijar barra lateral"
         aria-pressed={false}
         onClick={() => dispatch({ type: "pin" })}
-        className={`flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
       >
         <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
       </button>
@@ -155,7 +163,7 @@ export default function AssistantSidebarShell() {
         aria-expanded={isVisible}
         aria-controls="assistant-sidebar"
         onClick={hideSidebar}
-        className={`flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
       >
         <X size={17} strokeWidth={1.8} aria-hidden="true" />
       </button>
@@ -173,7 +181,7 @@ export default function AssistantSidebarShell() {
             aria-expanded={false}
             aria-controls="assistant-sidebar"
             onClick={openFromMobileButton}
-            className={`fixed left-4 top-5 z-50 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+            className={`fixed left-4 top-[max(1.25rem,calc(env(safe-area-inset-top)+0.75rem))] z-50 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
           >
             <PanelLeftOpen size={19} strokeWidth={1.8} aria-hidden="true" />
           </button>
@@ -222,7 +230,7 @@ export default function AssistantSidebarShell() {
           aria-controls="assistant-sidebar"
           aria-pressed={true}
           onClick={hideSidebar}
-          className={`absolute right-2 top-3 z-10 flex size-9 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+          className={`absolute right-2 top-3 z-10 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
         >
           <PinOff size={16} strokeWidth={1.8} aria-hidden="true" />
         </button>

@@ -3,10 +3,12 @@
 import Sidebar from "@/src/components/Sidebar";
 import Header from "@/src/components/Header";
 import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
+import MobileBottomTabBar from "@/src/components/MobileBottomTabBar";
 import { isAssistantRoute } from "@/src/components/assistant-new-sidebar-state";
 import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
 import { SearchProvider } from "@/src/context/SearchContext";
+import { MobileChromeProvider } from "@/src/context/MobileChromeContext";
 import { usePathname } from "next/navigation";
 import { useCrmTheme } from "@/src/context/CrmThemeContext";
 import { crmThemeCssVariables } from "@/src/lib/crm-themes";
@@ -26,30 +28,37 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <SearchProvider>
       <KbProvider>
         <EmailProvider>
-          <div
-            className="flex h-screen overflow-hidden bg-surface-app"
-            data-crm-theme={themeId}
-            style={crmThemeCssVariables(theme) as CSSProperties}
-          >
-            {useFloatingAssistantSidebar ? (
-              <AssistantSidebarShell />
-            ) : (
-              <>
-                <div className="hidden lg:flex">
-                  <Sidebar />
+          <MobileChromeProvider>
+            <div
+              className="flex h-screen overflow-hidden bg-surface-app"
+              data-crm-theme={themeId}
+              style={crmThemeCssVariables(theme) as CSSProperties}
+            >
+              {useFloatingAssistantSidebar ? (
+                <AssistantSidebarShell />
+              ) : (
+                <>
+                  <div className="hidden lg:flex">
+                    <Sidebar />
+                  </div>
+                  <div className="lg:hidden">
+                    <AssistantSidebarShell />
+                  </div>
+                </>
+              )}
+              <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-app">
+                {!hideHeader && <Header />}
+                <div
+                  className={`crm-mobile-tab-offset flex min-h-0 flex-1 flex-col overflow-hidden ${
+                    hideHeader ? "bg-transparent" : ""
+                  }`}
+                >
+                  {children}
                 </div>
-                <div className="lg:hidden">
-                  <AssistantSidebarShell />
-                </div>
-              </>
-            )}
-            <div className="flex-1 flex flex-col overflow-hidden min-w-0 bg-surface-app">
-              {!hideHeader && <Header />}
-              <div className={`flex-1 flex flex-col overflow-hidden min-h-0 ${hideHeader ? "bg-transparent" : ""}`}>
-                {children}
               </div>
+              <MobileBottomTabBar />
             </div>
-          </div>
+          </MobileChromeProvider>
         </EmailProvider>
       </KbProvider>
     </SearchProvider>
