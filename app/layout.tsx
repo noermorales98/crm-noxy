@@ -11,7 +11,7 @@ import PwaRegister from "@/src/components/PwaRegister";
 import "@/src/lib/fonts";
 import "./globals.css";
 
-const ICON_V = "noxy-2026-09";
+const ICON_V = "noxy-2026-09-favicon";
 
 export const metadata: Metadata = {
   title: "Noxy CRM - Gestión de Clientes",

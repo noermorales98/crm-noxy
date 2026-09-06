@@ -1,5 +1,5 @@
 /* Minimal service worker for PWA installability. Network-first for app; cache shell icons only. */
-const SHELL_CACHE = "noxy-crm-shell-v1";
+const SHELL_CACHE = "noxy-crm-shell-v2";
 const SHELL_ASSETS = [
   "/favicon.svg",
   "/favicon.webp",
