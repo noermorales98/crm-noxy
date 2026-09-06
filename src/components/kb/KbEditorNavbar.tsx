@@ -8,6 +8,7 @@ import {
   UserMultipleIcon,
   Settings01Icon,
   Logout01Icon,
+  More01Icon,
 } from "@hugeicons/core-free-icons";
 import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download, History } from "lucide-react";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
@@ -68,8 +69,10 @@ export default function KbEditorNavbar({
   const { data: session } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -79,228 +82,355 @@ export default function KbEditorNavbar({
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
         setThemeMenuOpen(false);
       }
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const saveLabel =
+    saveStatus === "saving"
+      ? "Guardando..."
+      : saveStatus === "saved"
+        ? "✓ Guardado"
+        : saveStatus === "error"
+          ? "Error"
+          : "";
+
   return (
-    <div className="flex items-center gap-3 px-4 h-14 border-b border-border-subtle shrink-0 bg-surface-elevated">
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-1 text-xs text-text-secondary min-w-0 shrink-0 max-w-[28%]">
-        <Link href="/kb" className="hover:text-text-primary shrink-0 font-medium">
-          Docs
-        </Link>
-        {ancestors.map((bc) => (
-          <span key={bc.id} className="flex items-center gap-1 min-w-0">
-            <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
-            <Link href={`/kb/${bc.id}`} className="hover:text-text-primary truncate">
-              {bc.title}
-            </Link>
-          </span>
-        ))}
-        <span className="flex items-center gap-1 min-w-0">
-          <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
-          <span className="text-text-primary font-medium truncate">{pageTitle || "Sin título"}</span>
-        </span>
-      </div>
-
-      {/* Global search */}
-      <div className="flex-1 max-w-md mx-auto">
-        <GlobalSearchTrigger />
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        <KbSharePanel pageId={pageId} isFolder={isFolder} pendingSuggestions={pendingSuggestions} />
-
-        {!isFolder && pendingSuggestions > 0 && onOpenSuggestionsReview && (
-          <button
-            type="button"
-            onClick={onOpenSuggestionsReview}
-            className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 hover:bg-amber-100 transition-colors"
-            title="Ver sugerencias pendientes"
+    <div className="crm-safe-top shrink-0 border-b border-border-subtle bg-surface-elevated">
+      <div className="flex h-12 items-center gap-2 overflow-hidden px-3 sm:h-14 sm:gap-3 sm:px-4">
+        {/* Breadcrumbs / title */}
+        <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-text-secondary sm:max-w-[28%] sm:flex-none">
+          <Link
+            href="/kb"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:font-medium"
+            title="Docs"
           >
-            <MessageSquare size={12} />
-            <span className="hidden sm:inline">Sugerencias</span>
-            <span className="min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold flex items-center justify-center">
-              {pendingSuggestions}
+            <ChevronLeft size={16} className="sm:hidden" />
+            <span className="hidden sm:inline">Docs</span>
+          </Link>
+          <span className="hidden min-w-0 items-center gap-1 sm:flex">
+            {ancestors.map((bc) => (
+              <span key={bc.id} className="flex min-w-0 items-center gap-1">
+                <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
+                <Link href={`/kb/${bc.id}`} className="truncate hover:text-text-primary">
+                  {bc.title}
+                </Link>
+              </span>
+            ))}
+            <span className="flex min-w-0 items-center gap-1">
+              <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
+              <span className="truncate font-medium text-text-primary">{pageTitle || "Sin título"}</span>
             </span>
-          </button>
-        )}
-
-        {!isFolder && onOpenHistory && (
-          <button
-            type="button"
-            onClick={onOpenHistory}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover transition-colors"
-            title="Historial de cambios"
-          >
-            <History size={12} />
-            <span className="hidden sm:inline">Historial</span>
-          </button>
-        )}
-
-        <button
-          onClick={onTogglePublished}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            isPublished
-              ? "bg-green-50 text-green-700"
-              : "bg-surface-sidebar text-text-secondary"
-          }`}
-        >
-          {isPublished ? <Globe size={12} /> : <Lock size={12} />}
-          {isPublished ? "Publicado" : "Borrador"}
-        </button>
-
-        {hasLocalDraft && (
-          <span className="text-[11px] font-medium px-2 py-1 rounded-lg bg-amber-50 text-amber-800">
-            Borrador local
           </span>
-        )}
-
-        <div
-          className={`text-xs font-medium px-2 py-1 rounded-lg transition-all ${
-            saveStatus === "saving"
-              ? "text-amber-600 bg-amber-50"
-              : saveStatus === "saved"
-                ? "text-green-600 bg-green-50"
-                : saveStatus === "error"
-                  ? "text-red-600 bg-red-50"
-                  : "text-transparent w-0 px-0"
-          }`}
-        >
-          {saveStatus === "saving"
-            ? "Guardando..."
-            : saveStatus === "saved"
-              ? "✓ Guardado"
-              : saveStatus === "error"
-                ? "Error"
-                : ""}
+          <span className="truncate font-medium text-text-primary sm:hidden">
+            {pageTitle || "Sin título"}
+          </span>
         </div>
 
-        {!isFolder && (
-          <>
-          <div className="relative" ref={themeMenuRef}>
+        {/* Global search — desktop */}
+        <div className="mx-auto hidden max-w-md flex-1 md:block">
+          <GlobalSearchTrigger />
+        </div>
+
+        {/* Actions */}
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+          <div className="hidden sm:block">
+            <KbSharePanel pageId={pageId} isFolder={isFolder} pendingSuggestions={pendingSuggestions} />
+          </div>
+
+          {!isFolder && pendingSuggestions > 0 && onOpenSuggestionsReview && (
             <button
-              onClick={() => {
-                setThemeMenuOpen((v) => !v);
-                setUserMenuOpen(false);
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover transition-colors"
-              title="Tema de markdown"
+              type="button"
+              onClick={onOpenSuggestionsReview}
+              className="relative hidden items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 sm:flex"
+              title="Ver sugerencias pendientes"
             >
-              <Palette size={12} />
-              <span className="hidden sm:inline">Tema</span>
-              <ChevronDown size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
+              <MessageSquare size={12} />
+              <span className="hidden lg:inline">Sugerencias</span>
+              <span className="flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                {pendingSuggestions}
+              </span>
             </button>
-            {themeMenuOpen && (
-              <div className="crm-floating-menu absolute right-0 top-full mt-1 w-52 max-h-72 overflow-y-auto bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle">
-                {KB_MARKDOWN_THEMES.map((t) => (
+          )}
+
+          {!isFolder && onOpenHistory && (
+            <button
+              type="button"
+              onClick={onOpenHistory}
+              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover sm:flex"
+              title="Historial de cambios"
+            >
+              <History size={12} />
+              <span className="hidden lg:inline">Historial</span>
+            </button>
+          )}
+
+          <button
+            onClick={onTogglePublished}
+            className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-xs font-medium transition-colors sm:h-auto sm:w-auto sm:px-2.5 sm:py-1.5 ${
+              isPublished
+                ? "bg-green-50 text-green-700"
+                : "bg-surface-sidebar text-text-secondary"
+            }`}
+            title={isPublished ? "Publicado" : "Borrador"}
+          >
+            {isPublished ? <Globe size={14} /> : <Lock size={14} />}
+            <span className="hidden sm:inline">{isPublished ? "Publicado" : "Borrador"}</span>
+          </button>
+
+          {hasLocalDraft && (
+            <span className="hidden rounded-lg bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800 md:inline">
+              Borrador local
+            </span>
+          )}
+
+          <div
+            className={`hidden text-xs font-medium transition-all sm:block ${
+              saveStatus === "saving"
+                ? "rounded-lg bg-amber-50 px-2 py-1 text-amber-600"
+                : saveStatus === "saved"
+                  ? "rounded-lg bg-green-50 px-2 py-1 text-green-600"
+                  : saveStatus === "error"
+                    ? "rounded-lg bg-red-50 px-2 py-1 text-red-600"
+                    : "w-0 px-0 text-transparent"
+            }`}
+          >
+            {saveLabel}
+          </div>
+
+          {!isFolder && (
+            <>
+              <div className="relative hidden sm:block" ref={themeMenuRef}>
+                <button
+                  onClick={() => {
+                    setThemeMenuOpen((v) => !v);
+                    setUserMenuOpen(false);
+                    setMoreOpen(false);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover"
+                  title="Tema de markdown"
+                >
+                  <Palette size={12} />
+                  <span className="hidden lg:inline">Tema</span>
+                  <ChevronDown size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
+                </button>
+                {themeMenuOpen && (
+                  <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-72 w-52 overflow-y-auto rounded-lg border border-border-subtle bg-surface-elevated py-1">
+                    {KB_MARKDOWN_THEMES.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          onMarkdownThemeChange?.(t.id);
+                          setThemeMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-nav-hover ${
+                          markdownTheme === t.id ? "bg-nav-active font-medium" : ""
+                        }`}
+                      >
+                        <span
+                          className="h-4 w-4 shrink-0 border border-black/5"
+                          style={{
+                            backgroundColor: t.bg,
+                            borderRadius:
+                              t.radiusScale === "pill"
+                                ? "9999px"
+                                : t.radiusScale === "sharp"
+                                  ? "3px"
+                                  : "6px",
+                          }}
+                        />
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: t.accent }}
+                        />
+                        <span className="truncate text-text-primary">{t.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-0.5 rounded-lg bg-surface-sidebar p-0.5">
+                {(["edit", "preview"] as ViewMode[]).map((m) => (
                   <button
-                    key={t.id}
-                    onClick={() => {
-                      onMarkdownThemeChange?.(t.id);
-                      setThemeMenuOpen(false);
-                    }}
-                    className={`flex items-center gap-2.5 w-full px-3 py-2 text-left text-xs hover:bg-nav-hover transition-colors ${
-                      markdownTheme === t.id ? "bg-nav-active font-medium" : ""
+                    key={m}
+                    onClick={() => onModeChange(m)}
+                    title={m === "edit" ? "Editar" : "Vista previa"}
+                    className={`flex size-7 items-center justify-center rounded-md transition-colors ${
+                      mode === m
+                        ? "bg-surface-elevated text-text-primary"
+                        : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
-                    <span
-                      className="w-4 h-4 shrink-0 border border-black/5"
-                      style={{ backgroundColor: t.bg, borderRadius: t.radiusScale === "pill" ? "9999px" : t.radiusScale === "sharp" ? "3px" : "6px" }}
-                    />
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: t.accent }}
-                    />
-                    <span className="text-text-primary truncate">{t.label}</span>
+                    {m === "edit" ? <Edit2 size={13} /> : <Eye size={13} />}
                   </button>
                 ))}
+              </div>
+
+              {onExportPdf && (
+                <button
+                  type="button"
+                  onClick={onExportPdf}
+                  disabled={exportPdfLoading}
+                  title="Descargar PDF"
+                  className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
+                >
+                  <Download size={12} />
+                  <span className="hidden lg:inline">{exportPdfLoading ? "PDF..." : "PDF"}</span>
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Mobile overflow */}
+          <div className="relative sm:hidden" ref={moreMenuRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setMoreOpen((v) => !v);
+                setUserMenuOpen(false);
+              }}
+              className="flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
+              aria-expanded={moreOpen}
+              aria-label="Más acciones"
+            >
+              <HugeiconsIcon icon={More01Icon} size={18} />
+            </button>
+            {moreOpen && (
+              <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 w-52 overflow-hidden rounded-lg border border-border-subtle bg-surface-elevated py-1">
+                <div className="border-b border-border-subtle px-3 py-2">
+                  <KbSharePanel pageId={pageId} isFolder={isFolder} pendingSuggestions={pendingSuggestions} />
+                </div>
+                {!isFolder && pendingSuggestions > 0 && onOpenSuggestionsReview && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenSuggestionsReview();
+                      setMoreOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+                  >
+                    <MessageSquare size={14} />
+                    Sugerencias ({pendingSuggestions})
+                  </button>
+                )}
+                {!isFolder && onOpenHistory && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenHistory();
+                      setMoreOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+                  >
+                    <History size={14} />
+                    Historial
+                  </button>
+                )}
+                {!isFolder && onMarkdownThemeChange && (
+                  <div className="border-t border-border-subtle px-3 py-2">
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                      Tema
+                    </p>
+                    <div className="flex max-h-40 flex-col gap-0.5 overflow-y-auto">
+                      {KB_MARKDOWN_THEMES.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => {
+                            onMarkdownThemeChange(t.id);
+                            setMoreOpen(false);
+                          }}
+                          className={`rounded-md px-2 py-1.5 text-left text-xs ${
+                            markdownTheme === t.id ? "bg-nav-active font-medium" : "hover:bg-nav-hover"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!isFolder && onExportPdf && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onExportPdf();
+                      setMoreOpen(false);
+                    }}
+                    disabled={exportPdfLoading}
+                    className="flex w-full items-center gap-2 border-t border-border-subtle px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover disabled:opacity-50"
+                  >
+                    <Download size={14} />
+                    {exportPdfLoading ? "Generando PDF..." : "Descargar PDF"}
+                  </button>
+                )}
+                {saveLabel && (
+                  <p className="border-t border-border-subtle px-3 py-2 text-xs text-text-secondary">
+                    {saveLabel}
+                  </p>
+                )}
               </div>
             )}
           </div>
 
-          <div className="flex items-center bg-surface-sidebar rounded-lg p-0.5 gap-0.5">
-            {(["edit", "preview"] as ViewMode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => onModeChange(m)}
-                title={m === "edit" ? "Editar" : "Vista previa"}
-                className={`flex items-center justify-center w-7 h-7 rounded-md transition-colors ${
-                  mode === m
-                    ? "bg-surface-elevated text-text-primary"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                {m === "edit" ? <Edit2 size={13} /> : <Eye size={13} />}
-              </button>
-            ))}
-          </div>
-
-          {onExportPdf && (
+          {/* User menu */}
+          <div className="relative ml-0.5" ref={userMenuRef}>
             <button
-              type="button"
-              onClick={onExportPdf}
-              disabled={exportPdfLoading}
-              title="Descargar PDF"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sidebar text-text-secondary hover:bg-nav-hover disabled:opacity-50 transition-colors"
+              onClick={() => {
+                setUserMenuOpen(!userMenuOpen);
+                setMoreOpen(false);
+              }}
+              className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+              title={session?.user?.name || "Usuario"}
             >
-              <Download size={12} />
-              <span className="hidden sm:inline">{exportPdfLoading ? "PDF..." : "PDF"}</span>
+              <img
+                src="/avt.webp"
+                alt={session?.user?.name || "Usuario"}
+                className="h-full w-full object-cover"
+              />
             </button>
-          )}
-          </>
-        )}
 
-        {/* User menu */}
-        <div className="relative ml-1" ref={userMenuRef}>
-          <button
-            onClick={() => {
-              setUserMenuOpen(!userMenuOpen);
-            }}
-            className="w-8 h-8 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
-            title={session?.user?.name || "Usuario"}
-          >
-            <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
-          </button>
-
-          {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-surface-elevated rounded-lg py-1 z-50 border border-border-subtle">
-              <div className="px-4 py-3 border-b border-border-subtle">
-                <p className="text-sm font-semibold text-text-primary truncate">
-                  {session?.user?.name || "Usuario"}
-                </p>
-                <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
-              </div>
-              <Link
-                href="/profile"
-                onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-nav-hover transition-colors"
-              >
-                <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#6B7184" />
-                Mi perfil
-              </Link>
-              <Link
-                href="/settings"
-                onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-nav-hover transition-colors"
-              >
-                <HugeiconsIcon icon={Settings01Icon} size={15} color="#6B7184" />
-                Configuración
-              </Link>
-              <div className="border-t border-border-subtle mt-1 pt-1">
-                <button
-                  onClick={() => signOut()}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+            {userMenuOpen && (
+              <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-border-subtle bg-surface-elevated py-1">
+                <div className="border-b border-border-subtle px-4 py-3">
+                  <p className="truncate text-sm font-semibold text-text-primary">
+                    {session?.user?.name || "Usuario"}
+                  </p>
+                  <p className="truncate text-xs text-text-secondary">{session?.user?.email || ""}</p>
+                </div>
+                <Link
+                  href="/profile"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-nav-hover"
                 >
-                  <HugeiconsIcon icon={Logout01Icon} size={15} color="#ef4444" />
-                  Cerrar sesión
-                </button>
+                  <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#6B7184" />
+                  Mi perfil
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-nav-hover"
+                >
+                  <HugeiconsIcon icon={Settings01Icon} size={15} color="#6B7184" />
+                  Configuración
+                </Link>
+                <div className="mt-1 border-t border-border-subtle pt-1">
+                  <button
+                    onClick={() => signOut()}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    <HugeiconsIcon icon={Logout01Icon} size={15} color="#ef4444" />
+                    Cerrar sesión
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

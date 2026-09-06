@@ -80,14 +80,15 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="crm-header-chrome crm-safe-top sticky top-0 z-30 flex min-h-16 flex-shrink-0 items-center justify-between gap-3 pl-20 pr-4 sm:gap-4 sm:pl-20 sm:pr-6 lg:static lg:z-auto lg:px-6">
+    <header className="crm-header-chrome crm-safe-top sticky top-0 z-30 shrink-0 lg:static lg:z-auto">
+      <div className="flex h-14 items-center justify-between gap-2 overflow-hidden pl-16 pr-3 sm:gap-3 sm:pr-4 lg:px-6">
 
       {/* Page title */}
-      <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex min-w-0 items-center gap-2">
         {config.backHref && (
           <Link
             href={config.backHref}
-            className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
             title="Regresar"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
@@ -95,7 +96,7 @@ export default function Header() {
         )}
         {config.title && (
           <>
-            <h1 className="text-lg font-bold text-text-primary truncate">{config.title}</h1>
+            <h1 className="truncate text-base font-bold text-text-primary sm:text-lg">{config.title}</h1>
             {(config.titleBadge || config.titleBadge === 0) && (
               <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full shrink-0">
                 {config.titleBadge}
@@ -106,14 +107,14 @@ export default function Header() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
 
         {/* Sort */}
         {hasSortOptions && (
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => { setSortOpen(!sortOpen); setFiltersOpen(false); setNotifOpen(false); }}
-              className={`flex min-h-11 items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
+              className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${
                 sortField
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
@@ -121,11 +122,13 @@ export default function Header() {
             >
               <HugeiconsIcon icon={ArrowUpDownIcon} size={14} />
               {currentSortLabel ? (
-                <span className="flex items-center gap-1">
+                <span className="hidden items-center gap-1 sm:flex">
                   {currentSortLabel}
                   <HugeiconsIcon icon={sortOrder === "asc" ? ArrowUp01Icon : ArrowDown01Icon} size={11} />
                 </span>
-              ) : "Ordenar"}
+              ) : (
+                <span className="hidden sm:inline">Ordenar</span>
+              )}
             </button>
 
             {sortOpen && (
@@ -164,14 +167,14 @@ export default function Header() {
           <div className="relative" ref={filtersRef}>
             <button
               onClick={() => { setFiltersOpen(!filtersOpen); setSortOpen(false); setNotifOpen(false); }}
-              className={`flex min-h-11 items-center gap-1.5 text-sm font-medium transition-all px-3 py-2 rounded-lg ${
+              className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${
                 activeFilterCount > 0
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
               }`}
             >
               <HugeiconsIcon icon={SlidersHorizontalIcon} size={14} />
-              Filtros
+              <span className="hidden sm:inline">Filtros</span>
               {activeFilterCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-white text-text-primary text-[10px] font-bold flex items-center justify-center">
                   {activeFilterCount}
@@ -213,10 +216,10 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className="flex min-h-11 items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-opacity"
+            className="flex size-8 items-center justify-center gap-1.5 rounded-lg bg-action-primary text-sm font-medium text-action-primary-foreground transition-opacity hover:opacity-90 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
-            {config.addButton.label}
+            <span className="hidden sm:inline">{config.addButton.label}</span>
           </button>
         )}
 
@@ -232,7 +235,7 @@ export default function Header() {
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); setSortOpen(false); setFiltersOpen(false); }}
-            className="relative min-h-11 min-w-11 flex items-center justify-center rounded-lg bg-white/80 text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
+            className="relative flex size-8 items-center justify-center rounded-lg bg-white/80 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
             title="Notificaciones"
           >
             <HugeiconsIcon icon={Notification01Icon} size={17} />
@@ -297,10 +300,10 @@ export default function Header() {
         <div className="relative ml-1" ref={userMenuRef}>
           <button
             onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-            className="min-h-11 min-w-11 rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+            className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
             title={session?.user?.name || "Usuario"}
           >
-            <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="w-full h-full object-cover" />
+            <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="h-full w-full object-cover" />
           </button>
 
           {userMenuOpen && (
@@ -339,6 +342,7 @@ export default function Header() {
         </div>
       </div>
 
+      </div>
     </header>
   );
 }
@@ -358,7 +362,7 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const buttonClass = `relative min-h-11 min-w-11 flex items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
+  const buttonClass = `relative flex size-8 items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
     action.active
       ? "bg-action-primary text-action-primary-foreground hover:opacity-90"
       : "bg-white/80 text-text-secondary hover:text-text-primary hover:bg-nav-hover"

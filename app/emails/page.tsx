@@ -26,6 +26,7 @@ import {
   CheckmarkCircle02Icon,
   FileAttachmentIcon,
   Download01Icon,
+  ArrowLeft01Icon,
 } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -613,9 +614,13 @@ function EmailsPageInner() {
 
   return (
     <>
-      <div className="flex-1 min-h-0 flex overflow-hidden bg-surface-app font-sans">
+      <div className="flex min-h-0 flex-1 overflow-hidden bg-surface-app font-sans">
         {/* Center: Email list */}
-        <div className="w-80 bg-white border-r border-border-subtle flex flex-col overflow-hidden shrink-0">
+        <div
+          className={`w-full shrink-0 flex-col overflow-hidden border-border-subtle bg-white lg:w-80 lg:border-r ${
+            selectedEmail ? "hidden lg:flex" : "flex"
+          }`}
+        >
           {/* Header */}
           <div className="px-4 py-4 border-b border-border-subtle shrink-0">
             <p className="text-xs text-text-secondary mt-0.5">
@@ -738,18 +743,32 @@ function EmailsPageInner() {
         </div>
 
         {/* Right: Email detail */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-surface-app">
+        <div
+          className={`min-w-0 flex-1 flex-col overflow-hidden bg-surface-app ${
+            selectedEmail || isLoadingDetail ? "flex" : "hidden lg:flex"
+          }`}
+        >
           {isLoadingDetail ? (
-            <div className="flex items-center justify-center flex-1">
-              <div className="w-8 h-8 border-3 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
+            <div className="flex flex-1 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-border-subtle border-t-gray-600" />
             </div>
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="bg-white border-b border-border-subtle px-6 py-4 shrink-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-lg font-bold text-text-primary mb-2 leading-snug">
+              <div className="shrink-0 border-b border-border-subtle bg-white px-4 py-3 sm:px-6 sm:py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-1 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedEmail(null)}
+                      className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
+                      title="Volver a la lista"
+                      aria-label="Volver a la lista"
+                    >
+                      <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                    <h2 className="mb-2 text-base font-bold leading-snug text-text-primary sm:text-lg">
                       {selectedEmail.subject}
                     </h2>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary">
@@ -781,15 +800,25 @@ function EmailsPageInner() {
                       })}{" "}
                       · {selectedEmail.company.name}
                     </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex shrink-0 items-center gap-1">
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                        className="hidden items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-nav-active sm:flex"
                       >
                         <HugeiconsIcon icon={MailReplyIcon} size={13} />
                         Responder
+                      </button>
+                    )}
+                    {selectedEmail.type === "RECEIVED" && (
+                      <button
+                        onClick={() => openReply(selectedEmail)}
+                        className="flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
+                        title="Responder"
+                      >
+                        <HugeiconsIcon icon={MailReplyIcon} size={15} />
                       </button>
                     )}
                     <button
@@ -836,7 +865,8 @@ function EmailsPageInner() {
                     </button>
                     <button
                       onClick={() => setSelectedEmail(null)}
-                      className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                      className="hidden size-8 items-center justify-center rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex"
+                      title="Cerrar"
                     >
                       <HugeiconsIcon icon={Cancel01Icon} size={15} />
                     </button>

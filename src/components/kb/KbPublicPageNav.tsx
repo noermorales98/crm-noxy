@@ -60,48 +60,48 @@ export default function KbPublicPageNav({
     <>
       {/* Mobile navbar — fixed at viewport top */}
       <nav
-        className="md:hidden fixed top-0 inset-x-0 z-50 border-b border-border-subtle bg-white"
+        className="fixed inset-x-0 top-0 z-50 border-b border-border-subtle bg-white/95 backdrop-blur-md md:hidden"
         aria-label="Navegación entre documentos"
       >
-        <div className="flex items-center gap-1 px-2 py-2.5">
-          <NavButton
-            href={prevHref}
-            disabled={!nav.prev}
-            label={nav.prev ? `Anterior: ${nav.prev.title}` : "Sin documento anterior"}
-            className="shrink-0 px-2.5 py-2 text-text-primary hover:bg-black/5"
-          >
-            <ChevronLeft size={16} />
-            <span>Atrás</span>
-          </NavButton>
-
-          <div className="flex-1 min-w-0 flex flex-col items-center px-1">
-            <Link
-              href={homeHref}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium text-text-secondary hover:text-text-primary hover:bg-black/5 transition-colors"
-              title={folderTitle ? `Volver a ${folderTitle}` : "Inicio de la carpeta"}
+        <div className="crm-safe-top">
+          <div className="flex h-12 items-center gap-1 px-2">
+            <NavButton
+              href={prevHref}
+              disabled={!nav.prev}
+              label={nav.prev ? `Anterior: ${nav.prev.title}` : "Sin documento anterior"}
+              className="size-9 shrink-0 text-text-primary hover:bg-black/5"
             >
-              <Home size={12} />
-              <span>Inicio</span>
-            </Link>
-            <p className="text-[10px] text-text-secondary mt-0.5 tabular-nums">
-              {nav.index + 1} / {nav.total}
-            </p>
-          </div>
+              <ChevronLeft size={18} />
+            </NavButton>
 
-          <NavButton
-            href={nextHref}
-            disabled={!nav.next}
-            label={nav.next ? `Siguiente: ${nav.next.title}` : "Sin documento siguiente"}
-            className="shrink-0 px-2.5 py-2 text-text-primary hover:bg-black/5"
-          >
-            <span>Adelante</span>
-            <ChevronRight size={16} />
-          </NavButton>
+            <div className="flex min-w-0 flex-1 flex-col items-center px-1">
+              <Link
+                href={homeHref}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-text-secondary transition-colors hover:bg-black/5 hover:text-text-primary"
+                title={folderTitle ? `Volver a ${folderTitle}` : "Inicio de la carpeta"}
+              >
+                <Home size={12} />
+                <span className="truncate max-w-[10rem]">{folderTitle || "Inicio"}</span>
+              </Link>
+              <p className="mt-0.5 text-[10px] tabular-nums text-text-secondary">
+                {nav.index + 1} / {nav.total}
+              </p>
+            </div>
+
+            <NavButton
+              href={nextHref}
+              disabled={!nav.next}
+              label={nav.next ? `Siguiente: ${nav.next.title}` : "Sin documento siguiente"}
+              className="size-9 shrink-0 text-text-primary hover:bg-black/5"
+            >
+              <ChevronRight size={18} />
+            </NavButton>
+          </div>
         </div>
       </nav>
 
       {/* Spacer so content clears the fixed mobile navbar */}
-      <div className="md:hidden h-[56px] shrink-0" aria-hidden />
+      <div className="h-[calc(3rem+env(safe-area-inset-top,0px))] shrink-0 md:hidden" aria-hidden />
 
       {/* Desktop floating buttons — fixed, vertically centered in viewport */}
       {nav.prev && (
