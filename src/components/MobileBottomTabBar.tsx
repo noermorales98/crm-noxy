@@ -95,7 +95,7 @@ export default function MobileBottomTabBar() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-4 pb-3 lg:hidden crm-safe-bottom"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-4 pb-5 lg:hidden crm-safe-bottom"
     >
       <div className="relative mx-auto w-full max-w-sm pointer-events-auto">
         {moreOpen && (
