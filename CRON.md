@@ -98,7 +98,7 @@ Si un usuario tiene la app abierta, [`EmailContext`](src/context/EmailContext.ts
 
 ---
 
-## Otros jobs en cron-job.org (opcional)
+## Otros jobs en cron-job.org
 
 Duplica el mismo patrón (URL + header) para:
 
@@ -111,3 +111,7 @@ https://crm-noxy.vercel.app/api/cron/digest
 https://crm-noxy.vercel.app/api/cron/google-calendar-reminders
 https://crm-noxy.vercel.app/api/cron/content-reminders
 ```
+
+`content-reminders` es el que avisa por WhatsApp (CallMeBot) qué hay que grabar al día siguiente. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.
+
+Los números salen del panel WhatsApp de cada cliente en Gestión de contenido, no de Ajustes → CallMeBot.

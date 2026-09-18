@@ -15,6 +15,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useNotifications } from "@/src/context/NotificationContext";
 import { useMobileChrome } from "@/src/context/MobileChromeContext";
+import { useSession } from "next-auth/react";
+import { hasPermission, type ModulePermissions, type RoleName } from "@/src/lib/permissions";
 
 type PrimaryTabId = "home" | "mail" | "kb" | "assistant";
 
@@ -63,12 +65,25 @@ function resolvePrimaryTab(pathname: string): PrimaryTabId | "more" | null {
 export default function MobileBottomTabBar() {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
+  const { data: session } = useSession();
   const { notifications } = useNotifications();
   const { openMobileSidebar } = useMobileChrome();
   const [moreOpen, setMoreOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const active = resolvePrimaryTab(pathname);
   const unreadEmailCount = notifications.filter((n) => n.type === "NEW_EMAIL" && !n.isRead).length;
+  const role = session?.role as RoleName | undefined;
+  const permissions = session?.permissions as ModulePermissions | undefined;
+  const tabPermission: Record<PrimaryTabId, "crm" | "mail" | "kb" | "assistant"> = {
+    home: "crm",
+    mail: "mail",
+    kb: "kb",
+    assistant: "assistant",
+  };
+  const visibleTabs = PRIMARY_TABS.filter((tab) => hasPermission(role, permissions, tabPermission[tab.id]));
+  const visibleMore = MORE_ITEMS.filter((item) =>
+    hasPermission(role, permissions, item.id === "vault" ? "vault" : "content"),
+  );
 
   useEffect(() => {
     setMoreOpen(false);
@@ -105,7 +120,7 @@ export default function MobileBottomTabBar() {
               role="menu"
               className="crm-glass-pill overflow-hidden rounded-[22px]"
             >
-              {MORE_ITEMS.map((item) => {
+              {visibleMore.map((item) => {
                 const isActive =
                   item.id === "vault"
                     ? pathname.startsWith("/boveda")
@@ -148,7 +163,7 @@ export default function MobileBottomTabBar() {
 
         <div className="crm-glass-pill rounded-full px-1.5 py-1.5">
           <ul className="flex items-stretch justify-between gap-0.5">
-            {PRIMARY_TABS.map((tab) => {
+            {visibleTabs.map((tab) => {
               const isActive = active === tab.id;
               return (
                 <li key={tab.id} className="flex-1">

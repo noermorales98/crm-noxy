@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
-import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { sendCallMeBotMessage } from "@/src/lib/whatsapp";
 import { buildRecordingMessage } from "@/app/api/content/clients/[id]/notify/route";
 
 // GET /api/cron/content-reminders
@@ -38,12 +38,20 @@ export async function GET(req: Request) {
 
     for (const item of items) {
       const message = buildRecordingMessage(item.client.name, item);
+      let anyOk = false;
       for (const phone of item.client.phones) {
-        const ok = await sendWhatsAppNotification(phone.phone, phone.apiKey, message);
-        if (ok) sent++; else failed++;
-        details.push({ client: item.client.name, item: item.title, phone: phone.phone, ok });
+        const result = await sendCallMeBotMessage(phone.phone, phone.apiKey, message);
+        if (result.ok) {
+          sent++;
+          anyOk = true;
+        } else {
+          failed++;
+        }
+        details.push({ client: item.client.name, item: item.title, phone: phone.phone, ok: result.ok, error: result.error });
       }
-      await prisma.contentItem.update({ where: { id: item.id }, data: { notifiedAt: new Date() } });
+      if (anyOk) {
+        await prisma.contentItem.update({ where: { id: item.id }, data: { notifiedAt: new Date() } });
+      }
     }
 
     return NextResponse.json({

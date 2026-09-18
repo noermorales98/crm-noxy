@@ -6,6 +6,12 @@ import { useHeader, type HeaderAction } from "@/src/context/HeaderContext";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
+import {
+  canManageTeam,
+  hasPermission,
+  type ModulePermissions,
+  type RoleName,
+} from "@/src/lib/permissions";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SlidersHorizontalIcon,
@@ -322,14 +328,26 @@ export default function Header() {
                 <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#9ca3af" />
                 Mi perfil
               </Link>
-              <Link
-                href="/settings"
-                onClick={() => setUserMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
-              >
-                <HugeiconsIcon icon={Settings01Icon} size={15} color="#9ca3af" />
-                Configuración
-              </Link>
+              {canManageTeam(session?.role as RoleName | undefined) && (
+                <Link
+                  href="/settings/equipo"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                >
+                  <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#9ca3af" />
+                  Equipo
+                </Link>
+              )}
+              {hasPermission(session?.role as RoleName | undefined, session?.permissions as ModulePermissions | undefined, "settings") && (
+                <Link
+                  href="/settings"
+                  onClick={() => setUserMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                >
+                  <HugeiconsIcon icon={Settings01Icon} size={15} color="#9ca3af" />
+                  Configuración
+                </Link>
+              )}
               <div className="border-t border-border-subtle mt-1 pt-1">
                 <button
                   onClick={() => signOut()}

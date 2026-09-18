@@ -214,6 +214,8 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [phones, setPhones] = useState<PhoneEntry[]>(client.phones ?? []);
   const [phoneForm, setPhoneForm] = useState({ label: "", phone: "", apiKey: "" });
   const [phoneBusy, setPhoneBusy] = useState(false);
+  const [testBusyId, setTestBusyId] = useState<string | null>(null);
+  const [phoneTestResult, setPhoneTestResult] = useState<string | null>(null);
   const [notifyBusy, setNotifyBusy] = useState(false);
   const [notifyResult, setNotifyResult] = useState<string | null>(null);
 
@@ -288,6 +290,21 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     setPhones((p) => p.filter((x) => x.id !== id));
   };
 
+  const testPhone = async (id: string) => {
+    setTestBusyId(id);
+    setPhoneTestResult(null);
+    try {
+      const res = await fetch(`/api/content/phones/${id}`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "CallMeBot rechazó el envío");
+      setPhoneTestResult("✓ Mensaje de prueba enviado. Revisa WhatsApp.");
+    } catch (e: unknown) {
+      setPhoneTestResult(`✕ ${e instanceof Error ? e.message : "Error al enviar"}`);
+    } finally {
+      setTestBusyId(null);
+    }
+  };
+
   const notifyItem = async (item: ContentItemData) => {
     setNotifyBusy(true);
     setNotifyResult(null);
@@ -299,9 +316,14 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar");
-      setNotifyResult(`✓ Aviso enviado a ${data.sent} número(s)${data.failed ? ` · ${data.failed} fallaron` : ""}`);
-    } catch (e: any) {
-      setNotifyResult(`✕ ${e.message}`);
+      const failedDetail = Array.isArray(data.results)
+        ? data.results.filter((r: { ok: boolean; error?: string }) => !r.ok).map((r: { phone: string; error?: string }) => `${r.phone}: ${r.error || "falló"}`).join(" · ")
+        : "";
+      setNotifyResult(
+        `✓ Aviso enviado a ${data.sent} número(s)${data.failed ? ` · ${data.failed} fallaron${failedDetail ? ` (${failedDetail})` : ""}` : ""}`,
+      );
+    } catch (e: unknown) {
+      setNotifyResult(`✕ ${e instanceof Error ? e.message : "Error al enviar"}`);
     } finally {
       setNotifyBusy(false);
     }
@@ -461,14 +483,27 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                     <span className="font-medium text-text-primary truncate">{p.label || "Sin nombre"}</span>
                     <span className="text-text-secondary text-xs">{p.phone}</span>
                     <button
+                      type="button"
+                      onClick={() => testPhone(p.id)}
+                      disabled={testBusyId === p.id}
+                      className="ml-auto px-2 py-1 text-xs rounded-md border border-border-subtle text-text-secondary hover:bg-white disabled:opacity-50"
+                    >
+                      {testBusyId === p.id ? "Enviando…" : "Enviar prueba"}
+                    </button>
+                    <button
                       onClick={() => removePhone(p.id)}
-                      className="ml-auto w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-red-50 hover:text-red-600 transition-colors"
+                      className="w-7 h-7 flex items-center justify-center rounded-md text-text-secondary hover:bg-red-50 hover:text-red-600 transition-colors"
                     >
                       <HugeiconsIcon icon={Delete01Icon} size={13} />
                     </button>
                   </div>
                 ))}
               </div>
+            )}
+            {phoneTestResult && (
+              <p className={`text-xs mb-3 ${phoneTestResult.startsWith("✓") ? "text-[#6E7F5C]" : "text-red-600"}`}>
+                {phoneTestResult}
+              </p>
             )}
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2">
               <input className={inputClass} placeholder="Nombre (ej. Ángeles)" value={phoneForm.label} onChange={(e) => setPhoneForm((f) => ({ ...f, label: e.target.value }))} />

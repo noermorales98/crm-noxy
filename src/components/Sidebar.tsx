@@ -42,6 +42,13 @@ import VaultNav from "@/src/components/vault/VaultNav";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import { play } from "cuelume";
+import {
+  canManageTeam,
+  hasPermission,
+  SECTION_PERMISSION,
+  type ModulePermissions,
+  type RoleName,
+} from "@/src/lib/permissions";
 
 type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
 
@@ -133,16 +140,18 @@ function SectionSwitcher({
   onChange,
   unreadCount,
   onNavigate,
+  sections,
 }: {
   activeTab: SidebarTab;
   onChange: (tab: SidebarTab) => void;
   unreadCount: number;
   onNavigate?: () => void;
+  sections: typeof SECTIONS;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const current = SECTIONS.find((s) => s.id === activeTab)!;
+  const current = sections.find((s) => s.id === activeTab) ?? sections[0] ?? SECTIONS[0];
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -192,7 +201,7 @@ function SectionSwitcher({
           className="crm-floating-menu absolute left-3 right-3 top-full mt-1 z-50 bg-surface-elevated rounded-lg py-1.5 overflow-hidden border border-border-subtle"
           role="listbox"
         >
-          {SECTIONS.map((section) => {
+          {sections.map((section) => {
             const isActive = section.id === activeTab;
             return (
               <button
@@ -752,6 +761,13 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const asideRef = useRef<HTMLElement>(null);
 
   const unreadEmailCount = notifications.filter(n => n.type === "NEW_EMAIL" && !n.isRead).length;
+  const role = session?.role as RoleName | undefined;
+  const permissions = session?.permissions as ModulePermissions | undefined;
+  const allowedSections = SECTIONS.filter((section) =>
+    hasPermission(role, permissions, SECTION_PERMISSION[section.id]),
+  );
+  const canSeeSettings = hasPermission(role, permissions, "settings");
+  const showTeam = canManageTeam(role);
 
   const closeUserMenuForNavigation = () => {
     setSidebarUserOpen(false);
@@ -838,27 +854,40 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
           onChange={setActiveTab}
           unreadCount={unreadEmailCount}
           onNavigate={onNavigate}
+          sections={allowedSections}
         />
 
         <div className="flex-1 overflow-y-auto min-h-0 relative">
-          <div className={activeTab === "home" ? "block" : "hidden"}>
-            <HomeNav />
-          </div>
-          <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
-            <MailNav unreadCount={unreadEmailCount} />
-          </div>
-          <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
-            <KbNav />
-          </div>
-          <div className={activeTab === "vault" ? "flex flex-col h-full" : "hidden"}>
-            <VaultNav />
-          </div>
-          <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
-            <AssistantNav onSearchOpen={openSearch} />
-          </div>
-          <div className={activeTab === "content" ? "flex flex-col h-full" : "hidden"}>
-            <ContentNav onNavigate={onNavigate} />
-          </div>
+          {hasPermission(role, permissions, "crm") && (
+            <div className={activeTab === "home" ? "block" : "hidden"}>
+              <HomeNav />
+            </div>
+          )}
+          {hasPermission(role, permissions, "mail") && (
+            <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
+              <MailNav unreadCount={unreadEmailCount} />
+            </div>
+          )}
+          {hasPermission(role, permissions, "kb") && (
+            <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
+              <KbNav />
+            </div>
+          )}
+          {hasPermission(role, permissions, "vault") && (
+            <div className={activeTab === "vault" ? "flex flex-col h-full" : "hidden"}>
+              <VaultNav />
+            </div>
+          )}
+          {hasPermission(role, permissions, "assistant") && (
+            <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
+              <AssistantNav onSearchOpen={openSearch} />
+            </div>
+          )}
+          {hasPermission(role, permissions, "content") && (
+            <div className={activeTab === "content" ? "flex flex-col h-full" : "hidden"}>
+              <ContentNav onNavigate={onNavigate} />
+            </div>
+          )}
         </div>
 
         {/* ── Bottom bar (only on assistant tab) ─────────────────────────────── */}
@@ -956,30 +985,44 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                     <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
                     Mi perfil
                   </Link>
-                  <Link
-                    href="/settings"
-                    onClick={closeUserMenuForNavigation}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
-                  >
-                    <HugeiconsIcon icon={Settings01Icon} size={14} color="#9ca3af" />
-                    Configuración
-                  </Link>
-                  <Link
-                    href="/settings/digest"
-                    onClick={closeUserMenuForNavigation}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
-                  >
-                    <HugeiconsIcon icon={Notification01Icon} size={14} color="#9ca3af" />
-                    Resumen WhatsApp
-                  </Link>
-                  <Link
-                    href="/settings/ai-models"
-                    onClick={closeUserMenuForNavigation}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
-                  >
-                    <HugeiconsIcon icon={AiChatIcon} size={14} color="#9ca3af" />
-                    Modelos de IA
-                  </Link>
+                  {showTeam && (
+                    <Link
+                      href="/settings/equipo"
+                      onClick={closeUserMenuForNavigation}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                    >
+                      <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
+                      Equipo
+                    </Link>
+                  )}
+                  {canSeeSettings && (
+                    <>
+                      <Link
+                        href="/settings"
+                        onClick={closeUserMenuForNavigation}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                      >
+                        <HugeiconsIcon icon={Settings01Icon} size={14} color="#9ca3af" />
+                        Configuración
+                      </Link>
+                      <Link
+                        href="/settings/digest"
+                        onClick={closeUserMenuForNavigation}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                      >
+                        <HugeiconsIcon icon={Notification01Icon} size={14} color="#9ca3af" />
+                        Resumen WhatsApp
+                      </Link>
+                      <Link
+                        href="/settings/ai-models"
+                        onClick={closeUserMenuForNavigation}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
+                      >
+                        <HugeiconsIcon icon={AiChatIcon} size={14} color="#9ca3af" />
+                        Modelos de IA
+                      </Link>
+                    </>
+                  )}
                   <div className="border-t border-border-subtle mt-1 pt-1">
                     <button
                       onClick={handleSignOut}

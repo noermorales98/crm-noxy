@@ -79,7 +79,7 @@ test("user-menu destinations and sign out close the floating panel", () => {
     /const closeUserMenuForNavigation = \(\) => \{[\s\S]*?setSidebarUserOpen\(false\);[\s\S]*?onNavigate\?\.\(\);[\s\S]*?\};/,
   );
 
-  for (const href of ["/profile", "/settings", "/settings/digest", "/settings/ai-models"]) {
+  for (const href of ["/profile", "/settings", "/settings/digest", "/settings/ai-models", "/settings/equipo"]) {
     assert.match(staticLinkTag(href), /onClick=\{closeUserMenuForNavigation\}/);
   }
 

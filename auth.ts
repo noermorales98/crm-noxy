@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import { authConfig } from "./auth.config";
 import { prisma } from "@/src/lib/db";
 import { verifyPassword } from "@/src/lib/auth-utils";
+import { isRoleName, normalizePermissions } from "@/src/lib/permissions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
@@ -40,11 +41,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!isPasswordValid) return null;
 
+          const membership = user.organizations[0];
+          const role = isRoleName(membership?.role) ? membership.role : null;
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
-            currentOrganizationId: user.organizations[0]?.organizationId || null,
+            currentOrganizationId: membership?.organizationId || null,
+            role,
+            permissions: normalizePermissions(membership?.permissions, role),
           };
         } catch (error) {
           // Avoid opaque 500s when Hostinger hits max_connections_per_hour

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
-import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { sendCallMeBotMessage } from "@/src/lib/whatsapp";
 
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -49,10 +49,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const customMessage = typeof body?.message === "string" && body.message.trim() ? body.message.trim() : null;
   const message = customMessage ?? buildRecordingMessage(client.name, item);
 
-  const results: { phone: string; ok: boolean }[] = [];
+  const results: { phone: string; ok: boolean; error?: string }[] = [];
   for (const p of client.phones) {
-    const ok = await sendWhatsAppNotification(p.phone, p.apiKey, message);
-    results.push({ phone: p.phone, ok });
+    const result = await sendCallMeBotMessage(p.phone, p.apiKey, message);
+    results.push({ phone: p.phone, ok: result.ok, error: result.error });
   }
 
   if (results.some((r) => r.ok)) {

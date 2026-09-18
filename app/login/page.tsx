@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LoginIcon } from "@hugeicons/core-free-icons";
 import { btnPrimary, card, input } from "@/src/lib/crm-ui";
@@ -91,13 +90,6 @@ export default function LoginPage() {
             {loading ? "Iniciando sesión…" : "Iniciar sesión"}
           </button>
         </form>
-
-        <p className="text-center text-sm text-text-secondary mt-6">
-          ¿Aún no tienes una cuenta?{" "}
-          <Link href="/register" className="text-action-primary font-semibold hover:underline">
-            Registra tu empresa
-          </Link>
-        </p>
       </div>
     </div>
   );

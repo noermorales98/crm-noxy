@@ -1,4 +1,14 @@
 import type { NextAuthConfig } from "next-auth";
+import { NextResponse } from "next/server";
+import {
+  canManageTeam,
+  firstAllowedPath,
+  hasPermission,
+  isPublicApiPath,
+  resolveRouteAccess,
+  type ModulePermissions,
+  type RoleName,
+} from "@/src/lib/permissions";
 
 export const authConfig = {
   secret: process.env.AUTH_SECRET,
@@ -10,34 +20,62 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const pathname = nextUrl.pathname;
+      const isApi = pathname.startsWith("/api/");
 
-      const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
-      const isPublicPage = pathname.startsWith("/form/") || pathname.startsWith("/schedule/") || pathname.startsWith("/book/") || pathname.startsWith("/docs/") || pathname.startsWith("/cotizar/") || pathname.startsWith("/calendario/") || pathname.startsWith("/proyecto/");
+      if (pathname.startsWith("/register")) {
+        return NextResponse.redirect(new URL("/login", nextUrl));
+      }
 
-      if (isAuthPage) {
+      if (isApi && isPublicApiPath(pathname)) return true;
+
+      if (pathname.startsWith("/login")) {
         if (isLoggedIn) return Response.redirect(new URL("/", nextUrl));
         return true;
       }
 
-      if (isPublicPage) return true;
+      const access = resolveRouteAccess(pathname);
+      if (access.kind === "public") return true;
 
-      if (!isLoggedIn) return false;
+      if (!isLoggedIn) {
+        if (isApi) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+        return false;
+      }
+
+      const role = (auth as { role?: RoleName | null }).role;
+      const permissions = (auth as { permissions?: ModulePermissions }).permissions;
+
+      if (access.kind === "team" && !canManageTeam(role)) {
+        if (isApi) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+        return NextResponse.redirect(new URL(firstAllowedPath(role, permissions), nextUrl));
+      }
+
+      if (access.kind === "module" && !hasPermission(role, permissions, access.module)) {
+        if (isApi) return NextResponse.json({ error: "Sin permiso" }, { status: 403 });
+        return NextResponse.redirect(new URL(firstAllowedPath(role, permissions), nextUrl));
+      }
+
       return true;
     },
     jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.currentOrganizationId = (user as any).currentOrganizationId;
+        token.currentOrganizationId = user.currentOrganizationId;
+        token.role = user.role;
+        token.permissions = user.permissions;
       }
-      if (trigger === "update" && session?.currentOrganizationId) {
-        token.currentOrganizationId = session.currentOrganizationId;
+      if (trigger === "update" && session) {
+        if (session.currentOrganizationId) token.currentOrganizationId = session.currentOrganizationId as string;
+        if (session.role) token.role = session.role as RoleName;
+        if (session.permissions) token.permissions = session.permissions as ModulePermissions;
       }
       return token;
     },
     session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        (session as any).currentOrganizationId = token.currentOrganizationId as string;
+        session.currentOrganizationId = token.currentOrganizationId as string | null;
+        session.role = (token.role as RoleName | null | undefined) ?? null;
+        session.permissions = token.permissions as ModulePermissions | undefined;
       }
       return session;
     },

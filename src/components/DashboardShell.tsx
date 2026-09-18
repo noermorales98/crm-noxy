@@ -6,6 +6,7 @@ import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
 import MobileBottomTabBar from "@/src/components/MobileBottomTabBar";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import DbOutageBanner from "@/src/components/DbOutageBanner";
+import PermissionGate from "@/src/components/PermissionGate";
 import { isAssistantRoute } from "@/src/components/assistant-new-sidebar-state";
 import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
@@ -68,7 +69,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     hideHeader ? "bg-transparent" : ""
                   }`}
                 >
-                  {children}
+                  <PermissionGate>{children}</PermissionGate>
                 </div>
               </div>
               <MobileBottomTabBar />
