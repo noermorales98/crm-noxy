@@ -17,7 +17,7 @@ El objetivo es tener la estructura base y la conexión a la base de datos MariaD
         ```
 3.  **Generar Tablas Base:** Crear las tablas de Usuarios (`users`) y Organizaciones/Tenants (`organizations`) en MariaDB.
 
----
+--
 
 ## Paso 2: Autenticación y Sistema Multi-Tenant (Multi-Empresa)
 
