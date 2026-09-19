@@ -30,6 +30,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (Array.isArray(body.hooksAlt)) {
     data.hooksAlt = JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim()));
   }
+  if (typeof body.reminderEnabled === "boolean") data.reminderEnabled = body.reminderEnabled;
+  if (typeof body.reminderDaysBefore === "number" && Number.isFinite(body.reminderDaysBefore)) {
+    data.reminderDaysBefore = Math.max(0, Math.min(30, Math.floor(body.reminderDaysBefore)));
+  } else if (typeof body.reminderDaysBefore === "string" && body.reminderDaysBefore.trim() !== "") {
+    const n = parseInt(body.reminderDaysBefore, 10);
+    if (!Number.isNaN(n)) data.reminderDaysBefore = Math.max(0, Math.min(30, n));
+  }
 
   const item = await prisma.contentItem.update({ where: { id }, data });
   return NextResponse.json(item);

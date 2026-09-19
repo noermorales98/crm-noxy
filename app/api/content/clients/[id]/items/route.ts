@@ -58,6 +58,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const type = ALLOWED_TYPES.includes(body.type) ? body.type : "video";
   const hooksAlt = Array.isArray(body.hooksAlt) ? JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim())) : null;
 
+  const reminderEnabled = typeof body.reminderEnabled === "boolean" ? body.reminderEnabled : false;
+  let reminderDaysBefore = 1;
+  if (typeof body.reminderDaysBefore === "number" && Number.isFinite(body.reminderDaysBefore)) {
+    reminderDaysBefore = Math.max(0, Math.min(30, Math.floor(body.reminderDaysBefore)));
+  } else if (typeof body.reminderDaysBefore === "string" && body.reminderDaysBefore.trim() !== "") {
+    const n = parseInt(body.reminderDaysBefore, 10);
+    if (!Number.isNaN(n)) reminderDaysBefore = Math.max(0, Math.min(30, n));
+  }
+
   const item = await prisma.contentItem.create({
     data: {
       clientId: id,
@@ -73,6 +82,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       cta: body.cta || null,
       tips: body.tips || null,
       note: body.note || null,
+      reminderEnabled,
+      reminderDaysBefore,
     },
   });
 

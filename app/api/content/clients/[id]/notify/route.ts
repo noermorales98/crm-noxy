@@ -6,16 +6,35 @@ import { sendCallMeBotMessage } from "@/src/lib/whatsapp";
 const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-export function buildRecordingMessage(clientName: string, item: {
-  date: Date; type: string; title: string; hook?: string | null; script?: string | null; tips?: string | null;
-}): string {
+export function buildRecordingMessage(
+  clientName: string,
+  item: {
+    date: Date;
+    type: string;
+    title: string;
+    hook?: string | null;
+    script?: string | null;
+    tips?: string | null;
+    time?: string | null;
+  },
+  options?: { daysBefore?: number }
+): string {
   const d = item.date;
   const fecha = `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`;
   const esEntrega = item.type === "entrega";
+  const daysBefore = options?.daysBefore;
+  let timing = "";
+  if (typeof daysBefore === "number") {
+    if (daysBefore === 0) timing = " (hoy)";
+    else if (daysBefore === 1) timing = " (mañana)";
+    else timing = ` (en ${daysBefore} días)`;
+  }
+
   let msg = `🎬 *${clientName}* — Recordatorio de contenido\n\n`;
   msg += esEntrega
-    ? `📅 El *${fecha}* toca GRABAR: *${item.title}*\n`
-    : `📅 El *${fecha}* tienes: *${item.title}*\n`;
+    ? `📅 El *${fecha}*${timing} toca GRABAR: *${item.title}*\n`
+    : `📅 El *${fecha}*${timing} tienes: *${item.title}*\n`;
+  if (item.time) msg += `🕐 Hora sugerida: ${item.time}\n`;
   if (item.hook) msg += `\n💡 Hook (primeros 3 seg):\n"${item.hook}"`;
   if (item.script) msg += `\n\n📝 Qué decir:\n${item.script}`;
   if (item.tips) msg += `\n\n✅ Sugerencias para grabar:\n${item.tips}`;
@@ -47,7 +66,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!item) return NextResponse.json({ error: "Pieza no encontrada" }, { status: 404 });
 
   const customMessage = typeof body?.message === "string" && body.message.trim() ? body.message.trim() : null;
-  const message = customMessage ?? buildRecordingMessage(client.name, item);
+  const message =
+    customMessage ??
+    buildRecordingMessage(client.name, item, {
+      daysBefore: item.reminderEnabled ? item.reminderDaysBefore : undefined,
+    });
 
   const results: { phone: string; ok: boolean; error?: string }[] = [];
   for (const p of client.phones) {

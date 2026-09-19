@@ -42,6 +42,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body.isActive === "boolean") data.isActive = body.isActive;
   // Regenerar enlace público (invalida el anterior)
   if (body.regenerateToken === true) data.publicToken = crypto.randomUUID().replace(/-/g, "");
+  if (typeof body.reminderHour === "number" && Number.isFinite(body.reminderHour)) {
+    data.reminderHour = Math.max(0, Math.min(23, Math.floor(body.reminderHour)));
+  }
+  if (typeof body.reminderMinute === "number" && Number.isFinite(body.reminderMinute)) {
+    data.reminderMinute = Math.max(0, Math.min(59, Math.floor(body.reminderMinute)));
+  }
 
   const client = await prisma.contentClient.update({
     where: { id },

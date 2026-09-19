@@ -19,6 +19,7 @@ type PhoneEntry = { id: string; label: string | null; phone: string; apiKey: str
 type ClientData = {
   id: string; name: string; kind: string; description: string | null;
   context: string | null; publicToken: string; phones: PhoneEntry[];
+  reminderHour: number; reminderMinute: number;
 };
 
 type AiIdea = {
@@ -34,6 +35,15 @@ const TYPE_OPTIONS = [
   { v: "historia", label: "Historia" },
   { v: "entrega", label: "Entrega / grabación" },
   { v: "edicion", label: "En edición" },
+];
+
+const REMINDER_DAYS_OPTIONS = [
+  { value: 0, label: "El mismo día" },
+  { value: 1, label: "1 día antes" },
+  { value: 2, label: "2 días antes" },
+  { value: 3, label: "3 días antes" },
+  { value: 5, label: "5 días antes" },
+  { value: 7, label: "7 días antes" },
 ];
 
 const inputClass =
@@ -67,6 +77,8 @@ function ItemEditor({
     cta: initial?.cta ?? "",
     tips: initial?.tips ?? "",
     note: initial?.note ?? "",
+    reminderEnabled: initial?.reminderEnabled ?? (initial?.type === "entrega"),
+    reminderDaysBefore: initial?.reminderDaysBefore ?? 1,
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +95,8 @@ function ItemEditor({
         hooksAlt: form.hooksAltText.split("\n").map((s) => s.trim()).filter(Boolean),
         script: form.script || null, caption: form.caption || null,
         cta: form.cta || null, tips: form.tips || null, note: form.note || null,
+        reminderEnabled: form.reminderEnabled,
+        reminderDaysBefore: form.reminderDaysBefore,
       };
       const res = await fetch(initial ? `/api/content/items/${initial.id}` : `/api/content/clients/${clientId}/items`, {
         method: initial ? "PATCH" : "POST",
@@ -119,7 +133,19 @@ function ItemEditor({
           </div>
           <div>
             <label className={labelClass}>Tipo</label>
-            <select className={inputClass} value={form.type} onChange={(e) => set("type", e.target.value)}>
+            <select
+              className={inputClass}
+              value={form.type}
+              onChange={(e) => {
+                const type = e.target.value;
+                setForm((f) => ({
+                  ...f,
+                  type,
+                  // Al marcar entrega, sugerir recordatorio 1 día antes si aún no hay uno
+                  reminderEnabled: type === "entrega" ? true : f.reminderEnabled,
+                }));
+              }}
+            >
               {TYPE_OPTIONS.map((t) => <option key={t.v} value={t.v}>{t.label}</option>)}
             </select>
           </div>
@@ -133,6 +159,35 @@ function ItemEditor({
         <div className="mb-3">
           <label className={labelClass}>Hora recomendada</label>
           <input className={inputClass} value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="Ej. 11:00 am" />
+        </div>
+
+        <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
+          <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.reminderEnabled}
+              onChange={(e) => setForm((f) => ({ ...f, reminderEnabled: e.target.checked }))}
+              className="rounded border-border-subtle"
+            />
+            <span className="font-medium">Recordatorio por WhatsApp</span>
+          </label>
+          <p className="text-xs text-text-secondary mt-1 mb-2">
+            Avisa a los números del panel WhatsApp el día que elijas (mismo día o días antes).
+          </p>
+          {form.reminderEnabled && (
+            <div>
+              <label className={labelClass}>Cuándo avisar</label>
+              <select
+                className={inputClass}
+                value={form.reminderDaysBefore}
+                onChange={(e) => setForm((f) => ({ ...f, reminderDaysBefore: Number(e.target.value) }))}
+              >
+                {REMINDER_DAYS_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="mb-3">
@@ -218,6 +273,10 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [phoneTestResult, setPhoneTestResult] = useState<string | null>(null);
   const [notifyBusy, setNotifyBusy] = useState(false);
   const [notifyResult, setNotifyResult] = useState<string | null>(null);
+  const [reminderHour, setReminderHour] = useState(client.reminderHour ?? 8);
+  const [reminderMinute, setReminderMinute] = useState(client.reminderMinute ?? 0);
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [scheduleResult, setScheduleResult] = useState<string | null>(null);
 
   // IA
   const [aiInstruction, setAiInstruction] = useState("");
@@ -305,6 +364,25 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     }
   };
 
+  const saveReminderSchedule = async () => {
+    setScheduleBusy(true);
+    setScheduleResult(null);
+    try {
+      const res = await fetch(`/api/content/clients/${client.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reminderHour, reminderMinute }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo guardar el horario");
+      setScheduleResult("✓ Horario de avisos guardado");
+    } catch (e: unknown) {
+      setScheduleResult(`✕ ${e instanceof Error ? e.message : "Error al guardar"}`);
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
   const notifyItem = async (item: ContentItemData) => {
     setNotifyBusy(true);
     setNotifyResult(null);
@@ -322,6 +400,11 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       setNotifyResult(
         `✓ Aviso enviado a ${data.sent} número(s)${data.failed ? ` · ${data.failed} fallaron${failedDetail ? ` (${failedDetail})` : ""}` : ""}`,
       );
+      if (data.sent > 0) {
+        const nowIso = new Date().toISOString();
+        setSelected((s) => (s && s.id === item.id ? { ...s, notifiedAt: nowIso } : s));
+        setItems((list) => list.map((it) => (it.id === item.id ? { ...it, notifiedAt: nowIso } : it)));
+      }
     } catch (e: unknown) {
       setNotifyResult(`✕ ${e instanceof Error ? e.message : "Error al enviar"}`);
     } finally {
@@ -473,9 +556,56 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Números de WhatsApp (CallMeBot)</p>
             <p className="text-xs text-text-secondary mb-3">
-              A estos números les llega el aviso de qué contenido grabar y cuándo. Cada número necesita su propia apikey de
-              callmebot.com (se obtiene escribiendo &quot;I allow callmebot to send me messages&quot; al bot).
+              A estos números les llega el aviso de las piezas que tengan recordatorio activado (mismo día o N días antes).
+              Cada número necesita su propia apikey de callmebot.com.
             </p>
+
+            <div className="mb-4 rounded-control border border-border-subtle bg-surface-app p-3">
+              <p className="text-xs font-semibold text-text-primary mb-1">Hora de envío automático</p>
+              <p className="text-xs text-text-secondary mb-2">
+                El cron revisa cada 15 min y envía en esta hora (zona horaria de la organización).
+              </p>
+              <div className="flex flex-wrap items-end gap-2">
+                <div>
+                  <label className={labelClass}>Hora</label>
+                  <select
+                    className={inputClass}
+                    value={reminderHour}
+                    onChange={(e) => setReminderHour(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={h}>{String(h).padStart(2, "0")}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Minuto</label>
+                  <select
+                    className={inputClass}
+                    value={reminderMinute}
+                    onChange={(e) => setReminderMinute(Number(e.target.value))}
+                  >
+                    {[0, 15, 30, 45].map((m) => (
+                      <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={saveReminderSchedule}
+                  disabled={scheduleBusy}
+                  className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50"
+                >
+                  {scheduleBusy ? "Guardando…" : "Guardar hora"}
+                </button>
+              </div>
+              {scheduleResult && (
+                <p className={`text-xs mt-2 ${scheduleResult.startsWith("✓") ? "text-[#6E7F5C]" : "text-red-600"}`}>
+                  {scheduleResult}
+                </p>
+              )}
+            </div>
+
             {phones.length > 0 && (
               <div className="flex flex-col gap-2 mb-3">
                 {phones.map((p) => (
@@ -733,6 +863,15 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               {selected.notifiedAt && !notifyResult && (
                 <p className="w-full text-xs mt-1 text-text-secondary">
                   Último aviso enviado: {new Date(selected.notifiedAt).toLocaleString("es-MX")}
+                </p>
+              )}
+              {selected.reminderEnabled && !selected.notifiedAt && !notifyResult && (
+                <p className="w-full text-xs mt-1 text-text-secondary">
+                  Aviso automático:{" "}
+                  {(selected.reminderDaysBefore ?? 1) === 0
+                    ? "el mismo día"
+                    : `${selected.reminderDaysBefore ?? 1} día(s) antes`}
+                  {" "}a las {String(reminderHour).padStart(2, "0")}:{String(reminderMinute).padStart(2, "0")}
                 </p>
               )}
             </>

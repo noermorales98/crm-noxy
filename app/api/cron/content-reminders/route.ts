@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/src/lib/db";
-import { sendCallMeBotMessage } from "@/src/lib/whatsapp";
-import { buildRecordingMessage } from "@/app/api/content/clients/[id]/notify/route";
+import { runContentReminders } from "@/src/lib/content-reminders";
 
 // GET /api/cron/content-reminders
-// Recorre las piezas de tipo "entrega" (día de grabación) de MAÑANA y avisa
-// automáticamente a los números CallMeBot de cada cliente qué contenido debe
-// grabar y con qué sugerencias. No repite avisos ya enviados (notifiedAt).
-// Frecuencia sugerida en cron-job.org: 1 vez al día (ej. 8:00 am).
+// Recorre piezas con reminderEnabled=true cuyo día de aviso
+// (date − reminderDaysBefore) es hoy, y envía WhatsApp vía CallMeBot
+// en la ventana horaria configurada por cliente (reminderHour/Minute).
+// Frecuencia sugerida en cron-job.org: cada 15 minutos.
 export async function GET(req: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET;
@@ -16,50 +14,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const now = new Date();
-    const tomorrowStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-    const tomorrowEnd = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
-    const twentyHoursAgo = new Date(now.getTime() - 20 * 60 * 60 * 1000);
-
-    const items = await prisma.contentItem.findMany({
-      where: {
-        type: "entrega",
-        date: { gte: tomorrowStart, lt: tomorrowEnd },
-        // No reenviar si ya se avisó de esta pieza (manual o automático) en las últimas 20 h
-        OR: [{ notifiedAt: null }, { notifiedAt: { lt: twentyHoursAgo } }],
-        client: { isActive: true, phones: { some: {} } },
-      },
-      include: { client: { include: { phones: true } } },
-    });
-
-    let sent = 0;
-    let failed = 0;
-    const details: any[] = [];
-
-    for (const item of items) {
-      const message = buildRecordingMessage(item.client.name, item);
-      let anyOk = false;
-      for (const phone of item.client.phones) {
-        const result = await sendCallMeBotMessage(phone.phone, phone.apiKey, message);
-        if (result.ok) {
-          sent++;
-          anyOk = true;
-        } else {
-          failed++;
-        }
-        details.push({ client: item.client.name, item: item.title, phone: phone.phone, ok: result.ok, error: result.error });
-      }
-      if (anyOk) {
-        await prisma.contentItem.update({ where: { id: item.id }, data: { notifiedAt: new Date() } });
-      }
-    }
+    const result = await runContentReminders();
 
     return NextResponse.json({
       message: "Recordatorios de contenido procesados",
-      itemsDue: items.length,
-      sent,
-      failed,
-      details,
+      ...result,
     });
   } catch (error) {
     console.error("GET /api/cron/content-reminders error:", error);

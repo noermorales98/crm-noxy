@@ -25,6 +25,8 @@ export default async function ContentClientPage({ params }: { params: Promise<{ 
         description: client.description,
         context: client.context,
         publicToken: client.publicToken,
+        reminderHour: client.reminderHour,
+        reminderMinute: client.reminderMinute,
         phones: client.phones.map((p) => ({ id: p.id, label: p.label, phone: p.phone, apiKey: p.apiKey })),
       }}
     />

@@ -1452,6 +1452,9 @@ model ContentClient {
   context     String?  @db.Text // voz de marca, audiencia, productos, tono — usado por la IA
   publicToken String   @unique @default(cuid())
   isActive    Boolean  @default(true)
+  // Hora local (timezone de la org) a la que salen los recordatorios WhatsApp
+  reminderHour   Int @default(8)
+  reminderMinute Int @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1490,6 +1493,9 @@ model ContentItem {
   cta      String?  @db.Text
   tips     String?  @db.Text // sugerencias para grabar
   note     String?  @db.Text
+  // Recordatorio WhatsApp por pieza (opt-in)
+  reminderEnabled    Boolean @default(false)
+  reminderDaysBefore Int     @default(1) // 0 = el mismo día, 1 = un día antes, etc.
   notifiedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1502,4 +1508,5 @@ model ContentItem {
   @@index([clientId])
   @@index([organizationId])
   @@index([date])
+  @@index([reminderEnabled, date])
 }

@@ -274,7 +274,7 @@ Todos requieren `Authorization: Bearer <CRON_SECRET>` en producción (configurad
 | `/api/cron/appointment-reminders` | 15 min | Recordatorios de citas (WhatsApp/email) |
 | `/api/cron/digest` | 15 min | Resumen CRM por WhatsApp (IA + CallMeBot) |
 | `/api/cron/google-calendar-reminders` | 15 min | Recordatorios de eventos de Google Calendar |
-| `/api/cron/content-reminders` | 1/día | Avisa a clientes qué contenido grabar mañana |
+| `/api/cron/content-reminders` | cada 15 min | Avisa piezas con recordatorio activo (mismo día o N días antes) |
 | `/api/cron/auto-archive` | (no documentado en CRON.md) | Auto-archiva deals según `Organization.autoArchiveDays` |
 
 ## Servidor MCP — `/mcp`

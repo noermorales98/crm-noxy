@@ -17,6 +17,8 @@ export type ContentItemData = {
   cta: string | null;
   tips: string | null;
   note: string | null;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: number;
   notifiedAt: string | null;
 };
 
@@ -232,6 +234,20 @@ export function ContentItemModal({
           <div className="ncc-block">
             <h3>Hora recomendada</h3>
             <p>{item.time} — pico de actividad en redes</p>
+          </div>
+        )}
+
+        {item.reminderEnabled && (
+          <div className="ncc-block">
+            <h3>Recordatorio WhatsApp</h3>
+            <p>
+              {(item.reminderDaysBefore ?? 1) === 0
+                ? "El mismo día de la publicación"
+                : (item.reminderDaysBefore ?? 1) === 1
+                  ? "1 día antes"
+                  : `${item.reminderDaysBefore} días antes`}
+              {item.notifiedAt ? " · ya enviado" : " · pendiente"}
+            </p>
           </div>
         )}
 

@@ -21,7 +21,7 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/appointment-reminders` | Cada 15 min | Recordatorios de citas (WhatsApp / email) |
 | `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot) |
 | `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
-| `GET /api/cron/content-reminders` | **1 vez al día** (ej. 8:00 am) | Avisa por WhatsApp a clientes qué contenido deben GRABAR al día siguiente (Gestión de contenido) |
+| `GET /api/cron/content-reminders` | **Cada 15 min** | Avisa por WhatsApp las piezas con recordatorio activo cuyo día de aviso es hoy (mismo día o N días antes; Gestión de contenido) |
 
 **Producción:**
 
@@ -112,6 +112,6 @@ https://crm-noxy.vercel.app/api/cron/google-calendar-reminders
 https://crm-noxy.vercel.app/api/cron/content-reminders
 ```
 
-`content-reminders` es el que avisa por WhatsApp (CallMeBot) qué hay que grabar al día siguiente. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.
+`content-reminders` envía por WhatsApp (CallMeBot) las piezas del calendario de contenido que tengan **recordatorio activado** y cuyo día de aviso (fecha de la pieza − días de anticipación) sea hoy, en la hora configurada por cliente en el panel WhatsApp. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.
 
-Los números salen del panel WhatsApp de cada cliente en Gestión de contenido, no de Ajustes → CallMeBot.
+Los números salen del panel WhatsApp de cada cliente en Gestión de contenido, no de Ajustes → CallMeBot. En cada pieza puedes activar el recordatorio y elegir “el mismo día” o N días antes.
