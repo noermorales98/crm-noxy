@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
 
@@ -31,11 +32,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.hooksAlt = JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim()));
   }
   if (typeof body.reminderEnabled === "boolean") data.reminderEnabled = body.reminderEnabled;
-  if (typeof body.reminderDaysBefore === "number" && Number.isFinite(body.reminderDaysBefore)) {
-    data.reminderDaysBefore = Math.max(0, Math.min(30, Math.floor(body.reminderDaysBefore)));
-  } else if (typeof body.reminderDaysBefore === "string" && body.reminderDaysBefore.trim() !== "") {
-    const n = parseInt(body.reminderDaysBefore, 10);
-    if (!Number.isNaN(n)) data.reminderDaysBefore = Math.max(0, Math.min(30, n));
+  if (body.reminderDaysBefore !== undefined) {
+    data.reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, existing.reminderDaysBefore);
   }
 
   const item = await prisma.contentItem.update({ where: { id }, data });

@@ -341,7 +341,7 @@ Teléfono CallMeBot del cliente de contenido. `id`, `label String?`, `phone`, `a
 Pieza del calendario de contenido. `id`, `date DateTime`, `type @default("video")` (video|reel|flyer|historia|entrega|edicion), `title`, `time String?`, `hook/hooksAlt/script/caption/cta/tips/note @db.Text?`, `reminderEnabled Boolean @default(false)`, `reminderDaysBefore Int @default(1)` (0 = mismo día), `notifiedAt DateTime?`; `clientId` (Cascade), `organizationId` (Cascade).
 
 ### ContentClient (campos de aviso)
-Además de name/kind/context/publicToken: `reminderHour Int @default(8)`, `reminderMinute Int @default(0)` — hora local (timezone de la org) en la que el cron envía los WhatsApp de piezas con recordatorio.
+Además de name/kind/context/publicToken: `reminderHour Int @default(8)`, `reminderMinute Int @default(0)`, `reminderDaysBefore Int @default(1)` — cuándo (mismo día o N días antes) y a qué hora local (timezone de la org) el cron envía los WhatsApp. Es el default del calendario; cada pieza puede sobreescribir `reminderDaysBefore`.
 
 ---
 

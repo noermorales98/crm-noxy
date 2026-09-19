@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
 
 async function getClient(id: string, orgId: string) {
   return prisma.contentClient.findFirst({
@@ -48,12 +49,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body.reminderMinute === "number" && Number.isFinite(body.reminderMinute)) {
     data.reminderMinute = Math.max(0, Math.min(59, Math.floor(body.reminderMinute)));
   }
+  if (body.reminderDaysBefore !== undefined) {
+    data.reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, existing.reminderDaysBefore);
+  }
 
   const client = await prisma.contentClient.update({
     where: { id },
     data,
     include: { phones: { orderBy: { createdAt: "asc" } } },
   });
+
+  if (body.applyToEnabledItems === true && typeof data.reminderDaysBefore === "number") {
+    await prisma.contentItem.updateMany({
+      where: { clientId: id, organizationId: orgId, reminderEnabled: true },
+      data: { reminderDaysBefore: data.reminderDaysBefore },
+    });
+  }
 
   return NextResponse.json(client);
 }

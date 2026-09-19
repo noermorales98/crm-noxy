@@ -212,10 +212,12 @@ export function ContentItemModal({
   item,
   onClose,
   actions,
+  showReminder = false,
 }: {
   item: ContentItemData;
   onClose: () => void;
   actions?: React.ReactNode;
+  showReminder?: boolean;
 }) {
   const meta = TYPE_META[item.type] ?? TYPE_META.video;
   const hooksAlt = parseHooksAlt(item.hooksAlt);
@@ -232,12 +234,12 @@ export function ContentItemModal({
 
         {item.time && (
           <div className="ncc-block">
-            <h3>Hora recomendada</h3>
+            <h3>Hora de publicación</h3>
             <p>{item.time} — pico de actividad en redes</p>
           </div>
         )}
 
-        {item.reminderEnabled && (
+        {showReminder && item.reminderEnabled && (
           <div className="ncc-block">
             <h3>Recordatorio WhatsApp</h3>
             <p>
@@ -322,7 +324,11 @@ export function ContentItemModal({
           </div>
         )}
 
-        {actions && <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap" }}>{actions}</div>}
+        {actions && (
+          <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {actions}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
 
@@ -45,7 +46,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!orgId) return NextResponse.json({ error: "Sin organización" }, { status: 400 });
 
   const { id } = await params;
-  const client = await prisma.contentClient.findFirst({ where: { id, organizationId: orgId }, select: { id: true } });
+  const client = await prisma.contentClient.findFirst({
+    where: { id, organizationId: orgId },
+    select: { id: true, reminderDaysBefore: true },
+  });
   if (!client) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
@@ -59,13 +63,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const hooksAlt = Array.isArray(body.hooksAlt) ? JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim())) : null;
 
   const reminderEnabled = typeof body.reminderEnabled === "boolean" ? body.reminderEnabled : false;
-  let reminderDaysBefore = 1;
-  if (typeof body.reminderDaysBefore === "number" && Number.isFinite(body.reminderDaysBefore)) {
-    reminderDaysBefore = Math.max(0, Math.min(30, Math.floor(body.reminderDaysBefore)));
-  } else if (typeof body.reminderDaysBefore === "string" && body.reminderDaysBefore.trim() !== "") {
-    const n = parseInt(body.reminderDaysBefore, 10);
-    if (!Number.isNaN(n)) reminderDaysBefore = Math.max(0, Math.min(30, n));
-  }
+  const reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, client.reminderDaysBefore);
 
   const item = await prisma.contentItem.create({
     data: {

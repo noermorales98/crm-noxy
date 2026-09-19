@@ -11,6 +11,10 @@ import {
   CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal,
   monthLabel, type ContentItemData,
 } from "./ContentCalendar";
+import {
+  reminderDaysLabel,
+  reminderDaysSelectOptions,
+} from "@/src/lib/content-reminder-options";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -19,7 +23,7 @@ type PhoneEntry = { id: string; label: string | null; phone: string; apiKey: str
 type ClientData = {
   id: string; name: string; kind: string; description: string | null;
   context: string | null; publicToken: string; phones: PhoneEntry[];
-  reminderHour: number; reminderMinute: number;
+  reminderHour: number; reminderMinute: number; reminderDaysBefore: number;
 };
 
 type AiIdea = {
@@ -37,18 +41,29 @@ const TYPE_OPTIONS = [
   { v: "edicion", label: "En edición" },
 ];
 
-const REMINDER_DAYS_OPTIONS = [
-  { value: 0, label: "El mismo día" },
-  { value: 1, label: "1 día antes" },
-  { value: 2, label: "2 días antes" },
-  { value: 3, label: "3 días antes" },
-  { value: 5, label: "5 días antes" },
-  { value: 7, label: "7 días antes" },
-];
-
 const inputClass =
   "noxy-form-control";
 const labelClass = "block text-xs font-medium text-text-secondary mb-1";
+
+function ReminderWhenSelect({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (days: number) => void;
+}) {
+  return (
+    <select
+      className={inputClass}
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+    >
+      {reminderDaysSelectOptions(value).map((option) => (
+        <option key={option.value} value={option.value}>{option.label}</option>
+      ))}
+    </select>
+  );
+}
 
 // ─── Modal editor de pieza ────────────────────────────────────────────────────
 
@@ -56,12 +71,18 @@ function ItemEditor({
   clientId,
   initial,
   defaultDate,
+  defaultDaysBefore,
+  sendHour,
+  sendMinute,
   onClose,
   onSaved,
 }: {
   clientId: string;
   initial: ContentItemData | null;
   defaultDate: string;
+  defaultDaysBefore: number;
+  sendHour: number;
+  sendMinute: number;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -78,7 +99,7 @@ function ItemEditor({
     tips: initial?.tips ?? "",
     note: initial?.note ?? "",
     reminderEnabled: initial?.reminderEnabled ?? (initial?.type === "entrega"),
-    reminderDaysBefore: initial?.reminderDaysBefore ?? 1,
+    reminderDaysBefore: initial?.reminderDaysBefore ?? defaultDaysBefore ?? 1,
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -141,7 +162,7 @@ function ItemEditor({
                 setForm((f) => ({
                   ...f,
                   type,
-                  // Al marcar entrega, sugerir recordatorio 1 día antes si aún no hay uno
+                  // Al marcar entrega, activar recordatorio si aún no hay uno
                   reminderEnabled: type === "entrega" ? true : f.reminderEnabled,
                 }));
               }}
@@ -157,8 +178,8 @@ function ItemEditor({
         </div>
 
         <div className="mb-3">
-          <label className={labelClass}>Hora recomendada</label>
-          <input className={inputClass} value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="Ej. 11:00 am" />
+          <label className={labelClass}>Hora de publicación <span className="font-normal opacity-70">(opcional)</span></label>
+          <input className={inputClass} value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="Ej. 11:00 am — pico de redes, no es el aviso" />
         </div>
 
         <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
@@ -171,23 +192,23 @@ function ItemEditor({
             />
             <span className="font-medium">Recordatorio por WhatsApp</span>
           </label>
-          <p className="text-xs text-text-secondary mt-1 mb-2">
-            Avisa a los números del panel WhatsApp el día que elijas (mismo día o días antes).
+          <p className="text-xs text-text-secondary mt-1 mb-3">
+            Elige si avisamos el mismo día o con anticipación. La hora de envío se configura en el panel WhatsApp.
           </p>
-          {form.reminderEnabled && (
-            <div>
-              <label className={labelClass}>Cuándo avisar</label>
-              <select
-                className={inputClass}
-                value={form.reminderDaysBefore}
-                onChange={(e) => setForm((f) => ({ ...f, reminderDaysBefore: Number(e.target.value) }))}
-              >
-                {REMINDER_DAYS_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div>
+            <label className={labelClass}>Cuándo avisar</label>
+            <ReminderWhenSelect
+              value={form.reminderDaysBefore}
+              onChange={(days) => setForm((f) => ({
+                ...f,
+                reminderDaysBefore: days,
+                reminderEnabled: true,
+              }))}
+            />
+            <p className="text-xs text-text-secondary mt-2">
+              Se enviará {reminderDaysLabel(form.reminderDaysBefore).toLowerCase()} a las {String(sendHour).padStart(2, "0")}:{String(sendMinute).padStart(2, "0")}.
+            </p>
+          </div>
         </div>
 
         <div className="mb-3">
@@ -275,6 +296,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [notifyResult, setNotifyResult] = useState<string | null>(null);
   const [reminderHour, setReminderHour] = useState(client.reminderHour ?? 8);
   const [reminderMinute, setReminderMinute] = useState(client.reminderMinute ?? 0);
+  const [reminderDaysBefore, setReminderDaysBefore] = useState(client.reminderDaysBefore ?? 1);
   const [scheduleBusy, setScheduleBusy] = useState(false);
   const [scheduleResult, setScheduleResult] = useState<string | null>(null);
 
@@ -371,11 +393,20 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       const res = await fetch(`/api/content/clients/${client.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reminderHour, reminderMinute }),
+        body: JSON.stringify({
+          reminderHour,
+          reminderMinute,
+          reminderDaysBefore,
+          applyToEnabledItems: true,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "No se pudo guardar el horario");
-      setScheduleResult("✓ Horario de avisos guardado");
+      setScheduleResult("✓ Avisos guardados (incluidas las piezas con recordatorio activado)");
+      setItems((list) => list.map((item) => (
+        item.reminderEnabled ? { ...item, reminderDaysBefore } : item
+      )));
+      setSelected((s) => (s?.reminderEnabled ? { ...s, reminderDaysBefore } : s));
     } catch (e: unknown) {
       setScheduleResult(`✕ ${e instanceof Error ? e.message : "Error al guardar"}`);
     } finally {
@@ -412,6 +443,25 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     }
   };
 
+  const patchItemReminder = async (
+    item: ContentItemData,
+    patch: { reminderEnabled?: boolean; reminderDaysBefore?: number },
+  ) => {
+    const res = await fetch(`/api/content/items/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) return;
+    const updated = await res.json().catch(() => null);
+    const next = {
+      reminderEnabled: updated?.reminderEnabled ?? patch.reminderEnabled ?? item.reminderEnabled,
+      reminderDaysBefore: updated?.reminderDaysBefore ?? patch.reminderDaysBefore ?? item.reminderDaysBefore,
+    };
+    setSelected((s) => (s && s.id === item.id ? { ...s, ...next } : s));
+    setItems((list) => list.map((it) => (it.id === item.id ? { ...it, ...next } : it)));
+  };
+
   const generateIdeas = async () => {
     setAiBusy(true); setAiError(""); setAiWarning(""); setAddedIdeas(new Set());
     try {
@@ -440,7 +490,12 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
     const res = await fetch(`/api/content/clients/${client.id}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...idea, hooksAlt: [] }),
+      body: JSON.stringify({
+        ...idea,
+        hooksAlt: [],
+        reminderEnabled: idea.type === "entrega",
+        reminderDaysBefore,
+      }),
     });
     if (res.ok) {
       setAddedIdeas((s) => new Set(s).add(idx));
@@ -561,11 +616,15 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
             </p>
 
             <div className="mb-4 rounded-control border border-border-subtle bg-surface-app p-3">
-              <p className="text-xs font-semibold text-text-primary mb-1">Hora de envío automático</p>
-              <p className="text-xs text-text-secondary mb-2">
-                El cron revisa cada 15 min y envía en esta hora (zona horaria de la organización).
+              <p className="text-xs font-semibold text-text-primary mb-1">Recordatorios automáticos</p>
+              <p className="text-xs text-text-secondary mb-3">
+                Configura cuándo y a qué hora sale el WhatsApp. Al guardar, se aplica a las piezas con recordatorio activado y queda como default de las nuevas.
               </p>
-              <div className="flex flex-wrap items-end gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Cuándo avisar</label>
+                  <ReminderWhenSelect value={reminderDaysBefore} onChange={setReminderDaysBefore} />
+                </div>
                 <div>
                   <label className={labelClass}>Hora</label>
                   <select
@@ -590,15 +649,15 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                     ))}
                   </select>
                 </div>
-                <button
-                  type="button"
-                  onClick={saveReminderSchedule}
-                  disabled={scheduleBusy}
-                  className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50"
-                >
-                  {scheduleBusy ? "Guardando…" : "Guardar hora"}
-                </button>
               </div>
+              <button
+                type="button"
+                onClick={saveReminderSchedule}
+                disabled={scheduleBusy}
+                className="min-h-10 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:opacity-50"
+              >
+                {scheduleBusy ? "Guardando…" : "Guardar avisos"}
+              </button>
               {scheduleResult && (
                 <p className={`text-xs mt-2 ${scheduleResult.startsWith("✓") ? "text-[#6E7F5C]" : "text-red-600"}`}>
                   {scheduleResult}
@@ -833,6 +892,35 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           onClose={() => setSelected(null)}
           actions={
             <>
+              <div className="w-full basis-full rounded-control border border-border-subtle bg-surface-app p-3 mb-1">
+                <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!selected.reminderEnabled}
+                    onChange={(e) => patchItemReminder(selected, {
+                      reminderEnabled: e.target.checked,
+                      reminderDaysBefore: selected.reminderDaysBefore ?? reminderDaysBefore,
+                    })}
+                    className="rounded border-border-subtle"
+                  />
+                  <span className="font-medium">Recordatorio por WhatsApp</span>
+                </label>
+                <div className="mt-2">
+                  <label className={labelClass}>Cuándo avisar</label>
+                  <ReminderWhenSelect
+                    value={selected.reminderDaysBefore ?? reminderDaysBefore}
+                    onChange={(days) => patchItemReminder(selected, {
+                      reminderEnabled: true,
+                      reminderDaysBefore: days,
+                    })}
+                  />
+                  <p className="text-xs text-text-secondary mt-2">
+                    {selected.reminderEnabled
+                      ? `Aviso automático: ${reminderDaysLabel(selected.reminderDaysBefore ?? reminderDaysBefore).toLowerCase()} a las ${String(reminderHour).padStart(2, "0")}:${String(reminderMinute).padStart(2, "0")}`
+                      : "Actívalo o elige cuándo avisar para programar el WhatsApp."}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => notifyItem(selected)}
                 disabled={notifyBusy || phones.length === 0}
@@ -865,15 +953,6 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                   Último aviso enviado: {new Date(selected.notifiedAt).toLocaleString("es-MX")}
                 </p>
               )}
-              {selected.reminderEnabled && !selected.notifiedAt && !notifyResult && (
-                <p className="w-full text-xs mt-1 text-text-secondary">
-                  Aviso automático:{" "}
-                  {(selected.reminderDaysBefore ?? 1) === 0
-                    ? "el mismo día"
-                    : `${selected.reminderDaysBefore ?? 1} día(s) antes`}
-                  {" "}a las {String(reminderHour).padStart(2, "0")}:{String(reminderMinute).padStart(2, "0")}
-                </p>
-              )}
             </>
           }
         />
@@ -885,6 +964,9 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           clientId={client.id}
           initial={editing}
           defaultDate={newForDate ?? ""}
+          defaultDaysBefore={reminderDaysBefore}
+          sendHour={reminderHour}
+          sendMinute={reminderMinute}
           onClose={() => { setEditing(null); setNewForDate(null); }}
           onSaved={loadItems}
         />
