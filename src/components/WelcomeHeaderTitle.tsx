@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useHeader } from "@/src/context/HeaderContext";
 import { PencilEdit01Icon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import { userAvatarSrc, welcomeGreeting } from "@/src/lib/user-sexo";
 
 interface WelcomeHeaderTitleProps {
   editMode?: boolean;
@@ -14,6 +15,7 @@ export function WelcomeHeaderTitle({ editMode = false, onToggleEditMode }: Welco
   const { data: session } = useSession();
   const { setConfig, resetState } = useHeader();
   const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "";
+  const sexo = session?.user?.sexo;
 
   useEffect(() => {
     resetState();
@@ -23,8 +25,8 @@ export function WelcomeHeaderTitle({ editMode = false, onToggleEditMode }: Welco
     setConfig({
       title: (
         <span className="flex items-center gap-2">
-          <span className="max-sm:hidden">Bienvenido,</span>
-          <img src="/avt.webp" alt="" className="hidden sm:block w-7 h-7 rounded-control object-cover shrink-0" />
+          <span className="max-sm:hidden">{welcomeGreeting(sexo)},</span>
+          <img src={userAvatarSrc(sexo)} alt="" className="hidden sm:block w-7 h-7 rounded-control object-cover shrink-0" />
           {firstName}
         </span>
       ),
@@ -41,7 +43,7 @@ export function WelcomeHeaderTitle({ editMode = false, onToggleEditMode }: Welco
         : undefined,
     });
     return () => setConfig({});
-  }, [firstName, editMode, onToggleEditMode]);
+  }, [firstName, sexo, editMode, onToggleEditMode]);
 
   return null;
 }

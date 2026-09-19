@@ -9,13 +9,16 @@ import {
   parsePermissionsFromBody,
   type RoleName,
 } from "@/src/lib/permissions";
+import { parseSexo, type Sexo } from "@/src/lib/user-sexo";
+
+const USER_SELECT = { id: true, name: true, email: true, sexo: true } as const;
 
 function serializeMember(member: {
   id: string;
   role: RoleName;
   permissions: Prisma.JsonValue | null;
   createdAt: Date;
-  user: { id: string; name: string | null; email: string };
+  user: { id: string; name: string | null; email: string; sexo: Sexo };
 }) {
   return {
     id: member.id,
@@ -33,7 +36,7 @@ export async function GET() {
   const members = await prisma.organizationMember.findMany({
     where: { organizationId: ctx.orgId },
     orderBy: { createdAt: "asc" },
-    include: { user: { select: { id: true, name: true, email: true } } },
+    include: { user: { select: USER_SELECT } },
   });
 
   const rank: Record<RoleName, number> = { OWNER: 0, ADMIN: 1, MEMBER: 2 };
@@ -51,6 +54,7 @@ export async function POST(req: Request) {
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body?.password === "string" ? body.password : "";
   const role: RoleName = body?.role === "ADMIN" ? "ADMIN" : "MEMBER";
+  const sexo = parseSexo(body?.sexo);
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "Nombre, correo y contraseña son obligatorios" }, { status: 400 });
@@ -69,7 +73,7 @@ export async function POST(req: Request) {
 
   const member = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
-      data: { email, name, passwordHash },
+      data: { email, name, passwordHash, sexo },
     });
     return tx.organizationMember.create({
       data: {
@@ -78,7 +82,7 @@ export async function POST(req: Request) {
         organizationId: ctx.orgId,
         userId: user.id,
       },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: USER_SELECT } },
     });
   });
 

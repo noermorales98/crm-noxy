@@ -99,14 +99,33 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
 
     const email = await prisma.email.findUnique({
       where: { id },
-      select: { organizationId: true },
+      select: { organizationId: true, companyId: true, messageId: true },
     });
 
     if (!email || email.organizationId !== currentOrganizationId) {
       return NextResponse.json({ error: "Email not found" }, { status: 404 });
     }
 
-    await prisma.email.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      if (email.messageId) {
+        await tx.deletedEmail.upsert({
+          where: {
+            companyId_messageId: {
+              companyId: email.companyId,
+              messageId: email.messageId,
+            },
+          },
+          create: {
+            messageId: email.messageId,
+            companyId: email.companyId,
+            organizationId: email.organizationId,
+          },
+          update: {},
+        });
+      }
+      await tx.email.delete({ where: { id } });
+    });
+
     return NextResponse.json({ message: "Email deleted" }, { status: 200 });
   } catch (error: any) {
     console.error("DELETE /api/emails/[id] error:", error);

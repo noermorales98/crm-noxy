@@ -34,6 +34,11 @@ async function syncMailbox(
   const lock = await client.getMailboxLock(mailboxPath);
   let newMaxUid = lastUid;
   let fetched = 0;
+  const deletedRows = await prisma.deletedEmail.findMany({
+    where: { companyId: company.id },
+    select: { messageId: true },
+  });
+  const deletedMessageIds = new Set(deletedRows.map((row) => row.messageId));
 
   try {
     // Fetch ALL messages by sequence number '1:*' — always fetch all, skip by UID.
@@ -52,6 +57,9 @@ async function syncMailbox(
       if (uid > newMaxUid) newMaxUid = uid;
 
       const envelope = msg.envelope as any;
+      if (envelope.messageId && deletedMessageIds.has(envelope.messageId)) {
+        continue;
+      }
 
       // Parse the full RFC822 source first — mailparser correctly handles
       // encoded headers (From, To, Subject, Date) that the IMAP envelope
@@ -128,6 +136,9 @@ async function syncMailbox(
         company.imapUser;
 
       // Dedup by messageId to avoid storing the same email twice
+      if (messageId && deletedMessageIds.has(messageId)) {
+        continue;
+      }
       if (messageId) {
         const existing = await prisma.email.findFirst({
           where: { messageId, companyId: company.id },

@@ -18,6 +18,7 @@ import {
   KB_MARKDOWN_THEMES,
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
+import { userAvatarSrc } from "@/src/lib/user-sexo";
 
 export interface KbBreadcrumb {
   id: string;
@@ -391,7 +392,7 @@ export default function KbEditorNavbar({
               title={session?.user?.name || "Usuario"}
             >
               <img
-                src="/avt.webp"
+                src={userAvatarSrc(session?.user?.sexo)}
                 alt={session?.user?.name || "Usuario"}
                 className="h-full w-full object-cover"
               />

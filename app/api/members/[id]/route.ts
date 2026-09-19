@@ -8,6 +8,9 @@ import {
   parsePermissionsFromBody,
   type RoleName,
 } from "@/src/lib/permissions";
+import { isSexo } from "@/src/lib/user-sexo";
+
+const USER_SELECT = { id: true, name: true, email: true, sexo: true } as const;
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const ctx = await requireTeamManager();
@@ -16,12 +19,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const { id } = await params;
   const member = await prisma.organizationMember.findFirst({
     where: { id, organizationId: ctx.orgId },
-    include: { user: { select: { id: true, name: true, email: true } } },
+    include: { user: { select: USER_SELECT } },
   });
   if (!member) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
   const body = await req.json().catch(() => null);
   const data: { role?: RoleName; permissions?: ReturnType<typeof parsePermissionsFromBody> } = {};
+  const sexo = isSexo(body?.sexo) ? body.sexo : undefined;
 
   if (body?.role === "ADMIN" || body?.role === "MEMBER") {
     if (member.role === "OWNER") {
@@ -35,18 +39,30 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.permissions = nextRole === "ADMIN" ? ALL_PERMISSIONS : parsePermissionsFromBody(body.permissions);
   }
 
-  if (!data.role && !data.permissions) {
+  if (!data.role && !data.permissions && !sexo) {
     return NextResponse.json({ error: "Nada que actualizar" }, { status: 400 });
   }
 
-  const updated = await prisma.organizationMember.update({
-    where: { id },
-    data: {
-      ...(data.role ? { role: data.role } : {}),
-      ...(data.permissions ? { permissions: data.permissions as Prisma.InputJsonValue } : {}),
-    },
-    include: { user: { select: { id: true, name: true, email: true } } },
-  });
+  if (sexo) {
+    await prisma.user.update({
+      where: { id: member.userId },
+      data: { sexo },
+    });
+  }
+
+  const updated = data.role || data.permissions
+    ? await prisma.organizationMember.update({
+        where: { id },
+        data: {
+          ...(data.role ? { role: data.role } : {}),
+          ...(data.permissions ? { permissions: data.permissions as Prisma.InputJsonValue } : {}),
+        },
+        include: { user: { select: USER_SELECT } },
+      })
+    : await prisma.organizationMember.findFirstOrThrow({
+        where: { id },
+        include: { user: { select: USER_SELECT } },
+      });
 
   return NextResponse.json({
     id: updated.id,

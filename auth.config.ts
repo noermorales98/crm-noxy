@@ -9,6 +9,7 @@ import {
   type ModulePermissions,
   type RoleName,
 } from "@/src/lib/permissions";
+import { parseSexo } from "@/src/lib/user-sexo";
 
 export const authConfig = {
   secret: process.env.AUTH_SECRET,
@@ -62,11 +63,13 @@ export const authConfig = {
         token.currentOrganizationId = user.currentOrganizationId;
         token.role = user.role;
         token.permissions = user.permissions;
+        token.sexo = parseSexo(user.sexo);
       }
       if (trigger === "update" && session) {
         if (session.currentOrganizationId) token.currentOrganizationId = session.currentOrganizationId as string;
         if (session.role) token.role = session.role as RoleName;
         if (session.permissions) token.permissions = session.permissions as ModulePermissions;
+        if (session.user?.sexo) token.sexo = parseSexo(session.user.sexo);
       }
       return token;
     },
@@ -76,6 +79,7 @@ export const authConfig = {
         session.currentOrganizationId = token.currentOrganizationId as string | null;
         session.role = (token.role as RoleName | null | undefined) ?? null;
         session.permissions = token.permissions as ModulePermissions | undefined;
+        session.user.sexo = parseSexo(token.sexo);
       }
       return session;
     },

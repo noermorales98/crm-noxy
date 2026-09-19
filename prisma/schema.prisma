@@ -13,6 +13,7 @@ model User {
   email         String               @unique
   passwordHash  String
   crmTheme      String               @default("noxy-indigo")
+  sexo          Sexo                 @default(MASCULINO)
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
   organizations OrganizationMember[]
@@ -113,6 +114,7 @@ model Organization {
   companies             Company[]
   contacts              Contact[]
   emails                Email[]
+  deletedEmails         DeletedEmail[]
   pipelines             Pipeline[]
   deals                 Deal[]
   activityLogs          ActivityLog[]
@@ -146,6 +148,11 @@ model Organization {
   quoteSettings         QuoteSettings?
   contentClients        ContentClient[]
   contentItems          ContentItem[]
+}
+
+enum Sexo {
+  MASCULINO
+  FEMENINO
 }
 
 enum Role {
@@ -288,6 +295,7 @@ model Company {
   emailAccountProjects Project[] @relation("ProjectEmailAccount")
 
   emails           Email[]
+  deletedEmails    DeletedEmail[]
   appointmentTypes AppointmentType[]
 
   // Cotizaciones donde esta empresa es la remitente
@@ -974,6 +982,20 @@ model EmailAttachment {
   email   Email  @relation(fields: [emailId], references: [id], onDelete: Cascade)
 
   @@index([emailId])
+}
+
+model DeletedEmail {
+  id             String   @id @default(cuid())
+  messageId      String   @db.VarChar(500)
+  createdAt      DateTime @default(now())
+
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, messageId])
+  @@index([organizationId])
 }
 
 model Client {

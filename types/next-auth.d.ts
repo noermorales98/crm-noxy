@@ -1,5 +1,6 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import type { ModulePermissions, RoleName } from "@/src/lib/permissions"
+import type { Sexo } from "@/src/lib/user-sexo"
 
 declare module "next-auth" {
   interface Session {
@@ -8,6 +9,7 @@ declare module "next-auth" {
     permissions?: ModulePermissions;
     user: {
       id: string;
+      sexo?: Sexo;
     } & DefaultSession["user"]
   }
 
@@ -15,6 +17,7 @@ declare module "next-auth" {
     currentOrganizationId?: string | null;
     role?: RoleName | null;
     permissions?: ModulePermissions;
+    sexo?: Sexo;
   }
 }
 
@@ -24,5 +27,6 @@ declare module "next-auth/jwt" {
     currentOrganizationId?: string | null;
     role?: RoleName | null;
     permissions?: ModulePermissions;
+    sexo?: Sexo;
   }
 }

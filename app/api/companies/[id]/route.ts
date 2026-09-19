@@ -21,9 +21,10 @@ export async function DELETE(req: Request, context: { params: Promise<{ id: stri
       return NextResponse.json({ error: "Company not found or unauthorized" }, { status: 404 });
     }
 
-    await prisma.company.delete({
-      where: { id }
-    });
+    await prisma.$transaction([
+      prisma.email.deleteMany({ where: { companyId: id } }),
+      prisma.company.delete({ where: { id } }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

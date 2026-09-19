@@ -51,6 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             currentOrganizationId: membership?.organizationId || null,
             role,
             permissions: normalizePermissions(membership?.permissions, role),
+            sexo: user.sexo,
           };
         } catch (error) {
           // Avoid opaque 500s when Hostinger hits max_connections_per_hour

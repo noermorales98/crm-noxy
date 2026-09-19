@@ -10,13 +10,20 @@ import {
   type ModulePermissions,
   type RoleName,
 } from "@/src/lib/permissions";
+import { parseSexo, type Sexo } from "@/src/lib/user-sexo";
 
 type MemberRow = {
   id: string;
   role: RoleName;
   permissions: ModulePermissions;
   createdAt: string;
-  user: { id: string; name: string | null; email: string };
+  user: { id: string; name: string | null; email: string; sexo: Sexo };
+};
+
+type MemberDraft = {
+  role?: Exclude<RoleName, "OWNER">;
+  permissions?: ModulePermissions;
+  sexo?: Sexo;
 };
 
 const ROLE_LABEL: Record<RoleName, string> = {
@@ -41,9 +48,10 @@ export default function EquipoPage() {
     email: "",
     password: "",
     role: "MEMBER" as Exclude<RoleName, "OWNER">,
+    sexo: "MASCULINO" as Sexo,
     permissions: emptyPermissions("MEMBER"),
   });
-  const [editing, setEditing] = useState<Record<string, { role: Exclude<RoleName, "OWNER">; permissions: ModulePermissions }>>({});
+  const [editing, setEditing] = useState<Record<string, MemberDraft>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = async () => {
@@ -97,6 +105,7 @@ export default function EquipoPage() {
         email: "",
         password: "",
         role: "MEMBER",
+        sexo: "MASCULINO",
         permissions: emptyPermissions("MEMBER"),
       });
       await load();
@@ -114,10 +123,17 @@ export default function EquipoPage() {
     setError(null);
     setSuccess(null);
     try {
+      const payload = member.role === "OWNER"
+        ? { sexo: draft.sexo }
+        : {
+            role: draft.role,
+            permissions: draft.permissions,
+            sexo: draft.sexo,
+          };
       const res = await fetch(`/api/members/${member.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo guardar");
@@ -126,7 +142,7 @@ export default function EquipoPage() {
         delete next[member.id];
         return next;
       });
-      setSuccess("Permisos actualizados. El usuario debe volver a iniciar sesión.");
+      setSuccess("Cambios guardados. El usuario debe volver a iniciar sesión.");
       await load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error al guardar");
@@ -154,6 +170,25 @@ export default function EquipoPage() {
   const currentUserId = session?.user?.id;
 
   const permissionChecks = useMemo(() => PERMISSION_MODULES, []);
+
+  const memberSexo = (member: MemberRow) => editing[member.id]?.sexo ?? parseSexo(member.user.sexo);
+
+  const setMemberSexo = (member: MemberRow, sexo: Sexo) => {
+    setEditing((prev) => {
+      const draft = prev[member.id];
+      if (member.role === "OWNER") {
+        return { ...prev, [member.id]: { sexo } };
+      }
+      return {
+        ...prev,
+        [member.id]: {
+          role: (draft?.role ?? member.role) as Exclude<RoleName, "OWNER">,
+          permissions: draft?.permissions ?? member.permissions,
+          sexo,
+        },
+      };
+    });
+  };
 
   return (
     <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
@@ -207,6 +242,18 @@ export default function EquipoPage() {
               >
                 <option value="MEMBER">Miembro</option>
                 <option value="ADMIN">Admin</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-primary mb-1" htmlFor="member-sexo">Sexo</label>
+              <select
+                id="member-sexo"
+                className={input}
+                value={form.sexo}
+                onChange={(e) => setForm((f) => ({ ...f, sexo: e.target.value as Sexo }))}
+              >
+                <option value="MASCULINO">Masculino</option>
+                <option value="FEMENINO">Femenino</option>
               </select>
             </div>
           </div>
@@ -268,7 +315,29 @@ export default function EquipoPage() {
                     </div>
 
                     {isOwner ? (
-                      <p className="text-xs text-text-secondary">Acceso total. No se puede editar ni eliminar.</p>
+                      <>
+                        <p className="text-xs text-text-secondary mb-3">Acceso total. No se puede cambiar el rol ni eliminar.</p>
+                        <div className="mb-3 max-w-xs">
+                          <label className="block text-xs font-medium text-text-primary mb-1" htmlFor={`sexo-${member.id}`}>Sexo</label>
+                          <select
+                            id={`sexo-${member.id}`}
+                            className={input}
+                            value={memberSexo(member)}
+                            onChange={(e) => setMemberSexo(member, e.target.value as Sexo)}
+                          >
+                            <option value="MASCULINO">Masculino</option>
+                            <option value="FEMENINO">Femenino</option>
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          className={btnPrimary}
+                          disabled={!draft || busyId === member.id}
+                          onClick={() => void saveMember(member)}
+                        >
+                          {busyId === member.id ? "Guardando…" : "Guardar"}
+                        </button>
+                      </>
                     ) : (
                       <>
                         <div className="mb-3 max-w-xs">
@@ -283,12 +352,25 @@ export default function EquipoPage() {
                                 [member.id]: {
                                   role: nextRole,
                                   permissions: nextRole === "ADMIN" ? { ...ALL_PERMISSIONS } : { ...member.permissions },
+                                  sexo: prev[member.id]?.sexo ?? parseSexo(member.user.sexo),
                                 },
                               }));
                             }}
                           >
                             <option value="MEMBER">Miembro</option>
                             <option value="ADMIN">Admin</option>
+                          </select>
+                        </div>
+                        <div className="mb-3 max-w-xs">
+                          <label className="block text-xs font-medium text-text-primary mb-1" htmlFor={`sexo-${member.id}`}>Sexo</label>
+                          <select
+                            id={`sexo-${member.id}`}
+                            className={input}
+                            value={memberSexo(member)}
+                            onChange={(e) => setMemberSexo(member, e.target.value as Sexo)}
+                          >
+                            <option value="MASCULINO">Masculino</option>
+                            <option value="FEMENINO">Femenino</option>
                           </select>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
@@ -304,6 +386,7 @@ export default function EquipoPage() {
                                     [member.id]: {
                                       role: (draft?.role ?? member.role) as Exclude<RoleName, "OWNER">,
                                       permissions: { ...perms, [mod.key]: e.target.checked },
+                                      sexo: prev[member.id]?.sexo ?? parseSexo(member.user.sexo),
                                     },
                                   }));
                                 }}

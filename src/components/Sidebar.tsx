@@ -49,6 +49,7 @@ import {
   type ModulePermissions,
   type RoleName,
 } from "@/src/lib/permissions";
+import { userAvatarSrc } from "@/src/lib/user-sexo";
 
 type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
 
@@ -968,7 +969,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                 className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
                 title={session?.user?.name || "Usuario"}
               >
-                <img src="/avt.webp" alt={session?.user?.name || "Usuario"} className="h-full w-full object-cover" />
+                <img src={userAvatarSrc(session?.user?.sexo)} alt={session?.user?.name || "Usuario"} className="h-full w-full object-cover" />
               </button>
 
               {sidebarUserOpen && (

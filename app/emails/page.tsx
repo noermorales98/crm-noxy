@@ -196,6 +196,7 @@ function EmailsPageInner() {
     smtpSecure: true,
   });
   const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [isRemovingAccount, setIsRemovingAccount] = useState(false);
   const [configCompanyId, setConfigCompanyId] = useState<string | null>(null);
 
   const { setPageContext } = useAi();
@@ -371,7 +372,7 @@ function EmailsPageInner() {
   const handleDelete = async (emailId: string) => {
     const ok = await confirm({
       title: "Eliminar correo",
-      description: "¿Estás seguro de que quieres eliminar este correo?",
+      description: "¿Estás seguro de que quieres eliminar este correo? No volverá a aparecer al sincronizar.",
       confirmText: "Eliminar",
       cancelText: "Cancelar",
       variant: "danger",
@@ -383,6 +384,9 @@ function EmailsPageInner() {
         setEmails((prev) => prev.filter((e) => e.id !== emailId));
         if (selectedEmail?.id === emailId) setSelectedEmail(null);
         addToast("Correo eliminado.", "success");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        addToast(data.error || "Error al eliminar.", "error");
       }
     } catch (e) {
       addToast("Error al eliminar.", "error");
@@ -585,6 +589,37 @@ function EmailsPageInner() {
     }
   };
 
+  const handleRemoveMailAccount = async () => {
+    if (!configCompanyId) return;
+    const company = companies.find((c) => c.id === configCompanyId);
+    const ok = await confirm({
+      title: "Quitar cuenta de correo",
+      description: `Se desconectará ${company?.name || "esta cuenta"} y se eliminarán todos los correos asociados. La empresa no se borra.`,
+      confirmText: "Quitar y borrar correos",
+      cancelText: "Cancelar",
+      variant: "danger",
+    });
+    if (!ok) return;
+    setIsRemovingAccount(true);
+    try {
+      const res = await fetch(`/api/companies/${configCompanyId}/mail-account`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        addToast(data.error || "No se pudo quitar la cuenta.", "error");
+        return;
+      }
+      setEmails((prev) => prev.filter((e) => e.companyId !== configCompanyId));
+      if (selectedEmail?.companyId === configCompanyId) setSelectedEmail(null);
+      setShowImapModal(false);
+      await fetchCompanies();
+      addToast("Cuenta desconectada y correos eliminados.", "success");
+    } catch {
+      addToast("Error de conexión.", "error");
+    } finally {
+      setIsRemovingAccount(false);
+    }
+  };
+
   const handleAiDraft = async () => {
     if (!aiPrompt.trim() || aiLoading) return;
     setAiLoading(true);
@@ -699,44 +734,58 @@ function EmailsPageInner() {
               })()
             ) : (
               emails.map((email) => (
-                <button
+                <div
                   key={email.id}
-                  onClick={() => openEmail(email)}
-                  className={`w-full text-left px-4 py-3 border-b border-border-subtle hover:bg-surface-sidebar transition-colors ${
+                  className={`group flex items-stretch border-b border-border-subtle hover:bg-surface-sidebar transition-colors ${
                     selectedEmail?.id === email.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""
                   }`}
                 >
-                  <div className="flex items-start gap-2">
-                    {!email.isRead && email.type === "RECEIVED" && (
-                      <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 shrink-0" />
-                    )}
-                    <div className={`flex-1 min-w-0 ${email.isRead || email.type === "SENT" ? "pl-4" : ""}`}>
-                      <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <span
-                          className={`text-sm truncate ${
-                            !email.isRead && email.type === "RECEIVED"
-                              ? "font-semibold text-text-primary"
-                              : "font-medium text-text-primary"
-                          }`}
-                        >
-                          {email.type === "SENT"
-                            ? `→ ${sanitizeEmail(email.toAddress)}`
-                            : email.fromName || sanitizeEmail(email.fromAddress)}
-                        </span>
-                        <span className="text-[10px] text-text-secondary shrink-0">
-                          {new Date(email.receivedAt).toLocaleDateString("es-MX", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
+                  <button
+                    type="button"
+                    onClick={() => openEmail(email)}
+                    className="min-w-0 flex-1 text-left px-4 py-3"
+                  >
+                    <div className="flex items-start gap-2">
+                      {!email.isRead && email.type === "RECEIVED" && (
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 shrink-0" />
+                      )}
+                      <div className={`flex-1 min-w-0 ${email.isRead || email.type === "SENT" ? "pl-4" : ""}`}>
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span
+                            className={`text-sm truncate ${
+                              !email.isRead && email.type === "RECEIVED"
+                                ? "font-semibold text-text-primary"
+                                : "font-medium text-text-primary"
+                            }`}
+                          >
+                            {email.type === "SENT"
+                              ? `→ ${sanitizeEmail(email.toAddress)}`
+                              : email.fromName || sanitizeEmail(email.fromAddress)}
+                          </span>
+                          <span className="text-[10px] text-text-secondary shrink-0">
+                            {new Date(email.receivedAt).toLocaleDateString("es-MX", {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-text-secondary truncate">{email.subject}</p>
+                        <p className="text-[11px] text-text-secondary truncate mt-0.5">
+                          {email.company.name}
+                        </p>
                       </div>
-                      <p className="text-xs text-text-secondary truncate">{email.subject}</p>
-                      <p className="text-[11px] text-text-secondary truncate mt-0.5">
-                        {email.company.name}
-                      </p>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(email.id)}
+                    className="shrink-0 self-center mr-2 p-1.5 rounded-lg text-text-secondary hover:text-red-600 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    title="Eliminar correo"
+                    aria-label="Eliminar correo"
+                  >
+                    <HugeiconsIcon icon={Delete01Icon} size={15} />
+                  </button>
+                </div>
               ))
             )}
           </div>
@@ -1405,21 +1454,31 @@ function EmailsPageInner() {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-3 border-t border-border-subtle">
+              <div className="pt-2 flex flex-wrap justify-between gap-3 border-t border-border-subtle">
                 <button
                   type="button"
-                  onClick={() => setShowImapModal(false)}
-                  className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
+                  onClick={() => void handleRemoveMailAccount()}
+                  disabled={isSavingConfig || isRemovingAccount}
+                  className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                 >
-                  Cancelar
+                  {isRemovingAccount ? "Quitando…" : "Quitar cuenta y borrar correos"}
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSavingConfig}
-                  className="px-5 py-2 text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isSavingConfig ? "Guardando..." : "Guardar configuración"}
-                </button>
+                <div className="flex gap-3 ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowImapModal(false)}
+                    className="px-4 py-2 text-sm text-text-secondary hover:text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingConfig || isRemovingAccount}
+                    className="px-5 py-2 text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isSavingConfig ? "Guardando..." : "Guardar configuración"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

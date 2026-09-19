@@ -85,7 +85,7 @@ export default function CompaniesPage() {
   };
 
   const handleDelete = async (company: any) => {
-    const isConfirmed = await confirm({ title: "Eliminar empresa", description: `¿Estás seguro de que quieres eliminar '${company.name}'? Esta acción no se puede deshacer.`, confirmText: "Eliminar", cancelText: "Cancelar", variant: "danger" });
+    const isConfirmed = await confirm({ title: "Eliminar empresa", description: `¿Estás seguro de que quieres eliminar '${company.name}'? También se borrarán los correos de esta cuenta. Esta acción no se puede deshacer.`, confirmText: "Eliminar", cancelText: "Cancelar", variant: "danger" });
     if (!isConfirmed) return;
     try {
       const res = await fetch(`/api/companies/${company.id}`, { method: "DELETE" });
