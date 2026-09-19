@@ -1,21 +1,37 @@
 "use client";
 
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+
+async function registerServiceWorker() {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  try {
+    await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+  } catch (error) {
+    console.warn("[pwa] service worker registration failed", error);
+  }
+}
 
 export default function PwaRegister() {
-  useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  const { status } = useSession();
 
-    const register = async () => {
-      try {
-        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-      } catch {
-        // Installability still works without SW in some browsers; ignore registration errors in dev.
-      }
+  useEffect(() => {
+    void registerServiceWorker();
+
+    const onPageShow = () => {
+      void registerServiceWorker();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void registerServiceWorker();
     };
 
-    void register();
-  }, []);
+    window.addEventListener("pageshow", onPageShow);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pageshow", onPageShow);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [status]);
 
   return null;
 }

@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
     // Pretty URL for the MCP server: /mcp -> /api/mcp (Streamable HTTP transport)
     return [{ source: "/mcp", destination: "/api/mcp" }];
   },
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Service-Worker-Allowed", value: "/" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

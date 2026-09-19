@@ -1,5 +1,5 @@
 /* Minimal service worker for PWA installability. Network-first for app; cache shell icons only. */
-const SHELL_CACHE = "noxy-crm-shell-v2";
+const SHELL_CACHE = "noxy-crm-shell-v3";
 const SHELL_ASSETS = [
   "/favicon.svg",
   "/favicon.webp",
@@ -10,7 +10,12 @@ const SHELL_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_ASSETS)).then(() => self.skipWaiting()),
+    caches.open(SHELL_CACHE).then(async (cache) => {
+      await Promise.all(
+        SHELL_ASSETS.map((asset) => cache.add(asset).catch(() => undefined)),
+      );
+      await self.skipWaiting();
+    }),
   );
 });
 
