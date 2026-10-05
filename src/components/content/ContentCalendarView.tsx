@@ -67,8 +67,9 @@ function ReminderWhenSelect({
 
 // ─── Modal editor de pieza ────────────────────────────────────────────────────
 
-function ItemEditor({
+export function ContentItemEditor({
   clientId,
+  clientName,
   initial,
   defaultDate,
   defaultDaysBefore,
@@ -78,6 +79,7 @@ function ItemEditor({
   onSaved,
 }: {
   clientId: string;
+  clientName?: string;
   initial: ContentItemData | null;
   defaultDate: string;
   defaultDaysBefore: number;
@@ -145,6 +147,7 @@ function ItemEditor({
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">
           {initial ? "Editar pieza" : "Nueva pieza de contenido"}
+          {clientName ? <span className="block text-sm font-medium text-text-secondary mt-1">{clientName}</span> : null}
         </h2>
 
         <div className="grid grid-cols-2 gap-3 mb-3">
@@ -548,7 +551,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       {CALENDAR_FONTS}
       <style>{CALENDAR_CSS}</style>
 
-      <div className="ncc-root max-w-5xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
+      <div className="ncc-root w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
         {/* Encabezado */}
         <div className="mb-5" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           <p className="text-xs font-semibold text-action-primary">
@@ -960,7 +963,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
       {/* Modal editor */}
       {(editing || newForDate) && (
-        <ItemEditor
+        <ContentItemEditor
           clientId={client.id}
           initial={editing}
           defaultDate={newForDate ?? ""}
@@ -978,7 +981,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           <div className="absolute inset-0 bg-brand-obsidian/35" />
           <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.title}&quot;?</p>
-            <p className="text-xs text-text-secondary mb-5">Se quitará del calendario y del enlace público.</p>
+            <p className="text-xs text-text-secondary mb-5">Se quitará del calendario, de Google Calendar si estaba sincronizada, y del enlace público.</p>
             <div className="flex gap-2">
               <button onClick={() => setDeleting(null)} className="flex-1 py-2 text-sm rounded-lg hover:bg-surface-sidebar transition-colors">Cancelar</button>
               <button

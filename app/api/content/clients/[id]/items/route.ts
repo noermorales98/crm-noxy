@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { pushContentItem } from "@/src/lib/content-google-sync";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
 
@@ -84,6 +85,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       reminderDaysBefore,
     },
   });
+
+  await pushContentItem(orgId, item.id);
 
   return NextResponse.json(item, { status: 201 });
 }

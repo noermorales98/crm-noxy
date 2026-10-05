@@ -1008,6 +1008,7 @@ model Client {
   autoMarkPaid Boolean  @default(false)
   notes        String?  @db.Text
   isActive     Boolean  @default(true)
+  listedInClients Boolean @default(true) // false = solo bóveda, fuera de Clientes
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -1478,6 +1479,7 @@ model ContentClient {
   reminderHour       Int @default(8)
   reminderMinute     Int @default(0)
   reminderDaysBefore Int @default(1) // 0 = el mismo día, 1 = un día antes, etc.
+  color       String @default("#3545D6") // hex de la paleta del calendario general
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1520,6 +1522,7 @@ model ContentItem {
   reminderEnabled    Boolean @default(false)
   reminderDaysBefore Int     @default(1) // 0 = el mismo día, 1 = un día antes, etc.
   notifiedAt DateTime?
+  googleEventId String? // evento en el Google Calendar de la organización
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -15,6 +15,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { fmtUSD, fmtMXN, fmtCurrency, StatCard, StatChip, type StatDef } from "@/src/components/pipeline/PipelineShared";
+import DeleteClientVaultDialog from "@/src/components/DeleteClientVaultDialog";
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -176,7 +177,6 @@ function ClientCard({
   onClick: () => void;
   onDelete?: (clientId: string) => void;
 }) {
-  const [confirming, setConfirming] = useState(false);
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
@@ -198,32 +198,12 @@ function ClientCard({
 
   return (
     <div
-      onClick={() => !confirming && onClick()}
+      onClick={onClick}
       className="group relative bg-white border border-border-subtle rounded-lg p-3.5 hover:border-border-subtle transition-all cursor-pointer"
     >
-      {onDelete && confirming && (
-        <div
-          className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-white/95 rounded-lg border border-border-subtle"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => setConfirming(false)}
-            className="text-xs px-3 py-1.5 rounded-lg hover:bg-nav-hover text-text-secondary transition-colors"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => onDelete(client.id)}
-            className="text-xs px-3 py-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 font-semibold transition-colors"
-          >
-            Eliminar
-          </button>
-        </div>
-      )}
-
-      {onDelete && !confirming && (
+      {onDelete && (
         <button
-          onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
+          onClick={(e) => { e.stopPropagation(); onDelete(client.id); }}
           title="Eliminar cliente"
           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-text-secondary hover:text-red-600 hover:bg-red-50 transition-all z-[1]"
         >
@@ -312,6 +292,8 @@ export default function ClientesPage() {
   const [loadingClients, setLoadingClients] = useState(true);
   const [showClientModal, setShowClientModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [pendingDelete, setPendingDelete] = useState<any>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [hiddenStats, setHiddenStats] = useState<Set<string>>(new Set());
 
   // ─── Hidden stat cards (persisted) ─────────────────────────────────────────
@@ -360,7 +342,7 @@ export default function ClientesPage() {
   const fetchClients = useCallback(async () => {
     setLoadingClients(true);
     try {
-      const res = await fetch("/api/clients");
+      const res = await fetch("/api/clients?scope=billing");
       if (res.ok) setClients(await res.json());
     } catch { console.error("Error cargando clientes"); }
     finally { setLoadingClients(false); }
@@ -414,11 +396,23 @@ export default function ClientesPage() {
     fetchClients();
   };
 
-  const handleDeleteClient = async (clientId: string) => {
-    const res = await fetch(`/api/clients/${clientId}`, { method: "DELETE" });
-    if (!res.ok) return;
-    setClients((prev) => prev.filter((c) => c.id !== clientId));
-    if (selectedClient?.id === clientId) setSelectedClient(null);
+  const requestDeleteClient = (clientId: string) => {
+    const client = clients.find((c) => c.id === clientId);
+    if (client) setPendingDelete(client);
+  };
+
+  const confirmDeleteClient = async (vault: "delete" | "keep") => {
+    if (!pendingDelete) return;
+    setDeleteBusy(true);
+    try {
+      const res = await fetch(`/api/clients/${pendingDelete.id}?vault=${vault}`, { method: "DELETE" });
+      if (!res.ok) return;
+      setClients((prev) => prev.filter((c) => c.id !== pendingDelete.id));
+      if (selectedClient?.id === pendingDelete.id) setSelectedClient(null);
+      setPendingDelete(null);
+    } finally {
+      setDeleteBusy(false);
+    }
   };
 
   // ─── Stats ────────────────────────────────────────────────────────────────
@@ -548,7 +542,7 @@ export default function ClientesPage() {
                   client={client}
                   onMarkPaid={handleMarkPaid}
                   onClick={() => setSelectedClient(client)}
-                  onDelete={handleDeleteClient}
+                  onDelete={requestDeleteClient}
                 />
               ))}
             </div>
@@ -561,6 +555,17 @@ export default function ClientesPage() {
         <NewClientModal
           onSuccess={() => { setShowClientModal(false); fetchClients(); }}
           onClose={() => setShowClientModal(false)}
+        />
+      )}
+
+      {pendingDelete && (
+        <DeleteClientVaultDialog
+          name={pendingDelete.name}
+          vaultCount={pendingDelete._count?.vaultEntries ?? 0}
+          busy={deleteBusy}
+          onCancel={() => { if (!deleteBusy) setPendingDelete(null); }}
+          onKeepVault={() => confirmDeleteClient("keep")}
+          onDeleteVault={() => confirmDeleteClient("delete")}
         />
       )}
 

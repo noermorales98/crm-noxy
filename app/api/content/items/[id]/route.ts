@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { pushContentItem, removeContentItemEvent } from "@/src/lib/content-google-sync";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
 
@@ -37,6 +38,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   const item = await prisma.contentItem.update({ where: { id }, data });
+  await pushContentItem(orgId, item.id);
   return NextResponse.json(item);
 }
 
@@ -50,6 +52,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const existing = await prisma.contentItem.findFirst({ where: { id, organizationId: orgId } });
   if (!existing) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
+  await removeContentItemEvent(orgId, existing.googleEventId);
   await prisma.contentItem.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

@@ -47,6 +47,6 @@ test("route access maps pages and APIs to modules", () => {
 });
 
 test("first allowed path follows module order", () => {
-  assert.equal(firstAllowedPath("MEMBER", { content: true }), "/contenido");
+  assert.equal(firstAllowedPath("MEMBER", { content: true }), "/contenido/general");
   assert.equal(firstAllowedPath("OWNER", ALL_PERMISSIONS), "/");
 });

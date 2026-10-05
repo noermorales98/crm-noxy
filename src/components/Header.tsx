@@ -103,15 +103,15 @@ export default function Header() {
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </Link>
         )}
-        {config.title && (
-          <>
-            <h1 className="truncate text-base font-bold text-text-primary sm:text-lg">{config.title}</h1>
-            {(config.titleBadge || config.titleBadge === 0) && (
-              <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full shrink-0">
-                {config.titleBadge}
-              </span>
-            )}
-          </>
+        {typeof config.title === "string" ? (
+          <h1 className="truncate text-base font-bold text-text-primary sm:text-lg">{config.title}</h1>
+        ) : config.title ? (
+          <div className="flex min-w-0 items-center">{config.title}</div>
+        ) : null}
+        {(config.titleBadge || config.titleBadge === 0) && (
+          <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full shrink-0">
+            {config.titleBadge}
+          </span>
         )}
       </div>
 

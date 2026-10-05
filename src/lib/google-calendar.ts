@@ -1,5 +1,6 @@
 import { google } from "googleapis";
 import { prisma } from "@/src/lib/db";
+import { buildContentEventBody, type ContentEventInput } from "@/src/lib/content-google-event";
 
 export function getGoogleOAuthClient() {
   return new google.auth.OAuth2(
@@ -116,7 +117,50 @@ export async function deleteGoogleCalendarEvent(
   try {
     await calendar.events.delete({ calendarId, eventId });
   } catch (err) {
+    if (isMissingGoogleEvent(err)) return;
     console.error("[google-calendar] Failed to delete event:", err);
+  }
+}
+
+function isMissingGoogleEvent(err: unknown): boolean {
+  const code = (err as { code?: number; response?: { status?: number } })?.code
+    ?? (err as { response?: { status?: number } })?.response?.status;
+  return code === 404 || code === 410;
+}
+
+export async function syncContentItemToCalendar(
+  organizationId: string,
+  item: ContentEventInput & { googleEventId?: string | null }
+): Promise<string | null> {
+  const client = await getCalendarClient(organizationId);
+  if (!client) return null;
+
+  const { calendar, calendarId } = client;
+  const requestBody = buildContentEventBody(item);
+
+  const insert = async () => {
+    const res = await calendar.events.insert({ calendarId, requestBody });
+    return res.data.id ?? null;
+  };
+
+  try {
+    if (item.googleEventId) {
+      try {
+        const res = await calendar.events.update({
+          calendarId,
+          eventId: item.googleEventId,
+          requestBody,
+        });
+        return res.data.id ?? item.googleEventId;
+      } catch (err) {
+        if (!isMissingGoogleEvent(err)) throw err;
+        return await insert();
+      }
+    }
+    return await insert();
+  } catch (err) {
+    console.error("[google-calendar] Failed to sync content item:", err);
+    return null;
   }
 }
 

@@ -34,7 +34,7 @@ const PRIMARY_TABS: {
 
 const MORE_ITEMS = [
   { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon },
-  { id: "content", label: "Contenido", href: "/contenido", icon: MegaphoneIcon },
+  { id: "content", label: "Contenido", href: "/contenido/general", icon: MegaphoneIcon },
 ] as const;
 
 function resolvePrimaryTab(pathname: string): PrimaryTabId | "more" | null {

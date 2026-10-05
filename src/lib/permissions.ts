@@ -186,7 +186,7 @@ const HOME_BY_MODULE: Array<[PermissionModule, string]> = [
   ["mail", "/emails"],
   ["kb", "/kb"],
   ["assistant", "/assistant"],
-  ["content", "/contenido"],
+  ["content", "/contenido/general"],
   ["vault", "/boveda"],
   ["settings", "/settings"],
 ];

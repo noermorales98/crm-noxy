@@ -110,7 +110,7 @@ const SECTIONS: {
   { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#3545D6", accentBg: "#DDE3FE" },
   { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#3545D6", accentBg: "#EBEDFA" },
   { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#0B0B18", accentBg: "#C8FE37" },
-  { id: "content", label: "Gestión de contenido", href: "/contenido", icon: MegaphoneIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
+  { id: "content", label: "Gestión de contenido", href: "/contenido/general", icon: MegaphoneIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
 ];
 
 // ─── Section switcher (unified dropdown) ───────────────────────────────────────
@@ -271,9 +271,9 @@ function DeleteModal({ name, onConfirm, onCancel }: {
 
 // ─── Shared NavItem ────────────────────────────────────────────────────────────
 
-function NavItem({ icon, label, href, badge }: { icon: any; label: string; href: string; badge?: number }) {
+function NavItem({ icon, label, href, badge, exact = false }: { icon: any; label: string; href: string; badge?: number; exact?: boolean }) {
   const pathname = usePathname();
-  const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
+  const isActive = exact ? pathname === href : pathname === href || (href !== "/" && pathname.startsWith(href));
   return (
     <Link href={href} className={`${navItemClass(isActive)} justify-between`}>
       <div className="flex items-center gap-2.5 min-w-0">
@@ -546,7 +546,7 @@ function KbNav() {
 
 // ─── Tab 6: Gestión de contenido ───────────────────────────────────────────────
 
-type ContentClientEntry = { id: string; name: string; kind: string };
+type ContentClientEntry = { id: string; name: string; kind: string; color: string };
 
 function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -556,7 +556,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
     fetch("/api/content/clients")
       .then((r) => (r.ok ? r.json() : []))
       .then((data: any[]) => {
-        if (Array.isArray(data)) setClients(data.map((c) => ({ id: c.id, name: c.name, kind: c.kind })));
+        if (Array.isArray(data)) setClients(data.map((c) => ({ id: c.id, name: c.name, kind: c.kind, color: c.color || "#3545D6" })));
       })
       .catch(() => {});
   }, [pathname]);
@@ -574,8 +574,9 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
         </Link>
       </div>
 
-      <div className="px-3 pb-2 shrink-0">
-        <NavItem href="/contenido" icon={MegaphoneIcon} label="Todos los calendarios" />
+      <div className="px-3 pb-2 shrink-0 flex flex-col gap-1">
+        <NavItem href="/contenido/general" icon={Calendar01Icon} label="Calendario general" exact />
+        <NavItem href="/contenido" icon={MegaphoneIcon} label="Todos los calendarios" exact />
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
@@ -588,7 +589,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
                     className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{ backgroundColor: c.kind === "cliente" ? "#3545D6" : "#5363EE" }}
+                    style={{ backgroundColor: c.color || "#3545D6" }}
                   >
                     {c.name.charAt(0).toUpperCase()}
                   </span>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, MegaphoneIcon, Calendar01Icon, Delete01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
+import { CLIENT_PALETTE } from "@/src/lib/content-client-colors";
 
 type ContentClient = {
   id: string;
@@ -12,6 +13,7 @@ type ContentClient = {
   kind: string;
   description: string | null;
   context: string | null;
+  color: string;
   isActive: boolean;
   publicToken: string;
   _count?: { items: number; phones: number };
@@ -33,6 +35,7 @@ function ClientModal({
   const [kind, setKind] = useState(initial?.kind ?? "cliente");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [context, setContext] = useState(initial?.context ?? "");
+  const [color, setColor] = useState<string | null>(initial?.color ?? null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,7 +50,7 @@ function ClientModal({
       const res = await fetch(initial ? `/api/content/clients/${initial.id}` : "/api/content/clients", {
         method: initial ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, kind, description, context }),
+        body: JSON.stringify({ name, kind, description, context, ...(color ? { color } : {}) }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -100,6 +103,31 @@ function ClientModal({
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="noxy-form-label mb-1">Color en el calendario</label>
+            <div className="flex flex-wrap gap-2">
+              {CLIENT_PALETTE.map((entry) => {
+                const selected = color?.toLowerCase() === entry.hex.toLowerCase();
+                return (
+                  <button
+                    key={entry.hex}
+                    type="button"
+                    aria-label={`Color ${entry.hex}`}
+                    onClick={() => setColor(entry.hex)}
+                    className="w-8 h-8 rounded-full border-2"
+                    style={{
+                      backgroundColor: entry.hex,
+                      borderColor: selected ? "#0B0B18" : "transparent",
+                    }}
+                  />
+                );
+              })}
+            </div>
+            {!initial && !color && (
+              <p className="text-[11px] text-text-secondary mt-1">Si no eliges uno, se asigna el siguiente de la paleta.</p>
+            )}
           </div>
 
           <div>
@@ -183,14 +211,24 @@ export default function ContentClientsView() {
             Calendarios de contenido por cliente o marca, con avisos de grabación por WhatsApp.
           </p>
         </div>
-        <button
-          onClick={() => { setEditing(null); setModalOpen(true); }}
-          className="shrink-0 min-h-11 flex items-center gap-2 bg-action-primary text-action-primary-foreground px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
-        >
-          <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
-          <span className="hidden sm:inline">Nuevo cliente / marca</span>
-          <span className="sm:hidden">Nuevo</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/contenido/general"
+            className="min-h-11 flex items-center gap-2 border border-border-subtle bg-white text-text-primary px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-surface-sidebar transition-colors duration-200 motion-reduce:transition-none"
+          >
+            <HugeiconsIcon icon={Calendar01Icon} size={15} />
+            <span className="hidden sm:inline">Calendario general</span>
+            <span className="sm:hidden">General</span>
+          </Link>
+          <button
+            onClick={() => { setEditing(null); setModalOpen(true); }}
+            className="min-h-11 flex items-center gap-2 bg-action-primary text-action-primary-foreground px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+          >
+            <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
+            <span className="hidden sm:inline">Nuevo cliente / marca</span>
+            <span className="sm:hidden">Nuevo</span>
+          </button>
+        </div>
       </div>
 
       {clients === null ? (
@@ -226,7 +264,7 @@ export default function ContentClientsView() {
               <div className="flex items-start gap-3 mb-3">
                 <span
                   className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold text-white"
-                  style={{ backgroundColor: c.kind === "cliente" ? "#3545D6" : "#5363EE" }}
+                  style={{ backgroundColor: c.color || "#3545D6" }}
                 >
                   {c.name.charAt(0).toUpperCase()}
                 </span>
@@ -289,7 +327,7 @@ export default function ContentClientsView() {
           <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.name}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">
-              Se eliminarán también su calendario, sus piezas y sus números de WhatsApp. El enlace público dejará de funcionar.
+              Se eliminarán también su calendario, sus piezas, sus eventos en Google Calendar y sus números de WhatsApp. El enlace público dejará de funcionar.
             </p>
             <div className="flex gap-2">
               <button onClick={() => setDeleting(null)} className="flex-1 py-2 text-sm rounded-lg hover:bg-surface-sidebar transition-colors">

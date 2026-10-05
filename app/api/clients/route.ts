@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await auth();
     if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
@@ -12,9 +12,13 @@ export async function GET() {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
+    const scope = new URL(req.url).searchParams.get("scope");
 
     const clients = await prisma.client.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(scope === "billing" ? { listedInClients: true } : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: {
         company: { select: { id: true, name: true } },

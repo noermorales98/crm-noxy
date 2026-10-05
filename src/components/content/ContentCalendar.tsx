@@ -20,6 +20,9 @@ export type ContentItemData = {
   reminderEnabled?: boolean;
   reminderDaysBefore?: number;
   notifiedAt: string | null;
+  clientId?: string;
+  clientName?: string;
+  clientColor?: string;
 };
 
 export const TYPE_META: Record<string, { label: string; color: string }> = {
@@ -108,6 +111,15 @@ export const CALENDAR_CSS = `
 .ncc-hooks-list{margin:0;padding-left:18px;}
 .ncc-hooks-list li{font-size:14px;line-height:1.6;margin-bottom:4px;}
 .ncc-close-btn{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--paper-2);font-size:16px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ncc-fill{display:flex;flex-direction:column;flex:1;min-height:0;height:100%;}
+.ncc-root.ncc-root-fit{min-height:0;height:100%;}
+.ncc-fill .ncc-weekdays{flex:none;margin-bottom:4px;}
+.ncc-fill .ncc-grid{flex:1;min-height:0;gap:4px;grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(0, 1fr));}
+.ncc-fill .ncc-day{min-height:0;height:100%;overflow:hidden;padding:6px;gap:2px;border-radius:10px;}
+.ncc-fill .ncc-day-items{display:flex;flex-direction:column;gap:3px;min-height:0;flex:1;overflow:auto;}
+.ncc-fill .ncc-daynum{font-size:13px;}
+.ncc-fill .ncc-tag{font-size:11px;padding:3px 6px;border-radius:6px;}
+.ncc-fill .ncc-tag .ncc-kind{font-size:8px;margin-bottom:0;}
 @media (max-width:640px){
   .ncc-modal{padding:22px 18px 20px;border-radius:14px;}
   .ncc-modal h2{font-size:20px;}
@@ -126,6 +138,7 @@ export function ContentMonthGrid({
   editable = false,
   onItemClick,
   onDayClick,
+  fill = false,
 }: {
   year: number;
   month: number;
@@ -133,6 +146,7 @@ export function ContentMonthGrid({
   editable?: boolean;
   onItemClick?: (item: ContentItemData) => void;
   onDayClick?: (dateStr: string) => void;
+  fill?: boolean;
 }) {
   const byDay = useMemo(() => {
     const map = new Map<number, ContentItemData[]>();
@@ -146,6 +160,7 @@ export function ContentMonthGrid({
 
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const firstWeekday = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7; // 0=Lun
+  const weekCount = Math.ceil((firstWeekday + daysInMonth) / 7);
   const today = new Date();
   const isCurrentMonth = today.getUTCFullYear() === year && today.getUTCMonth() === month;
   const todayDay = isCurrentMonth ? today.getUTCDate() : -1;
@@ -165,17 +180,27 @@ export function ContentMonthGrid({
       >
         {d === todayDay && <div className="ncc-today-label">HOY</div>}
         <div className="ncc-daynum">{d}</div>
+        <div className="ncc-day-items">
         {dayItems.map((item) => {
           const meta = TYPE_META[item.type] ?? TYPE_META.video;
+          const tagColor = item.clientColor || meta.color;
           if (item.type === "edicion") {
             return (
               <button
                 key={item.id}
                 className="ncc-edit-note"
-                style={{ textAlign: "left", background: "none", border: "none", cursor: "pointer" }}
+                style={{
+                  textAlign: "left",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: item.clientColor || undefined,
+                  borderLeft: item.clientColor ? `3px solid ${item.clientColor}` : undefined,
+                  paddingLeft: item.clientColor ? 6 : undefined,
+                }}
                 onClick={(e) => { e.stopPropagation(); onItemClick?.(item); }}
               >
-                {item.title}
+                {item.clientName ? `${item.clientName}: ` : ""}{item.title}
               </button>
             );
           }
@@ -183,26 +208,38 @@ export function ContentMonthGrid({
             <button
               key={item.id}
               className="ncc-tag"
-              style={{ background: meta.color }}
+              style={{ background: tagColor }}
               onClick={(e) => { e.stopPropagation(); onItemClick?.(item); }}
             >
-              <span className="ncc-kind">{meta.label}{item.time ? ` · ${item.time}` : ""}</span>
+              <span className="ncc-kind">
+                {item.clientName ? `${item.clientName} · ` : ""}
+                {meta.label}
+                {item.time ? ` · ${item.time}` : ""}
+              </span>
               {item.title}
             </button>
           );
         })}
+        </div>
         {editable && <div className="ncc-add-day">+ Agregar</div>}
       </div>
     );
   }
 
-  return (
+  const grid = (
     <>
       <div className="ncc-weekdays">
         {DIAS_SEMANA.map((d) => <div key={d}>{d}</div>)}
       </div>
       <div className="ncc-grid">{cells}</div>
     </>
+  );
+
+  if (!fill) return grid;
+  return (
+    <div className="ncc-fill" style={{ ["--ncc-weeks" as string]: weekCount }}>
+      {grid}
+    </div>
   );
 }
 
@@ -228,7 +265,12 @@ export function ContentItemModal({
     <div className="ncc-overlay" onClick={onClose}>
       <div className="ncc-modal" onClick={(e) => e.stopPropagation()}>
         <button className="ncc-close-btn" onClick={onClose}>✕</button>
-        <div className="ncc-kind-badge" style={{ background: meta.color }}>{meta.label}</div>
+        <div className="ncc-kind-badge" style={{ background: item.clientColor || meta.color }}>{meta.label}</div>
+        {item.clientName && (
+          <div className="ncc-fecha" style={{ color: item.clientColor, fontWeight: 700, textTransform: "none" }}>
+            {item.clientName}
+          </div>
+        )}
         <div className="ncc-fecha">{longDateLabel(item.date)}</div>
         <h2>{item.title}</h2>
 

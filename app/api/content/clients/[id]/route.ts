@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { isPaletteColor, normalizePaletteColor } from "@/src/lib/content-client-colors";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { removeContentItemEvent, resyncClientContentEvents } from "@/src/lib/content-google-sync";
 
 async function getClient(id: string, orgId: string) {
   return prisma.contentClient.findFirst({
@@ -52,6 +54,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.reminderDaysBefore !== undefined) {
     data.reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, existing.reminderDaysBefore);
   }
+  if (isPaletteColor(body.color)) data.color = normalizePaletteColor(body.color);
+
+  const nameChanged = typeof data.name === "string" && data.name !== existing.name;
+  const colorChanged = typeof data.color === "string" && data.color !== existing.color;
 
   const client = await prisma.contentClient.update({
     where: { id },
@@ -66,6 +72,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     });
   }
 
+  if (nameChanged || colorChanged) {
+    await resyncClientContentEvents(orgId, id);
+  }
+
   return NextResponse.json(client);
 }
 
@@ -78,6 +88,14 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const existing = await getClient(id, orgId);
   if (!existing) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
+
+  const linked = await prisma.contentItem.findMany({
+    where: { clientId: id, organizationId: orgId, googleEventId: { not: null } },
+    select: { googleEventId: true },
+  });
+  for (const item of linked) {
+    await removeContentItemEvent(orgId, item.googleEventId);
+  }
 
   await prisma.contentClient.delete({ where: { id } });
   return NextResponse.json({ ok: true });

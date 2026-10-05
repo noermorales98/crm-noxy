@@ -12,6 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import AddClientModal from "./AddClientModal";
 import ImportExistingModal from "./ImportExistingModal";
+import DeleteClientVaultDialog from "@/src/components/DeleteClientVaultDialog";
 
 const ICON_COLOR = "#0B0B18";
 const ICON_SIZE = 16;
@@ -33,7 +34,8 @@ export default function VaultNav() {
   const { data: session } = useSession();
   const [clients, setClients] = useState<VaultClient[]>([]);
   const [search, setSearch] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<VaultClient | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
 
@@ -57,20 +59,24 @@ export default function VaultNav() {
     router.push(`/boveda/${client.id}`);
   }
 
-  async function deleteClient(id: string) {
+  async function confirmDelete(vault: "delete" | "keep") {
+    if (!deleting) return;
+    setDeleteBusy(true);
     try {
-      const res = await fetch(`/api/clients/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/clients/${deleting.id}?vault=${vault}`, { method: "DELETE" });
       if (!res.ok) return;
 
-      const viewingDeleted = pathname === `/boveda/${id}`;
-      const next = clients.filter((c) => c.id !== id);
-      setClients(next);
-
-      if (viewingDeleted) {
-        router.push(next.length > 0 ? `/boveda/${next[0].id}` : "/boveda");
+      if (vault === "delete") {
+        const viewingDeleted = pathname === `/boveda/${deleting.id}`;
+        const next = clients.filter((c) => c.id !== deleting.id);
+        setClients(next);
+        if (viewingDeleted) {
+          router.push(next.length > 0 ? `/boveda/${next[0].id}` : "/boveda");
+        }
       }
+      setDeleting(null);
     } finally {
-      setDeletingId(null);
+      setDeleteBusy(false);
     }
   }
 
@@ -129,24 +135,8 @@ export default function VaultNav() {
                         </span>
                       )}
                     </Link>
-                    {deletingId === client.id ? (
-                      <div className="absolute inset-0 flex items-center justify-end gap-1 pr-1 bg-surface-elevated rounded-lg">
-                        <button
-                          onClick={() => setDeletingId(null)}
-                          className="text-[10px] px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                        <button
-                          onClick={() => deleteClient(client.id)}
-                          className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeletingId(client.id)}
+                    <button
+                        onClick={() => setDeleting(client)}
                         className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-nav-active rounded-md transition-all"
                         title="Eliminar cliente"
                       >
@@ -165,7 +155,6 @@ export default function VaultNav() {
                           <path d="M9 6V4h6v2" />
                         </svg>
                       </button>
-                    )}
                   </div>
                 );
               })}
@@ -184,6 +173,16 @@ export default function VaultNav() {
         <ImportExistingModal
           onSuccess={handleClientAdded}
           onClose={() => setShowImportModal(false)}
+        />
+      )}
+      {deleting && (
+        <DeleteClientVaultDialog
+          name={deleting.name}
+          vaultCount={deleting._count?.vaultEntries ?? 0}
+          busy={deleteBusy}
+          onCancel={() => { if (!deleteBusy) setDeleting(null); }}
+          onKeepVault={() => confirmDelete("keep")}
+          onDeleteVault={() => confirmDelete("delete")}
         />
       )}
     </>

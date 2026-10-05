@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { isPaletteColor, nextClientColor, normalizePaletteColor } from "@/src/lib/content-client-colors";
 
 export async function GET() {
   const session = await auth();
@@ -29,12 +30,16 @@ export async function POST(req: Request) {
   const name = typeof body?.name === "string" ? body.name.trim() : "";
   if (!name) return NextResponse.json({ error: "El nombre es obligatorio" }, { status: 400 });
 
+  const existingCount = await prisma.contentClient.count({ where: { organizationId: orgId } });
+  const color = isPaletteColor(body?.color) ? normalizePaletteColor(body.color) : nextClientColor(existingCount);
+
   const client = await prisma.contentClient.create({
     data: {
       name,
       kind: body?.kind === "cliente" ? "cliente" : "marca",
       description: typeof body?.description === "string" ? body.description : null,
       context: typeof body?.context === "string" ? body.context : null,
+      color,
       organizationId: orgId,
     },
   });

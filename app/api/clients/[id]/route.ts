@@ -46,7 +46,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const session = await auth();
@@ -54,8 +54,21 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const organizationId = (session as any).currentOrganizationId;
     if (!organizationId) return NextResponse.json({ error: "Sin organización" }, { status: 400 });
 
+    const vault = new URL(req.url).searchParams.get("vault");
+    if (vault !== "delete" && vault !== "keep") {
+      return NextResponse.json({ error: "Indica si se borra o se conserva la bóveda" }, { status: 400 });
+    }
+
     const existing = await prisma.client.findFirst({ where: { id, organizationId } });
     if (!existing) return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 });
+
+    if (vault === "keep") {
+      await prisma.client.update({
+        where: { id },
+        data: { listedInClients: false, isActive: false },
+      });
+      return NextResponse.json({ success: true, keptVault: true });
+    }
 
     await prisma.client.delete({ where: { id } });
     return NextResponse.json({ success: true });
