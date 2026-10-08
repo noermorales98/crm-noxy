@@ -303,6 +303,8 @@ body {
   font-size: var(--kb-font-size, 17px);
   line-height: var(--kb-line-height, 1.75);
   letter-spacing: var(--kb-letter-spacing, -0.011em);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .kb-prose > *:first-child {
@@ -441,7 +443,10 @@ body {
   background: var(--kb-pre-bg);
   border: 1px solid var(--kb-pre-border);
   border-radius: var(--kb-radius-md);
-  overflow-x: auto;
+  max-width: 100%;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-size: 0.875rem;
   line-height: 1.65;
 }

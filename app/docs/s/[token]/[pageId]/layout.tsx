@@ -26,6 +26,7 @@ export async function generateMetadata({
     title: copy?.title ?? "Documento",
     description: copy?.description ?? "Documento compartido.",
     path: `/docs/s/${token}/${pageId}`,
+    icon: share?.page.shareIcon && share.page.shareIconBg ? `/docs/s/${token}/icon` : null,
   });
 }
 

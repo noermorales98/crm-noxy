@@ -1158,6 +1158,8 @@ model KbPage {
   title          String           @default("Sin título")
   publicTitle    String?
   shareTags      String?          @db.VarChar(500)
+  shareIcon      String?          @db.VarChar(40)
+  shareIconBg    String?          @db.VarChar(7)
   emoji          String?
   iconColor      String?
   iconBg         String?

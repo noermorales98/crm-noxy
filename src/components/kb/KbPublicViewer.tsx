@@ -785,7 +785,7 @@ export default function KbPublicViewer({
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full min-h-[70vh] font-mono text-sm leading-7 bg-transparent border-none outline-none resize-none placeholder:opacity-40"
+            className="min-h-[70vh] w-full min-w-0 max-w-full resize-none border-none bg-transparent font-mono text-sm leading-7 outline-none placeholder:opacity-40"
             placeholder="Escribe aquí..."
             spellCheck={false}
           />
@@ -812,7 +812,7 @@ export default function KbPublicViewer({
       )}
 
       <div
-        className="min-h-screen flex flex-col md:flex-row"
+        className="flex min-h-screen min-w-0 flex-col overflow-x-hidden md:flex-row"
         style={isCommentator ? undefined : { backgroundColor: themeTokens.bg, color: themeTokens.text }}
       >
         {isCommentator && guestName && (
@@ -832,7 +832,7 @@ export default function KbPublicViewer({
         )}
 
         <main
-          className={`relative flex-1 min-w-0 pb-24 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
+          className={`relative min-w-0 flex-1 overflow-x-hidden pb-24 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
           style={{ backgroundColor: themeTokens.bg, color: themeTokens.text }}
         >
           {showPageNav && pageNav && (

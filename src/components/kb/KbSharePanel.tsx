@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Copy, Link2, RefreshCw, Share2, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { KbShareRole } from "@prisma/client";
+import {
+  DEFAULT_SHARE_ICON_BG,
+  SHARE_FAVICON_ICONS,
+  iconStrokeForBackground,
+  shareFaviconIcon,
+} from "@/src/lib/share-favicon";
 
 type ShareData = {
   id: string;
@@ -33,6 +40,8 @@ export default function KbSharePanel({
   const [copied, setCopied] = useState(false);
   const [publicTitle, setPublicTitle] = useState("");
   const [shareTags, setShareTags] = useState("");
+  const [shareIcon, setShareIcon] = useState<string | null>(null);
+  const [shareIconBg, setShareIconBg] = useState(DEFAULT_SHARE_ICON_BG);
   const savedMeta = useRef({ publicTitle: "", shareTags: "" });
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,6 +54,8 @@ export default function KbSharePanel({
       const nextTags = typeof data.shareTags === "string" ? data.shareTags : "";
       setPublicTitle(nextTitle);
       setShareTags(nextTags);
+      setShareIcon(typeof data.shareIcon === "string" ? data.shareIcon : null);
+      setShareIconBg(typeof data.shareIconBg === "string" ? data.shareIconBg : DEFAULT_SHARE_ICON_BG);
       savedMeta.current = { publicTitle: nextTitle, shareTags: nextTags };
     }
   }, [pageId]);
@@ -65,6 +76,8 @@ export default function KbSharePanel({
     typeof window !== "undefined" && share?.isEnabled
       ? `${window.location.origin}/docs/s/${share.token}`
       : "";
+  const previewBg = /^#[0-9a-fA-F]{6}$/.test(shareIconBg) ? shareIconBg : DEFAULT_SHARE_ICON_BG;
+  const previewIcon = shareFaviconIcon(shareIcon);
 
   const enableShare = async (role: KbShareRole) => {
     setLoading(true);
@@ -99,6 +112,15 @@ export default function KbSharePanel({
     void updateShare({ publicTitle, shareTags });
   };
 
+  const saveFavicon = (icon: string | null, background: string) => {
+    setShareIcon(icon);
+    setShareIconBg(background);
+    void updateShare({
+      shareIcon: icon,
+      shareIconBg: icon ? background : null,
+    });
+  };
+
   const copyLink = async () => {
     if (!shareUrl) return;
     await navigator.clipboard.writeText(shareUrl);
@@ -128,7 +150,7 @@ export default function KbSharePanel({
       </button>
 
       {open && (
-        <div className="crm-floating-menu absolute right-0 top-full mt-1 w-80 bg-surface-elevated rounded-lg border border-border-subtle z-50 p-4">
+        <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-border-subtle bg-surface-elevated p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-text-primary">Compartir públicamente</h3>
             <button type="button" onClick={() => setOpen(false)} className="text-text-secondary hover:text-text-primary">
@@ -198,6 +220,71 @@ export default function KbSharePanel({
                   </div>
                 </>
               )}
+
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <label className="text-xs font-medium text-text-secondary">Favicon</label>
+                  {shareIcon && (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => saveFavicon(null, DEFAULT_SHARE_ICON_BG)}
+                      className="text-[11px] text-text-secondary hover:text-text-primary disabled:opacity-50"
+                    >
+                      Usar el del CRM
+                    </button>
+                  )}
+                </div>
+                <div className="mb-2 flex items-center gap-3">
+                  <span
+                    className="flex size-10 shrink-0 items-center justify-center rounded-lg"
+                    style={{ backgroundColor: previewBg }}
+                  >
+                    {previewIcon ? (
+                      <HugeiconsIcon
+                        icon={previewIcon.icon}
+                        size={22}
+                        color={iconStrokeForBackground(previewBg)}
+                      />
+                    ) : (
+                      <span className="text-[10px] font-medium text-white/80">CRM</span>
+                    )}
+                  </span>
+                  <label className="flex items-center gap-2 text-xs text-text-secondary">
+                    Fondo
+                    <input
+                      type="color"
+                      value={previewBg}
+                      disabled={loading || !shareIcon}
+                      onChange={(event) => saveFavicon(shareIcon, event.target.value)}
+                      className="h-8 w-10 cursor-pointer rounded border border-border-subtle bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-40"
+                      aria-label="Color de fondo del favicon"
+                    />
+                  </label>
+                </div>
+                <div className="grid grid-cols-6 gap-1">
+                  {SHARE_FAVICON_ICONS.map((item) => {
+                    const selected = shareIcon === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        disabled={loading}
+                        aria-label={item.id}
+                        aria-pressed={selected}
+                        onClick={() => saveFavicon(item.id, shareIconBg || DEFAULT_SHARE_ICON_BG)}
+                        className={`flex size-9 items-center justify-center rounded-lg border ${
+                          selected
+                            ? "border-action-primary bg-nav-active text-action-primary"
+                            : "border-transparent text-text-primary hover:bg-nav-hover"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={item.icon} size={16} />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div>
                 <label className="text-xs font-medium text-text-secondary mb-1 block">Enlace</label>

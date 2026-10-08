@@ -43,6 +43,7 @@ export function shareMetadata(input: {
   title: string;
   description: string;
   path: string;
+  icon?: string | null;
 }): Metadata {
   const title = clean(input.title);
   const description = clip(input.description);
@@ -68,5 +69,8 @@ export function shareMetadata(input: {
       title,
       description,
     },
+    ...(input.icon
+      ? { icons: { icon: [{ url: input.icon, type: "image/svg+xml" }] } }
+      : {}),
   };
 }

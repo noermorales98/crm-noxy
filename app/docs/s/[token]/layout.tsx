@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
     title: copy?.title ?? "Documento",
     description: copy?.description ?? "Documento compartido.",
     path: `/docs/s/${token}`,
+    icon: page?.shareIcon && page.shareIconBg ? `/docs/s/${token}/icon` : null,
   });
 }
 

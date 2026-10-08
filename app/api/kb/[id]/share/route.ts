@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { normalizeShareTags } from "@/src/lib/share-metadata";
+import {
+  DEFAULT_SHARE_ICON_BG,
+  normalizeShareIconBg,
+  parseShareIcon,
+} from "@/src/lib/share-favicon";
 import type { KbShareRole } from "@prisma/client";
 
 type Params = { params: Promise<{ id: string }> };
@@ -11,7 +16,15 @@ const VALID_ROLES: KbShareRole[] = ["READER", "EDITOR", "COMMENTATOR"];
 async function getOrgPage(id: string, orgId: string) {
   return prisma.kbPage.findFirst({
     where: { id, organizationId: orgId },
-    select: { id: true, title: true, isFolder: true, publicTitle: true, shareTags: true },
+    select: {
+      id: true,
+      title: true,
+      isFolder: true,
+      publicTitle: true,
+      shareTags: true,
+      shareIcon: true,
+      shareIconBg: true,
+    },
   });
 }
 
@@ -36,6 +49,8 @@ export async function GET(_req: Request, { params }: Params) {
     pendingCount,
     publicTitle: page.publicTitle,
     shareTags: page.shareTags,
+    shareIcon: page.shareIcon,
+    shareIconBg: page.shareIconBg,
   });
 }
 
@@ -118,23 +133,53 @@ export async function PATCH(req: Request, { params }: Params) {
 
   let publicTitle = page.publicTitle;
   let shareTags = page.shareTags;
-  if (page.isFolder && (body.publicTitle !== undefined || body.shareTags !== undefined)) {
-    const pageData: { publicTitle?: string | null; shareTags?: string | null } = {};
-    if (body.publicTitle !== undefined) {
-      const nextTitle = typeof body.publicTitle === "string" ? body.publicTitle.trim() : "";
-      pageData.publicTitle = nextTitle || null;
+  let shareIcon = page.shareIcon;
+  let shareIconBg = page.shareIconBg;
+  const pageData: {
+    publicTitle?: string | null;
+    shareTags?: string | null;
+    shareIcon?: string | null;
+    shareIconBg?: string | null;
+  } = {};
+
+  if (page.isFolder && body.publicTitle !== undefined) {
+    const nextTitle = typeof body.publicTitle === "string" ? body.publicTitle.trim() : "";
+    pageData.publicTitle = nextTitle || null;
+  }
+  if (page.isFolder && body.shareTags !== undefined) {
+    pageData.shareTags = normalizeShareTags(body.shareTags);
+  }
+  if (body.shareIcon !== undefined) {
+    const icon = parseShareIcon(body.shareIcon);
+    if (icon === "invalid") {
+      return NextResponse.json({ error: "Icono inválido" }, { status: 400 });
     }
-    if (body.shareTags !== undefined) {
-      pageData.shareTags = normalizeShareTags(body.shareTags);
+    pageData.shareIcon = icon;
+    if (!icon) pageData.shareIconBg = null;
+  }
+  if (body.shareIconBg !== undefined && pageData.shareIcon !== null) {
+    const bg = normalizeShareIconBg(body.shareIconBg);
+    if (typeof body.shareIconBg === "string" && body.shareIconBg.trim() && !bg) {
+      return NextResponse.json({ error: "Color inválido" }, { status: 400 });
     }
+    if (bg) pageData.shareIconBg = bg;
+  }
+  const nextIcon = pageData.shareIcon === undefined ? shareIcon : pageData.shareIcon;
+  if (nextIcon && pageData.shareIconBg === undefined && !shareIconBg) {
+    pageData.shareIconBg = DEFAULT_SHARE_ICON_BG;
+  }
+
+  if (Object.keys(pageData).length > 0) {
     const updated = await prisma.kbPage.update({
       where: { id },
       data: pageData,
-      select: { publicTitle: true, shareTags: true },
+      select: { publicTitle: true, shareTags: true, shareIcon: true, shareIconBg: true },
     });
     publicTitle = updated.publicTitle;
     shareTags = updated.shareTags;
+    shareIcon = updated.shareIcon;
+    shareIconBg = updated.shareIconBg;
   }
 
-  return NextResponse.json({ ...share, publicTitle, shareTags });
+  return NextResponse.json({ ...share, publicTitle, shareTags, shareIcon, shareIconBg });
 }

@@ -14,6 +14,8 @@ export type KbShareWithPage = {
     title: string;
     publicTitle: string | null;
     shareTags: string | null;
+    shareIcon: string | null;
+    shareIconBg: string | null;
     isFolder: boolean;
     organizationId: string;
   };
@@ -39,6 +41,8 @@ export async function getShareByToken(token: string): Promise<KbShareWithPage | 
           title: true,
           publicTitle: true,
           shareTags: true,
+          shareIcon: true,
+          shareIconBg: true,
           isFolder: true,
           organizationId: true,
         },

@@ -767,7 +767,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   const pageBorder = isFolder ? undefined : `color-mix(in srgb, ${themeTokens.accent} 18%, transparent)`;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex h-full min-w-0 w-full flex-col overflow-x-hidden">
 
       <KbEditorNavbar
         pageId={pageId}
@@ -821,7 +821,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
 
       <div
         ref={scrollContainerRef}
-        className={`crm-mobile-bottom-clearance flex-1 overflow-y-auto min-h-0 overscroll-y-contain transition-colors duration-300 ${isFolder ? "bg-surface-elevated" : ""}`}
+        className={`crm-mobile-bottom-clearance min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain transition-colors duration-300 ${isFolder ? "bg-surface-elevated" : ""}`}
         style={{
           overflowAnchor: "none",
           ...(pageBg ? { backgroundColor: pageBg, color: pageText } : {}),
@@ -955,7 +955,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
                 onMouseUp={syncSelection}
                 onKeyDown={handleKeyDown}
                 placeholder={`Escribe en Markdown...\n\n# Título\n**negrita** *cursiva*\n- lista\n\`icon:Home01\` ← inserta un ícono`}
-                className="w-full min-h-[50vh] resize-none border-none outline-none font-mono text-sm leading-7 py-4 placeholder:opacity-40 block"
+                className="block min-h-[50vh] w-full min-w-0 max-w-full resize-none border-none font-mono text-sm leading-7 py-4 outline-none placeholder:opacity-40"
                 style={{
                   ...contentPad,
                   backgroundColor: "transparent",

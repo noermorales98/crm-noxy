@@ -14,6 +14,15 @@ import {
   type KbMarkdownThemeTokens,
 } from "@/src/lib/kb-markdown-themes";
 
+const LONG_DASH_LINE = /^[ \t]*-{8,}[ \t]*$/;
+
+function withoutLongDashLines(content: string): string {
+  return content
+    .split("\n")
+    .filter((line) => !LONG_DASH_LINE.test(line))
+    .join("\n");
+}
+
 function InlineMdIcon({ name, color }: { name: string; color: string }) {
   const key = `${name}Icon` as keyof typeof HugeIconsAll;
   const icon = (HugeIconsAll as Record<string, unknown>)[key];
@@ -99,6 +108,7 @@ export default function KbMarkdown({
   className = "",
 }: KbMarkdownProps) {
   const resolved = themeTokens ?? getMarkdownTheme(theme);
+  const rendered = useMemo(() => withoutLongDashLines(content), [content]);
   const components = useMemo(
     () => buildComponents(resolved.id, resolved.accent),
     [resolved.id, resolved.accent, content]
@@ -116,7 +126,7 @@ export default function KbMarkdown({
         style={themeCssVars(resolved)}
       >
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-          {content}
+          {rendered}
         </ReactMarkdown>
       </div>
     </div>
