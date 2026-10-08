@@ -136,6 +136,8 @@ export default function MobileBottomTabBar() {
     };
   }, [moreOpen]);
 
+  if (pathname.startsWith("/assistant")) return null;
+
   function toggleSection(id: SectionId) {
     setSelectedIds((current) => {
       if (current.includes(id)) return current.filter((item) => item !== id);

@@ -807,16 +807,35 @@
 
 @media (max-width: 1023px) {
   .experience {
-    min-height: 0;
+    flex: 1;
     height: 100%;
+    min-height: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: hidden;
   }
 
   .experience .content {
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    justify-content: flex-start;
+    min-height: 100%;
+    overflow-y: auto;
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
-  .experience .footer {
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
-    padding-bottom: 0;
+  .experience .promptOuter {
+    position: absolute;
+    z-index: 4;
+    right: 20px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 20px;
+    width: auto;
+    margin: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .experience .promptOuter {
+    right: 0;
+    left: 0;
   }
 }

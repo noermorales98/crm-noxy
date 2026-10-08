@@ -7,6 +7,7 @@ import { ChevronRight, Plus, FolderPlus, Globe, Lock, Download } from "lucide-re
 import PageIcon from "@/src/components/kb/PageIcon";
 import KbIconPicker from "@/src/components/kb/KbIconPicker";
 import KbFolderPdfExportModal from "@/src/components/kb/KbFolderPdfExportModal";
+import { KbCreateMenu, KbItemMenu } from "@/src/components/kb/KbMobileMenus";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
 import type { KbIconSelection } from "@/src/lib/kb-icons";
 import { useOptionalKbContext } from "@/src/context/KbContext";
@@ -44,6 +45,7 @@ interface Props {
   folderStats: KbFolderStats;
   children: ChildRow[];
   tree: KbTreeNodeDto[];
+  ancestors?: Array<{ id: string; title: string }>;
   onTitleChange: (title: string) => void;
   onIconChange: (selection: KbIconSelection) => void;
   onRefresh: () => void;
@@ -165,6 +167,7 @@ export default function KbFolderView({
   folderStats,
   children,
   tree,
+  ancestors = [],
   onTitleChange,
   onIconChange,
   onRefresh,
@@ -207,6 +210,21 @@ export default function KbFolderView({
 
   return (
     <div className="py-6 space-y-8" style={{ paddingLeft: "max(40px, calc((100% - 740px) / 2))", paddingRight: "max(40px, calc((100% - 740px) / 2))" }}>
+      <div className="flex items-center gap-2 lg:hidden">
+        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
+          <Link href="/kb" className="hover:underline">Inicio Docs</Link>
+          {ancestors.map((ancestor) => (
+            <span key={ancestor.id}>
+              <span className="font-normal text-text-secondary"> / </span>
+              <Link href={`/kb/${ancestor.id}`} className="hover:underline">{ancestor.title || "Sin título"}</Link>
+            </span>
+          ))}
+          <span className="font-normal text-text-secondary"> / </span>
+          {title || "Sin título"}
+        </p>
+        <KbCreateMenu disabled={creating} onCreate={(folder) => void createChild(folder)} />
+      </div>
+
       {/* Header */}
       <div className="flex items-start gap-4">
         <div className="relative shrink-0">
@@ -236,7 +254,7 @@ export default function KbFolderView({
             placeholder="Nombre de carpeta"
             className="w-full text-3xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-gray-200 leading-tight"
           />
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-1 hidden text-sm text-text-secondary lg:block">
             {folderStats.directPages} páginas directas · {folderStats.directFolders} subcarpetas
           </p>
         </div>
@@ -254,7 +272,7 @@ export default function KbFolderView({
             type="button"
             disabled={creating}
             onClick={() => createChild(false)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+            className="hidden items-center gap-1.5 rounded-lg bg-action-primary px-3 py-2 text-sm font-medium text-action-primary-foreground hover:opacity-90 disabled:opacity-50 lg:flex"
           >
             <Plus size={14} /> Página
           </button>
@@ -262,7 +280,7 @@ export default function KbFolderView({
             type="button"
             disabled={creating}
             onClick={() => createChild(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-sidebar text-text-primary text-sm font-medium hover:bg-nav-hover disabled:opacity-50"
+            className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-3 py-2 text-sm font-medium text-text-primary hover:bg-nav-hover disabled:opacity-50 lg:flex"
           >
             <FolderPlus size={14} /> Carpeta
           </button>
@@ -270,7 +288,7 @@ export default function KbFolderView({
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="hidden grid-cols-2 gap-3 sm:grid-cols-4 lg:grid">
         {metrics.map((m) => (
           <div key={m.label} className="bg-surface-elevated rounded-lg p-4">
             <p className="text-2xl font-bold text-text-primary tabular-nums">{m.value}</p>
@@ -280,7 +298,7 @@ export default function KbFolderView({
       </div>
 
       {/* Charts */}
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="hidden gap-4 sm:grid-cols-2 lg:grid">
         <div className="bg-surface-elevated rounded-lg p-5">
           <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Estado de páginas</p>
           <BarChart published={folderStats.publishedPages} draft={folderStats.draftPages} />
@@ -297,23 +315,33 @@ export default function KbFolderView({
         {children.length === 0 ? (
           <p className="text-sm text-text-secondary italic py-4">Esta carpeta está vacía. Crea una página o subcarpeta.</p>
         ) : (
-          <div className="divide-y divide-border-subtle rounded-lg overflow-hidden bg-surface-elevated">
+          <div className="divide-y divide-border-subtle rounded-lg bg-surface-elevated">
             {children.map((c) => (
-              <Link
-                key={c.id}
-                href={`/kb/${c.id}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-nav-hover transition-colors"
-              >
-                <PageIcon emoji={c.emoji} iconColor={c.iconColor} iconBg={c.iconBg} isFolder={c.isFolder} size={16} block />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text-primary truncate">{c.title || "Sin título"}</p>
-                  <p className="text-[11px] text-text-secondary">
-                    {c.isFolder ? "Carpeta" : c.isPublished ? "Publicada" : "Borrador"}
-                    {c._count?.children ? ` · ${c._count.children} hijos` : ""}
-                  </p>
+              <div key={c.id} className="flex items-center gap-1 pr-2">
+                <Link
+                  href={`/kb/${c.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-nav-hover"
+                >
+                  <PageIcon emoji={c.emoji} iconColor={c.iconColor} iconBg={c.iconBg} isFolder={c.isFolder} size={16} block />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-text-primary">{c.title || "Sin título"}</p>
+                    <p className="hidden text-[11px] text-text-secondary lg:block">
+                      {c.isFolder ? "Carpeta" : c.isPublished ? "Publicada" : "Borrador"}
+                      {c._count?.children ? ` · ${c._count.children} hijos` : ""}
+                    </p>
+                  </div>
+                  <ChevronRight size={14} className="hidden shrink-0 text-text-secondary lg:block" />
+                </Link>
+                <div className="lg:hidden">
+                  <KbItemMenu
+                    id={c.id}
+                    title={c.title}
+                    parentId={folderId}
+                    isFolder={c.isFolder}
+                    onChanged={onRefresh}
+                  />
                 </div>
-                <ChevronRight size={14} className="text-text-secondary shrink-0" />
-              </Link>
+              </div>
             ))}
           </div>
         )}
@@ -321,7 +349,7 @@ export default function KbFolderView({
 
       {/* Tree */}
       {tree.length > 0 && (
-        <div>
+        <div className="hidden lg:block">
           <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Vista de árbol</p>
           <div className="bg-surface-elevated rounded-lg p-3">
             {tree.map((node) => (

@@ -642,6 +642,6 @@
 
 @media (max-width: 1023px) {
   .composerOuter {
-    margin-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }

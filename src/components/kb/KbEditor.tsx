@@ -837,6 +837,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
           folderStats={folderStats}
           children={folderChildren}
           tree={folderTree}
+          ancestors={ancestors}
           onTitleChange={setTitle}
           onIconChange={handleIconSelect}
           onRefresh={() => onFolderRefresh?.()}

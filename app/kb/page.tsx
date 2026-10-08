@@ -9,7 +9,7 @@ import {
   Globe, Lock, Hash, Folder,
 } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
-import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
+import { KbCreateMenu, KbItemMenu } from "@/src/components/kb/KbMobileMenus";
 import { useOptionalKbContext } from "@/src/context/KbContext";
 
 interface KbPage {
@@ -18,6 +18,7 @@ interface KbPage {
   emoji: string | null;
   iconColor: string | null;
   iconBg: string | null;
+  parentId: string | null;
   isFolder: boolean;
   isPublished: boolean;
   updatedAt: string;
@@ -47,6 +48,7 @@ export default function KbHomePage() {
       addButton: {
         label: "Nueva página",
         onClick: () => createPage(false),
+        hideOnMobile: true,
       },
     });
     return () => resetState();
@@ -78,12 +80,55 @@ export default function KbHomePage() {
   };
 
   const filtered = pages;
+  const rootPages = pages.filter((page) => !page.parentId);
 
   return (
     <main className="crm-mobile-bottom-clearance min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
+          <div className="lg:hidden">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h1 className="min-w-0 truncate text-sm font-semibold text-text-primary">Inicio Docs</h1>
+              <KbCreateMenu disabled={creating} onCreate={(isFolder) => void createPage(isFolder)} />
+            </div>
+            {loading ? (
+              <div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-white p-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-10 animate-pulse rounded-lg bg-gray-100" />
+                ))}
+              </div>
+            ) : rootPages.length === 0 ? (
+              <p className="rounded-lg border border-border-subtle bg-white px-4 py-8 text-center text-sm text-text-secondary">
+                Inicio Docs está vacío.
+              </p>
+            ) : (
+              <div className="divide-y divide-gray-50 overflow-hidden rounded-lg border border-border-subtle bg-white">
+                {rootPages.map((page) => (
+                  <div key={page.id} className="flex items-center gap-2 px-3 py-2">
+                    <Link href={`/kb/${page.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-1">
+                      <PageIcon
+                        emoji={page.emoji}
+                        iconColor={page.iconColor}
+                        iconBg={page.iconBg}
+                        isFolder={page.isFolder}
+                        size={18}
+                        block
+                      />
+                      <span className="truncate text-sm font-medium text-text-primary">{page.title || "Sin título"}</span>
+                    </Link>
+                    <KbItemMenu
+                      id={page.id}
+                      title={page.title}
+                      parentId={null}
+                      isFolder={page.isFolder}
+                      onChanged={() => void fetchPages()}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Page header */}
-          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 hidden flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between lg:flex">
             <div className="flex min-w-0 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-action-primary">
                 <BookOpen size={18} color="white" />
@@ -112,7 +157,7 @@ export default function KbHomePage() {
           </div>
 
           {/* Stats */}
-          <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
+          <div className="mb-6 hidden grid-cols-3 gap-2 sm:mb-8 sm:gap-4 lg:grid">
             {[
               { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-action-primary bg-nav-hover" },
               { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
@@ -130,15 +175,8 @@ export default function KbHomePage() {
             ))}
           </div>
 
-          {/* Mobile tree nav (desktop uses docked sidebar) */}
-          <div className="mb-4 overflow-hidden rounded-lg border border-border-subtle bg-white lg:hidden">
-            <div className="max-h-64 overflow-y-auto">
-              <KbSidebarTree />
-            </div>
-          </div>
-
           {/* Pages list */}
-          <div className="bg-white rounded-lg border border-border-subtle">
+          <div className="hidden rounded-lg border border-border-subtle bg-white lg:block">
             <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Hash size={14} className="text-text-secondary" />

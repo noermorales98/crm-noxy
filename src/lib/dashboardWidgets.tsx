@@ -524,7 +524,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const cal = d.googleCalendar;
       const events = cal?.events ?? [];
       return (
-        <WidgetCard title="Próximos eventos" href="/settings">
+        <WidgetCard title="Próximos eventos" href="/appointments">
           {!cal?.connected ? (
             <EmptyState icon={Calendar01Icon} message="Conecta tu Google Calendar en Ajustes para ver tus próximos eventos" />
           ) : events.length > 0 ? (
