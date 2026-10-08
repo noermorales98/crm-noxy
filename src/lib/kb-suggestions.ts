@@ -179,7 +179,7 @@ export function resolveSuggestionOffsets(
 
 export const GUEST_NAME_KEY = "kb-guest-name";
 export const GUEST_EMAIL_KEY = "kb-guest-email";
-export const COMMENTATOR_ONBOARDING_KEY = "kb-commentator-onboarding-seen";
+export const COMMENTATOR_ONBOARDING_KEY = "kb-commentator-onboarding-seen-v2";
 
 export function getStoredGuestIdentity(): { name: string | null; email: string } {
   if (typeof window === "undefined") {

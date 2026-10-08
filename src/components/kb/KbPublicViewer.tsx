@@ -20,8 +20,6 @@ import {
 import type { PublicTreeNode } from "@/src/lib/kb-share-access";
 import type { KbShareRole, KbSuggestionType } from "@prisma/client";
 
-const DESKTOP_HINT_KEY = "kb-commentator-desktop-hint";
-
 type PublicPage = {
   id: string;
   title: string;
@@ -100,12 +98,15 @@ function GuestNameModal({ onDone }: { onDone: (name: string, email: string) => v
 
 function CommentatorOnboardingModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-surface border border-border-subtle p-6 sm:p-8 w-full max-w-md shadow-md">
         <h2 className="text-xl font-semibold text-text-primary mb-1">Modo comentarista</h2>
-        <p className="text-sm text-text-secondary mb-6">
+        <p className="text-sm text-text-secondary mb-4">
           Puedes revisar este documento y proponer cambios. Nada se modifica directamente: tus aportes
           quedan como sugerencias para que el equipo las apruebe.
+        </p>
+        <p className="mb-6 text-sm font-medium text-text-primary">
+          Se recomienda ampliamente leerlo y anotarlo en una computadora.
         </p>
         <ul className="space-y-4 mb-8">
           <li className="flex gap-3">
@@ -137,7 +138,7 @@ function CommentatorOnboardingModal({ onClose }: { onClose: () => void }) {
             <div>
               <p className="text-sm font-medium text-text-primary">Sin cambios directos</p>
               <p className="text-xs text-text-secondary mt-0.5">
-                El documento original no se altera. En el teléfono, el lápiz abre tus notas. Se recomienda ampliamente leerlo y anotarlo en una computadora.
+                El documento original no se altera. En el teléfono, el lápiz abre tus notas.
               </p>
             </div>
           </li>
@@ -520,7 +521,6 @@ export default function KbPublicViewer({
   const [deleteConfirm, setDeleteConfirm] = useState<Suggestion | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [showDesktopHint, setShowDesktopHint] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const proseContainerRef = useRef<HTMLDivElement>(null);
 
@@ -574,17 +574,11 @@ export default function KbPublicViewer({
     if (!guestName || !isCommentator) return;
     const seen = localStorage.getItem(COMMENTATOR_ONBOARDING_KEY);
     if (!seen) setShowOnboarding(true);
-    setShowDesktopHint(localStorage.getItem(DESKTOP_HINT_KEY) !== "1");
   }, [guestName, isCommentator]);
 
   const dismissOnboarding = () => {
     localStorage.setItem(COMMENTATOR_ONBOARDING_KEY, "1");
     setShowOnboarding(false);
-  };
-
-  const dismissDesktopHint = () => {
-    localStorage.setItem(DESKTOP_HINT_KEY, "1");
-    setShowDesktopHint(false);
   };
 
   const loadPage = useCallback(async () => {
@@ -841,21 +835,6 @@ export default function KbPublicViewer({
           className={`relative flex-1 min-w-0 pb-24 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
           style={{ backgroundColor: themeTokens.bg, color: themeTokens.text }}
         >
-          {isCommentator && showDesktopHint && (
-            <div className="mx-4 mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 md:hidden">
-              <p className="min-w-0 flex-1">
-                Se recomienda ampliamente leer y anotar este documento en una computadora.
-              </p>
-              <button
-                type="button"
-                onClick={dismissDesktopHint}
-                className="shrink-0 rounded-md p-1 hover:bg-amber-100"
-                aria-label="Cerrar aviso"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          )}
           {showPageNav && pageNav && (
             <KbPublicPageNav
               token={token}
