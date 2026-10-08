@@ -13,12 +13,17 @@ import {
   LockIcon,
   BarChartIcon,
   Activity01Icon,
+  Building04Icon,
+  Invoice01Icon,
+  MegaphoneIcon,
 } from "@hugeicons/core-free-icons";
 import { KpiWidget } from "@/src/components/dashboard/KpiWidget";
 import { WidgetCard } from "@/src/components/dashboard/WidgetCard";
 import { EmptyState } from "@/src/components/dashboard/EmptyState";
 import { formatCurrency } from "@/src/lib/format";
-import type { DashboardData, DataKey } from "@/src/lib/dashboardData";
+import { contentTypeLabel } from "@/src/lib/content-client-colors";
+import { publishStatusColor, publishStatusLabel } from "@/src/lib/content-publish";
+import type { ContentPieceRow, DashboardData, DataKey } from "@/src/lib/dashboardData";
 
 export type WidgetSize = "sm" | "md" | "lg";
 
@@ -36,6 +41,26 @@ function shortDate(date: Date) {
   if (isToday(date)) return "Hoy";
   if (isTomorrow(date)) return "Mañana";
   return format(date, "dd MMM", { locale: es });
+}
+
+function contentDayLabel(iso: string) {
+  const date = new Date(iso);
+  return shortDate(new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function ContentPieceRows({ items, empty }: { items: ContentPieceRow[]; empty: string }) {
+  if (items.length === 0) {
+    return <EmptyState icon={Calendar01Icon} message={empty} />;
+  }
+  return items.map((item) => (
+    <ListRow
+      key={item.id}
+      dotColor={publishStatusColor(item.publishStatus)}
+      title={item.title || "Sin título"}
+      subtitle={`${item.clientName} · ${contentTypeLabel(item.type)} · ${publishStatusLabel(item.publishStatus)}`}
+      right={item.time ? `${contentDayLabel(item.date)} ${item.time}` : contentDayLabel(item.date)}
+    />
+  ));
 }
 
 function ListRow({ dotColor, title, subtitle, right }: { dotColor: string; title: string; subtitle?: string; right?: string }) {
@@ -518,6 +543,87 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
         </WidgetCard>
       );
     },
+  },
+  {
+    id: "companies_total",
+    label: "Empresas",
+    category: "Empresas",
+    icon: Building04Icon,
+    size: "sm",
+    dataKeys: ["companiesCount"],
+    render: (d) => (
+      <KpiWidget icon={Building04Icon} iconBg="#EBEDFA" iconColor="#3545D6" value={String(d.companiesCount ?? 0)} label="Empresas" href="/companies" />
+    ),
+  },
+  {
+    id: "open_quotes",
+    label: "Cotizaciones abiertas",
+    category: "Cotizaciones",
+    icon: Invoice01Icon,
+    size: "sm",
+    dataKeys: ["openQuotesCount"],
+    render: (d) => (
+      <KpiWidget icon={Invoice01Icon} iconBg="#FFECD2" iconColor="#D9730D" value={String(d.openQuotesCount ?? 0)} label="Cotizaciones abiertas" href="/cotizaciones" />
+    ),
+  },
+  {
+    id: "content_calendars_active",
+    label: "Calendarios activos",
+    category: "Calendarios",
+    icon: MegaphoneIcon,
+    size: "sm",
+    dataKeys: ["contentCalendarsCount"],
+    render: (d) => (
+      <KpiWidget icon={MegaphoneIcon} iconBg="#EBEDFA" iconColor="#3545D6" value={String(d.contentCalendarsCount ?? 0)} label="Calendarios activos" href="/contenido" />
+    ),
+  },
+  {
+    id: "content_due_today",
+    label: "Piezas de hoy",
+    category: "Calendarios",
+    icon: Calendar01Icon,
+    size: "sm",
+    dataKeys: ["contentDueTodayCount"],
+    render: (d) => (
+      <KpiWidget icon={Calendar01Icon} iconBg="#F0E6F9" iconColor="#9065B0" value={String(d.contentDueTodayCount ?? 0)} label="Piezas de hoy" href="/contenido/general" />
+    ),
+  },
+  {
+    id: "content_pending_month",
+    label: "Pendientes del mes",
+    category: "Calendarios",
+    icon: CalendarCheckIn01Icon,
+    size: "sm",
+    dataKeys: ["contentPendingMonthCount"],
+    render: (d) => (
+      <KpiWidget icon={CalendarCheckIn01Icon} iconBg="#FFECD2" iconColor="#D9730D" value={String(d.contentPendingMonthCount ?? 0)} label="Pendientes del mes" href="/contenido/general" />
+    ),
+  },
+  {
+    id: "content_upcoming",
+    label: "Próximas piezas",
+    category: "Calendarios",
+    icon: Calendar01Icon,
+    size: "md",
+    dataKeys: ["contentUpcoming"],
+    render: (d) => (
+      <WidgetCard title="Próximas piezas" href="/contenido/general">
+        <ContentPieceRows items={d.contentUpcoming ?? []} empty="No hay piezas en los próximos 7 días" />
+      </WidgetCard>
+    ),
+  },
+  {
+    id: "content_in_editing",
+    label: "En edición",
+    category: "Calendarios",
+    icon: MegaphoneIcon,
+    size: "md",
+    dataKeys: ["contentInEditing"],
+    render: (d) => (
+      <WidgetCard title="En edición" href="/contenido">
+        <ContentPieceRows items={d.contentInEditing ?? []} empty="No hay piezas en edición" />
+      </WidgetCard>
+    ),
   },
 ];
 

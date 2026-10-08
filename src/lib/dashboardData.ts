@@ -44,6 +44,17 @@ export interface ClientPaymentRow {
   receivedAt: string | null;
 }
 
+export interface ContentPieceRow {
+  id: string;
+  title: string;
+  type: string;
+  publishStatus: string;
+  date: string;
+  time: string | null;
+  clientId: string;
+  clientName: string;
+}
+
 export interface GoogleCalendarData {
   connected: boolean;
   events: {
@@ -97,6 +108,13 @@ export interface DashboardData {
   clientPaymentStats?: ClientPaymentStats;
   clientPaymentsList?: ClientPaymentRow[];
   googleCalendar?: GoogleCalendarData;
+  contentCalendarsCount?: number;
+  contentDueTodayCount?: number;
+  contentPendingMonthCount?: number;
+  contentUpcoming?: ContentPieceRow[];
+  contentInEditing?: ContentPieceRow[];
+  companiesCount?: number;
+  openQuotesCount?: number;
 }
 
 export type DataKey = keyof DashboardData;
@@ -116,6 +134,77 @@ async function getActiveClientsWithCurrentPayment(organizationId: string, month:
     },
   });
   return clients.map((c) => ({ ...c, currentPayment: c.payments[0] ?? null }));
+}
+
+async function organizationTimeZone(organizationId: string): Promise<string> {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { timezone: true },
+  });
+  return org?.timezone || "America/Cancun";
+}
+
+function zonedDateKey(now: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+function utcDayFromKey(key: string): Date {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function nextMonthKey(key: string): string {
+  const [year, month] = key.split("-").map(Number);
+  const nextYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  return `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
+}
+
+function shiftDateKey(key: string, days: number): string {
+  const date = utcDayFromKey(key);
+  date.setUTCDate(date.getUTCDate() + days);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+const contentPieceSelect = {
+  id: true,
+  title: true,
+  type: true,
+  publishStatus: true,
+  date: true,
+  time: true,
+  clientId: true,
+  client: { select: { name: true } },
+} as const;
+
+function toContentPieceRow(item: {
+  id: string;
+  title: string;
+  type: string;
+  publishStatus: string;
+  date: Date;
+  time: string | null;
+  clientId: string;
+  client: { name: string };
+}): ContentPieceRow {
+  return {
+    id: item.id,
+    title: item.title,
+    type: item.type,
+    publishStatus: item.publishStatus,
+    date: item.date.toISOString(),
+    time: item.time,
+    clientId: item.clientId,
+    clientName: item.client.name,
+  };
 }
 
 /** One independent Prisma fetcher per data key, so page.tsx only queries what active widgets/tabs actually need. */
@@ -355,6 +444,68 @@ export const DATA_FETCHERS: {
       })),
     };
   },
+  contentCalendarsCount: async (organizationId) => ({
+    contentCalendarsCount: await prisma.contentClient.count({
+      where: { organizationId, isActive: true },
+    }),
+  }),
+  contentDueTodayCount: async (organizationId, now) => {
+    const today = zonedDateKey(now, await organizationTimeZone(organizationId));
+    return {
+      contentDueTodayCount: await prisma.contentItem.count({
+        where: {
+          organizationId,
+          date: { gte: utcDayFromKey(today), lt: utcDayFromKey(shiftDateKey(today, 1)) },
+        },
+      }),
+    };
+  },
+  contentPendingMonthCount: async (organizationId, now) => {
+    const timeZone = await organizationTimeZone(organizationId);
+    const today = zonedDateKey(now, timeZone);
+    const [year, month] = today.split("-");
+    const monthStart = `${year}-${month}-01`;
+    const nextMonth = nextMonthKey(monthStart);
+    return {
+      contentPendingMonthCount: await prisma.contentItem.count({
+        where: {
+          organizationId,
+          publishStatus: "pendiente",
+          date: { gte: utcDayFromKey(monthStart), lt: utcDayFromKey(nextMonth) },
+        },
+      }),
+    };
+  },
+  contentUpcoming: async (organizationId, now) => {
+    const today = zonedDateKey(now, await organizationTimeZone(organizationId));
+    const items = await prisma.contentItem.findMany({
+      where: {
+        organizationId,
+        date: { gte: utcDayFromKey(today), lt: utcDayFromKey(shiftDateKey(today, 7)) },
+      },
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+      take: 6,
+      select: contentPieceSelect,
+    });
+    return { contentUpcoming: items.map(toContentPieceRow) };
+  },
+  contentInEditing: async (organizationId) => {
+    const items = await prisma.contentItem.findMany({
+      where: { organizationId, publishStatus: "en_edicion" },
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+      take: 6,
+      select: contentPieceSelect,
+    });
+    return { contentInEditing: items.map(toContentPieceRow) };
+  },
+  companiesCount: async (organizationId) => ({
+    companiesCount: await prisma.company.count({ where: { organizationId } }),
+  }),
+  openQuotesCount: async (organizationId) => ({
+    openQuotesCount: await prisma.quote.count({
+      where: { organizationId, status: { notIn: ["PAGADA", "RECHAZADA", "VENCIDA"] } },
+    }),
+  }),
   googleCalendar: async (organizationId, now) => {
     const token = await prisma.googleCalendarToken.findUnique({ where: { organizationId } });
     if (!token) return { googleCalendar: { connected: false, events: [] } };

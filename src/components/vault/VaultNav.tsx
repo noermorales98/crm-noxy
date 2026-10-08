@@ -28,7 +28,7 @@ function navItemClass(isActive: boolean, extra = "") {
 
 type VaultClient = { id: string; name: string; _count?: { vaultEntries: number } };
 
-export default function VaultNav() {
+export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
@@ -56,6 +56,7 @@ export default function VaultNav() {
     setShowAddModal(false);
     setShowImportModal(false);
     fetchClients();
+    onNavigate?.();
     router.push(`/boveda/${client.id}`);
   }
 
@@ -71,6 +72,7 @@ export default function VaultNav() {
         const next = clients.filter((c) => c.id !== deleting.id);
         setClients(next);
         if (viewingDeleted) {
+          onNavigate?.();
           router.push(next.length > 0 ? `/boveda/${next[0].id}` : "/boveda");
         }
       }
@@ -123,6 +125,7 @@ export default function VaultNav() {
                   <div key={client.id} className="group relative">
                     <Link
                       href={`/boveda/${client.id}`}
+                      onClick={onNavigate}
                       className={navItemClass(isActive, "justify-between pr-8 w-full")}
                     >
                       <span className="flex items-center gap-2.5 min-w-0">

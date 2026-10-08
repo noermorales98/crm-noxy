@@ -13,6 +13,7 @@ export type AssistantSidebarAction =
   | { type: "peekOpen" }
   | { type: "peekClose" }
   | { type: "mobileOpen" }
+  | { type: "mobileClose" }
   | { type: "navigate" };
 
 export const INITIAL_ASSISTANT_SIDEBAR_STATE: AssistantSidebarState = {
@@ -45,10 +46,14 @@ export function assistantNewSidebarReducer(
       return { ...state, peek: false };
     case "mobileOpen":
       return { ...state, peek: true };
+    case "mobileClose":
+      return { ...state, peek: false };
     case "navigate":
       return state;
-    default:
-      return state;
+    default: {
+      const exhaustive: never = action;
+      return exhaustive;
+    }
   }
 }
 

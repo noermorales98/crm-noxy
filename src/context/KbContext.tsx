@@ -232,15 +232,13 @@ export function KbProvider({ children }: { children: ReactNode }) {
 
       applyLocal();
 
-      if (toParentId) {
+      if (toParentId && toParentId !== fromParentId) {
         setExpandedIds((prev) => {
           const next = new Set(prev);
           next.add(toParentId);
           saveExpandedToStorage(next);
           return next;
         });
-        invalidateChildren(toParentId);
-        await loadChildren(toParentId);
       }
 
       try {
@@ -255,6 +253,14 @@ export function KbProvider({ children }: { children: ReactNode }) {
           await refreshParents([fromParentId, toParentId]);
           return false;
         }
+        if (toParentId && toParentId !== fromParentId) {
+          invalidateChildren(toParentId);
+          await loadChildren(toParentId);
+        }
+        if (fromParentId && fromParentId !== toParentId) {
+          invalidateChildren(fromParentId);
+          await loadChildren(fromParentId);
+        }
         return true;
       } catch (e) {
         console.error("[kb move]", e);
@@ -262,7 +268,7 @@ export function KbProvider({ children }: { children: ReactNode }) {
         return false;
       }
     },
-    [loadChildren, refreshParents]
+    [invalidateChildren, loadChildren, refreshParents]
   );
 
   const ensureExpanded = useCallback(

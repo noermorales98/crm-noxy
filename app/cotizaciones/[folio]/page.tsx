@@ -421,7 +421,7 @@ function QuoteDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
           {/* ── Ítems y condiciones ─────────────────────────────────────── */}
           <div className="flex flex-col gap-4">
-            <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">
+            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-border-subtle bg-surface-sidebar/60">

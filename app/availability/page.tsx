@@ -430,7 +430,7 @@ export default function AvailabilityPage() {
               <p className="text-text-secondary text-sm">No tienes horarios extendidos. Agrega uno para abrir disponibilidad fuera de tu horario regular.</p>
             </div>
           ) : extendedTimes.length > 0 ? (
-            <div className="bg-white border border-border-subtle rounded-lg overflow-hidden mb-12">
+            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg mb-12">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border-subtle bg-surface-sidebar/50">
@@ -493,7 +493,7 @@ export default function AvailabilityPage() {
               <p className="text-text-secondary text-sm">No tienes ninguna excursión o vacación programada próximamente.</p>
             </div>
           ) : (
-            <div className="bg-white border border-border-subtle rounded-lg overflow-hidden mb-12">
+            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg mb-12">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border-subtle bg-surface-sidebar/50">

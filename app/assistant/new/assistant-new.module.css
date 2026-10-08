@@ -804,3 +804,13 @@
     -webkit-backdrop-filter: none;
   }
 }
+
+@media (max-width: 1023px) {
+  .experience .content {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .experience .footer {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+}

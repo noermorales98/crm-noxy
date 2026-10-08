@@ -72,12 +72,15 @@ function KbCollapsedDropSlot({
           ref={provided.innerRef}
           {...provided.droppableProps}
           style={{ paddingLeft: `${28 + depth * 14}px` }}
-          className={`transition-all rounded mx-1 ${
-            !dropDisabled && snapshot.isDraggingOver
-              ? "h-7 bg-nav-active mb-0.5"
-              : "h-0 overflow-hidden pointer-events-none"
+          className={`mx-1 flex items-center rounded text-[10px] text-text-secondary transition-all ${
+            dropDisabled
+              ? "pointer-events-none h-0 overflow-hidden"
+              : snapshot.isDraggingOver
+                ? "mb-0.5 h-7 bg-nav-active"
+                : "mb-0.5 min-h-7 border border-dashed border-border-subtle bg-nav-hover/50"
           }`}
         >
+          {!dropDisabled && <span className="px-2">Soltar en carpeta</span>}
           {provided.placeholder}
         </div>
       )}
@@ -91,12 +94,14 @@ function KbTreeNode({
   depth,
   parentId,
   draggingId,
+  onNavigate,
 }: {
   page: KbNode;
   index: number;
   depth: number;
   parentId: string | null;
   draggingId: string | null;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -135,7 +140,10 @@ function KbTreeNode({
       const child = await res.json();
       await kb.syncTree({ type: "create", parentId: page.id });
       await kb.ensureExpanded([page.id]);
-      if (!isFolder) router.push(`/kb/${child.id}`);
+      if (!isFolder) {
+        onNavigate?.();
+        router.push(`/kb/${child.id}`);
+      }
     }
   };
 
@@ -143,7 +151,10 @@ function KbTreeNode({
     await fetch(`/api/kb/${page.id}`, { method: "DELETE" });
     setDeleteConfirm(false);
     await kb.syncTree({ type: "delete", id: page.id, parentId });
-    if (pathname === `/kb/${page.id}`) router.push("/kb");
+    if (pathname === `/kb/${page.id}`) {
+      onNavigate?.();
+      router.push("/kb");
+    }
   };
 
   const rowPad = 8 + depth * 14;
@@ -201,7 +212,7 @@ function KbTreeNode({
                 {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </button>
 
-              <Link href={`/kb/${page.id}`} className="flex items-center gap-2 flex-1 min-w-0">
+              <Link href={`/kb/${page.id}`} onClick={onNavigate} className="flex items-center gap-2 flex-1 min-w-0">
                 <PageIcon
                   emoji={page.emoji}
                   iconColor={page.iconColor}
@@ -256,7 +267,7 @@ function KbTreeNode({
         )}
       </Draggable>
 
-      {!expanded && (
+      {!expanded && page.isFolder && (
         <KbCollapsedDropSlot
           parentId={page.id}
           depth={depth}
@@ -272,6 +283,7 @@ function KbTreeNode({
           depth={depth + 1}
           draggingId={draggingId}
           isLoading={!loaded}
+          onNavigate={onNavigate}
         />
       )}
     </>
@@ -284,12 +296,14 @@ function KbDroppableList({
   depth,
   draggingId,
   isLoading,
+  onNavigate,
 }: {
   parentId: string | null;
   items: KbNode[];
   depth: number;
   draggingId: string | null;
   isLoading?: boolean;
+  onNavigate?: () => void;
 }) {
   const droppableId = toDroppableId(parentId);
   const emptyPad = 20 + depth * 14;
@@ -322,6 +336,7 @@ function KbDroppableList({
                 depth={depth}
                 parentId={parentId}
                 draggingId={draggingId}
+                onNavigate={onNavigate}
               />
             ))
           )}
@@ -332,7 +347,7 @@ function KbDroppableList({
   );
 }
 
-export default function KbSidebarTree() {
+export default function KbSidebarTree({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const kb = useKbContext();
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -346,7 +361,10 @@ export default function KbSidebarTree() {
     if (res.ok) {
       const page = await res.json();
       await kb.syncTree({ type: "create", parentId: null });
-      if (!isFolder) router.push(`/kb/${page.id}`);
+      if (!isFolder) {
+        onNavigate?.();
+        router.push(`/kb/${page.id}`);
+      }
     }
   };
 
@@ -387,6 +405,7 @@ export default function KbSidebarTree() {
       <div className="flex items-center justify-between px-3 py-2 shrink-0">
         <Link
           href="/kb"
+          onClick={onNavigate}
           className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-primary transition-colors"
         >
           <HugeiconsIcon icon={Book01Icon} size={ICON_SIZE} color={ICON_COLOR} />
@@ -437,6 +456,7 @@ export default function KbSidebarTree() {
               items={kb.rootPages}
               depth={0}
               draggingId={draggingId}
+              onNavigate={onNavigate}
             />
           </DragDropContext>
         )}

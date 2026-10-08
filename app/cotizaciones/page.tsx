@@ -125,7 +125,7 @@ function CotizacionesContent() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">
+        <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-border-subtle bg-surface-sidebar/60">

@@ -148,7 +148,7 @@ export default function HistoryPage() {
             <p className="text-xs text-text-secondary">No hay ventas archivadas para este período.</p>
           </div>
         ) : (
-          <div className="bg-white border border-border-subtle rounded-xl overflow-hidden">
+          <div className="crm-table-scroll bg-white border border-border-subtle rounded-xl">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-app border-b border-border-subtle text-xs font-semibold text-text-secondary">

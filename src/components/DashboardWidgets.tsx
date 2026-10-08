@@ -115,7 +115,11 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
         )}
       </div>
 
-      {!editMode && activeTabData.render(data)}
+      {!editMode && (
+        <div className="crm-table-scroll">
+          <div className="crm-table-min">{activeTabData.render(data)}</div>
+        </div>
+      )}
     </div>
   );
 }

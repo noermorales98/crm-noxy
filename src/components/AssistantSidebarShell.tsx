@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { usePathname } from "next/navigation";
 import { Pin, PinOff, X } from "lucide-react";
 import Sidebar from "@/src/components/Sidebar";
 import {
@@ -47,9 +48,11 @@ export default function AssistantSidebarShell() {
   const hoverHostRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef(false);
   const openedByMobileButtonRef = useRef(false);
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
   const mobileChrome = useOptionalMobileChrome();
-  const isVisible = isAssistantSidebarVisible(state);
   const isPinned = state.mode === "pinned";
+  const isVisible = isMobile ? state.peek : isAssistantSidebarVisible(state);
 
   useEffect(() => {
     const storedMode = readAssistantSidebarStoredMode();
@@ -64,13 +67,28 @@ export default function AssistantSidebarShell() {
 
   const hideSidebar = useCallback(() => {
     restoreFocusRef.current = true;
+    if (isMobile) {
+      dispatch({ type: "mobileClose" });
+      return;
+    }
     dispatch({ type: "unpin" });
-  }, []);
+  }, [isMobile]);
 
   const closeForNavigation = useCallback(() => {
     restoreFocusRef.current = true;
+    if (isMobile) {
+      dispatch({ type: "mobileClose" });
+      return;
+    }
     dispatch({ type: "unpin" });
-  }, []);
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (pathnameRef.current === pathname) return;
+    pathnameRef.current = pathname;
+    if (!isMobile) return;
+    dispatch({ type: "mobileClose" });
+  }, [isMobile, pathname]);
 
   const openFromMobileButton = useCallback(() => {
     openedByMobileButtonRef.current = true;
@@ -147,15 +165,17 @@ export default function AssistantSidebarShell() {
 
   const peekControls = (
     <div className="absolute -right-4 top-3 z-10 flex flex-col gap-1.5">
-      <button
-        type="button"
-        aria-label="Fijar barra lateral"
-        aria-pressed={false}
-        onClick={() => dispatch({ type: "pin" })}
-        className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
-      >
-        <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
-      </button>
+      {!isMobile && (
+        <button
+          type="button"
+          aria-label="Fijar barra lateral"
+          aria-pressed={false}
+          onClick={() => dispatch({ type: "pin" })}
+          className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        >
+          <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
+        </button>
+      )}
       <button
         ref={hideButtonRef}
         type="button"

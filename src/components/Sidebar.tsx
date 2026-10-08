@@ -272,11 +272,11 @@ function DeleteModal({ name, onConfirm, onCancel }: {
 
 // ─── Shared NavItem ────────────────────────────────────────────────────────────
 
-function NavItem({ icon, label, href, badge, exact = false }: { icon: any; label: string; href: string; badge?: number; exact?: boolean }) {
+function NavItem({ icon, label, href, badge, exact = false, onNavigate }: { icon: any; label: string; href: string; badge?: number; exact?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const isActive = exact ? pathname === href : pathname === href || (href !== "/" && pathname.startsWith(href));
   return (
-    <Link href={href} className={`${navItemClass(isActive)} justify-between`}>
+    <Link href={href} onClick={onNavigate} className={`${navItemClass(isActive)} justify-between`}>
       <div className="flex items-center gap-2.5 min-w-0">
         <HugeiconsIcon icon={icon} size={ICON_SIZE} color={ICON_COLOR} />
         <span className="truncate">{label}</span>
@@ -299,10 +299,12 @@ function NavGroup({
   icon,
   label,
   items,
+  onNavigate,
 }: {
   icon: any;
   label: string;
   items: { href: string; label: string }[];
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   // Pick the most specific (longest) matching href, since sibling routes can share a prefix
@@ -334,7 +336,7 @@ function NavGroup({
           {items.map((child) => {
             const isActive = child.href === activeHref;
             return (
-              <Link key={child.href} href={child.href} className={`${navItemClass(isActive)} justify-between`}>
+              <Link key={child.href} href={child.href} onClick={onNavigate} className={`${navItemClass(isActive)} justify-between`}>
                 <span className="truncate">{child.label}</span>
                 {isActive && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
               </Link>
@@ -354,33 +356,34 @@ function SectionLabel({ label }: { label: string }) {
 
 // ─── Tab 1: Inicio ─────────────────────────────────────────────────────────────
 
-function HomeNav() {
+function HomeNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="py-1 pb-4">
       <div className="px-3 flex flex-col gap-1">
-        <NavItem href="/" icon={Home01Icon} label="Inicio" />
-        <NavItem href="/companies" icon={Building04Icon} label="Empresas" />
-        <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" />
-        <NavItem href="/tasks" icon={Task01Icon} label="Tareas" />
+        <NavItem href="/" icon={Home01Icon} label="Inicio" onNavigate={onNavigate} />
+        <NavItem href="/companies" icon={Building04Icon} label="Empresas" onNavigate={onNavigate} />
+        <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" onNavigate={onNavigate} />
+        <NavItem href="/tasks" icon={Task01Icon} label="Tareas" onNavigate={onNavigate} />
         <NavGroup
           icon={BarChartIcon}
           label="Ventas"
+          onNavigate={onNavigate}
           items={[
             { href: "/pipeline", label: "Pipeline de ventas" },
             { href: "/pipeline/clientes", label: "Clientes" },
           ]}
         />
-        <NavItem href="/forms" icon={BrowserIcon} label="Formularios" />
-        <NavItem href="/cotizaciones" icon={Invoice01Icon} label="Cotizaciones" />
-        <NavItem href="/projects" icon={FolderKanbanIcon} label="Proyectos" />
+        <NavItem href="/forms" icon={BrowserIcon} label="Formularios" onNavigate={onNavigate} />
+        <NavItem href="/cotizaciones" icon={Invoice01Icon} label="Cotizaciones" onNavigate={onNavigate} />
+        <NavItem href="/projects" icon={FolderKanbanIcon} label="Proyectos" onNavigate={onNavigate} />
       </div>
 
       <div className="px-0">
         <SectionLabel label="Calendario" />
         <div className="px-3 flex flex-col gap-1">
-          <NavItem href="/appointment-types" icon={Calendar01Icon} label="Tipos de Cita" />
-          <NavItem href="/availability" icon={Clock01Icon} label="Disponibilidad" />
-          <NavItem href="/appointments" icon={CalendarCheckIn01Icon} label="Citas Agendadas" />
+          <NavItem href="/appointment-types" icon={Calendar01Icon} label="Tipos de Cita" onNavigate={onNavigate} />
+          <NavItem href="/availability" icon={Clock01Icon} label="Disponibilidad" onNavigate={onNavigate} />
+          <NavItem href="/appointments" icon={CalendarCheckIn01Icon} label="Citas Agendadas" onNavigate={onNavigate} />
         </div>
       </div>
     </div>
@@ -400,7 +403,7 @@ const EMAIL_FOLDERS = [
 
 const composeBtnClass = "w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none";
 
-function MailNav({ unreadCount }: { unreadCount: number }) {
+function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?: () => void }) {
   const emailCtx = useOptionalEmailContext();
   const pathname = usePathname();
   const [companies, setCompanies] = useState<EmailCompany[]>([]);
@@ -438,7 +441,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
             Redactar
           </button>
         ) : (
-          <Link href="/emails" className={composeBtnClass}>
+          <Link href="/emails" onClick={onNavigate} className={composeBtnClass}>
             <HugeiconsIcon icon={PencilEdit01Icon} size={ICON_SIZE} color="white" />
             Redactar
           </Link>
@@ -464,9 +467,9 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
             </>
           );
           return isOnEmail && emailCtx ? (
-            <button key={f.key} onClick={() => emailCtx.setFolder(f.key)} className={cls}>{inner}</button>
+            <button key={f.key} onClick={() => { emailCtx.setFolder(f.key); onNavigate?.(); }} className={cls}>{inner}</button>
           ) : (
-            <Link key={f.key} href={f.key === "inbox" ? "/emails" : `/emails?box=${f.key}`} className={cls}>{inner}</Link>
+            <Link key={f.key} href={f.key === "inbox" ? "/emails" : `/emails?box=${f.key}`} onClick={onNavigate} className={cls}>{inner}</Link>
           );
         })}
       </div>
@@ -475,7 +478,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
         <p className={sectionLabelClass}>Cuentas</p>
 
         {isOnEmail && emailCtx ? (
-          <button onClick={() => emailCtx.setSelectedCompanyId(null)} className={navItemClass(selectedCompanyId === null, "w-full text-left justify-between")}>
+          <button onClick={() => { emailCtx.setSelectedCompanyId(null); onNavigate?.(); }} className={navItemClass(selectedCompanyId === null, "w-full text-left justify-between")}>
             <div className="flex items-center gap-2.5">
               <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} color={ICON_COLOR} />
               <span className="truncate">Todas</span>
@@ -483,7 +486,7 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
             {selectedCompanyId === null && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
           </button>
         ) : (
-          <Link href="/emails" className={navItemClass(false)}>
+          <Link href="/emails" onClick={onNavigate} className={navItemClass(false)}>
             <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} color={ICON_COLOR} />
             <span className="truncate">Todas</span>
           </Link>
@@ -512,9 +515,9 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
             return (
               <div key={company.id} className="group relative">
                 {isOnEmail && emailCtx ? (
-                  <button onClick={() => emailCtx.setSelectedCompanyId(company.id)} className={navItemClass(isSelected, "w-full text-left pr-8 justify-between")}>{inner}</button>
+                  <button onClick={() => { emailCtx.setSelectedCompanyId(company.id); onNavigate?.(); }} className={navItemClass(isSelected, "w-full text-left pr-8 justify-between")}>{inner}</button>
                 ) : (
-                  <Link href={`/emails?company=${company.id}`} className={`${navItemClass(false)} pr-8`}>{inner}</Link>
+                  <Link href={`/emails?company=${company.id}`} onClick={onNavigate} className={`${navItemClass(false)} pr-8`}>{inner}</Link>
                 )}
                 {isOnEmail && emailCtx?.onOpenConfig && (
                   <button
@@ -541,8 +544,8 @@ function MailNav({ unreadCount }: { unreadCount: number }) {
 
 // ─── Tab 3: Knowledge Base ─────────────────────────────────────────────────────
 
-function KbNav() {
-  return <KbSidebarTree />;
+function KbNav({ onNavigate }: { onNavigate?: () => void }) {
+  return <KbSidebarTree onNavigate={onNavigate} />;
 }
 
 // ─── Tab 6: Gestión de contenido ───────────────────────────────────────────────
@@ -576,8 +579,8 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <div className="px-3 pb-2 shrink-0 flex flex-col gap-1">
-        <NavItem href="/contenido/general" icon={Calendar01Icon} label="Calendario general" exact />
-        <NavItem href="/contenido" icon={MegaphoneIcon} label="Todos los calendarios" exact />
+        <NavItem href="/contenido/general" icon={Calendar01Icon} label="Calendario general" exact onNavigate={onNavigate} />
+        <NavItem href="/contenido" icon={MegaphoneIcon} label="Todos los calendarios" exact onNavigate={onNavigate} />
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-2 min-h-0">
@@ -866,22 +869,22 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
         <div className="flex-1 overflow-y-auto min-h-0 relative">
           {hasPermission(role, permissions, "crm") && (
             <div className={activeTab === "home" ? "block" : "hidden"}>
-              <HomeNav />
+              <HomeNav onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "mail") && (
             <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
-              <MailNav unreadCount={unreadEmailCount} />
+              <MailNav unreadCount={unreadEmailCount} onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "kb") && (
             <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
-              <KbNav />
+              <KbNav onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "vault") && (
             <div className={activeTab === "vault" ? "flex flex-col h-full" : "hidden"}>
-              <VaultNav />
+              <VaultNav onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "assistant") && (

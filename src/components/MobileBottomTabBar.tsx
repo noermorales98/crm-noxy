@@ -11,54 +11,65 @@ import {
   LockPasswordIcon,
   MegaphoneIcon,
   MoreHorizontalCircle01Icon,
-  Menu01Icon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications } from "@/src/context/NotificationContext";
-import { useMobileChrome } from "@/src/context/MobileChromeContext";
 import { useSession } from "next-auth/react";
-import { hasPermission, type ModulePermissions, type RoleName } from "@/src/lib/permissions";
+import { hasPermission, SECTION_PERMISSION, type RoleName, type ModulePermissions } from "@/src/lib/permissions";
 
-type PrimaryTabId = "home" | "mail" | "kb" | "assistant";
+type SectionId = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
 
-const PRIMARY_TABS: {
-  id: PrimaryTabId;
+const MAX_BAR_SECTIONS = 5;
+const STORAGE_PREFIX = "crm-mobile-bottom-nav";
+const DEFAULT_SECTION_IDS: SectionId[] = ["home", "mail", "kb", "assistant"];
+
+const SECTIONS: {
+  id: SectionId;
   label: string;
+  shortLabel: string;
   href: string;
   icon: typeof Home01Icon;
 }[] = [
-  { id: "home", label: "Inicio", href: "/", icon: Home01Icon },
-  { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon },
-  { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon },
-  { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon },
+  { id: "home", label: "Inicio", shortLabel: "Inicio", href: "/", icon: Home01Icon },
+  { id: "mail", label: "Correo", shortLabel: "Correo", href: "/emails", icon: InboxIcon },
+  { id: "kb", label: "Docs", shortLabel: "Docs", href: "/kb", icon: Book01Icon },
+  { id: "assistant", label: "Asistente", shortLabel: "Asistente", href: "/assistant", icon: AiChatIcon },
+  { id: "vault", label: "Bóveda", shortLabel: "Bóveda", href: "/boveda", icon: LockPasswordIcon },
+  { id: "content", label: "Gestión de contenido", shortLabel: "Contenido", href: "/contenido/general", icon: MegaphoneIcon },
 ];
 
-const MORE_ITEMS = [
-  { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon },
-  { id: "content", label: "Contenido", href: "/contenido/general", icon: MegaphoneIcon },
-] as const;
+const SECTION_IDS = SECTIONS.map((section) => section.id);
 
-function resolvePrimaryTab(pathname: string): PrimaryTabId | "more" | null {
+function isSectionId(value: unknown): value is SectionId {
+  return typeof value === "string" && SECTION_IDS.includes(value as SectionId);
+}
+
+function storageKey(userId: string) {
+  return `${STORAGE_PREFIX}:${userId}`;
+}
+
+function readStoredSections(userId: string): SectionId[] {
+  try {
+    const raw = localStorage.getItem(storageKey(userId));
+    if (!raw) return [...DEFAULT_SECTION_IDS];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...DEFAULT_SECTION_IDS];
+    const unique = parsed.filter(isSectionId).filter((id, index, all) => all.indexOf(id) === index);
+    return unique.slice(0, MAX_BAR_SECTIONS);
+  } catch {
+    return [...DEFAULT_SECTION_IDS];
+  }
+}
+
+function orderSections(ids: SectionId[]): SectionId[] {
+  return SECTIONS.filter((section) => ids.includes(section.id)).map((section) => section.id);
+}
+
+function resolveSection(pathname: string): SectionId {
   if (pathname.startsWith("/kb")) return "kb";
   if (pathname.startsWith("/emails") || pathname.startsWith("/campaigns")) return "mail";
   if (pathname.startsWith("/assistant")) return "assistant";
-  if (pathname.startsWith("/boveda") || pathname.startsWith("/contenido")) return "more";
-  if (
-    pathname === "/" ||
-    pathname.startsWith("/contacts") ||
-    pathname.startsWith("/companies") ||
-    pathname.startsWith("/pipeline") ||
-    pathname.startsWith("/projects") ||
-    pathname.startsWith("/tasks") ||
-    pathname.startsWith("/forms") ||
-    pathname.startsWith("/cotizaciones") ||
-    pathname.startsWith("/appointments") ||
-    pathname.startsWith("/appointment-types") ||
-    pathname.startsWith("/availability") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/profile")
-  ) {
-    return "home";
-  }
+  if (pathname.startsWith("/boveda")) return "vault";
+  if (pathname.startsWith("/contenido")) return "content";
   return "home";
 }
 
@@ -67,26 +78,40 @@ export default function MobileBottomTabBar() {
   const router = useRouter();
   const { data: session } = useSession();
   const { notifications } = useNotifications();
-  const { openMobileSidebar } = useMobileChrome();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<SectionId[]>(DEFAULT_SECTION_IDS);
   const sheetRef = useRef<HTMLDivElement>(null);
-  const active = resolvePrimaryTab(pathname);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
+  const activeSection = resolveSection(pathname);
   const unreadEmailCount = notifications.filter((n) => n.type === "NEW_EMAIL" && !n.isRead).length;
   const role = session?.role as RoleName | undefined;
   const permissions = session?.permissions as ModulePermissions | undefined;
-  const tabPermission: Record<PrimaryTabId, "crm" | "mail" | "kb" | "assistant"> = {
-    home: "crm",
-    mail: "mail",
-    kb: "kb",
-    assistant: "assistant",
-  };
-  const visibleTabs = PRIMARY_TABS.filter((tab) => hasPermission(role, permissions, tabPermission[tab.id]));
-  const visibleMore = MORE_ITEMS.filter((item) =>
-    hasPermission(role, permissions, item.id === "vault" ? "vault" : "content"),
+  const userId = session?.user?.id;
+
+  const visibleSections = SECTIONS.filter((section) =>
+    hasPermission(role, permissions, SECTION_PERMISSION[section.id]),
   );
+  const visibleIds = new Set(visibleSections.map((section) => section.id));
+  const barSections = SECTIONS.filter(
+    (section) => selectedIds.includes(section.id) && visibleIds.has(section.id),
+  );
+  const barHasActive = barSections.some((section) => section.id === activeSection);
+
+  useEffect(() => {
+    if (!userId || hydratedUserId === userId) return;
+    setSelectedIds(readStoredSections(userId));
+    setHydratedUserId(userId);
+  }, [hydratedUserId, userId]);
+
+  useEffect(() => {
+    if (!userId || hydratedUserId !== userId) return;
+    localStorage.setItem(storageKey(userId), JSON.stringify(orderSections(selectedIds)));
+  }, [hydratedUserId, selectedIds, userId]);
 
   useEffect(() => {
     setMoreOpen(false);
+    setEditing(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -94,10 +119,14 @@ export default function MobileBottomTabBar() {
     function handlePointer(e: MouseEvent) {
       if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) {
         setMoreOpen(false);
+        setEditing(false);
       }
     }
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setMoreOpen(false);
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+        setEditing(false);
+      }
     }
     document.addEventListener("mousedown", handlePointer);
     document.addEventListener("keydown", handleKey);
@@ -106,6 +135,14 @@ export default function MobileBottomTabBar() {
       document.removeEventListener("keydown", handleKey);
     };
   }, [moreOpen]);
+
+  function toggleSection(id: SectionId) {
+    setSelectedIds((current) => {
+      if (current.includes(id)) return current.filter((item) => item !== id);
+      if (current.filter((item) => visibleIds.has(item)).length >= MAX_BAR_SECTIONS) return current;
+      return orderSections([...current, id]);
+    });
+  }
 
   return (
     <nav
@@ -117,59 +154,95 @@ export default function MobileBottomTabBar() {
           <div className="absolute inset-x-0 bottom-full mb-2">
             <div
               ref={sheetRef}
-              role="menu"
+              role={editing ? "dialog" : "menu"}
+              aria-label={editing ? "Editar barra" : "Todas las secciones"}
               className="crm-glass-pill overflow-hidden rounded-[22px]"
             >
-              {visibleMore.map((item) => {
-                const isActive =
-                  item.id === "vault"
-                    ? pathname.startsWith("/boveda")
-                    : pathname.startsWith("/contenido");
-                return (
+              {editing ? (
+                <div className="px-4 py-3">
+                  <p className="text-sm font-semibold text-text-primary">Editar barra</p>
+                  <p className="mt-0.5 text-xs text-text-secondary">Elige hasta {MAX_BAR_SECTIONS} secciones.</p>
+                  <ul className="mt-2 flex flex-col">
+                    {visibleSections.map((section) => {
+                      const checked = selectedIds.includes(section.id);
+                      const atLimit = barSections.length >= MAX_BAR_SECTIONS;
+                      const disabled = !checked && atLimit;
+                      return (
+                        <li key={section.id}>
+                          <label
+                            className={`flex min-h-11 items-center gap-3 py-2 text-sm font-medium ${
+                              disabled ? "text-text-secondary" : "text-text-primary"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              disabled={disabled}
+                              onChange={() => toggleSection(section.id)}
+                              className="size-4 accent-action-primary"
+                            />
+                            <HugeiconsIcon icon={section.icon} size={20} />
+                            {section.label}
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
                   <button
-                    key={item.id}
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className="mt-1 flex min-h-11 w-full items-center justify-center rounded-full bg-action-primary text-sm font-semibold text-action-primary-foreground"
+                  >
+                    Listo
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {visibleSections.map((section) => {
+                    const isActive = activeSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setMoreOpen(false);
+                          router.push(section.href);
+                        }}
+                        className={`flex w-full min-h-11 items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
+                          isActive
+                            ? "bg-nav-active text-action-primary"
+                            : "text-text-primary hover:bg-nav-hover"
+                        }`}
+                      >
+                        <HugeiconsIcon icon={section.icon} size={20} />
+                        {section.label}
+                      </button>
+                    );
+                  })}
+                  <button
                     type="button"
                     role="menuitem"
-                    onClick={() => {
-                      setMoreOpen(false);
-                      router.push(item.href);
-                    }}
-                    className={`flex w-full min-h-11 items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-nav-active text-action-primary"
-                        : "text-text-primary hover:bg-nav-hover"
-                    }`}
+                    onClick={() => setEditing(true)}
+                    className="flex w-full min-h-11 items-center gap-3 border-t border-black/[0.06] px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-nav-hover"
                   >
-                    <HugeiconsIcon icon={item.icon} size={20} />
-                    {item.label}
+                    Editar barra
                   </button>
-                );
-              })}
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setMoreOpen(false);
-                  openMobileSidebar();
-                }}
-                className="flex w-full min-h-11 items-center gap-3 border-t border-black/[0.06] px-4 py-3 text-left text-sm font-medium text-text-primary hover:bg-nav-hover"
-              >
-                <HugeiconsIcon icon={Menu01Icon} size={20} />
-                Menú lateral
-              </button>
+                </>
+              )}
             </div>
           </div>
         )}
 
         <div className="crm-glass-pill rounded-full px-1.5 py-1.5">
           <ul className="flex items-stretch justify-between gap-0.5">
-            {visibleTabs.map((tab) => {
-              const isActive = active === tab.id;
+            {barSections.map((section) => {
+              const isActive = activeSection === section.id;
               return (
-                <li key={tab.id} className="flex-1">
+                <li key={section.id} className="min-w-0 flex-1">
                   <button
                     type="button"
-                    onClick={() => router.push(tab.href)}
+                    onClick={() => router.push(section.href)}
                     aria-current={isActive ? "page" : undefined}
                     className={`relative flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 text-[10px] font-semibold transition-colors ${
                       isActive
@@ -178,26 +251,29 @@ export default function MobileBottomTabBar() {
                     }`}
                   >
                     <span className="relative">
-                      <HugeiconsIcon icon={tab.icon} size={20} />
-                      {tab.id === "mail" && unreadEmailCount > 0 && (
+                      <HugeiconsIcon icon={section.icon} size={20} />
+                      {section.id === "mail" && unreadEmailCount > 0 && (
                         <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white">
                           {unreadEmailCount > 99 ? "99+" : unreadEmailCount}
                         </span>
                       )}
                     </span>
-                    <span className="truncate">{tab.label}</span>
+                    <span className="max-w-full truncate">{section.shortLabel}</span>
                   </button>
                 </li>
               );
             })}
-            <li className="flex-1">
+            <li className="min-w-0 flex-1">
               <button
                 type="button"
-                onClick={() => setMoreOpen((v) => !v)}
+                onClick={() => {
+                  setEditing(false);
+                  setMoreOpen((open) => !open);
+                }}
                 aria-expanded={moreOpen}
                 aria-haspopup="menu"
                 className={`flex w-full min-h-11 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1 text-[10px] font-semibold transition-colors ${
-                  active === "more" || moreOpen
+                  !barHasActive || moreOpen
                     ? "bg-white/70 text-action-primary"
                     : "text-text-secondary hover:text-text-primary"
                 }`}

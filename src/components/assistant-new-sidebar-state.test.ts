@@ -49,6 +49,10 @@ test("assistant sidebar supports pin, unpin, and peek actions", () => {
     mode: "auto",
     peek: true,
   });
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "pinned", peek: true }, { type: "mobileClose" }), {
+    mode: "pinned",
+    peek: false,
+  });
 });
 
 test("assistant sidebar visibility follows pin or peek", () => {

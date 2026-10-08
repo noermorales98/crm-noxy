@@ -262,7 +262,7 @@ export default function CampaignsPage() {
               {!activeFilters.status && <p className="text-text-secondary text-sm mb-4">Start by creating your first email newsletter draft.</p>}
             </div>
           ) : (
-            <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">
+            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border-subtle bg-surface-sidebar/60">

@@ -175,7 +175,7 @@ function ContactsContent() {
                 <p className="text-sm text-text-secondary">Agrega tu primer contacto para comenzar.</p>
               </div>
             ) : (
-              <div className="bg-white border border-border-subtle rounded-lg overflow-hidden">
+              <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-border-subtle bg-surface-sidebar/60">
@@ -223,7 +223,7 @@ function ContactsContent() {
               {Object.entries(grouped).map(([companyName, compContacts]) => {
                 const items = compContacts as any[];
                 return (
-                  <div key={companyName} className="bg-white border border-border-subtle rounded-lg overflow-hidden">
+                  <div key={companyName} className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
                     <div className="px-6 py-3.5 border-b border-border-subtle flex items-center justify-between bg-surface-sidebar/60">
                       <span className="text-sm font-bold text-text-primary">{companyName}</span>
                       <span className="text-[10px] font-semibold bg-nav-active text-text-secondary px-2 py-0.5 rounded-full">{items.length}</span>

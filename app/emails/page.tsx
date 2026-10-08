@@ -804,8 +804,8 @@ function EmailsPageInner() {
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="shrink-0 border-b border-border-subtle bg-white px-4 py-3 sm:px-6 sm:py-4">
-                <div className="flex items-start justify-between gap-3">
+              <div className="shrink-0 border-b border-border-subtle bg-white px-4 py-2 sm:px-6 lg:py-4">
+                <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-3">
                   <div className="flex min-w-0 flex-1 gap-2">
                     <button
                       type="button"
@@ -817,10 +817,34 @@ function EmailsPageInner() {
                       <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                     </button>
                     <div className="min-w-0 flex-1">
-                    <h2 className="mb-2 text-base font-bold leading-snug text-text-primary sm:text-lg">
+                    <h2 className="line-clamp-1 text-sm font-semibold leading-snug text-text-primary lg:mb-2 lg:line-clamp-none lg:text-lg lg:font-bold">
                       {selectedEmail.subject}
                     </h2>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary">
+                    <p className="truncate text-xs text-text-secondary lg:hidden">
+                      {selectedEmail.fromName || sanitizeEmail(selectedEmail.fromAddress)}
+                      {" · "}
+                      {new Date(selectedEmail.receivedAt).toLocaleString("es-MX", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <details className="mt-1 lg:hidden">
+                      <summary className="cursor-pointer text-xs text-text-secondary">Detalles</summary>
+                      <div className="mt-1 space-y-0.5 text-xs text-text-secondary">
+                        <p className="truncate">
+                          De:{" "}
+                          {selectedEmail.fromName
+                            ? `${selectedEmail.fromName} <${sanitizeEmail(selectedEmail.fromAddress)}>`
+                            : sanitizeEmail(selectedEmail.fromAddress)}
+                        </p>
+                        <p className="truncate">Para: {sanitizeEmail(selectedEmail.toAddress)}</p>
+                        {selectedEmail.ccAddress && <p className="truncate">CC: {selectedEmail.ccAddress}</p>}
+                        <p className="truncate">{selectedEmail.company.name}</p>
+                      </div>
+                    </details>
+                    <div className="hidden flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary lg:flex">
                       <span>
                         <span className="text-text-secondary text-xs">De:</span>{" "}
                         {selectedEmail.fromName
@@ -838,7 +862,7 @@ function EmailsPageInner() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-text-secondary mt-1">
+                    <p className="mt-1 hidden text-xs text-text-secondary lg:block">
                       {new Date(selectedEmail.receivedAt).toLocaleString("es-MX", {
                         weekday: "short",
                         year: "numeric",
@@ -851,7 +875,7 @@ function EmailsPageInner() {
                     </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="flex items-center gap-1 lg:shrink-0">
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
