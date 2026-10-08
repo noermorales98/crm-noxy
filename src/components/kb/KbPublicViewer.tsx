@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, MousePointer2, Pencil, PencilLine, ShieldCheck, Trash2 } from "lucide-react";
+import { MessageSquare, MousePointer2, Pencil, PencilLine, ShieldCheck, Trash2, X } from "lucide-react";
 import KbMarkdown from "@/src/components/kb/KbMarkdown";
 import KbPublicPageNav from "@/src/components/kb/KbPublicPageNav";
 import KbSuggestionAnchors from "@/src/components/kb/KbSuggestionAnchors";
@@ -19,6 +19,8 @@ import {
 } from "@/src/lib/kb-public-nav";
 import type { PublicTreeNode } from "@/src/lib/kb-share-access";
 import type { KbShareRole, KbSuggestionType } from "@prisma/client";
+
+const DESKTOP_HINT_KEY = "kb-commentator-desktop-hint";
 
 type PublicPage = {
   id: string;
@@ -135,7 +137,7 @@ function CommentatorOnboardingModal({ onClose }: { onClose: () => void }) {
             <div>
               <p className="text-sm font-medium text-text-primary">Sin cambios directos</p>
               <p className="text-xs text-text-secondary mt-0.5">
-                El documento original no se altera. Tus comentarios aparecen a la izquierda.
+                El documento original no se altera. En el teléfono, el lápiz abre tus notas. Se recomienda ampliamente leerlo y anotarlo en una computadora.
               </p>
             </div>
           </li>
@@ -317,6 +319,21 @@ function DeleteConfirmModal({
   );
 }
 
+type CommentsPanelVariant = "sidebar" | "sheet";
+
+function commentsPanelClass(variant: CommentsPanelVariant): string {
+  switch (variant) {
+    case "sidebar":
+      return "hidden md:flex md:w-72 lg:w-80 shrink-0 flex-col border-r border-border-subtle bg-white md:sticky md:top-0 md:h-screen";
+    case "sheet":
+      return "flex max-h-[75vh] w-full flex-col overflow-hidden bg-white";
+    default: {
+      const exhaustive: never = variant;
+      return exhaustive;
+    }
+  }
+}
+
 function CommentsSidebar({
   suggestions,
   guestName,
@@ -326,6 +343,8 @@ function CommentsSidebar({
   onSelect,
   onEdit,
   onDelete,
+  variant = "sidebar",
+  onClose,
 }: {
   suggestions: Suggestion[];
   guestName: string;
@@ -335,21 +354,40 @@ function CommentsSidebar({
   onSelect: (id: string) => void;
   onEdit: (suggestion: Suggestion) => void;
   onDelete: (id: string) => void;
+  variant?: CommentsPanelVariant;
+  onClose?: () => void;
 }) {
   return (
     <aside
-      className="w-full md:w-72 lg:w-80 shrink-0 border-r border-border-subtle bg-white flex flex-col min-h-screen md:sticky md:top-0 md:h-screen"
+      className={commentsPanelClass(variant)}
       style={{ ["--comment-accent" as string]: accentColor }}
     >
       <div className="px-4 py-5 border-b border-border-subtle shrink-0">
-        <h2 className="text-sm font-semibold text-text-primary">Comentarios realizados</h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-sm font-semibold text-text-primary">Comentarios realizados</h2>
+          {variant === "sheet" && onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-text-secondary hover:bg-surface-sidebar hover:text-text-primary"
+              aria-label="Cerrar notas"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        {variant === "sheet" && (
+          <p className="mt-1 text-[11px] text-text-secondary">
+            Selecciona un fragmento del documento para anotar.
+          </p>
+        )}
         <p className="text-[11px] text-text-secondary mt-1">
           {suggestions.length === 0
             ? "Aún no hay comentarios en este documento"
             : `${suggestions.length} comentario${suggestions.length !== 1 ? "s" : ""} pendiente${suggestions.length !== 1 ? "s" : ""}`}
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {suggestions.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border-subtle p-4 text-center">
             <MessageSquare size={20} className="mx-auto mb-2 text-text-secondary opacity-50" />
@@ -481,6 +519,8 @@ export default function KbPublicViewer({
   const [editModal, setEditModal] = useState<Suggestion | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Suggestion | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [showDesktopHint, setShowDesktopHint] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const proseContainerRef = useRef<HTMLDivElement>(null);
 
@@ -534,11 +574,17 @@ export default function KbPublicViewer({
     if (!guestName || !isCommentator) return;
     const seen = localStorage.getItem(COMMENTATOR_ONBOARDING_KEY);
     if (!seen) setShowOnboarding(true);
+    setShowDesktopHint(localStorage.getItem(DESKTOP_HINT_KEY) !== "1");
   }, [guestName, isCommentator]);
 
   const dismissOnboarding = () => {
     localStorage.setItem(COMMENTATOR_ONBOARDING_KEY, "1");
     setShowOnboarding(false);
+  };
+
+  const dismissDesktopHint = () => {
+    localStorage.setItem(DESKTOP_HINT_KEY, "1");
+    setShowDesktopHint(false);
   };
 
   const loadPage = useCallback(async () => {
@@ -792,9 +838,24 @@ export default function KbPublicViewer({
         )}
 
         <main
-          className={`relative flex-1 min-w-0 pb-10 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
+          className={`relative flex-1 min-w-0 pb-24 md:py-10 ${showPageNav ? "pt-0" : "pt-10"}`}
           style={{ backgroundColor: themeTokens.bg, color: themeTokens.text }}
         >
+          {isCommentator && showDesktopHint && (
+            <div className="mx-4 mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-900 md:hidden">
+              <p className="min-w-0 flex-1">
+                Se recomienda ampliamente leer y anotar este documento en una computadora.
+              </p>
+              <button
+                type="button"
+                onClick={dismissDesktopHint}
+                className="shrink-0 rounded-md p-1 hover:bg-amber-100"
+                aria-label="Cerrar aviso"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
           {showPageNav && pageNav && (
             <KbPublicPageNav
               token={token}
@@ -811,6 +872,58 @@ export default function KbPublicViewer({
           </div>
         </main>
       </div>
+
+      {isCommentator && guestName && (
+        <>
+          <button
+            type="button"
+            onClick={() => setCommentsOpen(true)}
+            className="fixed bottom-5 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-action-primary text-action-primary-foreground shadow-lg md:hidden"
+            style={{ marginBottom: "env(safe-area-inset-bottom, 0px)" }}
+            aria-label="Notas"
+          >
+            <PencilLine size={22} />
+            {suggestions.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+                {suggestions.length}
+              </span>
+            )}
+          </button>
+          {commentsOpen && (
+            <div
+              className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden"
+              onClick={() => setCommentsOpen(false)}
+            >
+              <div
+                className="w-full overflow-hidden rounded-t-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <CommentsSidebar
+                  variant="sheet"
+                  suggestions={suggestions}
+                  guestName={guestName}
+                  accentColor={themeTokens.accent}
+                  activeSuggestionId={activeSuggestionId}
+                  missingAnchorIds={missingAnchorIds}
+                  onClose={() => setCommentsOpen(false)}
+                  onSelect={(id) => {
+                    handleSelectSuggestion(id);
+                    setCommentsOpen(false);
+                  }}
+                  onEdit={(suggestion) => {
+                    setCommentsOpen(false);
+                    setEditModal(suggestion);
+                  }}
+                  onDelete={(id) => {
+                    const match = suggestions.find((item) => item.id === id);
+                    if (match) setDeleteConfirm(match);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {isCommentator && suggestions.length > 0 && (
         <KbSuggestionAnchors

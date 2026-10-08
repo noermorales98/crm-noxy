@@ -11,13 +11,31 @@ function clip(text: string, max = 160): string {
   return `${compact.slice(0, max - 1).trimEnd()}…`;
 }
 
-export function sharedDocCopy(isFolder: boolean, title: string): { title: string; description: string } {
-  const name = clean(title);
+export function normalizeShareTags(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const tags = raw
+    .split(",")
+    .map((tag) => clean(tag))
+    .filter(Boolean);
+  if (tags.length === 0) return null;
+  return tags.join(", ").slice(0, 500);
+}
+
+export function sharedDocCopy(
+  isFolder: boolean,
+  title: string,
+  extras?: { publicTitle?: string | null; shareTags?: string | null },
+): { title: string; description: string } {
+  const folderName = clean(title);
+  const publicName = clean(extras?.publicTitle ?? "");
+  const name = publicName || folderName;
   const kind = isFolder ? "Carpeta" : "Documento";
   const shared = isFolder ? "Carpeta compartida" : "Documento compartido";
+  const tags = normalizeShareTags(extras?.shareTags ?? "");
+  const categories = tags ? ` Categorías: ${tags}.` : "";
   return {
-    title: `${kind} — ${name}`,
-    description: `${shared}: ${name}.`,
+    title: publicName || `${kind} — ${folderName}`,
+    description: `${shared}: ${name}.${categories}`,
   };
 }
 

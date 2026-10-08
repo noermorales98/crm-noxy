@@ -31,6 +31,9 @@ export default function KbSharePanel({
   const [share, setShare] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [publicTitle, setPublicTitle] = useState("");
+  const [shareTags, setShareTags] = useState("");
+  const savedMeta = useRef({ publicTitle: "", shareTags: "" });
   const ref = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
@@ -38,6 +41,11 @@ export default function KbSharePanel({
     if (res.ok) {
       const data = await res.json();
       setShare(data.share);
+      const nextTitle = typeof data.publicTitle === "string" ? data.publicTitle : "";
+      const nextTags = typeof data.shareTags === "string" ? data.shareTags : "";
+      setPublicTitle(nextTitle);
+      setShareTags(nextTags);
+      savedMeta.current = { publicTitle: nextTitle, shareTags: nextTags };
     }
   }, [pageId]);
 
@@ -78,6 +86,17 @@ export default function KbSharePanel({
     });
     if (res.ok) setShare(await res.json());
     setLoading(false);
+  };
+
+  const saveFolderMeta = () => {
+    if (
+      publicTitle === savedMeta.current.publicTitle &&
+      shareTags === savedMeta.current.shareTags
+    ) {
+      return;
+    }
+    savedMeta.current = { publicTitle, shareTags };
+    void updateShare({ publicTitle, shareTags });
   };
 
   const copyLink = async () => {
@@ -152,6 +171,33 @@ export default function KbSharePanel({
                   ))}
                 </select>
               </div>
+
+              {isFolder && (
+                <>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-text-secondary">Nombre al compartir</label>
+                    <input
+                      value={publicTitle}
+                      disabled={loading}
+                      onChange={(e) => setPublicTitle(e.target.value)}
+                      onBlur={saveFolderMeta}
+                      placeholder="Si lo dejas vacío, se usa el nombre de la carpeta"
+                      className="crm-input w-full py-1.5 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-text-secondary">Etiquetas</label>
+                    <input
+                      value={shareTags}
+                      disabled={loading}
+                      onChange={(e) => setShareTags(e.target.value)}
+                      onBlur={saveFolderMeta}
+                      placeholder="propuesta, diseño"
+                      className="crm-input w-full py-1.5 text-sm"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="text-xs font-medium text-text-secondary mb-1 block">Enlace</label>

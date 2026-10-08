@@ -12,6 +12,8 @@ export type KbShareWithPage = {
   page: {
     id: string;
     title: string;
+    publicTitle: string | null;
+    shareTags: string | null;
     isFolder: boolean;
     organizationId: string;
   };
@@ -32,7 +34,14 @@ export async function getShareByToken(token: string): Promise<KbShareWithPage | 
     where: { token, isEnabled: true },
     include: {
       page: {
-        select: { id: true, title: true, isFolder: true, organizationId: true },
+        select: {
+          id: true,
+          title: true,
+          publicTitle: true,
+          shareTags: true,
+          isFolder: true,
+          organizationId: true,
+        },
       },
     },
   });

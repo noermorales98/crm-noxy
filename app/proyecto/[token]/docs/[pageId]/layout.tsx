@@ -15,7 +15,12 @@ export async function generateMetadata({
         pageId,
       })
     : null;
-  const copy = page?.title ? sharedDocCopy(page.isFolder, page.title) : null;
+  const copy = page?.title
+    ? sharedDocCopy(page.isFolder, page.title, {
+        publicTitle: page.publicTitle,
+        shareTags: page.shareTags,
+      })
+    : null;
   return shareMetadata({
     title: copy?.title ?? "Documento",
     description: copy?.description ?? "Documento compartido.",

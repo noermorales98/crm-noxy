@@ -1156,6 +1156,8 @@ model KbPage {
   organizationId String
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   title          String           @default("Sin título")
+  publicTitle    String?
+  shareTags      String?          @db.VarChar(500)
   emoji          String?
   iconColor      String?
   iconBg         String?

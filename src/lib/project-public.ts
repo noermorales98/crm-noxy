@@ -122,6 +122,8 @@ export async function getPublicProjectPage(opts: {
     select: {
       id: true,
       title: true,
+      publicTitle: true,
+      shareTags: true,
       content: true,
       isFolder: true,
       markdownTheme: true,

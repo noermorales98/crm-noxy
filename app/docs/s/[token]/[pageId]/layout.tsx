@@ -13,10 +13,15 @@ export async function generateMetadata({
   const page = allowed && share
     ? await prisma.kbPage.findFirst({
         where: { id: pageId, organizationId: share.organizationId },
-        select: { title: true, isFolder: true },
+        select: { title: true, isFolder: true, publicTitle: true, shareTags: true },
       })
     : null;
-  const copy = page?.title ? sharedDocCopy(page.isFolder, page.title) : null;
+  const copy = page?.title
+    ? sharedDocCopy(page.isFolder, page.title, {
+        publicTitle: page.publicTitle,
+        shareTags: page.shareTags,
+      })
+    : null;
   return shareMetadata({
     title: copy?.title ?? "Documento",
     description: copy?.description ?? "Documento compartido.",

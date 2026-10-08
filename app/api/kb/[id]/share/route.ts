@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { normalizeShareTags } from "@/src/lib/share-metadata";
 import type { KbShareRole } from "@prisma/client";
 
 type Params = { params: Promise<{ id: string }> };
@@ -10,7 +11,7 @@ const VALID_ROLES: KbShareRole[] = ["READER", "EDITOR", "COMMENTATOR"];
 async function getOrgPage(id: string, orgId: string) {
   return prisma.kbPage.findFirst({
     where: { id, organizationId: orgId },
-    select: { id: true, title: true, isFolder: true },
+    select: { id: true, title: true, isFolder: true, publicTitle: true, shareTags: true },
   });
 }
 
@@ -30,7 +31,12 @@ export async function GET(_req: Request, { params }: Params) {
     where: { pageId: id, organizationId: orgId, status: "PENDING" },
   });
 
-  return NextResponse.json({ share, pendingCount });
+  return NextResponse.json({
+    share,
+    pendingCount,
+    publicTitle: page.publicTitle,
+    shareTags: page.shareTags,
+  });
 }
 
 export async function POST(req: Request, { params }: Params) {
@@ -110,5 +116,25 @@ export async function PATCH(req: Request, { params }: Params) {
     data,
   });
 
-  return NextResponse.json(share);
+  let publicTitle = page.publicTitle;
+  let shareTags = page.shareTags;
+  if (page.isFolder && (body.publicTitle !== undefined || body.shareTags !== undefined)) {
+    const pageData: { publicTitle?: string | null; shareTags?: string | null } = {};
+    if (body.publicTitle !== undefined) {
+      const nextTitle = typeof body.publicTitle === "string" ? body.publicTitle.trim() : "";
+      pageData.publicTitle = nextTitle || null;
+    }
+    if (body.shareTags !== undefined) {
+      pageData.shareTags = normalizeShareTags(body.shareTags);
+    }
+    const updated = await prisma.kbPage.update({
+      where: { id },
+      data: pageData,
+      select: { publicTitle: true, shareTags: true },
+    });
+    publicTitle = updated.publicTitle;
+    shareTags = updated.shareTags;
+  }
+
+  return NextResponse.json({ ...share, publicTitle, shareTags });
 }
