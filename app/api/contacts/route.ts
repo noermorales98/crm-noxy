@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { createNotification } from "@/src/lib/notifications";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
 export async function GET(req: Request) {
   try {
@@ -19,6 +20,7 @@ export async function GET(req: Request) {
     const contacts = await prisma.contact.findMany({
       where: {
         organizationId: currentOrganizationId,
+        ...visibleContactWhere,
       },
       orderBy: {
         createdAt: "desc",

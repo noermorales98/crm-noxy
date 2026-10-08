@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Home01Icon,
@@ -38,6 +38,7 @@ import { useNotifications, type AppNotification, type NotificationType } from "@
 import { useGlobalSearch } from "@/src/context/SearchContext";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
+import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
 import VaultNav from "@/src/components/vault/VaultNav";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
 import { ChevronDown, ChevronRight, Check } from "lucide-react";
@@ -604,6 +605,9 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
           )}
         </div>
       </div>
+      <Suspense fallback={null}>
+        <ContentMiniMonth />
+      </Suspense>
     </div>
   );
 }
@@ -886,7 +890,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
             </div>
           )}
           {hasPermission(role, permissions, "content") && (
-            <div className={activeTab === "content" ? "flex flex-col h-full" : "hidden"}>
+            <div className={activeTab === "content" ? "flex h-full min-h-0 flex-col overflow-hidden" : "hidden"}>
               <ContentNav onNavigate={onNavigate} />
             </div>
           )}

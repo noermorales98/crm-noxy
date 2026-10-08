@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
@@ -17,19 +18,21 @@ export default async function ContentClientPage({ params }: { params: Promise<{ 
   if (!client) notFound();
 
   return (
-    <ContentCalendarView
-      client={{
-        id: client.id,
-        name: client.name,
-        kind: client.kind,
-        description: client.description,
-        context: client.context,
-        publicToken: client.publicToken,
-        reminderHour: client.reminderHour,
-        reminderMinute: client.reminderMinute,
-        reminderDaysBefore: client.reminderDaysBefore,
-        phones: client.phones.map((p) => ({ id: p.id, label: p.label, phone: p.phone, apiKey: p.apiKey })),
-      }}
-    />
+    <Suspense fallback={null}>
+      <ContentCalendarView
+        client={{
+          id: client.id,
+          name: client.name,
+          kind: client.kind,
+          description: client.description,
+          context: client.context,
+          publicToken: client.publicToken,
+          reminderHour: client.reminderHour,
+          reminderMinute: client.reminderMinute,
+          reminderDaysBefore: client.reminderDaysBefore,
+          phones: client.phones.map((p) => ({ id: p.id, label: p.label, phone: p.phone, apiKey: p.apiKey })),
+        }}
+      />
+    </Suspense>
   );
 }

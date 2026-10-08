@@ -24,7 +24,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
     select: {
       id: true, date: true, type: true, title: true, time: true,
       hook: true, hooksAlt: true, script: true, caption: true,
-      cta: true, tips: true, note: true,
+      cta: true, tips: true,
     },
   });
 

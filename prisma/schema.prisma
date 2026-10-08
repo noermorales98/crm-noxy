@@ -280,6 +280,9 @@ model Company {
   imapLastUid     Int?     @default(0)
   imapSpamLastUid Int?     @default(0)
 
+  // Oculta los contactos de esta empresa en listas y selectores, sin borrarlos
+  hideContacts Boolean @default(false)
+
   contacts       Contact[]
   deals          Deal[]
   campaigns      EmailCampaign[]
@@ -1517,7 +1520,10 @@ model ContentItem {
   caption  String?  @db.Text
   cta      String?  @db.Text
   tips     String?  @db.Text // sugerencias para grabar
-  note     String?  @db.Text
+  note     String?  @db.Text // nota interna del equipo
+  editorNote String? @db.Text // última nota de la editora; el historial vive en editorNotes
+  publishStatus String @default("pendiente") // pendiente | en_edicion | editado | subido
+  uploadedAt DateTime?
   // Recordatorio WhatsApp por pieza (opt-in)
   reminderEnabled    Boolean @default(false)
   reminderDaysBefore Int     @default(1) // 0 = el mismo día, 1 = un día antes, etc.
@@ -1530,9 +1536,20 @@ model ContentItem {
   client         ContentClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  editorNotes    ContentItemEditorNote[]
 
   @@index([clientId])
   @@index([organizationId])
   @@index([date])
   @@index([reminderEnabled, date])
+}
+
+model ContentItemEditorNote {
+  id        String   @id @default(cuid())
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  itemId    String
+  item      ContentItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
 }

@@ -23,6 +23,7 @@ export async function GET(req: Request) {
     orderBy: [{ date: "asc" }, { createdAt: "asc" }],
     include: {
       client: { select: { id: true, name: true, kind: true, color: true } },
+      editorNotes: { orderBy: { createdAt: "desc" } },
     },
   });
 

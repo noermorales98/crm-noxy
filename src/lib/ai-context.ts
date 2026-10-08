@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/db";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
 export async function buildCrmContext(userId: string, orgId: string): Promise<string> {
   const now = new Date();
@@ -25,11 +26,11 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     todayTasks,
     upcomingAppointments,
   ] = await Promise.all([
-    prisma.contact.count({ where: { organizationId: orgId } }),
-    prisma.contact.count({ where: { organizationId: orgId, createdAt: { gte: startOfWeek } } }),
-    prisma.contact.count({ where: { organizationId: orgId, createdAt: { gte: startOfMonth } } }),
+    prisma.contact.count({ where: { organizationId: orgId, ...visibleContactWhere } }),
+    prisma.contact.count({ where: { organizationId: orgId, createdAt: { gte: startOfWeek }, ...visibleContactWhere } }),
+    prisma.contact.count({ where: { organizationId: orgId, createdAt: { gte: startOfMonth }, ...visibleContactWhere } }),
     prisma.contact.findMany({
-      where: { organizationId: orgId },
+      where: { organizationId: orgId, ...visibleContactWhere },
       orderBy: { createdAt: "desc" },
       take: 15,
       select: {

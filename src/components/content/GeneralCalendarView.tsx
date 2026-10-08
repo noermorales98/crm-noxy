@@ -2,14 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft01Icon, ArrowRight01Icon, Delete01Icon, PencilEdit01Icon, RefreshIcon, User02Icon,
+  ArrowLeft01Icon, ArrowRight01Icon, RefreshIcon, User02Icon,
 } from "@hugeicons/core-free-icons";
 import {
-  CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal,
+  CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal, CalendarFilterBar,
   monthLabel, type ContentItemData,
 } from "./ContentCalendar";
+import { matchesPublishFilter, type PublishListFilter } from "@/src/lib/content-publish";
+import { formatMesParam, isCurrentMonth, parseMesParam, shiftMonth } from "@/src/lib/content-month";
 import { ContentItemEditor } from "./ContentCalendarView";
 import { useHeader } from "@/src/context/HeaderContext";
 
@@ -40,12 +43,17 @@ function toGridItem(item: ApiItem): ContentItemData {
 
 export default function GeneralCalendarView() {
   const { setConfig } = useHeader();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const now = new Date();
-  const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const parsedMonth = parseMesParam(searchParams.get("mes"));
+  const cursor = parsedMonth ?? { year: now.getFullYear(), month: now.getMonth() };
   const [items, setItems] = useState<ContentItemData[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterId, setFilterId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<PublishListFilter>("todas");
 
   const [selected, setSelected] = useState<ContentItemData | null>(null);
   const [editing, setEditing] = useState<ContentItemData | null>(null);
@@ -106,16 +114,44 @@ export default function GeneralCalendarView() {
   useEffect(loadClients, []);
   useEffect(loadGoogle, []);
 
+  const patchEditorNote = async (itemId: string, body: Record<string, unknown>) => {
+    const res = await fetch(`/api/content/items/${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "No se pudo guardar la nota");
+    const editorNote = data.editorNote ?? null;
+    const editorNotes = Array.isArray(data.editorNotes) ? data.editorNotes : [];
+    setSelected((current) => (current && current.id === itemId ? { ...current, editorNote, editorNotes } : current));
+    setItems((list) => list.map((it) => (it.id === itemId ? { ...it, editorNote, editorNotes } : it)));
+  };
+
   const visibleItems = useMemo(
-    () => (filterId ? items.filter((item) => item.clientId === filterId) : items),
-    [items, filterId],
+    () => items.filter((item) => {
+      if (filterId && item.clientId !== filterId) return false;
+      return matchesPublishFilter(item.publishStatus, statusFilter);
+    }),
+    [items, filterId, statusFilter],
   );
 
+  const writeMonth = (year: number, month: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (isCurrentMonth(year, month)) params.delete("mes");
+    else params.set("mes", formatMesParam(year, month));
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
   const moveMonth = (delta: number) => {
-    setCursor((c) => {
-      const m = c.month + delta;
-      return { year: c.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 };
-    });
+    const next = shiftMonth(cursor.year, cursor.month, delta);
+    writeMonth(next.year, next.month);
+  };
+
+  const goToday = () => {
+    const today = new Date();
+    writeMonth(today.getFullYear(), today.getMonth());
   };
 
   const startCreate = (dateStr: string) => {
@@ -169,9 +205,11 @@ export default function GeneralCalendarView() {
   const syncRef = useRef(syncGoogle);
   const createRef = useRef(startCreate);
   const moveRef = useRef(moveMonth);
+  const todayRef = useRef(goToday);
   syncRef.current = syncGoogle;
   createRef.current = startCreate;
   moveRef.current = moveMonth;
+  todayRef.current = goToday;
 
   useEffect(() => {
     const label = monthLabel(cursor.year, cursor.month);
@@ -186,10 +224,14 @@ export default function GeneralCalendarView() {
           <button type="button" className={navBtn} aria-label="Mes siguiente" onClick={() => moveRef.current(1)}>
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
           </button>
+          <button type="button" className="min-h-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
+            Hoy
+          </button>
         </div>
       ),
       addButton: {
         label: "Agregar pieza",
+        hideOnMobile: true,
         onClick: () => createRef.current(`${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-01`),
       },
       actions: [
@@ -198,6 +240,7 @@ export default function GeneralCalendarView() {
           icon: User02Icon,
           label: "Ver clientes",
           href: "/contenido",
+          hideOnMobile: true,
         },
         {
           key: "sync",
@@ -210,6 +253,7 @@ export default function GeneralCalendarView() {
           onClick: () => syncRef.current(),
           disabled: syncBusy || google?.connected === false,
           spinning: syncBusy,
+          hideOnMobile: true,
         },
       ],
     });
@@ -243,23 +287,35 @@ export default function GeneralCalendarView() {
             </Link>
           </div>
         ) : (
-          <ContentMonthGrid
-            year={cursor.year}
-            month={cursor.month}
-            items={visibleItems}
-            editable
-            fill
-            onItemClick={setSelected}
-            onDayClick={startCreate}
-          />
+          <>
+            <CalendarFilterBar
+              status={statusFilter}
+              onStatus={setStatusFilter}
+              clients={clients}
+              clientId={filterId}
+              onClient={setFilterId}
+            />
+            <div className="min-h-0 flex-1">
+              <ContentMonthGrid
+                year={cursor.year}
+                month={cursor.month}
+                items={visibleItems}
+                editable
+                fill
+                onItemClick={setSelected}
+                onDayClick={startCreate}
+              />
+            </div>
+          </>
         )}
 
         {clients.length > 0 && (
-          <div className="mt-2 flex shrink-0 gap-1.5 overflow-x-auto pb-1" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mt-2 hidden shrink-0 gap-1.5 overflow-x-auto pb-1 sm:flex" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <button
               type="button"
+              aria-pressed={filterId === null}
               onClick={() => setFilterId(null)}
-              className={`shrink-0 px-2.5 py-1 text-xs rounded-full border ${filterId === null ? "border-text-primary bg-white font-semibold text-text-primary" : "border-border-subtle text-text-secondary"}`}
+              className={`inline-flex min-h-8 shrink-0 items-center rounded-full border-0 px-3 text-[13px] ${filterId === null ? "bg-white font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-[#6B7184] hover:text-[#0B0B18]"}`}
             >
               Todos
             </button>
@@ -267,8 +323,9 @@ export default function GeneralCalendarView() {
               <button
                 key={client.id}
                 type="button"
+                aria-pressed={filterId === client.id}
                 onClick={() => setFilterId((current) => (current === client.id ? null : client.id))}
-                className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 text-xs rounded-full border ${filterId === client.id ? "border-text-primary bg-white font-semibold text-text-primary" : "border-border-subtle text-text-secondary"}`}
+                className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border-0 px-3 text-[13px] ${filterId === client.id ? "bg-white font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-[#6B7184] hover:text-[#0B0B18]"}`}
               >
                 <i className="inline-block w-2 h-2 rounded-full" style={{ background: client.color }} />
                 {client.name}
@@ -283,23 +340,26 @@ export default function GeneralCalendarView() {
           item={selected}
           onClose={() => setSelected(null)}
           showReminder
-          actions={
-            <>
-              <button
-                onClick={() => { setEditing(selected); setSelected(null); }}
-                className="flex min-h-10 items-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors"
-              >
-                <HugeiconsIcon icon={PencilEdit01Icon} size={14} color="white" />
-                Editar
-              </button>
-              <button
-                onClick={() => setDeleting(selected)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <HugeiconsIcon icon={Delete01Icon} size={14} color="#dc2626" />
-              </button>
-            </>
-          }
+          onEdit={() => { setEditing(selected); setSelected(null); }}
+          onDelete={() => setDeleting(selected)}
+          onSavePublishStatus={async (status) => {
+            const res = await fetch(`/api/content/items/${selected.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ publishStatus: status }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || "No se pudo guardar el estado");
+            const next = {
+              publishStatus: data.publishStatus ?? status,
+              uploadedAt: data.uploadedAt ?? null,
+            };
+            setSelected((current) => (current && current.id === selected.id ? { ...current, ...next } : current));
+            setItems((list) => list.map((it) => (it.id === selected.id ? { ...it, ...next } : it)));
+          }}
+          onSaveEditorNote={(note) => patchEditorNote(selected.id, { editorNote: note })}
+          onUpdateEditorNote={(noteId, note) => patchEditorNote(selected.id, { updateEditorNoteId: noteId, editorNote: note })}
+          onDeleteEditorNote={(noteId) => patchEditorNote(selected.id, { deleteEditorNoteId: noteId })}
         />
       )}
 

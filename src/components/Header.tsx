@@ -225,7 +225,7 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className="flex size-8 items-center justify-center gap-1.5 rounded-lg bg-action-primary text-sm font-medium text-action-primary-foreground transition-opacity hover:opacity-90 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
+            className={`flex size-8 items-center justify-center gap-1.5 rounded-lg bg-action-primary text-sm font-medium text-action-primary-foreground transition-opacity hover:opacity-90 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${config.addButton.hideOnMobile ? "max-sm:hidden" : ""}`}
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             <span className="hidden sm:inline">{config.addButton.label}</span>
@@ -306,7 +306,7 @@ export default function Header() {
         </div>
 
         {/* User Menu */}
-        <div className="relative ml-1" ref={userMenuRef}>
+        <div className="relative ml-1 hidden sm:block" ref={userMenuRef}>
           <button
             onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
             className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
@@ -390,9 +390,11 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
   }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
 
+  const mobileClass = action.hideOnMobile ? "max-sm:hidden" : "";
+
   if (action.menu?.length) {
     return (
-      <div className="relative" ref={ref}>
+      <div className={`relative ${mobileClass}`} ref={ref}>
         <button
           type="button"
           onClick={() => setOpen(!open)}
@@ -421,14 +423,14 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
 
   if (action.href) {
     return (
-      <Link href={action.href} className={buttonClass} title={action.label}>
+      <Link href={action.href} className={`${buttonClass} ${mobileClass}`} title={action.label}>
         {icon}
       </Link>
     );
   }
 
   return (
-    <button type="button" onClick={action.onClick} disabled={action.disabled} className={buttonClass} title={action.label}>
+    <button type="button" onClick={action.onClick} disabled={action.disabled} className={`${buttonClass} ${mobileClass}`} title={action.label}>
       {icon}
     </button>
   );

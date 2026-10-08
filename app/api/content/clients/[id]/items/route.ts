@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { parsePublishStatus, uploadedAtForStatus } from "@/src/lib/content-publish";
 import { pushContentItem } from "@/src/lib/content-google-sync";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
@@ -35,6 +36,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const items = await prisma.contentItem.findMany({
     where,
     orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+    include: { editorNotes: { orderBy: { createdAt: "desc" } } },
   });
 
   return NextResponse.json(items);
@@ -65,6 +67,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const reminderEnabled = typeof body.reminderEnabled === "boolean" ? body.reminderEnabled : false;
   const reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, client.reminderDaysBefore);
+  const publishStatus = parsePublishStatus(body.publishStatus);
 
   const item = await prisma.contentItem.create({
     data: {
@@ -81,6 +84,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       cta: body.cta || null,
       tips: body.tips || null,
       note: body.note || null,
+      editorNote: typeof body.editorNote === "string" && body.editorNote.trim() ? body.editorNote.trim() : null,
+      publishStatus,
+      uploadedAt: uploadedAtForStatus(publishStatus, null, null),
       reminderEnabled,
       reminderDaysBefore,
     },

@@ -4,6 +4,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,14 +62,16 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       },
     },
     async ({ search, companyId, limit, offset }) => {
-      const where: any = { organizationId: org };
+      const where: any = { organizationId: org, AND: [visibleContactWhere] };
       if (companyId) where.companyId = companyId;
       if (search) {
-        where.OR = [
-          { firstName: { contains: search } },
-          { lastName: { contains: search } },
-          { email: { contains: search } },
-        ];
+        where.AND.push({
+          OR: [
+            { firstName: { contains: search } },
+            { lastName: { contains: search } },
+            { email: { contains: search } },
+          ],
+        });
       }
       const [total, contacts] = await Promise.all([
         prisma.contact.count({ where }),
@@ -1078,10 +1081,15 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         prisma.contact.findMany({
           where: {
             organizationId: org,
-            OR: [
-              { firstName: { contains: query } },
-              { lastName: { contains: query } },
-              { email: { contains: query } },
+            AND: [
+              visibleContactWhere,
+              {
+                OR: [
+                  { firstName: { contains: query } },
+                  { lastName: { contains: query } },
+                  { email: { contains: query } },
+                ],
+              },
             ],
           },
           take: limit,

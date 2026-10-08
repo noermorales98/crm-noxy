@@ -1,16 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Add01Icon, AiChatIcon, ArrowLeft01Icon, ArrowRight01Icon,
-  Share01Icon, Delete01Icon, PencilEdit01Icon, SentIcon, Copy01Icon,
+  AiChatIcon, ArrowLeft01Icon, ArrowRight01Icon,
+  Share01Icon, Delete01Icon, SentIcon, Copy01Icon,
   CheckmarkCircle01Icon, RefreshIcon,
 } from "@hugeicons/core-free-icons";
 import {
-  CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal,
+  CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal, CalendarFilterBar, PublishStatusPicker,
   monthLabel, type ContentItemData,
 } from "./ContentCalendar";
+import { matchesPublishFilter, type PublishListFilter, type PublishStatus } from "@/src/lib/content-publish";
+import { useHeader } from "@/src/context/HeaderContext";
+import { formatMesParam, isCurrentMonth, parseMesParam, shiftMonth } from "@/src/lib/content-month";
 import {
   reminderDaysLabel,
   reminderDaysSelectOptions,
@@ -100,11 +104,13 @@ export function ContentItemEditor({
     cta: initial?.cta ?? "",
     tips: initial?.tips ?? "",
     note: initial?.note ?? "",
+    publishStatus: (initial?.publishStatus ?? "pendiente") as PublishStatus,
     reminderEnabled: initial?.reminderEnabled ?? (initial?.type === "entrega"),
     reminderDaysBefore: initial?.reminderDaysBefore ?? defaultDaysBefore ?? 1,
   }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [advancedOpen, setAdvancedOpen] = useState(true);
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -118,6 +124,7 @@ export function ContentItemEditor({
         hooksAlt: form.hooksAltText.split("\n").map((s) => s.trim()).filter(Boolean),
         script: form.script || null, caption: form.caption || null,
         cta: form.cta || null, tips: form.tips || null, note: form.note || null,
+        publishStatus: form.publishStatus,
         reminderEnabled: form.reminderEnabled,
         reminderDaysBefore: form.reminderDaysBefore,
       };
@@ -181,40 +188,6 @@ export function ContentItemEditor({
         </div>
 
         <div className="mb-3">
-          <label className={labelClass}>Hora de publicación <span className="font-normal opacity-70">(opcional)</span></label>
-          <input className={inputClass} value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="Ej. 11:00 am — pico de redes, no es el aviso" />
-        </div>
-
-        <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
-          <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.reminderEnabled}
-              onChange={(e) => setForm((f) => ({ ...f, reminderEnabled: e.target.checked }))}
-              className="rounded border-border-subtle"
-            />
-            <span className="font-medium">Recordatorio por WhatsApp</span>
-          </label>
-          <p className="text-xs text-text-secondary mt-1 mb-3">
-            Elige si avisamos el mismo día o con anticipación. La hora de envío se configura en el panel WhatsApp.
-          </p>
-          <div>
-            <label className={labelClass}>Cuándo avisar</label>
-            <ReminderWhenSelect
-              value={form.reminderDaysBefore}
-              onChange={(days) => setForm((f) => ({
-                ...f,
-                reminderDaysBefore: days,
-                reminderEnabled: true,
-              }))}
-            />
-            <p className="text-xs text-text-secondary mt-2">
-              Se enviará {reminderDaysLabel(form.reminderDaysBefore).toLowerCase()} a las {String(sendHour).padStart(2, "0")}:{String(sendMinute).padStart(2, "0")}.
-            </p>
-          </div>
-        </div>
-
-        <div className="mb-3">
           <label className={labelClass}>Hook (primeros 3 segundos)</label>
           <textarea className={`${inputClass} min-h-[60px] resize-y`} value={form.hook} onChange={(e) => set("hook", e.target.value)} />
         </div>
@@ -229,9 +202,12 @@ export function ContentItemEditor({
           <textarea className={`${inputClass} min-h-[90px] resize-y`} value={form.script} onChange={(e) => set("script", e.target.value)} />
         </div>
 
-        <div className="mb-3">
-          <label className={labelClass}>Texto para publicar / frase</label>
-          <textarea className={`${inputClass} min-h-[80px] resize-y`} value={form.caption} onChange={(e) => set("caption", e.target.value)} />
+        <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
+          <label className={labelClass}>Estado de la publicación</label>
+          <PublishStatusPicker
+            value={form.publishStatus}
+            onSelect={(status) => setForm((f) => ({ ...f, publishStatus: status }))}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -248,6 +224,57 @@ export function ContentItemEditor({
         <div className="mb-4">
           <label className={labelClass}>Sugerencias para grabar</label>
           <textarea className={`${inputClass} min-h-[80px] resize-y`} value={form.tips} onChange={(e) => set("tips", e.target.value)} placeholder={"Luz de frente, nunca a contraluz.\nGraba 2-3 tomas y elige la más natural.\nHabla como si fuera a una sola persona."} />
+        </div>
+
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen((open) => !open)}
+            className="min-h-11 text-sm font-semibold text-text-secondary"
+            aria-expanded={advancedOpen}
+          >
+            Avanzado
+          </button>
+          {advancedOpen && (
+            <div className="mt-2">
+              <div className="mb-3">
+                <label className={labelClass}>Hora de publicación <span className="font-normal opacity-70">(opcional)</span></label>
+                <input className={inputClass} value={form.time} onChange={(e) => set("time", e.target.value)} placeholder="Ej. 11:00 am — pico de redes, no es el aviso" />
+              </div>
+              <div className="mb-3">
+                <label className={labelClass}>Texto para publicar / frase</label>
+                <textarea className={`${inputClass} min-h-[80px] resize-y`} value={form.caption} onChange={(e) => set("caption", e.target.value)} />
+              </div>
+              <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
+                <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.reminderEnabled}
+                    onChange={(e) => setForm((f) => ({ ...f, reminderEnabled: e.target.checked }))}
+                    className="rounded border-border-subtle"
+                  />
+                  <span className="font-medium">Recordatorio por WhatsApp</span>
+                </label>
+                <p className="text-xs text-text-secondary mt-1 mb-3">
+                  Elige si avisamos el mismo día o con anticipación. La hora de envío se configura en el panel WhatsApp.
+                </p>
+                <div>
+                  <label className={labelClass}>Cuándo avisar</label>
+                  <ReminderWhenSelect
+                    value={form.reminderDaysBefore}
+                    onChange={(days) => setForm((f) => ({
+                      ...f,
+                      reminderDaysBefore: days,
+                      reminderEnabled: true,
+                    }))}
+                  />
+                  <p className="text-xs text-text-secondary mt-2">
+                    Se enviará {reminderDaysLabel(form.reminderDaysBefore).toLowerCase()} a las {String(sendHour).padStart(2, "0")}:{String(sendMinute).padStart(2, "0")}.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
@@ -270,9 +297,15 @@ export function ContentItemEditor({
 // ─── Vista principal ──────────────────────────────────────────────────────────
 
 export default function ContentCalendarView({ client }: { client: ClientData }) {
+  const { setConfig } = useHeader();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const now = new Date();
-  const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const parsedMonth = parseMesParam(searchParams.get("mes"));
+  const cursor = parsedMonth ?? { year: now.getFullYear(), month: now.getMonth() };
   const [items, setItems] = useState<ContentItemData[]>([]);
+  const [statusFilter, setStatusFilter] = useState<PublishListFilter>("todas");
   const [loading, setLoading] = useState(true);
 
   const [selected, setSelected] = useState<ContentItemData | null>(null);
@@ -327,11 +360,70 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
   useEffect(loadItems, [loadItems]);
 
+  const writeMonth = (year: number, month: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (isCurrentMonth(year, month)) params.delete("mes");
+    else params.set("mes", formatMesParam(year, month));
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
   const moveMonth = (delta: number) => {
-    setCursor((c) => {
-      const m = c.month + delta;
-      return { year: c.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 };
+    const next = shiftMonth(cursor.year, cursor.month, delta);
+    writeMonth(next.year, next.month);
+  };
+
+  const goToday = () => {
+    const today = new Date();
+    writeMonth(today.getFullYear(), today.getMonth());
+  };
+
+  const moveRef = useRef(moveMonth);
+  const todayRef = useRef(goToday);
+  const createRef = useRef((date: string) => setNewForDate(date));
+  moveRef.current = moveMonth;
+  todayRef.current = goToday;
+  createRef.current = (date: string) => setNewForDate(date);
+
+  useEffect(() => {
+    const label = monthLabel(cursor.year, cursor.month);
+    const navBtn = "flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary";
+    setConfig({
+      title: (
+        <div className="flex min-w-0 items-center gap-0.5">
+          <button type="button" className={navBtn} aria-label="Mes anterior" onClick={() => moveRef.current(-1)}>
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+          </button>
+          <span className="truncate px-1 text-base font-bold capitalize text-text-primary sm:text-lg">{label}</span>
+          <button type="button" className={navBtn} aria-label="Mes siguiente" onClick={() => moveRef.current(1)}>
+            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+          </button>
+          <button type="button" className="min-h-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
+            Hoy
+          </button>
+        </div>
+      ),
+      addButton: {
+        label: "Agregar pieza",
+        hideOnMobile: true,
+        onClick: () => createRef.current(`${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-01`),
+      },
     });
+    return () => setConfig({});
+  }, [cursor.year, cursor.month, setConfig]);
+
+  const patchEditorNote = async (itemId: string, body: Record<string, unknown>) => {
+    const res = await fetch(`/api/content/items/${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "No se pudo guardar la nota");
+    const editorNote = data.editorNote ?? null;
+    const editorNotes = Array.isArray(data.editorNotes) ? data.editorNotes : [];
+    setSelected((current) => (current && current.id === itemId ? { ...current, editorNote, editorNotes } : current));
+    setItems((list) => list.map((it) => (it.id === itemId ? { ...it, editorNote, editorNotes } : it)));
   };
 
   const copyLink = async () => {
@@ -534,8 +626,9 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
   const panelBtn = (id: "share" | "phones" | "ai", icon: any, label: string) => (
     <button
+      type="button"
       onClick={() => setPanel((p) => (p === id ? null : id))}
-      className={`flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-lg border transition-colors ${
+      className={`hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors sm:flex sm:text-sm ${
         panel === id
           ? "border-action-primary bg-nav-active text-action-primary font-semibold"
           : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
@@ -547,42 +640,26 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   );
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0 bg-surface-app">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-surface-app pb-24 lg:pb-0">
       {CALENDAR_FONTS}
       <style>{CALENDAR_CSS}</style>
 
-      <div className="ncc-root w-full px-4 sm:px-6 lg:px-8 py-5 sm:py-7">
-        {/* Encabezado */}
-        <div className="mb-5" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
-          <p className="text-xs font-semibold text-action-primary">
-            {client.kind === "cliente" ? "Cliente" : "Marca propia"}
-            {client.description ? ` · ${client.description}` : ""}
-          </p>
-          <h1
-            className="text-text-primary leading-tight mt-1"
-            style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500, fontSize: "clamp(26px,5vw,38px)" }}
-          >
-            {client.name}
-          </h1>
-        </div>
-
-        {/* Barra de acciones */}
-        <div className="flex flex-wrap items-center gap-2 mb-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
-          <button
-            onClick={() => setNewForDate(`${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}-01`)}
-            className="flex min-h-10 items-center gap-1.5 px-3 py-2 text-xs sm:text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
-          >
-            <HugeiconsIcon icon={Add01Icon} size={14} color="white" />
-            Agregar pieza
-          </button>
-          {panelBtn("share", Share01Icon, "Compartir")}
-          {panelBtn("phones", SentIcon, `WhatsApp (${phones.length})`)}
-          {panelBtn("ai", AiChatIcon, "Ideas con IA")}
+      <div className="ncc-root ncc-root-fit flex min-h-0 w-full flex-1 flex-col px-3 py-2 sm:px-4">
+        <div className="flex shrink-0 items-start justify-between gap-2" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="min-w-0 flex-1">
+            <p className="mb-2 hidden truncate text-sm font-semibold text-text-primary sm:block">{client.name}</p>
+            <div className="mb-2 hidden flex-wrap items-center gap-2 sm:flex">
+              {panelBtn("share", Share01Icon, "Compartir")}
+              {panelBtn("phones", SentIcon, `WhatsApp (${phones.length})`)}
+              {panelBtn("ai", AiChatIcon, "Ideas con IA")}
+            </div>
+            <CalendarFilterBar status={statusFilter} onStatus={setStatusFilter} />
+          </div>
         </div>
 
         {/* Panel: compartir */}
         {panel === "share" && (
-          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Enlace público del calendario</p>
             <p className="text-xs text-text-secondary mb-3">
               Mándale este enlace al cliente: verá el calendario (sin poder editarlo) con qué debe grabar y las sugerencias.
@@ -611,7 +688,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: WhatsApp */}
         {panel === "phones" && (
-          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Números de WhatsApp (CallMeBot)</p>
             <p className="text-xs text-text-secondary mb-3">
               A estos números les llega el aviso de las piezas que tengan recordatorio activado (mismo día o N días antes).
@@ -714,7 +791,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: IA */}
         {panel === "ai" && (
-          <div className="mb-5 bg-white border border-border-subtle rounded-surface p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Calendario del mes con IA</p>
             {client.context ? (
               <p className="text-xs text-text-secondary mb-3">
@@ -836,56 +913,21 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           </div>
         )}
 
-        {/* Navegación de mes */}
-        <div className="flex items-center justify-between mb-3" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
-          <button
-            onClick={() => moveMonth(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-control border border-border-subtle bg-white text-text-primary hover:bg-surface-sidebar transition-colors"
-            aria-label="Mes anterior"
-          >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-          </button>
-          <h2
-            className="text-text-primary capitalize"
-            style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500, fontSize: "clamp(20px,4vw,28px)" }}
-          >
-            {monthLabel(cursor.year, cursor.month)}
-          </h2>
-          <button
-            onClick={() => moveMonth(1)}
-            className="w-9 h-9 flex items-center justify-center rounded-control border border-border-subtle bg-white text-text-primary hover:bg-surface-sidebar transition-colors"
-            aria-label="Mes siguiente"
-          >
-            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-          </button>
-        </div>
-
-        {/* Calendario */}
         {loading ? (
-          <div className="h-96 rounded-surface bg-surface-sidebar animate-pulse" />
+          <div className="min-h-0 flex-1 rounded-surface bg-surface-sidebar animate-pulse" />
         ) : (
-          <ContentMonthGrid
-            year={cursor.year}
-            month={cursor.month}
-            items={items}
-            editable
-            onItemClick={(item) => { setSelected(item); setNotifyResult(null); }}
-            onDayClick={(dateStr) => setNewForDate(dateStr)}
-          />
+          <div className="min-h-0 flex-1">
+            <ContentMonthGrid
+              year={cursor.year}
+              month={cursor.month}
+              items={items.filter((item) => matchesPublishFilter(item.publishStatus, statusFilter))}
+              editable
+              fill
+              onItemClick={(item) => { setSelected(item); setNotifyResult(null); }}
+              onDayClick={(dateStr) => setNewForDate(dateStr)}
+            />
+          </div>
         )}
-
-        {/* Leyenda */}
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-5 text-xs text-text-primary" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
-          {TYPE_OPTIONS.filter((t) => t.v !== "edicion").map((t) => (
-            <span key={t.v} className="inline-flex items-center gap-2">
-              <i
-                className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ background: { video: "#3545D6", reel: "#9B7EDE", flyer: "#6E7F5C", historia: "#4A7BA6", entrega: "#C9973B" }[t.v] }}
-              />
-              {t.label}
-            </span>
-          ))}
-        </div>
       </div>
 
       {/* Modal detalle */}
@@ -893,37 +935,60 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
         <ContentItemModal
           item={selected}
           onClose={() => setSelected(null)}
+          onEdit={() => { setEditing(selected); setSelected(null); }}
+          onDelete={() => setDeleting(selected)}
+          onSavePublishStatus={async (status) => {
+            const res = await fetch(`/api/content/items/${selected.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ publishStatus: status }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || "No se pudo guardar el estado");
+            const next = {
+              publishStatus: data.publishStatus ?? status,
+              uploadedAt: data.uploadedAt ?? null,
+            };
+            setSelected((current) => (current && current.id === selected.id ? { ...current, ...next } : current));
+            setItems((list) => list.map((it) => (it.id === selected.id ? { ...it, ...next } : it)));
+          }}
+          onSaveEditorNote={(note) => patchEditorNote(selected.id, { editorNote: note })}
+          onUpdateEditorNote={(noteId, note) => patchEditorNote(selected.id, { updateEditorNoteId: noteId, editorNote: note })}
+          onDeleteEditorNote={(noteId) => patchEditorNote(selected.id, { deleteEditorNoteId: noteId })}
+          advanced={
+            <div className="ncc-block">
+              <h3>Recordatorio WhatsApp</h3>
+              <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!selected.reminderEnabled}
+                  onChange={(e) => patchItemReminder(selected, {
+                    reminderEnabled: e.target.checked,
+                    reminderDaysBefore: selected.reminderDaysBefore ?? reminderDaysBefore,
+                  })}
+                  className="rounded border-border-subtle"
+                />
+                <span className="font-medium">Recordatorio por WhatsApp</span>
+              </label>
+              <div className="mt-2">
+                <label className={labelClass}>Cuándo avisar</label>
+                <ReminderWhenSelect
+                  value={selected.reminderDaysBefore ?? reminderDaysBefore}
+                  onChange={(days) => patchItemReminder(selected, {
+                    reminderEnabled: true,
+                    reminderDaysBefore: days,
+                  })}
+                />
+                <p className="text-xs text-text-secondary mt-2">
+                  {selected.reminderEnabled
+                    ? `Aviso automático: ${reminderDaysLabel(selected.reminderDaysBefore ?? reminderDaysBefore).toLowerCase()} a las ${String(reminderHour).padStart(2, "0")}:${String(reminderMinute).padStart(2, "0")}`
+                    : "Actívalo o elige cuándo avisar para programar el WhatsApp."}
+                </p>
+              </div>
+            </div>
+          }
           actions={
             <>
-              <div className="w-full basis-full rounded-control border border-border-subtle bg-surface-app p-3 mb-1">
-                <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={!!selected.reminderEnabled}
-                    onChange={(e) => patchItemReminder(selected, {
-                      reminderEnabled: e.target.checked,
-                      reminderDaysBefore: selected.reminderDaysBefore ?? reminderDaysBefore,
-                    })}
-                    className="rounded border-border-subtle"
-                  />
-                  <span className="font-medium">Recordatorio por WhatsApp</span>
-                </label>
-                <div className="mt-2">
-                  <label className={labelClass}>Cuándo avisar</label>
-                  <ReminderWhenSelect
-                    value={selected.reminderDaysBefore ?? reminderDaysBefore}
-                    onChange={(days) => patchItemReminder(selected, {
-                      reminderEnabled: true,
-                      reminderDaysBefore: days,
-                    })}
-                  />
-                  <p className="text-xs text-text-secondary mt-2">
-                    {selected.reminderEnabled
-                      ? `Aviso automático: ${reminderDaysLabel(selected.reminderDaysBefore ?? reminderDaysBefore).toLowerCase()} a las ${String(reminderHour).padStart(2, "0")}:${String(reminderMinute).padStart(2, "0")}`
-                      : "Actívalo o elige cuándo avisar para programar el WhatsApp."}
-                  </p>
-                </div>
-              </div>
               <button
                 onClick={() => notifyItem(selected)}
                 disabled={notifyBusy || phones.length === 0}
@@ -932,19 +997,6 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               >
                 <HugeiconsIcon icon={SentIcon} size={14} color="white" />
                 {notifyBusy ? "Enviando…" : "Avisar por WhatsApp"}
-              </button>
-              <button
-                onClick={() => { setEditing(selected); setSelected(null); }}
-                className="flex min-h-10 items-center gap-1.5 px-4 py-2 text-sm rounded-control bg-action-primary text-action-primary-foreground font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
-              >
-                <HugeiconsIcon icon={PencilEdit01Icon} size={14} color="white" />
-                Editar
-              </button>
-              <button
-                onClick={() => setDeleting(selected)}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <HugeiconsIcon icon={Delete01Icon} size={14} color="#dc2626" />
               </button>
               {notifyResult && (
                 <p className={`w-full text-xs mt-1 ${notifyResult.startsWith("✓") ? "text-[#6E7F5C]" : "text-red-600"}`}>

@@ -3,14 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal,
-  monthLabel, TYPE_META, type ContentItemData,
+  monthLabel, type ContentItemData,
 } from "./ContentCalendar";
 
 export default function PublicCalendarView({
   token,
   clientName,
-  clientKind,
-  clientDescription,
 }: {
   token: string;
   clientName: string;
@@ -47,126 +45,74 @@ export default function PublicCalendarView({
     });
   };
 
+  const goToday = () => {
+    const today = new Date();
+    setCursor({ year: today.getFullYear(), month: today.getMonth() });
+  };
+
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-app px-6">
-        <p className="text-sm text-text-secondary" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+      <div className="flex min-h-dvh items-center justify-center bg-[#F5F6FB] px-6">
+        <p className="text-sm text-[#6B7184]" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
           No se pudo cargar el calendario. Verifica el enlace.
         </p>
       </div>
     );
   }
 
-  const usedTypes = Array.from(new Set(items.map((i) => i.type))).filter((t) => TYPE_META[t]);
+  const navBtn = "flex size-11 shrink-0 items-center justify-center rounded-lg text-[#0B0B18]";
 
   return (
-    <div className="ncc-root min-h-screen pb-14">
+    <div className="ncc-root ncc-root-fit flex min-h-0 flex-col bg-[#F5F6FB]" style={{ height: "100dvh" }}>
       {CALENDAR_FONTS}
       <style>{CALENDAR_CSS}</style>
 
-      {/* Encabezado estilo referencia */}
-      <div style={{ padding: "36px 24px 28px", textAlign: "center", position: "relative" }}>
-        <div
-          style={{
-            fontSize: 13, letterSpacing: "0.14em", textTransform: "uppercase",
-            color: "var(--terracotta)", fontWeight: 600,
-          }}
-        >
-          {clientKind === "cliente" ? "Calendario de contenido" : "Marca personal"}
-          {clientDescription ? ` · ${clientDescription}` : ""}
-        </div>
-        <h1
-          style={{
-            fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500,
-            fontSize: "clamp(28px,5vw,44px)", margin: "8px 0 6px",
-          }}
-        >
-          {clientName}
-        </h1>
-        <p style={{ color: "var(--muted)", fontSize: 15, maxWidth: 520, margin: "0 auto" }}>
-          Toca cada publicación para ver el detalle: qué grabar, el guion y las sugerencias.
-        </p>
-        <div style={{ width: 64, height: 2, background: "var(--gold)", margin: "18px auto 0" }} />
-      </div>
-
-      {/* Navegación de mes */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 16, marginBottom: 20, padding: "0 16px",
-        }}
+      <header
+        className="flex shrink-0 items-center gap-0.5 px-2 pb-1 pt-[max(8px,env(safe-area-inset-top))]"
+        style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}
       >
-        <button
-          onClick={() => moveMonth(-1)}
-          aria-label="Mes anterior"
-          style={{
-            width: 36, height: 36, borderRadius: 10, border: "1px solid var(--line)",
-            background: "var(--paper-2)", color: "var(--ink)", cursor: "pointer", fontSize: 16,
-          }}
-        >
+        <button type="button" className={`${navBtn} text-lg`} aria-label="Mes anterior" onClick={() => moveMonth(-1)}>
           ‹
         </button>
-        <span
-          style={{
-            fontFamily: '"Open Sauce Two",system-ui,sans-serif', fontWeight: 500,
-            fontSize: "clamp(18px,4vw,24px)", textTransform: "capitalize", minWidth: 160, textAlign: "center",
-          }}
-        >
-          {monthLabel(cursor.year, cursor.month)}
-        </span>
-        <button
-          onClick={() => moveMonth(1)}
-          aria-label="Mes siguiente"
-          style={{
-            width: 36, height: 36, borderRadius: 10, border: "1px solid var(--line)",
-            background: "var(--paper-2)", color: "var(--ink)", cursor: "pointer", fontSize: 16,
-          }}
-        >
+        <div className="min-w-0 flex-1 px-1">
+          <p className="truncate text-base font-bold capitalize text-[#0B0B18]">{monthLabel(cursor.year, cursor.month)}</p>
+          <p className="truncate text-xs font-medium text-[#6B7184]">{clientName}</p>
+        </div>
+        <button type="button" className={`${navBtn} text-lg`} aria-label="Mes siguiente" onClick={() => moveMonth(1)}>
           ›
         </button>
-      </div>
-
-      {/* Leyenda */}
-      {usedTypes.length > 0 && (
-        <div
-          style={{
-            display: "flex", justifyContent: "center", gap: 22, flexWrap: "wrap",
-            padding: "0 20px 24px", fontSize: 13,
-          }}
+        <button
+          type="button"
+          className="min-h-11 px-2 text-sm font-semibold text-[#0B0B18]"
+          onClick={goToday}
         >
-          {usedTypes.map((t) => (
-            <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <i
-                style={{
-                  width: 10, height: 10, borderRadius: "50%", display: "inline-block",
-                  background: TYPE_META[t].color,
-                }}
-              />
-              {TYPE_META[t].label}
-            </span>
-          ))}
-        </div>
-      )}
+          Hoy
+        </button>
+      </header>
 
-      {/* Calendario */}
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 16px" }}>
+      <div className="min-h-0 flex-1 px-2 pb-[max(8px,env(safe-area-inset-bottom))]">
         {loading ? (
-          <div style={{ height: 384, borderRadius: 14, background: "var(--paper-2)" }} className="animate-pulse" />
+          <div className="h-full animate-pulse rounded-[14px] bg-white" />
         ) : (
           <ContentMonthGrid
             year={cursor.year}
             month={cursor.month}
             items={items}
+            fill
             onItemClick={setSelected}
           />
         )}
       </div>
 
-      <footer style={{ textAlign: "center", padding: "32px 20px 0", color: "var(--muted)", fontSize: 12.5 }}>
-        Calendario de {clientName} — {items.length} pieza(s) en {monthLabel(cursor.year, cursor.month)}.
-      </footer>
-
-      {selected && <ContentItemModal item={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ContentItemModal
+          item={selected}
+          onClose={() => setSelected(null)}
+          showInternalNote={false}
+          suppressEditorNote
+          showAdvanced={false}
+        />
+      )}
     </div>
   );
 }

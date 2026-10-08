@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { parsePublishStatus, uploadedAtForStatus } from "@/src/lib/content-publish";
 import { pushContentItem, removeContentItemEvent } from "@/src/lib/content-google-sync";
 
 const ALLOWED_TYPES = ["video", "reel", "flyer", "historia", "entrega", "edicion"];
@@ -29,6 +30,51 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   for (const key of ["time", "hook", "script", "caption", "cta", "tips", "note"] as const) {
     if (typeof body[key] === "string" || body[key] === null) data[key] = body[key] || null;
   }
+  const incomingNote = typeof body.editorNote === "string" ? body.editorNote.trim() : "";
+  const updateNoteId = typeof body.updateEditorNoteId === "string" ? body.updateEditorNoteId : "";
+  const deleteNoteId = typeof body.deleteEditorNoteId === "string" ? body.deleteEditorNoteId : "";
+  if (deleteNoteId) {
+    if (deleteNoteId.startsWith("legacy-")) {
+      data.editorNote = null;
+    } else {
+      const owned = await prisma.contentItemEditorNote.findFirst({ where: { id: deleteNoteId, itemId: id } });
+      if (!owned) return NextResponse.json({ error: "Nota no encontrada" }, { status: 404 });
+      await prisma.contentItemEditorNote.delete({ where: { id: deleteNoteId } });
+      const latest = await prisma.contentItemEditorNote.findFirst({
+        where: { itemId: id },
+        orderBy: { createdAt: "desc" },
+      });
+      data.editorNote = latest?.body ?? null;
+    }
+  } else if (updateNoteId) {
+    if (!incomingNote) return NextResponse.json({ error: "La nota no puede estar vacía" }, { status: 400 });
+    if (updateNoteId.startsWith("legacy-")) {
+      data.editorNote = incomingNote;
+    } else {
+      const owned = await prisma.contentItemEditorNote.findFirst({ where: { id: updateNoteId, itemId: id } });
+      if (!owned) return NextResponse.json({ error: "Nota no encontrada" }, { status: 404 });
+      await prisma.contentItemEditorNote.update({ where: { id: updateNoteId }, data: { body: incomingNote } });
+      const latest = await prisma.contentItemEditorNote.findFirst({
+        where: { itemId: id },
+        orderBy: { createdAt: "desc" },
+      });
+      data.editorNote = latest?.body ?? incomingNote;
+    }
+  } else if (incomingNote) {
+    const existingCount = await prisma.contentItemEditorNote.count({ where: { itemId: id } });
+    if (existingCount === 0 && existing.editorNote?.trim() && existing.editorNote.trim() !== incomingNote) {
+      await prisma.contentItemEditorNote.create({
+        data: { itemId: id, body: existing.editorNote.trim(), createdAt: existing.updatedAt },
+      });
+    }
+    await prisma.contentItemEditorNote.create({ data: { itemId: id, body: incomingNote } });
+    data.editorNote = incomingNote;
+  }
+  if (body.publishStatus !== undefined) {
+    const status = parsePublishStatus(body.publishStatus);
+    data.publishStatus = status;
+    data.uploadedAt = uploadedAtForStatus(status, existing.publishStatus, existing.uploadedAt);
+  }
   if (Array.isArray(body.hooksAlt)) {
     data.hooksAlt = JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim()));
   }
@@ -37,7 +83,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, existing.reminderDaysBefore);
   }
 
-  const item = await prisma.contentItem.update({ where: { id }, data });
+  const item = await prisma.contentItem.update({
+    where: { id },
+    data,
+    include: { editorNotes: { orderBy: { createdAt: "desc" } } },
+  });
   await pushContentItem(orgId, item.id);
   return NextResponse.json(item);
 }

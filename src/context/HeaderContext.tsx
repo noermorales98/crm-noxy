@@ -31,6 +31,7 @@ export interface HeaderAction {
   disabled?: boolean;
   spinning?: boolean;
   active?: boolean;
+  hideOnMobile?: boolean;
   menu?: HeaderActionMenuItem[];
 }
 
@@ -40,7 +41,7 @@ export interface HeaderConfig {
   backHref?: string;
   sortOptions?: SortOption[];
   filterGroups?: FilterGroup[];
-  addButton?: { label: string; onClick: () => void };
+  addButton?: { label: string; onClick: () => void; hideOnMobile?: boolean };
   actions?: HeaderAction[];
 }
 

@@ -84,6 +84,27 @@ export default function CompaniesPage() {
     setShowModal(true);
   };
 
+  const toggleHideContacts = async (company: { id: string; hideContacts?: boolean }) => {
+    const next = !company.hideContacts;
+    try {
+      const res = await fetch("/api/companies", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: company.id, hideContacts: next }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        addToast(err.error || "No se pudo actualizar la empresa.", "error");
+        return;
+      }
+      const saved = await res.json();
+      setCompanies((prev) => prev.map((c) => (c.id === company.id ? { ...c, hideContacts: saved.hideContacts } : c)));
+      addToast(next ? "Contactos ocultos. No se borraron." : "Contactos visibles de nuevo.", "success");
+    } catch {
+      addToast("Error de conexión.", "error");
+    }
+  };
+
   const handleDelete = async (company: any) => {
     const isConfirmed = await confirm({ title: "Eliminar empresa", description: `¿Estás seguro de que quieres eliminar '${company.name}'? También se borrarán los correos de esta cuenta. Esta acción no se puede deshacer.`, confirmText: "Eliminar", cancelText: "Cancelar", variant: "danger" });
     if (!isConfirmed) return;
@@ -196,7 +217,19 @@ export default function CompaniesPage() {
                         ) : <span className="text-text-secondary">—</span>}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-nav-hover text-action-primary text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-2.5 py-1 bg-nav-hover text-action-primary text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
+                          {c.hideContacts && (
+                            <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full">Contactos ocultos</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => toggleHideContacts(c)}
+                            className="text-xs font-semibold text-text-secondary hover:text-text-primary"
+                          >
+                            {c.hideContacts ? "Mostrar" : "Ocultar"}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <button onClick={() => openSmtpModal(c)} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">

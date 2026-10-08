@@ -102,8 +102,8 @@ export default function KbEditorNavbar({
           : "";
 
   return (
-    <div className="crm-safe-top shrink-0 border-b border-border-subtle bg-surface-elevated">
-      <div className="flex h-12 items-center gap-2 overflow-hidden px-3 sm:h-14 sm:gap-3 sm:px-4">
+    <div className="crm-safe-top relative z-30 shrink-0 border-b border-border-subtle bg-surface-elevated">
+      <div className="flex h-12 items-center gap-2 px-3 sm:h-14 sm:gap-3 sm:px-4">
         {/* Breadcrumbs / title */}
         <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-text-secondary sm:max-w-[28%] sm:flex-none">
           <MobileSidebarToggle />

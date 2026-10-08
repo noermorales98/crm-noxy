@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
 const ENTITY_LABELS: Record<string, string> = {
   PROJECT: "Proyecto",
@@ -86,7 +87,10 @@ export async function GET(req: Request) {
     const items = await prisma.contact.findMany({
       where: {
         ...where,
-        ...(q ? { OR: [{ firstName: { contains: q } }, { lastName: { contains: q } }, { email: { contains: q } }] } : {}),
+        AND: [
+          visibleContactWhere,
+          ...(q ? [{ OR: [{ firstName: { contains: q } }, { lastName: { contains: q } }, { email: { contains: q } }] }] : []),
+        ],
       },
       select: { id: true, firstName: true, lastName: true, email: true },
       take,

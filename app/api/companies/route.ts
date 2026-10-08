@@ -83,9 +83,10 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { id, name, website, industry } = body;
+    const { id, name, website, industry, hideContacts } = body;
+    const hideOnly = typeof hideContacts === "boolean" && (typeof name !== "string" || !name.trim());
 
-    if (!id || !name) {
+    if (!id || (!name && !hideOnly)) {
       return NextResponse.json({ error: "Company ID and name are required" }, { status: 400 });
     }
 
@@ -100,11 +101,14 @@ export async function PUT(req: Request) {
 
     const company = await prisma.company.update({
       where: { id },
-      data: {
-        name,
-        website,
-        industry,
-      },
+      data: hideOnly
+        ? { hideContacts }
+        : {
+            name,
+            website,
+            industry,
+            ...(typeof hideContacts === "boolean" ? { hideContacts } : {}),
+          },
       include: {
         _count: {
           select: { contacts: true },

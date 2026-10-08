@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { matchCrmSearchPages } from "@/src/lib/crm-search-pages";
 import { markdownContentSnippet } from "@/src/lib/kb-search-snippet";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
 const LIMIT = 5;
 
@@ -32,10 +33,15 @@ export async function GET(req: Request) {
     prisma.contact.findMany({
       where: {
         organizationId: orgId,
-        OR: [
-          { firstName: { contains: q } },
-          { lastName: { contains: q } },
-          { email: { contains: q } },
+        AND: [
+          visibleContactWhere,
+          {
+            OR: [
+              { firstName: { contains: q } },
+              { lastName: { contains: q } },
+              { email: { contains: q } },
+            ],
+          },
         ],
       },
       take: LIMIT,

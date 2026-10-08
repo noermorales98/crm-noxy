@@ -1,4 +1,5 @@
 import { prisma } from "@/src/lib/db";
+import { visibleContactWhere } from "@/src/lib/visible-contacts";
 import { listGoogleCalendarEvents } from "@/src/lib/google-calendar";
 import type { Appointment, AppointmentType, Contact, Task, EmailCampaign, Project, ActivityLog } from "@prisma/client";
 
@@ -198,7 +199,7 @@ export const DATA_FETCHERS: {
   }),
   latestContacts: async (organizationId) => ({
     latestContacts: await prisma.contact.findMany({
-      where: { organizationId },
+      where: { organizationId, ...visibleContactWhere },
       orderBy: { createdAt: "desc" },
       take: 5,
     }),

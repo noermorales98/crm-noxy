@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
 import DatePicker from "@/src/components/DatePicker";
+import { QuoteAiAssist } from "@/src/components/quotes/QuoteAiAssist";
 
 interface ItemRow {
   description: string;
@@ -148,6 +149,14 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     } catch {
       return `${currency} ${n.toFixed(2)}`;
     }
+  };
+
+  const aiContext = {
+    clientName,
+    clientCompany,
+    currency,
+    total: fmt(totals.total),
+    items: items.map((it) => it.description.trim()).filter(Boolean),
   };
 
   const splitPreview = useMemo(() => {
@@ -305,13 +314,21 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         <div className="flex flex-col gap-2">
           {items.map((it, i) => (
             <div key={i} className="grid grid-cols-1 md:grid-cols-[1fr_90px_130px_110px_120px_36px] gap-2 items-center">
-              <input
-                type="text"
-                value={it.description}
-                onChange={(e) => updateItem(i, { description: e.target.value })}
-                placeholder={`Descripción del ítem ${i + 1}`}
-                className={inputCls}
-              />
+              <div className="flex flex-col gap-1">
+                <input
+                  type="text"
+                  value={it.description}
+                  onChange={(e) => updateItem(i, { description: e.target.value })}
+                  placeholder={`Descripción del ítem ${i + 1}`}
+                  className={inputCls}
+                />
+                <QuoteAiAssist
+                  field="item"
+                  currentText={it.description}
+                  onApply={(text) => updateItem(i, { description: text })}
+                  context={aiContext}
+                />
+              </div>
               <input
                 type="number" min="0" step="any"
                 value={it.quantity}
@@ -404,10 +421,12 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-text-secondary">Notas</label>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className={inputCls} placeholder="Notas visibles para el cliente…" />
+            <QuoteAiAssist field="notes" currentText={notes} onApply={setNotes} context={aiContext} />
           </div>
           <div className="flex flex-col gap-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-text-secondary">Términos y condiciones</label>
             <textarea value={terms} onChange={(e) => setTerms(e.target.value)} rows={3} className={inputCls} placeholder="Condiciones de pago, tiempos de entrega, garantías…" />
+            <QuoteAiAssist field="terms" currentText={terms} onApply={setTerms} context={aiContext} />
           </div>
         </div>
       </section>
