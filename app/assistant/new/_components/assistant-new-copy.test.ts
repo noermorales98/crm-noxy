@@ -1,18 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { ASSISTANT_NEW_COPY } from "./assistant-new-copy.ts";
+import {
+  ASSISTANT_NEW_COPY,
+  assistantGreetingOptions,
+  pickAssistantGreeting,
+} from "./assistant-new-copy.ts";
 
 test("assistant new experience exposes the approved Spanish copy", () => {
-  assert.equal(
-    ASSISTANT_NEW_COPY.heading,
-    "Encontremos las referencias adecuadas para tu trabajo",
-  );
-  assert.deepEqual(ASSISTANT_NEW_COPY.headingLines, [
-    "Encontremos las referencias adecuadas",
-    "para tu trabajo",
-  ]);
-  assert.equal(ASSISTANT_NEW_COPY.headingLines.join(" "), ASSISTANT_NEW_COPY.heading);
   assert.equal(ASSISTANT_NEW_COPY.subtitle, "¿Qué tipo de referencias estás buscando?");
   assert.equal(
     ASSISTANT_NEW_COPY.promptLabel,
@@ -45,4 +40,34 @@ test("assistant new images and legal copy are fully localized", () => {
   assert.equal(ASSISTANT_NEW_COPY.terms, "Términos");
   assert.equal(ASSISTANT_NEW_COPY.legalJoin, "y confirmas que leíste nuestra");
   assert.equal(ASSISTANT_NEW_COPY.privacy, "Política de privacidad");
+});
+
+test("assistant greeting stays short and follows the hour and name", () => {
+  const morning = new Date(2026, 9, 8, 9, 0, 0);
+  const afternoon = new Date(2026, 9, 8, 15, 0, 0);
+  const night = new Date(2026, 9, 8, 21, 0, 0);
+
+  assert.deepEqual(assistantGreetingOptions("Noeli Morales", morning.getHours()), [
+    "Buenos días",
+    "¿En qué te ayudo?",
+    "¿Qué hacemos hoy?",
+    "Hola, Noeli",
+  ]);
+  assert.deepEqual(assistantGreetingOptions(null, afternoon.getHours()), [
+    "Buenas tardes",
+    "¿En qué te ayudo?",
+    "¿Qué hacemos hoy?",
+  ]);
+  assert.deepEqual(assistantGreetingOptions("  ", night.getHours()), [
+    "Buenas noches",
+    "¿En qué te ayudo?",
+    "¿Qué hacemos hoy?",
+  ]);
+
+  const options = assistantGreetingOptions("Noeli", morning.getHours());
+  assert.equal(pickAssistantGreeting("Noeli Morales", morning, () => 0), options[0]);
+  assert.equal(pickAssistantGreeting("Noeli Morales", morning, () => 0.99), options[options.length - 1]);
+  for (const phrase of options) {
+    assert.ok(phrase.length <= 24);
+  }
 });

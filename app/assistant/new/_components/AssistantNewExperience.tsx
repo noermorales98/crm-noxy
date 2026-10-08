@@ -3,9 +3,10 @@
 /* eslint-disable @next/next/no-img-element -- The approved remote reference assets must use native img elements. */
 
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import AnimatedSendButton from "./AnimatedSendButton";
-import { ASSISTANT_NEW_COPY } from "./assistant-new-copy";
+import { ASSISTANT_NEW_COPY, pickAssistantGreeting } from "./assistant-new-copy";
 import PixelGrid from "./PixelGrid";
 import styles from "../assistant-new.module.css";
 
@@ -85,6 +86,8 @@ export default function AssistantNewExperience({
   model,
   onModelChange,
 }: AssistantNewExperienceProps) {
+  const { data: session, status } = useSession();
+  const [greeting, setGreeting] = useState<string | null>(null);
   const [value, setValue] = useState("");
   const [promptFocused, setPromptFocused] = useState(false);
   const [showRightGrid, setShowRightGrid] = useState(false);
@@ -94,6 +97,13 @@ export default function AssistantNewExperience({
   const phraseIndexRef = useRef(0);
   const characterIndexRef = useRef(0);
   const deletingRef = useRef(false);
+  const greetingPickedRef = useRef(false);
+
+  useEffect(() => {
+    if (status === "loading" || greetingPickedRef.current) return;
+    greetingPickedRef.current = true;
+    setGreeting(pickAssistantGreeting(session?.user?.name, new Date()));
+  }, [session?.user?.name, status]);
 
   useEffect(() => {
     const query = window.matchMedia("(min-width: 768px)");
@@ -225,9 +235,8 @@ export default function AssistantNewExperience({
           </div>
         </div>
 
-        <h1 className={styles.heading} aria-label={ASSISTANT_NEW_COPY.heading}>
-          {ASSISTANT_NEW_COPY.headingLines[0]}
-          <span>{ASSISTANT_NEW_COPY.headingLines[1]}</span>
+        <h1 className={styles.heading} aria-label={greeting ?? undefined}>
+          {greeting}
         </h1>
         <p className={styles.subtitle}>{ASSISTANT_NEW_COPY.subtitle}</p>
 
