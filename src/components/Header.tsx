@@ -2,6 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useHeader, type HeaderAction } from "@/src/context/HeaderContext";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
@@ -58,6 +59,7 @@ function timeAgo(date: string): string {
 
 export default function Header() {
   const { data: session } = useSession();
+  const pathname = usePathname() ?? "";
   const { config, sortField, sortOrder, setSort, activeFilters, setFilter } = useHeader();
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
 
@@ -70,6 +72,7 @@ export default function Header() {
   const sortRef = useRef<HTMLDivElement>(null);
   const filtersRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const solidChrome = pathname.startsWith("/kb") || pathname.startsWith("/assistant");
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -88,7 +91,11 @@ export default function Header() {
   const currentSortLabel = config.sortOptions?.find((o) => o.value === sortField)?.label;
 
   return (
-    <header className="crm-header-chrome crm-safe-top sticky top-0 z-40 shrink-0 lg:static lg:z-auto">
+    <header
+      className={`crm-safe-top sticky top-0 z-40 shrink-0 lg:static lg:z-auto ${
+        solidChrome ? "crm-header-chrome-solid" : "crm-header-chrome"
+      }`}
+    >
       <div className="relative flex h-14 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
 
       {/* Page title */}

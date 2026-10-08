@@ -59,7 +59,7 @@ function CotizacionesContent() {
   const rows = useMemo(() => quotes, [quotes]);
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
       {/* Filtros: todo en una sola línea */}
       <div className="flex items-center gap-2 mb-5 flex-nowrap">
         <div className="relative flex-1 min-w-[120px]">

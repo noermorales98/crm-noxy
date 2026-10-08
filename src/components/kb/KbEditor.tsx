@@ -821,7 +821,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
 
       <div
         ref={scrollContainerRef}
-        className={`flex-1 overflow-y-auto min-h-0 transition-colors duration-300 ${isFolder ? "bg-surface-elevated" : ""}`}
+        className={`crm-mobile-bottom-clearance flex-1 overflow-y-auto min-h-0 overscroll-y-contain transition-colors duration-300 ${isFolder ? "bg-surface-elevated" : ""}`}
         style={{
           overflowAnchor: "none",
           ...(pageBg ? { backgroundColor: pageBg, color: pageText } : {}),

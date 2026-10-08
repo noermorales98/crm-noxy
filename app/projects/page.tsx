@@ -62,7 +62,7 @@ export default function ProjectsPage() {
   }, [projects, sortField, sortOrder]);
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-7xl mx-auto w-full">
             <div className="mb-6">
               <p className="text-sm text-text-secondary">Organiza tareas, correo y documentación alrededor de un cliente, empresa o contacto.</p>

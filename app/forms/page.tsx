@@ -162,7 +162,7 @@ export default function FormsPage() {
 
   return (
     <>
-      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="mb-6">
             <p className="text-sm text-text-secondary">Crea formularios embebibles para capturar leads desde tu sitio web.</p>
           </div>

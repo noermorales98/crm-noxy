@@ -81,7 +81,7 @@ export default function MobileBottomTabBar() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<SectionId[]>(DEFAULT_SECTION_IDS);
-  const sheetRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const activeSection = resolveSection(pathname);
   const unreadEmailCount = notifications.filter((n) => n.type === "NEW_EMAIL" && !n.isRead).length;
@@ -117,7 +117,7 @@ export default function MobileBottomTabBar() {
   useEffect(() => {
     if (!moreOpen) return;
     function handlePointer(e: MouseEvent) {
-      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
         setMoreOpen(false);
         setEditing(false);
       }
@@ -147,13 +147,12 @@ export default function MobileBottomTabBar() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-4 pb-5 lg:hidden crm-safe-bottom"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[55] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] lg:hidden"
     >
-      <div className="relative mx-auto w-full max-w-sm pointer-events-auto">
+      <div ref={rootRef} className="relative mx-auto w-full max-w-sm pointer-events-auto">
         {moreOpen && (
           <div className="absolute inset-x-0 bottom-full mb-2">
             <div
-              ref={sheetRef}
               role={editing ? "dialog" : "menu"}
               aria-label={editing ? "Editar barra" : "Todas las secciones"}
               className="crm-glass-pill overflow-hidden rounded-[22px]"

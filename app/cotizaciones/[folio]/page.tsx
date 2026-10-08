@@ -174,7 +174,7 @@ function QuoteDetailContent() {
 
   if (loading) {
     return (
-      <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
         </div>
@@ -184,7 +184,7 @@ function QuoteDetailContent() {
 
   if (notFound || !quote) {
     return (
-      <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
         <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
           <HugeiconsIcon icon={Invoice01Icon} size={28} color="#9ca3af" className="mx-auto mb-3" />
           <h3 className="text-base font-semibold text-text-primary mb-1">Cotización no encontrada</h3>
@@ -219,7 +219,7 @@ function QuoteDetailContent() {
   };
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
       <div className="max-w-5xl mx-auto">
         <Link
           href="/cotizaciones"

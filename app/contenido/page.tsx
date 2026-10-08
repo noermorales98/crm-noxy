@@ -7,7 +7,7 @@ export default async function ContenidoPage() {
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto min-h-0">
       <ContentClientsView />
     </div>
   );

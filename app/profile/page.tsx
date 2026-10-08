@@ -118,7 +118,7 @@ export default function ProfilePage() {
   const inputCls = inputClsBase + " py-3 placeholder:text-text-secondary/60";
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-8 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-8 bg-surface-app">
           <div className="max-w-3xl mx-auto">
 
             {/* Page Title */}

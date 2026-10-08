@@ -430,7 +430,7 @@ export default function FormBuilderPage() {
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto xl:overflow-hidden">
+          <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto xl:overflow-hidden">
 
             {/* BUILDER TAB — two columns */}
             {activeTab === "BUILDER" && (

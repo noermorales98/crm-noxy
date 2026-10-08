@@ -76,7 +76,7 @@ export default function CreateProjectPage() {
   };
 
   return (
-    <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
           <div className="max-w-3xl mx-auto w-full">
             <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary transition-colors mb-6">
               <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />

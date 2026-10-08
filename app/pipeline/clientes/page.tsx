@@ -473,7 +473,7 @@ export default function ClientesPage() {
 
   return (
     <>
-      <main className="flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
 
         {/* ── Page header ── */}
         <div className="px-5 pt-3 pb-2 bg-white border-b border-border-subtle">

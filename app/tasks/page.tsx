@@ -139,7 +139,7 @@ function TasksContent() {
 
   return (
     <>
-      <main className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
 
           {/* Page header */}
           <div className="flex items-start justify-between mb-6">

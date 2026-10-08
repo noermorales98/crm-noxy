@@ -55,7 +55,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <DbOutageBanner />
                 {!hideHeader && <Header />}
                 {showAssistantMobileChrome && (
-                  <div className="crm-header-chrome crm-safe-top shrink-0 lg:hidden">
+                  <div className="crm-header-chrome-solid crm-safe-top shrink-0 lg:hidden">
                     <div className="flex h-12 items-center gap-2 px-3">
                       <MobileSidebarToggle />
                       <span className="truncate text-sm font-semibold text-text-primary">

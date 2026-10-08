@@ -162,7 +162,7 @@ export default function CompaniesPage() {
   };
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
 
           {/* Page header */}
           <div className="mb-6">

@@ -9,6 +9,7 @@ import {
   Globe, Lock, Hash, Folder,
 } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
+import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import { useOptionalKbContext } from "@/src/context/KbContext";
 
 interface KbPage {
@@ -111,22 +112,29 @@ export default function KbHomePage() {
           </div>
 
           {/* Stats */}
-          <div className="mb-6 grid grid-cols-1 gap-3 sm:mb-8 sm:grid-cols-3 sm:gap-4">
+          <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-8 sm:gap-4">
             {[
               { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-action-primary bg-nav-hover" },
               { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
               { label: "Borradores",  value: pages.filter(p => !p.isFolder && !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
             ].map((stat) => (
-              <div key={stat.label} className="flex items-center gap-4 rounded-lg border border-border-subtle bg-white p-4 sm:p-5">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${stat.color}`}>
-                  <stat.icon size={18} />
+              <div key={stat.label} className="flex min-w-0 items-center gap-2 rounded-lg border border-border-subtle bg-white p-2.5 sm:gap-4 sm:p-5">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${stat.color}`}>
+                  <stat.icon className="size-4 sm:size-[18px]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-2xl font-bold text-text-primary">{stat.value}</p>
-                  <p className="text-xs text-text-secondary">{stat.label}</p>
+                  <p className="text-lg font-bold leading-tight text-text-primary sm:text-2xl">{stat.value}</p>
+                  <p className="truncate text-[10px] text-text-secondary sm:text-xs">{stat.label}</p>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Mobile tree nav (desktop uses docked sidebar) */}
+          <div className="mb-4 overflow-hidden rounded-lg border border-border-subtle bg-white lg:hidden">
+            <div className="max-h-64 overflow-y-auto">
+              <KbSidebarTree />
+            </div>
           </div>
 
           {/* Pages list */}

@@ -321,7 +321,14 @@ export function KbProvider({ children }: { children: ReactNode }) {
         const ancestorIds: string[] = data.ancestorIds ?? [];
         await ensureExpanded(ancestorIds);
         requestAnimationFrame(() => {
-          activeNodeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          const el = activeNodeRef.current;
+          if (!el) return;
+          const rect = el.getBoundingClientRect();
+          // Skip when the tree lives in a closed/off-screen mobile drawer —
+          // scrollIntoView would otherwise disturb document scroll ancestors.
+          if (rect.width === 0 && rect.height === 0) return;
+          if (rect.right < 0 || rect.left > window.innerWidth) return;
+          el.scrollIntoView({ block: "nearest", behavior: "smooth" });
         });
       } finally {
         revealInFlight.current = null;

@@ -806,11 +806,17 @@
 }
 
 @media (max-width: 1023px) {
+  .experience {
+    min-height: 0;
+    height: 100%;
+  }
+
   .experience .content {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
   }
 
   .experience .footer {
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
   }
 }

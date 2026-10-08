@@ -169,7 +169,7 @@ export default function DigestSettingsPage() {
   const timeValue = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto px-6 py-6 bg-surface-app">
       <div className="mb-6">
         <Link href="/settings" className="text-sm text-text-secondary hover:text-text-primary transition-colors">
           ← Configuración

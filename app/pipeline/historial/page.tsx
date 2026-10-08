@@ -59,7 +59,7 @@ export default function HistoryPage() {
   const totalLost = filteredDeals.filter(d => d.stage?.isLost).length;
 
   return (
-    <main className="flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
       {/* Top bar */}
       <div className="px-5 py-4 bg-white border-b border-border-subtle">
         <div className="flex items-center gap-3 mb-4">

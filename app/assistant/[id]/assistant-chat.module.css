@@ -583,7 +583,6 @@
 
   .composerOuter {
     width: calc(100% - 32px);
-    margin-bottom: 16px;
   }
 
   .composerInner {
