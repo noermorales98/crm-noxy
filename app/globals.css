@@ -153,7 +153,7 @@ body {
 
     /* Solid chrome for docs + AI — avoids frosted blur artifacts on those surfaces */
     .crm-header-chrome-solid {
-      background-color: var(--surface-app, #fafbfc);
+      background-color: var(--surface-app, #F5F6FB);
       border-bottom: 1px solid rgb(11 11 24 / 0.06);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
