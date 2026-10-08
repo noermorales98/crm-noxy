@@ -1,3 +1,12 @@
+const MESES = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+
+export function calendarMonthLabel(year: number, month: number): string {
+  return `${MESES[month]} ${year}`;
+}
+
 export function parseMesParam(value: string | null): { year: number; month: number } | null {
   if (!value || !/^\d{4}-\d{2}$/.test(value)) return null;
   const [year, month] = value.split("-").map(Number);

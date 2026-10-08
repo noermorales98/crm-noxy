@@ -320,7 +320,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
-  const publicUrl = `${origin}/calendario/${client.publicToken}`;
+  const publicUrl = `${origin}/calendario/${client.publicToken}?mes=${formatMesParam(cursor.year, cursor.month)}`;
 
   // WhatsApp
   const [phones, setPhones] = useState<PhoneEntry[]>(client.phones ?? []);

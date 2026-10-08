@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { parseMesParam } from "@/src/lib/content-month";
 import {
   CALENDAR_CSS, CALENDAR_FONTS, ContentMonthGrid, ContentItemModal,
   monthLabel, type ContentItemData,
@@ -15,8 +17,10 @@ export default function PublicCalendarView({
   clientKind: string;
   clientDescription: string | null;
 }) {
+  const searchParams = useSearchParams();
   const now = new Date();
-  const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
+  const parsedMonth = parseMesParam(searchParams.get("mes"));
+  const [cursor, setCursor] = useState(parsedMonth ?? { year: now.getFullYear(), month: now.getMonth() });
   const [items, setItems] = useState<ContentItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
