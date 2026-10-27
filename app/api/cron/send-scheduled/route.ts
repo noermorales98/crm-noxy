@@ -19,6 +19,7 @@ export async function GET(req: Request) {
         type: "SENT",
       },
       include: {
+        attachments: true,
         company: {
           select: {
             id: true,
@@ -65,6 +66,13 @@ export async function GET(req: Request) {
           text: email.bodyText || "",
         };
         if (email.ccAddress) mailOptions.cc = email.ccAddress;
+        if (email.attachments.length > 0) {
+          mailOptions.attachments = email.attachments.map((att) => ({
+            filename: att.filename,
+            content: Buffer.from(att.content),
+            contentType: att.contentType,
+          }));
+        }
 
         const info = await transporter.sendMail(mailOptions);
 

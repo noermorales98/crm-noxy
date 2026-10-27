@@ -168,6 +168,8 @@ function EmailsPageInner() {
     scheduledAt: "",
   });
   const [isSending, setIsSending] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewCompose, setPreviewCompose] = useState(false);
   const [showSchedulePicker, setShowSchedulePicker] = useState(false);
   // Contact autocomplete
@@ -239,6 +241,7 @@ function EmailsPageInner() {
       const subject = searchParams.get("subject") ?? "";
       const body = searchParams.get("body") ?? "";
       setComposeData((p) => ({ ...p, to, subject, bodyHtml: body }));
+      setAttachments([]);
       setIsComposing(true);
       loadContacts();
     }
@@ -255,6 +258,7 @@ function EmailsPageInner() {
   useEffect(() => {
     emailCtx.setOnCompose(() => {
       setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: emailCtx.selectedCompanyId || "", scheduledAt: "" });
+      setAttachments([]);
       setPreviewCompose(false);
       setShowSchedulePicker(false);
       setIsComposing(true);
@@ -455,10 +459,48 @@ function EmailsPageInner() {
     }
   };
 
+  const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(",")[1] || "");
+      };
+      reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
+      reader.readAsDataURL(file);
+    });
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB por archivo
+    const MAX_TOTAL_SIZE = 20 * 1024 * 1024; // 20 MB en total
+    const oversized = files.find((f) => f.size > MAX_FILE_SIZE);
+    if (oversized) {
+      addToast(`"${oversized.name}" supera el límite de 10 MB por archivo.`, "error");
+      return;
+    }
+    const combined = [...attachments, ...files];
+    const totalSize = combined.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE) {
+      addToast("El tamaño total de los adjuntos no puede superar 20 MB.", "error");
+      return;
+    }
+    setAttachments(combined);
+    e.target.value = "";
+  };
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSending(true);
     try {
+      const attachmentPayload = await Promise.all(
+        attachments.map(async (f) => ({
+          filename: f.name,
+          contentType: f.type || "application/octet-stream",
+          data: await fileToBase64(f),
+        }))
+      );
       const res = await fetch("/api/emails/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -469,6 +511,7 @@ function EmailsPageInner() {
           subject: composeData.subject,
           bodyHtml: composeData.bodyHtml,
           scheduledAt: composeData.scheduledAt || undefined,
+          attachments: attachmentPayload.length > 0 ? attachmentPayload : undefined,
         }),
       });
       const data = await res.json();
@@ -478,6 +521,7 @@ function EmailsPageInner() {
         setPreviewCompose(false);
         setShowSchedulePicker(false);
         setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: "", scheduledAt: "" });
+        setAttachments([]);
         if (folder === "sent") fetchEmails();
       } else {
         addToast(data.error || "Error al enviar.", "error");
@@ -507,6 +551,7 @@ function EmailsPageInner() {
       companyId: email.companyId,
       scheduledAt: "",
     });
+    setAttachments([]);
     setPreviewCompose(false);
     setShowSchedulePicker(false);
     setIsComposing(true);
@@ -1270,14 +1315,61 @@ function EmailsPageInner() {
                 )}
               </div>
 
+              {/* Attachments */}
+              {attachments.length > 0 && (
+                <div className="px-5 pb-3 flex flex-wrap gap-2">
+                  {attachments.map((file, idx) => (
+                    <span
+                      key={`${file.name}-${idx}`}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-surface-sidebar border border-border-subtle rounded-lg text-xs text-text-primary"
+                    >
+                      <HugeiconsIcon icon={FileAttachmentIcon} size={13} color="#9ca3af" />
+                      <span className="max-w-[180px] truncate">{file.name}</span>
+                      <span className="text-text-secondary">{formatFileSize(file.size)}</span>
+                      <button
+                        type="button"
+                        onClick={() => setAttachments((prev) => prev.filter((_, i) => i !== idx))}
+                        className="text-text-secondary hover:text-red-600 transition-colors"
+                        title="Quitar adjunto"
+                        aria-label={`Quitar ${file.name}`}
+                      >
+                        <HugeiconsIcon icon={Cancel01Icon} size={12} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="px-5 py-3 border-t border-border-subtle flex justify-between items-center shrink-0 bg-surface-sidebar/50">
-                <button
-                  type="button"
-                  onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
-                  className="rounded-control bg-surface-elevated px-3 py-2 text-sm text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
-                >
-                  Cancelar
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setIsComposing(false); setPreviewCompose(false); setShowSchedulePicker(false); }}
+                    className="rounded-control bg-surface-elevated px-3 py-2 text-sm text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={handleFilesSelected}
+                  />
+                  <button
+                    type="button"
+                    title="Adjuntar archivos (máx. 10 MB c/u, 20 MB total)"
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors border ${
+                      attachments.length > 0
+                        ? "border-blue-300 bg-blue-50 text-blue-700"
+                        : "border-border-subtle bg-surface-elevated text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+                    }`}
+                  >
+                    <HugeiconsIcon icon={FileAttachmentIcon} size={14} />
+                    Adjuntar
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   {/* Schedule */}
                   <div className="flex items-center gap-1">
