@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseCustomDays } from "@/src/lib/digest";
+import { normalizeModelId } from "@/src/lib/ai-models";
 
 export async function GET() {
   try {
@@ -42,7 +43,7 @@ export async function GET() {
       includeUnreadEmails: schedule?.includeUnreadEmails ?? true,
       calendarRemindDayBefore: schedule?.calendarRemindDayBefore ?? true,
       calendarRemindMinutesBefore: schedule?.calendarRemindMinutesBefore ?? 15,
-      aiModelId: schedule?.aiModelId ?? "chatbase",
+      aiModelId: normalizeModelId(schedule?.aiModelId),
       whatsappConfigured: !!(callMeBot?.phone && callMeBot?.apiKey),
       googleCalendarConnected: !!googleConnected,
     });
@@ -82,8 +83,7 @@ export async function PATCH(req: Request) {
       typeof calendarRemindMinutesBefore === "number"
         ? Math.min(120, Math.max(0, calendarRemindMinutesBefore))
         : 15;
-    const parsedModelId =
-      typeof aiModelId === "string" && aiModelId.trim() ? aiModelId.trim() : "chatbase";
+    const parsedModelId = normalizeModelId(typeof aiModelId === "string" ? aiModelId : null);
 
     const schedule = await prisma.digestSchedule.upsert({
       where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
@@ -139,7 +139,7 @@ export async function PATCH(req: Request) {
       includeUnreadEmails: schedule.includeUnreadEmails,
       calendarRemindDayBefore: schedule.calendarRemindDayBefore,
       calendarRemindMinutesBefore: schedule.calendarRemindMinutesBefore,
-      aiModelId: schedule.aiModelId,
+      aiModelId: normalizeModelId(schedule.aiModelId),
     });
   } catch (err) {
     console.error("[settings/digest PATCH]", err);

@@ -1,4 +1,4 @@
-import { AI_MODELS, DEFAULT_MODEL_ID, getModelById, type AiModel } from "@/src/lib/ai-models";
+import { AI_MODELS, DEFAULT_MODEL_ID, getModelById, normalizeModelId, type AiModel } from "@/src/lib/ai-models";
 import { prisma } from "@/src/lib/db";
 
 export async function getAvailableAiModels(orgId: string): Promise<AiModel[]> {
@@ -34,44 +34,24 @@ export async function getAvailableAiModels(orgId: string): Promise<AiModel[]> {
 }
 
 export async function resolveAiModelForOrg(orgId: string, modelId: string): Promise<AiModel> {
-  const id = modelId.trim() || DEFAULT_MODEL_ID;
+  const id = normalizeModelId(modelId);
   const available = await getAvailableAiModels(orgId);
   return available.find((m) => m.id === id) ?? getModelById(DEFAULT_MODEL_ID);
 }
 
-async function completeChatbase(systemPrompt: string, userPrompt: string): Promise<string> {
-  const apiKey = process.env.CHATBASE_API_KEY;
-  const botId = process.env.CHATBASE_BOT_ID;
-  if (!apiKey || !botId) {
-    throw new Error("CHATBASE_API_KEY o CHATBASE_BOT_ID no configurados");
-  }
+export async function resolveRequestedModelId(
+  orgId: string,
+  userId: string,
+  requested?: string | null,
+): Promise<string> {
+  const explicit = requested?.trim() ?? "";
+  if (explicit && explicit !== "chatbase") return normalizeModelId(explicit);
 
-  const res = await fetch("https://www.chatbase.co/api/v1/chat", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messages: [
-        { role: "user", content: systemPrompt },
-        { role: "assistant", content: "Entendido." },
-        { role: "user", content: userPrompt },
-      ],
-      chatbotId: botId,
-      stream: false,
-    }),
+  const schedule = await prisma.digestSchedule.findUnique({
+    where: { userId_organizationId: { userId, organizationId: orgId } },
+    select: { aiModelId: true },
   });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Error de Chatbase: ${res.status} ${err.slice(0, 200)}`);
-  }
-
-  const data = (await res.json()) as { text?: string; message?: string; response?: string };
-  const message = data.text?.trim() || data.message?.trim() || data.response?.trim();
-  if (!message) throw new Error("Chatbase no generó contenido");
-  return message;
+  return normalizeModelId(schedule?.aiModelId);
 }
 
 async function completeOpenRouter(
@@ -133,10 +113,12 @@ export async function completeWithAi(options: {
   maxOutputChars?: number;
 }): Promise<string> {
   const model = await resolveAiModelForOrg(options.orgId, options.modelId);
-  const text =
-    model.provider === "chatbase"
-      ? await completeChatbase(options.systemPrompt, options.userPrompt)
-      : await completeOpenRouter(model.id, options.systemPrompt, options.userPrompt, options.maxTokens);
+  const text = await completeOpenRouter(
+    model.id,
+    options.systemPrompt,
+    options.userPrompt,
+    options.maxTokens,
+  );
 
   return text.slice(0, options.maxOutputChars ?? 1500);
 }

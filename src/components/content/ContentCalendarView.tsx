@@ -19,6 +19,8 @@ import {
   reminderDaysLabel,
   reminderDaysSelectOptions,
 } from "@/src/lib/content-reminder-options";
+import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
+import { useStoredAiModel } from "@/src/hooks/useStoredAiModel";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -345,6 +347,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
   const [addedIdeas, setAddedIdeas] = useState<Set<number>>(new Set());
   const [aiPerWeek, setAiPerWeek] = useState(2);
   const [aiWeeks, setAiWeeks] = useState<number[]>([1, 2, 3, 4]);
+  const { modelId: aiModelId, setModelId: setAiModelId } = useStoredAiModel();
   const [addAllBusy, setAddAllBusy] = useState(false);
 
   const monthParam = `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}`;
@@ -563,7 +566,13 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       const res = await fetch(`/api/content/clients/${client.id}/ai-ideas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ instruction: aiInstruction, month: monthParam, weeks: aiWeeks, perWeek: aiPerWeek }),
+        body: JSON.stringify({
+          instruction: aiInstruction,
+          month: monthParam,
+          weeks: aiWeeks,
+          perWeek: aiPerWeek,
+          modelId: aiModelId,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail ? `${data.error}\n${data.detail}` : data.error || "Error de IA");
@@ -802,6 +811,11 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 Este cliente aún no tiene contexto de marca. Edítalo desde la lista de clientes para que las ideas sean más precisas.
               </p>
             )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span className="text-xs font-medium text-text-primary">Modelo</span>
+              <ModelSelector value={aiModelId} onChange={setAiModelId} disabled={aiBusy} />
+            </div>
 
             {/* Configuración: piezas por semana + semanas */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-3">

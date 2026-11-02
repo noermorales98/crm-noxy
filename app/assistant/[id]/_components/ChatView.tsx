@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
-import { DEFAULT_MODEL_ID, getModelById } from "@/src/lib/ai-models";
+import { DEFAULT_MODEL_ID, getModelById, normalizeModelId } from "@/src/lib/ai-models";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -107,7 +107,10 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
-    setModel(getStored("assistant-model", DEFAULT_MODEL_ID));
+    const storedModel = getStored("assistant-model", DEFAULT_MODEL_ID);
+    const normalizedModel = normalizeModelId(storedModel);
+    setModel(normalizedModel);
+    if (normalizedModel !== storedModel) setStored("assistant-model", normalizedModel);
     setPreferredKey((getStored("assistant-preferred-key", "1") as "1" | "2"));
   }, []);
   useEffect(() => {

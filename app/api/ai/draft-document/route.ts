@@ -1,18 +1,8 @@
 import { auth } from "@/auth";
-import { prisma } from "@/src/lib/db";
-import { completeWithAi } from "@/src/lib/ai-completion";
-import { DEFAULT_MODEL_ID } from "@/src/lib/ai-models";
+import { completeWithAi, resolveRequestedModelId } from "@/src/lib/ai-completion";
 
 const SYSTEM_PROMPT =
   "Eres un asistente experto en redacción de documentos en español. Responde directamente con el contenido pedido, sin explicaciones ni comentarios adicionales. Usa Markdown cuando sea apropiado.";
-
-async function resolveModelId(userId: string, orgId: string) {
-  const schedule = await prisma.digestSchedule.findUnique({
-    where: { userId_organizationId: { userId, organizationId: orgId } },
-    select: { aiModelId: true },
-  });
-  return schedule?.aiModelId ?? DEFAULT_MODEL_ID;
-}
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -30,6 +20,7 @@ export async function POST(req: Request) {
     content?: string;
     selection?: string;
     prompt?: string;
+    modelId?: string;
   };
   const { action, content, selection } = body;
 
@@ -69,7 +60,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const modelId = await resolveModelId(session.user.id, orgId);
+    const modelId = await resolveRequestedModelId(orgId, session.user.id, body.modelId);
     const result = await completeWithAi({
       orgId,
       modelId,

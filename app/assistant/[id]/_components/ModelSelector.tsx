@@ -1,11 +1,10 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Check, Zap } from "lucide-react";
-import { AI_MODELS, getModelGroups, getModelById, type AiModel } from "@/src/lib/ai-models";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { ChevronDown, Check } from "lucide-react";
+import { AI_MODELS, getModelById, normalizeModelId, type AiModel } from "@/src/lib/ai-models";
 
 const TAG_COLORS: Record<string, string> = {
-  CRM: "bg-[#EBEDFA] text-[#3545D6]",
-  Personalizado: "bg-[#EBEDFA] text-[#3545D6]",
   General: "bg-surface-sidebar text-text-secondary",
   Potente: "bg-amber-50 text-amber-600",
   Rápido: "bg-green-50 text-green-600",
@@ -21,6 +20,13 @@ interface Props {
   disabled?: boolean;
   /** Where the dropdown opens relative to the trigger button */
   placement?: "bottom-left" | "top-right";
+}
+
+interface MenuPosition {
+  left: number;
+  width: number;
+  top?: number;
+  bottom?: number;
 }
 
 function buildGroups(builtins: AiModel[], customs: AiModel[]): { group: string; models: AiModel[] }[] {
@@ -48,11 +54,15 @@ export default function ModelSelector({
   const [open, setOpen] = useState(false);
   const [customModels, setCustomModels] = useState<AiModel[]>([]);
   const [hiddenBuiltins, setHiddenBuiltins] = useState<string[]>([]);
+  const [menuPos, setMenuPos] = useState<MenuPosition | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const visibleBuiltins = AI_MODELS.filter((m) => !hiddenBuiltins.includes(m.id));
   const allModels = [...visibleBuiltins, ...customModels];
-  const current = allModels.find((m) => m.id === value) ?? getModelById(value);
+  const selectedId = allModels.some((m) => m.id === value) ? value : normalizeModelId(value);
+  const current = allModels.find((m) => m.id === selectedId) ?? getModelById(selectedId);
   const groups = buildGroups(visibleBuiltins, customModels);
 
   useEffect(() => {
@@ -61,8 +71,8 @@ export default function ModelSelector({
         if (!r.ok) return;
         const data = await r.json();
         const mapped: AiModel[] = (data.models ?? [])
-          .filter((m: any) => m.enabled)
-          .map((m: any) => ({
+          .filter((m: { enabled?: boolean }) => m.enabled)
+          .map((m: { modelId: string; name: string; group?: string; description?: string; tags?: string }) => ({
             id: m.modelId,
             name: m.name,
             provider: "openrouter" as const,
@@ -78,7 +88,9 @@ export default function ModelSelector({
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (ref.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     }
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -91,54 +103,61 @@ export default function ModelSelector({
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    function place() {
+      const el = buttonRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const width = 288;
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = placement === "top-right" || spaceBelow < 320;
+      setMenuPos(
+        openUp
+          ? { left, width, bottom: window.innerHeight - rect.top + 8 }
+          : { left, width, top: rect.bottom + 4 },
+      );
+    }
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, placement]);
+
   const select = (model: AiModel) => {
     onChange(model.id);
     setOpen(false);
     try {
       localStorage.setItem("assistant-model", model.id);
-    } catch {}
+    } catch {
+      // La elección sigue valiendo en esta pantalla.
+    }
   };
 
-  const isChatbase = current.provider === "chatbase";
   const isInline = placement === "top-right";
-
-  const dropdownClass =
-    placement === "top-right"
-      ? "crm-floating-menu absolute bottom-full right-0 mb-2 w-72 bg-white rounded-xl border border-border-subtle overflow-hidden z-50"
-      : "crm-floating-menu absolute top-full left-0 mt-1 w-72 bg-white rounded-xl border border-border-subtle overflow-hidden z-50";
 
   const btnClass = isInline
     ? "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-text-secondary hover:text-text-primary hover:bg-black/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     : "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
-  return (
-    <div ref={ref} className="relative shrink-0">
-      <button
-        type="button"
-        onClick={() => !disabled && setOpen((v) => !v)}
-        disabled={disabled}
-        className={btnClass}
-        title="Cambiar modelo de IA"
-      >
-        {isChatbase ? (
-          <span className="w-3 h-3 rounded-sm bg-[#3545D6] flex items-center justify-center shrink-0">
-            <Zap size={7} className="text-white" />
-          </span>
-        ) : (
-          <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
-        )}
-        <span className={`truncate ${isInline ? "max-w-[100px]" : "max-w-[140px]"}`}>
-          {current.name}
-        </span>
-        <ChevronDown
-          size={10}
-          className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div className={dropdownClass}>
-          {/* Header */}
+  const menu = open && menuPos
+    ? createPortal(
+        <div
+          ref={menuRef}
+          className="crm-floating-menu bg-white rounded-xl border border-border-subtle overflow-hidden"
+          style={{
+            position: "fixed",
+            left: menuPos.left,
+            width: menuPos.width,
+            top: menuPos.top,
+            bottom: menuPos.bottom,
+            zIndex: 200,
+          }}
+        >
           <div className="px-3 py-2.5 border-b border-border-subtle bg-surface-sidebar">
             <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wider">
               Seleccionar modelo de IA
@@ -155,7 +174,7 @@ export default function ModelSelector({
                   {group}
                 </p>
                 {models.map((model) => {
-                  const isSelected = model.id === value;
+                  const isSelected = model.id === selectedId;
                   const tag = model.tags?.[0];
                   return (
                     <button
@@ -204,8 +223,31 @@ export default function ModelSelector({
               Los modelos de OpenRouter son gratuitos · Calidad puede variar
             </p>
           </div>
-        </div>
-      )}
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        disabled={disabled}
+        className={btnClass}
+        title="Cambiar modelo de IA"
+      >
+        <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+        <span className={`truncate ${isInline ? "max-w-[100px]" : "max-w-[140px]"}`}>
+          {current.name}
+        </span>
+        <ChevronDown
+          size={10}
+          className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {menu}
     </div>
   );
 }

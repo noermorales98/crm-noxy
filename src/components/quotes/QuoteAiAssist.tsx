@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
+import { useStoredAiModel } from "@/src/hooks/useStoredAiModel";
 
 type QuoteField = "notes" | "terms" | "item";
 
@@ -22,6 +24,7 @@ export function QuoteAiAssist({
   };
 }) {
   const [open, setOpen] = useState(false);
+  const { modelId, setModelId } = useStoredAiModel();
   const [instruction, setInstruction] = useState("");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -45,6 +48,7 @@ export function QuoteAiAssist({
           field,
           instruction: text,
           currentText,
+          modelId,
           ...context,
         }),
       });
@@ -72,7 +76,10 @@ export function QuoteAiAssist({
 
   return (
     <div className="mt-2 flex flex-col gap-2 rounded-lg border border-border-subtle bg-surface-app p-3">
-      <label className="text-xs font-semibold text-text-secondary">Qué debe decir</label>
+      <div className="flex items-center justify-between gap-2">
+        <label className="text-xs font-semibold text-text-secondary">Qué debe decir</label>
+        <ModelSelector value={modelId} onChange={setModelId} disabled={busy} />
+      </div>
       <textarea
         value={instruction}
         onChange={(e) => setInstruction(e.target.value)}

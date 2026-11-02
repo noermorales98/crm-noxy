@@ -142,8 +142,6 @@ export default function AiModelsPage() {
     </div>
   );
 
-  const builtinsExcludingChatbase = AI_MODELS.filter((m) => m.id !== "chatbase");
-
   return (
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
       <div className="max-w-3xl">
@@ -290,22 +288,7 @@ export default function AiModelsPage() {
             <span className="text-xs text-text-secondary">{AI_MODELS.length} modelos</span>
           </div>
           <div className="divide-y divide-border-subtle">
-            {/* Chatbase — always visible, not deletable */}
-            {AI_MODELS.filter((m) => m.id === "chatbase").map((m) => (
-              <div key={m.id} className="flex items-center gap-3 px-5 py-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-text-primary">{m.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EBEDFA] text-[#3545D6] font-semibold">{m.group}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Fijo</span>
-                  </div>
-                  <p className="text-xs text-text-secondary mt-0.5 font-mono">{m.id}</p>
-                </div>
-              </div>
-            ))}
-
-            {/* Rest of built-ins */}
-            {builtinsExcludingChatbase.map((m) => {
+            {AI_MODELS.map((m) => {
               const isHidden = hiddenBuiltins.includes(m.id);
               return (
                 <div key={m.id} className={`flex items-center gap-3 px-5 py-3 ${isHidden ? "opacity-40" : ""}`}>

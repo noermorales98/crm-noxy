@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
-import { completeWithAi } from "@/src/lib/ai-completion";
-import { DEFAULT_MODEL_ID } from "@/src/lib/ai-models";
+import { completeWithAi, resolveRequestedModelId } from "@/src/lib/ai-completion";
 
 const SYSTEM_PROMPT = `Eres un estratega de contenido para redes sociales (Facebook, Instagram y TikTok) hispanohablante.
 Generas ideas de contenido concretas y accionables para calendarios mensuales.
@@ -138,6 +137,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
   const body = await req.json().catch(() => ({}));
   const instruction = typeof body?.instruction === "string" ? body.instruction.trim() : "";
+  const requestedModelId = typeof body?.modelId === "string" ? body.modelId : null;
   const month = typeof body?.month === "string" && /^\d{4}-\d{2}$/.test(body.month) ? body.month : null;
   const perWeek = Math.min(5, Math.max(1, typeof body?.perWeek === "number" ? Math.round(body.perWeek) : 2));
   const weeksRaw = Array.isArray(body?.weeks) ? body.weeks : null;
@@ -159,11 +159,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     existingTitles = items.map((i) => `${i.date.toISOString().slice(0, 10)} (${i.type}) ${i.title}`);
   }
 
-  const schedule = await prisma.digestSchedule.findUnique({
-    where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
-    select: { aiModelId: true },
-  });
-  const modelId = schedule?.aiModelId ?? DEFAULT_MODEL_ID;
+  const modelId = await resolveRequestedModelId(orgId, session.user.id, requestedModelId);
 
   try {
     // ── Modo calendario completo: una llamada por semana ──────────────────────

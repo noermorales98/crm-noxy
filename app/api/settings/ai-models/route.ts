@@ -1,8 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 
-const PROTECTED_BUILTIN_IDS = new Set(["chatbase"]);
-
 async function getOrgId(session: any) {
   return (session as any).currentOrganizationId as string | undefined;
 }
@@ -82,10 +80,6 @@ export async function PATCH(req: Request) {
   if (!modelId || !action) {
     return Response.json({ error: "Faltan parámetros" }, { status: 400 });
   }
-  if (action === "hide" && PROTECTED_BUILTIN_IDS.has(modelId)) {
-    return Response.json({ error: "Este modelo no se puede ocultar" }, { status: 403 });
-  }
-
   const org = await prisma.organization.findUnique({
     where: { id: orgId },
     select: { hiddenAiModels: true },

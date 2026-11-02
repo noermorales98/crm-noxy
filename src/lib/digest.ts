@@ -2,7 +2,7 @@ import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { listGoogleCalendarEvents } from "@/src/lib/google-calendar";
 import { completeWithAi } from "@/src/lib/ai-completion";
-import { DEFAULT_MODEL_ID } from "@/src/lib/ai-models";
+import { normalizeModelId } from "@/src/lib/ai-models";
 
 export type DigestFrequency = "daily" | "weekly" | "monthly" | "custom";
 
@@ -259,7 +259,7 @@ Reglas:
 
   return completeWithAi({
     orgId: options.orgId,
-    modelId: options.modelId?.trim() || DEFAULT_MODEL_ID,
+    modelId: normalizeModelId(options.modelId),
     systemPrompt,
     userPrompt: `Datos del CRM:\n\n${context}\n\nGenera el resumen para WhatsApp.`,
     maxTokens: 600,
@@ -311,7 +311,7 @@ export async function runDigestForUser(
 
   const includeGoogleCalendar = schedule?.includeGoogleCalendar ?? true;
   const includeUnreadEmails = schedule?.includeUnreadEmails ?? true;
-  const aiModelId = schedule?.aiModelId ?? DEFAULT_MODEL_ID;
+  const aiModelId = normalizeModelId(schedule?.aiModelId);
   const context = await buildDigestContext(orgId, userId, { includeGoogleCalendar, includeUnreadEmails });
   const message = await generateDigestMessage(context, { orgId, modelId: aiModelId });
 

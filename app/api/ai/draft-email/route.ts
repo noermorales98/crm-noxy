@@ -1,14 +1,15 @@
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { completeWithAi, resolveRequestedModelId } from "@/src/lib/ai-completion";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  if (!session?.user?.id) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   const orgId = (session as any).currentOrganizationId as string | undefined;
   if (!orgId) return new Response(JSON.stringify({ error: "No organization" }), { status: 400 });
 
-  const body = await req.json() as { prompt: string; recipientEmail?: string; tone?: string };
-  const { prompt, recipientEmail, tone = "formal" } = body;
+  const body = await req.json() as { prompt: string; recipientEmail?: string; tone?: string; modelId?: string };
+  const { prompt, recipientEmail, tone = "formal", modelId: requestedModelId } = body;
   if (!prompt?.trim()) return new Response(JSON.stringify({ error: "Missing prompt" }), { status: 400 });
 
   // Build context: find contact by email if provided
@@ -42,34 +43,21 @@ Instrucción: ${prompt.trim()}
 
 Genera un correo con asunto y cuerpo. El cuerpo debe ser HTML simple (párrafos con <p>, saltos con <br>).`;
 
-  const apiKey = process.env.OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY_SECONDARY;
-  if (!apiKey) return new Response(JSON.stringify({ error: "No API key configured" }), { status: 500 });
-
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://noxthy.co",
-      "X-Title": "CRM Noxy",
-    },
-    body: JSON.stringify({
-      model: "meta-llama/llama-3.3-70b-instruct:free",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      stream: false,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    return new Response(JSON.stringify({ error: `OpenRouter error: ${res.status} ${err}` }), { status: 502 });
+  let raw = "";
+  try {
+    const modelId = await resolveRequestedModelId(orgId, session.user.id, requestedModelId);
+    raw = await completeWithAi({
+      orgId,
+      modelId,
+      systemPrompt,
+      userPrompt,
+      maxTokens: 1200,
+      maxOutputChars: 4000,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Error de IA";
+    return new Response(JSON.stringify({ error: message }), { status: 502 });
   }
-
-  const data = await res.json() as { choices?: { message?: { content?: string } }[] };
-  const raw = data.choices?.[0]?.message?.content ?? "";
 
   // Parse JSON from response (model might wrap in markdown code block)
   let parsed: { subject: string; body: string };

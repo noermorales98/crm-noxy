@@ -1,4 +1,4 @@
-export type ModelProvider = "chatbase" | "openrouter";
+export type ModelProvider = "openrouter";
 
 export interface AiModel {
   id: string;
@@ -10,16 +10,6 @@ export interface AiModel {
 }
 
 export const AI_MODELS: AiModel[] = [
-  // ── Chatbase (default) ────────────────────────────────────────────────────
-  {
-    id: "chatbase",
-    name: "Chatbase",
-    provider: "chatbase",
-    group: "Predeterminado",
-    description: "Bot personalizado con acceso al CRM",
-    tags: ["CRM", "Personalizado"],
-  },
-
   // ── Meta / Llama ──────────────────────────────────────────────────────────
   {
     id: "meta-llama/llama-3.3-70b-instruct:free",
@@ -201,10 +191,22 @@ export const AI_MODELS: AiModel[] = [
   },
 ];
 
-export const DEFAULT_MODEL_ID = "chatbase";
+export const DEFAULT_MODEL_ID = "meta-llama/llama-3.3-70b-instruct:free";
+
+const RETIRED_MODEL_IDS = new Set(["chatbase"]);
+
+export function normalizeModelId(id: string | null | undefined): string {
+  const trimmed = id?.trim() ?? "";
+  if (!trimmed || RETIRED_MODEL_IDS.has(trimmed)) return DEFAULT_MODEL_ID;
+  return trimmed;
+}
 
 export function getModelById(id: string): AiModel {
-  return AI_MODELS.find((m) => m.id === id) ?? AI_MODELS[0];
+  return (
+    AI_MODELS.find((m) => m.id === id) ??
+    AI_MODELS.find((m) => m.id === DEFAULT_MODEL_ID) ??
+    AI_MODELS[0]
+  );
 }
 
 export function getModelGroups(): { group: string; models: AiModel[] }[] {

@@ -2,8 +2,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { AI_MODELS } from "@/src/lib/ai-models";
 
-const PROTECTED_IDS = new Set(["chatbase"]);
-
 // PATCH → hide or restore a built-in model
 // body: { modelId: string; action: "hide" | "restore" }
 export async function PATCH(req: Request) {
@@ -14,9 +12,6 @@ export async function PATCH(req: Request) {
 
   const { modelId, action } = await req.json();
   if (!modelId || !action) return new Response("Missing modelId or action", { status: 400 });
-  if (action === "hide" && PROTECTED_IDS.has(modelId)) {
-    return new Response("Cannot hide this model", { status: 403 });
-  }
   if (action === "hide" && !AI_MODELS.some((m) => m.id === modelId)) {
     return new Response("Not a built-in model", { status: 400 });
   }

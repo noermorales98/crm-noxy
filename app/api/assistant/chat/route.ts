@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
+import { normalizeModelId } from "@/src/lib/ai-models";
 
 const ACTION_CARDS_PROMPT = `
 === CAPACIDADES DE ACCIÓN ===
@@ -93,7 +94,7 @@ export async function POST(req: Request) {
     };
     conversationId = body.conversationId;
     content = body.content;
-    model = body.model ?? "chatbase";
+    model = normalizeModelId(body.model);
     preferKey = body.preferKey ?? "1";
     pageContext = body.pageContext ?? null;
   } catch {
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Missing conversationId or content" }), { status: 400 });
   }
 
-  const selectedModel = model.trim() || "chatbase";
+  const selectedModel = normalizeModelId(model);
 
   const conversation = await prisma.aiConversation.findFirst({
     where: { id: conversationId, userId: session.user.id!, organizationId: orgId },
@@ -126,48 +127,7 @@ export async function POST(req: Request) {
 
   const crmContext = await buildCrmContext(session.user.id!, orgId);
 
-  if (selectedModel === "chatbase") {
-    return streamChatbase(crmContext, conversation, trimmed, conversationId, pageContext);
-  } else {
-    return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext);
-  }
-}
-
-// ── Chatbase ────────────────────────────────────────────────────────────────
-
-async function streamChatbase(
-  crmContext: string,
-  conversation: { messages: { role: string; content: string }[] },
-  trimmed: string,
-  conversationId: string,
-  pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
-) {
-  const contextWithExtras = `[CONTEXTO CRM ACTUALIZADO]\n\n${crmContext}${buildPageContextSection(pageContext)}\n\n${ACTION_CARDS_PROMPT}\n\n[FIN CONTEXTO]`;
-  const history = [
-    { role: "user", content: contextWithExtras },
-    { role: "assistant", content: "Entendido. Tengo acceso a los datos del CRM y puedo proponer acciones CRM usando bloques action." },
-    ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: trimmed },
-  ];
-
-  const chatbaseRes = await fetch("https://www.chatbase.co/api/v1/chat", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.CHATBASE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messages: history,
-      chatbotId: process.env.CHATBASE_BOT_ID,
-      stream: true,
-    }),
-  });
-
-  if (!chatbaseRes.ok || !chatbaseRes.body) {
-    return new Response(JSON.stringify({ error: "Chatbase error" }), { status: 502 });
-  }
-
-  return buildStream(chatbaseRes.body, conversationId, "plain");
+  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext);
 }
 
 // ── OpenRouter ───────────────────────────────────────────────────────────────

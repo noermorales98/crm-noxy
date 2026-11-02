@@ -6,6 +6,7 @@ import {
   generateDigestMessage,
   runDigestForUser,
 } from "@/src/lib/digest";
+import { normalizeModelId } from "@/src/lib/ai-models";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -21,7 +22,7 @@ export async function POST(req: Request) {
   });
   const includeGoogleCalendar = schedule?.includeGoogleCalendar ?? true;
   const includeUnreadEmails = schedule?.includeUnreadEmails ?? true;
-  const aiModelId = schedule?.aiModelId ?? "chatbase";
+  const aiModelId = normalizeModelId(schedule?.aiModelId);
 
   try {
     if (mode === "send") {

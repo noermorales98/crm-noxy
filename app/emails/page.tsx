@@ -33,6 +33,8 @@ import { useConfirm } from "@/src/context/ConfirmContext";
 import { useEmailContext, formatLastEmailSync } from "@/src/context/EmailContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useAi } from "@/src/hooks/useAi";
+import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
+import { useStoredAiModel } from "@/src/hooks/useStoredAiModel";
 
 function sanitizeEmail(address: string | null | undefined, fallback = "desconocido"): string {
   if (!address) return fallback;
@@ -122,6 +124,7 @@ function EmailsPageInner() {
   const searchParams = useSearchParams();
   const { folder, selectedCompanyId, setIsSyncing, isSyncing, syncGeneration, notifySyncComplete, lastSyncedAt } = emailCtx;
   const { setConfig, resetState } = useHeader();
+  const { modelId: aiModelId, setModelId: setAiModelId } = useStoredAiModel();
 
   useEffect(() => {
     resetState();
@@ -673,7 +676,12 @@ function EmailsPageInner() {
       const res = await fetch("/api/ai/draft-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt, recipientEmail: composeData.to || undefined, tone: aiTone }),
+        body: JSON.stringify({
+          prompt: aiPrompt,
+          recipientEmail: composeData.to || undefined,
+          tone: aiTone,
+          modelId: aiModelId,
+        }),
       });
       const data = await res.json() as { subject?: string; body?: string; error?: string };
       if (!res.ok || !data.subject) {
@@ -1081,9 +1089,12 @@ function EmailsPageInner() {
               {/* AI Draft Panel */}
               {showAiDraft && (
                 <div className="px-5 py-4 border-b border-border-subtle bg-[#F5F3FF]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <HugeiconsIcon icon={SparklesIcon} size={14} color="#3545D6" />
-                    <span className="text-xs font-semibold text-[#3545D6]">Redactar con IA</span>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <HugeiconsIcon icon={SparklesIcon} size={14} color="#3545D6" />
+                      <span className="text-xs font-semibold text-[#3545D6]">Redactar con IA</span>
+                    </div>
+                    <ModelSelector value={aiModelId} onChange={setAiModelId} disabled={aiLoading} />
                   </div>
                   <textarea
                     rows={2}

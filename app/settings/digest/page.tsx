@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
+import { DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 
 const WEEKDAYS = [
   { value: 0, label: "Dom" },
@@ -42,7 +43,7 @@ export default function DigestSettingsPage() {
   const [includeUnreadEmails, setIncludeUnreadEmails] = useState(true);
   const [calendarRemindDayBefore, setCalendarRemindDayBefore] = useState(true);
   const [calendarRemindMinutesBefore, setCalendarRemindMinutesBefore] = useState(15);
-  const [aiModelId, setAiModelId] = useState("chatbase");
+  const [aiModelId, setAiModelId] = useState(DEFAULT_MODEL_ID);
   const [whatsappConfigured, setWhatsappConfigured] = useState(false);
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
   const [lastSentAt, setLastSentAt] = useState<string | null>(null);
@@ -71,7 +72,7 @@ export default function DigestSettingsPage() {
         setIncludeUnreadEmails(d.includeUnreadEmails ?? true);
         setCalendarRemindDayBefore(d.calendarRemindDayBefore ?? true);
         setCalendarRemindMinutesBefore(d.calendarRemindMinutesBefore ?? 15);
-        setAiModelId(d.aiModelId ?? "chatbase");
+        setAiModelId(normalizeModelId(d.aiModelId));
         setWhatsappConfigured(d.whatsappConfigured);
         setGoogleCalendarConnected(d.googleCalendarConnected ?? false);
         setLastSentAt(d.lastSentAt);
@@ -292,7 +293,7 @@ export default function DigestSettingsPage() {
                 <Link href="/settings/ai-models" className="underline font-semibold">
                   Modelos de IA
                 </Link>
-                . Por defecto: Chatbase.
+                . Por defecto: Llama 3.3 70B, gratis en OpenRouter.
               </p>
               <ModelSelector value={aiModelId} onChange={setAiModelId} />
             </div>

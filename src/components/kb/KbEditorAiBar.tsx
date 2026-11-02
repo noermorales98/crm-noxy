@@ -5,6 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { AiChatIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import KbEditorAiModal from "@/src/components/kb/KbEditorAiModal";
+import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
+import { useStoredAiModel } from "@/src/hooks/useStoredAiModel";
 
 export type SelectionSnapshot = { start: number; end: number; text: string };
 
@@ -63,6 +65,7 @@ export default function KbEditorAiBar({
   contentPad,
 }: Props) {
   const { addToast } = useToast();
+  const { modelId, setModelId } = useStoredAiModel();
   const [aiAction, setAiAction] = useState<AiAction | null>(null);
   const [aiResult, setAiResult] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -108,6 +111,7 @@ export default function KbEditorAiBar({
           content,
           selection: sel.text.trim() || undefined,
           prompt: extra?.prompt,
+          modelId,
         }),
       });
       const data = (await res.json()) as { result?: string; error?: string };
@@ -186,6 +190,7 @@ export default function KbEditorAiBar({
         <div className="flex items-center gap-2 flex-wrap">
           <HugeiconsIcon icon={AiChatIcon} size={14} color="#0B0B18" />
           <span className="text-xs font-semibold text-text-primary mr-1">IA</span>
+          <ModelSelector value={modelId} onChange={setModelId} disabled={aiLoading} />
           {(["summarize", "improve", "continue"] as const).map((a) => (
             <button
               key={a}

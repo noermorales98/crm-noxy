@@ -1,7 +1,5 @@
 import { auth } from "@/auth";
-import { prisma } from "@/src/lib/db";
-import { completeWithAi } from "@/src/lib/ai-completion";
-import { DEFAULT_MODEL_ID } from "@/src/lib/ai-models";
+import { completeWithAi, resolveRequestedModelId } from "@/src/lib/ai-completion";
 
 const SYSTEM_PROMPT =
   "Eres un redactor de cotizaciones comerciales en español. Responde solo con el texto pedido, en texto plano, sin título, sin markdown y sin comentarios.";
@@ -29,14 +27,6 @@ function fieldGuide(field: QuoteField): string {
   }
 }
 
-async function resolveModelId(userId: string, orgId: string) {
-  const schedule = await prisma.digestSchedule.findUnique({
-    where: { userId_organizationId: { userId, organizationId: orgId } },
-    select: { aiModelId: true },
-  });
-  return schedule?.aiModelId ?? DEFAULT_MODEL_ID;
-}
-
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -57,6 +47,7 @@ export async function POST(req: Request) {
     currency?: unknown;
     total?: unknown;
     items?: unknown;
+    modelId?: unknown;
   } | null;
 
   if (!body || !isQuoteField(body.field)) {
@@ -93,7 +84,11 @@ export async function POST(req: Request) {
   }`;
 
   try {
-    const modelId = await resolveModelId(session.user.id, orgId);
+    const modelId = await resolveRequestedModelId(
+      orgId,
+      session.user.id,
+      typeof body.modelId === "string" ? body.modelId : null,
+    );
     const result = await completeWithAi({
       orgId,
       modelId,
