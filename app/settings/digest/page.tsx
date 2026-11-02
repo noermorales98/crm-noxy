@@ -293,7 +293,7 @@ export default function DigestSettingsPage() {
                 <Link href="/settings/ai-models" className="underline font-semibold">
                   Modelos de IA
                 </Link>
-                . Por defecto: Llama 3.3 70B, gratis en OpenRouter.
+                . Por defecto: Gemma 4 31B, gratis en OpenRouter.
               </p>
               <ModelSelector value={aiModelId} onChange={setAiModelId} />
             </div>

@@ -175,11 +175,11 @@ export default function AiModelsPage() {
             </div>
             <form onSubmit={handleSave} className="flex flex-col gap-4">
               {field("Model ID", "modelId", {
-                placeholder: "meta-llama/llama-3.3-70b-instruct:free",
+                placeholder: "google/gemma-4-31b-it:free",
                 hint: "Copia el ID exacto de openrouter.ai/models",
                 required: true,
               })}
-              {field("Nombre para mostrar", "name", { placeholder: "Llama 3.3 70B", required: true })}
+              {field("Nombre para mostrar", "name", { placeholder: "Gemma 4 31B", required: true })}
               {field("Grupo", "group", { placeholder: "Meta, Google, Qwen…" })}
               {field("Descripción", "description", { placeholder: "Descripción breve del modelo" })}
               {field("Etiquetas", "tags", { placeholder: "General, Rápido, Código…", hint: "Separadas por coma" })}

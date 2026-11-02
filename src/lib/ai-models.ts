@@ -10,42 +10,6 @@ export interface AiModel {
 }
 
 export const AI_MODELS: AiModel[] = [
-  // ── Meta / Llama ──────────────────────────────────────────────────────────
-  {
-    id: "meta-llama/llama-3.3-70b-instruct:free",
-    name: "Llama 3.3 70B",
-    provider: "openrouter",
-    group: "Meta",
-    description: "Excelente para uso general",
-    tags: ["General"],
-  },
-  {
-    id: "meta-llama/llama-3.2-3b-instruct:free",
-    name: "Llama 3.2 3B",
-    provider: "openrouter",
-    group: "Meta",
-    description: "Ultrarrápido y ligero",
-    tags: ["Rápido"],
-  },
-
-  // ── OpenAI OSS ────────────────────────────────────────────────────────────
-  {
-    id: "openai/gpt-oss-120b:free",
-    name: "GPT OSS 120B",
-    provider: "openrouter",
-    group: "OpenAI OSS",
-    description: "Gran capacidad de razonamiento",
-    tags: ["Potente"],
-  },
-  {
-    id: "openai/gpt-oss-20b:free",
-    name: "GPT OSS 20B",
-    provider: "openrouter",
-    group: "OpenAI OSS",
-    description: "Equilibrado y eficiente",
-    tags: ["Rápido"],
-  },
-
   // ── Google ────────────────────────────────────────────────────────────────
   {
     id: "google/gemma-4-31b-it:free",
@@ -64,24 +28,6 @@ export const AI_MODELS: AiModel[] = [
     tags: ["General"],
   },
 
-  // ── Qwen ─────────────────────────────────────────────────────────────────
-  {
-    id: "qwen/qwen3-coder:free",
-    name: "Qwen3 Coder 480B",
-    provider: "openrouter",
-    group: "Qwen",
-    description: "Especializado en código (480B MoE)",
-    tags: ["Código"],
-  },
-  {
-    id: "qwen/qwen3-next-80b-a3b-instruct:free",
-    name: "Qwen3 80B",
-    provider: "openrouter",
-    group: "Qwen",
-    description: "Instrucciones y análisis avanzado",
-    tags: ["General"],
-  },
-
   // ── NVIDIA Nemotron ────────────────────────────────────────────────────────
   {
     id: "nvidia/nemotron-3-ultra-550b-a55b:free",
@@ -92,82 +38,12 @@ export const AI_MODELS: AiModel[] = [
     tags: ["Potente"],
   },
   {
-    id: "nvidia/nemotron-3-super-120b-a12b:free",
-    name: "Nemotron 3 Super 120B",
-    provider: "openrouter",
-    group: "NVIDIA",
-    description: "Razonamiento de alta capacidad",
-    tags: ["Potente"],
-  },
-  {
-    id: "nvidia/nemotron-3-nano-30b-a3b:free",
-    name: "Nemotron Nano 30B",
-    provider: "openrouter",
-    group: "NVIDIA",
-    description: "Equilibrado y eficiente",
-    tags: ["General"],
-  },
-  {
     id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
     name: "Nemotron Nano Omni 30B",
     provider: "openrouter",
     group: "NVIDIA",
     description: "Razonamiento extendido",
     tags: ["Razonamiento"],
-  },
-  {
-    id: "nvidia/nemotron-nano-9b-v2:free",
-    name: "Nemotron Nano 9B",
-    provider: "openrouter",
-    group: "NVIDIA",
-    description: "Rápido y compacto",
-    tags: ["Rápido"],
-  },
-  {
-    id: "nvidia/nemotron-nano-12b-v2-vl:free",
-    name: "Nemotron Nano 12B VL",
-    provider: "openrouter",
-    group: "NVIDIA",
-    description: "Visión y lenguaje",
-    tags: ["Visión"],
-  },
-
-  // ── Nous Research ─────────────────────────────────────────────────────────
-  {
-    id: "nousresearch/hermes-3-llama-3.1-405b:free",
-    name: "Hermes 3 405B",
-    provider: "openrouter",
-    group: "Nous Research",
-    description: "Razonamiento y seguimiento de instrucciones",
-    tags: ["Potente"],
-  },
-
-  // ── LiquidAI ──────────────────────────────────────────────────────────────
-  {
-    id: "liquid/lfm-2.5-1.2b-instruct:free",
-    name: "LFM2.5 1.2B",
-    provider: "openrouter",
-    group: "LiquidAI",
-    description: "Ultra rápido, ideal para respuestas simples",
-    tags: ["Rápido"],
-  },
-  {
-    id: "liquid/lfm-2.5-1.2b-thinking:free",
-    name: "LFM2.5 1.2B Thinking",
-    provider: "openrouter",
-    group: "LiquidAI",
-    description: "Razonamiento paso a paso",
-    tags: ["Razonamiento"],
-  },
-
-  // ── Poolside ──────────────────────────────────────────────────────────────
-  {
-    id: "poolside/laguna-m.1:free",
-    name: "Laguna M.1",
-    provider: "openrouter",
-    group: "Poolside",
-    description: "Optimizado para código y análisis",
-    tags: ["Código"],
   },
 
   // ── Cohere ────────────────────────────────────────────────────────────────
@@ -179,21 +55,28 @@ export const AI_MODELS: AiModel[] = [
     description: "Asistente de código compacto",
     tags: ["Código"],
   },
-
-  // ── Cognitivecomputations ─────────────────────────────────────────────────
-  {
-    id: "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
-    name: "Dolphin 24B",
-    provider: "openrouter",
-    group: "Venice",
-    description: "Sin censura, respuestas directas",
-    tags: ["Sin filtros"],
-  },
 ];
 
-export const DEFAULT_MODEL_ID = "meta-llama/llama-3.3-70b-instruct:free";
+export const DEFAULT_MODEL_ID = "google/gemma-4-31b-it:free";
 
-const RETIRED_MODEL_IDS = new Set(["chatbase"]);
+const RETIRED_MODEL_IDS = new Set([
+  "chatbase",
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "meta-llama/llama-3.2-3b-instruct:free",
+  "openai/gpt-oss-120b:free",
+  "openai/gpt-oss-20b:free",
+  "qwen/qwen3-coder:free",
+  "qwen/qwen3-next-80b-a3b-instruct:free",
+  "nvidia/nemotron-3-super-120b-a12b:free",
+  "nvidia/nemotron-3-nano-30b-a3b:free",
+  "nvidia/nemotron-nano-9b-v2:free",
+  "nvidia/nemotron-nano-12b-v2-vl:free",
+  "nousresearch/hermes-3-llama-3.1-405b:free",
+  "liquid/lfm-2.5-1.2b-instruct:free",
+  "liquid/lfm-2.5-1.2b-thinking:free",
+  "poolside/laguna-m.1:free",
+  "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+]);
 
 export function normalizeModelId(id: string | null | undefined): string {
   const trimmed = id?.trim() ?? "";
