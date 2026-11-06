@@ -10,7 +10,8 @@
     "lint": "eslint",
     "db:push": "bash -c 'set -a && source .env.local && set +a && prisma db push'",
     "db:migrate": "bash -c 'set -a && source .env.local && set +a && prisma migrate dev'",
-    "db:studio": "bash -c 'set -a && source .env.local && set +a && prisma studio'"
+    "db:studio": "bash -c 'set -a && source .env.local && set +a && prisma studio'",
+    "test": "node --test 'src/**/*.test.ts'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.106.0",
