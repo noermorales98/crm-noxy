@@ -6,12 +6,12 @@ tags: [sdd, spec, design]
 timestamp: 2026-11-05T12:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
-status: draft
+status: clarified
 ---
 
 # Spec — Rediseño del CRM privado (marco claro)
 
-> Slug: `rediseno-obsidiana-estructural` · Status: draft (revisión tras aprobación: marco claro, pendiente de reaprobar) · Created: 2026-11-05
+> Slug: `rediseno-obsidiana-estructural` · Status: clarified (reaprobada con marco claro 2026-11-05) · Created: 2026-11-05
 > Inherits: [constitution](../constitution.md) · Enmienda: `DESIGN.md`, `PRODUCT.md`
 > Auditoría de partida: notas de sesión `rediseno-auditoria.md` (resumida abajo).
 
@@ -89,7 +89,7 @@ en escritorio (1440 px) y en móvil (375 px). Referencia propuesta:
 [`assets/rediseno-obsidiana-estructural/maqueta.html`](assets/rediseno-obsidiana-estructural/maqueta.html)
 (vistas `#dashboard`, `#lista`, `#tablero`; es responsive, así que a 375 px muestra la versión
 móvil). La primera versión (marco oscuro) se aprobó el 2026-11-05; **la versión actual, con marco
-claro, está pendiente de reaprobación**. La maqueta fija el
+claro, la aprobó el dueño el 2026-11-05** («Apruebo marco claro»). La maqueta fija el
 lenguaje y los patrones; los datos que muestra son de ejemplo y sus iconos (Tabler) son solo de la
 maqueta.
 
@@ -216,3 +216,5 @@ maqueta.
   barra superior pasan a claro (tono de sidebar de cada tema). Consecuencias: el activo pasa de Lima
   a Índigo (Lima sobre Lavanda da 1.02:1); se anula la decisión «marco oscuro tintado por tema»;
   la maqueta se rehace y vuelve a necesitar aprobación. Estado → `draft` hasta reaprobar.
+- 2026-11-05 — Maqueta con marco claro aprobada por el dueño («Apruebo marco claro»). El spec
+  revisado queda aprobado (la reaprobación se condicionó a esta maqueta). Estado → `clarified`.
