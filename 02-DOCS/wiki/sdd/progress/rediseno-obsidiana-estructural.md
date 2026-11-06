@@ -55,6 +55,18 @@ las skills del repo (`nextjs`, `design`).
 - controls: tests ✅ (rojo esperado) · build: tsc 19 = línea base efectiva, 0 en el archivo nuevo ✅ · eslint 0 ✅ · security: no aplica · traceability ✅ (AC2, AC3, AC6, AC7, AC8)
 - files: src/components/ui/ui-contract.test.ts (nuevo), plan («T004 — Interfaces»)
 
+## T004 — 2026-11-05
+- status: complete
+- green: `node --test src/components/ui/ui-contract.test.ts src/components/ui/cn.test.ts` → 18/18 ✔; `npm test` → solo los 4 conocidos.
+- cambios: 13 piezas en `src/components/ui/` (PageHeader, StatStrip, Block, DataList, DataTable, FilterBar, Segmented, Chip, Board/BoardColumn/BoardCard, EmptyState, ErrorState, Skeleton, Enter), `index.ts`, `cn.ts` + `cn.test.ts`; tokens de estado `--color-danger/-soft`, `--color-success/-soft` en `@theme` y `--danger…` en `:root`.
+- nota TDD: `cn` se escribió junto con su test (no hubo rojo previo); helper de una línea.
+- navegador (ruta temporal `/ui-preview-temporal`, ya borrada): 1440 px coincide con la maqueta; 375 px → scrollWidth 375, 0 textos < 12 px, 0 controles < 44 px; Chip late/done/hot con los colores de token; sombra overlay al arrastrar; `.crm-enter` animando. Tras la corrección: barra de título del skeleton visible, avatar redondo, delta neutro gris, bordes de 5 cifras correctos a < 1024 y a 1440 px.
+- entorno: caché de Turbopack obsoleta borrada (ver «Entorno — T004»).
+- risk: tier 1 — 1 revisor (agente general; `react-reviewer` de rsc no arranca)
+- review: ronda 1 → 7 (1 should-fix: utilidades en conflicto vía `cn`, + 2.ª instancia encontrada por barrido; 4 nits; 2 preguntas) → corregidos o documentados (L36 intencional: `"use client"` exigido por el contrato). Ronda 2 → pass.
+- controls: tests ✅ · build: tsc 19, 0 en `src/components/ui` ✅ · eslint 0 ✅ · security: no aplica · traceability ✅ (AC2, AC3, AC6, AC7, AC8)
+- files: src/components/ui/* (nuevos), app/globals.css, plan («T007–T013 — Interfaces»)
+
 ## Decision queue
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
 

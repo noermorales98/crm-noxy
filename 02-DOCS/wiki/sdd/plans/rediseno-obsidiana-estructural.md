@@ -317,6 +317,7 @@ Comandos comunes de los done-checks:
 
 **T007–T013 — Interfaces**
 - Las páginas conservan su carga de datos, sus handlers, sus llamadas `fetch` y sus nombres de campo. El diff se limita a JSX, clases e imports de piezas comunes e iconos.
+- Uso de las piezas (revisión de T004): `cn` no fusiona utilidades, así que el `className` que se pasa a `Block` o `Enter` no repite propiedades de su base (fondo, radio, borde). `DataTable`: `render` y `mobileRow` puros, sin `id`, `name` ni controles de formulario. `Board`: la zona de soltar de cada columna lleva su propio `min-h-24`; la página envuelve cada `BoardCard` con el elemento arrastrable.
 
 ## Review Workload Forecast
 
