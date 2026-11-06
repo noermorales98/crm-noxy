@@ -34,5 +34,16 @@ las skills del repo (`nextjs`, `design`).
 - controls: tests ✅ (rojo esperado; suite 4 conocidos + nuevos de T001) · build: tsc 66 = línea base, 0 en archivos tocados ✅ · eslint 0 en archivos tocados ✅ · security: no aplica (sin input ni secretos) · traceability ✅ (AC4, AC5, AC6, AC12; hover/pulsación → Goals «movimiento expresivo»)
 - files: src/lib/redesign-contract.test.ts (nuevo), src/lib/crm-themes.test.ts, src/lib/crm-themes.ts (stub `navActiveInk`), plan §3/T002
 
+## T002 — 2026-11-05
+- status: complete
+- green: `node --test src/lib/redesign-contract.test.ts src/lib/crm-themes.test.ts src/lib/crm-surface-style.test.ts` → 18/18 ✔; `npm test` → 79 ✔ / 4 ✖ (solo los 4 conocidos).
+- cambios: radios 10/12 en `@theme` y `:root` (xl/2xl 18/20 → 16); quitadas `.crm-glass*` y `backdrop-filter` del chrome; chrome móvil sólido en `surface-sidebar`; sombra de menú `0 8px 8px rgba(11,11,24,.10)`; tokens `--duration-enter 280ms`, `--stagger 40ms`, `--ease-enter`; `@keyframes crm-enter`; `.crm-enter`/`.crm-lift`/`.crm-press` en `@layer components` + `no-preference`; `navActiveInk`; DESIGN.md (secciones «Marco claro» y «Motion», Do/Don't, «Registro de enmiendas») y PRODUCT.md (principio 5, marco claro).
+- test previo actualizado: `crm-surface-style.test.ts` a los valores del contrato aprobado (ver decisions.md).
+- navegador: en `/` con sesión, elemento de prueba → `animation-fill-mode: backwards`, delay 80 ms (`--i: 2`), 280 ms, `--radius-control: 10px`.
+- risk: tier 1 — 1 revisor
+- review: ronda 1 → 5 hallazgos (3 should-fix, 1 nit, 1 question); corregidos L10, L11, L13; L12 y L14 aplazados con dueño T005/T006 (estado intermedio previsto: el shell usa clases glass eliminadas hasta T006; no se commitea ni se enseña antes). Ronda 2 → pass, 1 nit aceptado (llevado a «T004 — Interfaces»).
+- controls: tests ✅ · build: tsc 66 = línea base, 0 nuevos en archivos tocados ✅; CSS compila en dev (200) ✅ · eslint 0 en archivos tocados ✅ · security: no aplica · traceability ✅ (AC4, AC5, AC6, AC12)
+- files: app/globals.css, src/lib/crm-themes.ts, DESIGN.md, PRODUCT.md, src/lib/crm-surface-style.test.ts, plan (T005, T004 Interfaces)
+
 ## Decision queue
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
