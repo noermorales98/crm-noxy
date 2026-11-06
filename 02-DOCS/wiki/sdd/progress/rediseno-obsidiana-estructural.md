@@ -134,6 +134,8 @@ las skills del repo (`nextjs`, `design`).
 - **review-after** · T005 · tier 1 · Se retira «Editar barra» de la barra móvil (consecuencia de «cuatro destinos fijos y Más») · Evidencia: misma entrada.
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
 
+- kind: review-after · task: T009 · tier: 1 · question: a 375 px, el arrastre con teclado (Espacio + flecha) no lleva la tarjeta a una columna fuera de la vista; a 1440 px sí. ¿Se acepta o se investiga quitando `snap-mandatory`? · options: (a) aceptar, el tablero antiguo también se desplazaba en horizontal; (b) probar sin `snap-mandatory` · recommendation: (a) por ahora; el arrastre con puntero y los botones de etapa del detalle del deal siguen disponibles · evidence: progress T009, ledger L115
+
 ## Entorno — 2026-11-05
 - `npx prisma generate` (aprobado por el dueño). Dashboard `/` carga con datos y `/api/contacts` → 200 tras reiniciar el servidor de desarrollo.
 - tsc: 66 → 19 errores (tipos de Prisma). Línea base efectiva del trabajo: 19.
@@ -166,3 +168,12 @@ las skills del repo (`nextjs`, `design`).
 - review: ronda 1: 3 reportados (2 nits, 1 pregunta), VERDICT pass → L109, L110 arreglados; L108 intencionado
 - controls: tests ✅ · tsc 19 = baseline ✅ · eslint ≤ baseline en los 5 archivos ✅ · navegador: lista 1440/375 ✅, cabecera del espacio 1440/375 ✅ (un h1, toques 44 px) · estados esqueleto/error/vacío ✅ (fetch interceptado, solo lectura) · traceability AC3/AC7/AC8 ✅
 - pendiente fuera de alcance: el resumen `app/projects/[id]/page.tsx` tiene texto < 12 px y enlaces «Ver todas» de 16 px
+
+## T009 — 2026-11-06
+- status: complete
+- red: casos `pipeline` de `redesign-screens-contract.test.ts` y el caso común «pages with a PageHeader» fallaban
+- green: `redesign-screens-contract` 22/22 y `ui-contract` 17/17
+- files: app/pipeline/page.tsx, app/pipeline/clientes/page.tsx, app/pipeline/historial/page.tsx, src/components/pipeline/PipelineShared.tsx, src/components/ui/Board.tsx, src/components/ui/DataTable.tsx
+- risk: tier 1 — 1 revisor (sonnet, contexto limpio)
+- review: ronda 1: 5 reportados (2 should-fix, 2 nits, 1 pregunta) → L111–L114 arreglados; L115 aparcado (review-after)
+- controls: tests ✅ · tsc 19 = baseline ✅ · eslint 22/9/0 ≤ baseline 22/9/1 ✅ · navegador 375/1440 en las 3 páginas ✅ (un h1, sin desbordes, toques ≥ 44 px) · arrastre con teclado sobre datos simulados y PATCH interceptado: cancelar 0 llamadas, mover 1 a 1440, Intro durante el arrastre no navega ✅ · traceability AC3/AC7/AC8 ✅
