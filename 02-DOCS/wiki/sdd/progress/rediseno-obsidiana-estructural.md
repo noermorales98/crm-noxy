@@ -77,6 +77,18 @@ las skills del repo (`nextjs`, `design`).
 - controls: tests ✅ (rojo esperado) · tsc 19 ✅ · eslint 0 errores ✅ · traceability ✅ (AC1–AC4, AC10, criterios de navegación)
 - files: src/lib/crm-navigation.ts (stub), src/lib/crm-navigation.test.ts, src/lib/redesign-shell-contract.test.ts, src/lib/crm-themes.test.ts, plan §3
 
+## T006 — 2026-11-06 (implementación y verificación; revisión en curso)
+- green: contratos shell + modelo + temas 24/24; `npm test` → solo los 4 conocidos; tsc 19; eslint por archivo ≤ línea base (Sidebar 5→3, MobileBottomTabBar 2→0).
+- navegador (sesión del dueño, solo lectura), `check.js` en ámbito shell: pasa a 1440 y 375 px en /, /contacts, /emails, /kb, /assistant.
+- corregido durante la verificación: `⌘K` a 10 px y buscador de 36 px en GlobalSearchTrigger (→ 12 px, 44/36 px, fondo blanco); destinos de 40 px en móvil (→ 44 px < lg); el foco no volvía a «Más» al cerrar el panel con Escape (→ `mobileReturnFocusRef` en AssistantSidebarShell).
+- interacción: «Más» abre el panel (aria-modal, foco dentro, elementos ≥ 44 px), Escape lo cierra y el foco vuelve a «Más»; en /emails «Volver» muestra la lista plana con Correo activo y pulsar Correo reabre el submenú (11 controles).
+- capturas: revisadas en la conversación (1440 /, 1440 /emails, 375 /); no se guardan como archivo (la herramienta de captura no escribe en disco).
+- check.js: añadido ámbito `shell` y exclusión de elementos fuera de pantalla.
+
+## T007 — 2026-11-06 (escrito; revisión en curso)
+- red: `node --test src/lib/redesign-screens-contract.test.ts` → 22 ✖ por aserción.
+- decisión: las pantallas marcan `pageHeader: true` (la barra superior no pinta un segundo h1) y mueven la acción principal de `addButton` a `PageHeader`; ordenación y filtros siguen en la barra.
+
 ## Decision queue
 - **review-after** · T005 · tier 1 · ¿Bóveda como 5.ª sección contextual (conserva `VaultNav`, su selector de clientes)? · Opciones: (a) contextual, (b) plana y perder el selector · Recomendación: (a) · Evidencia: decisions.md «Modelo de navegación y dos consecuencias».
 - **review-after** · T005 · tier 1 · Se retira «Editar barra» de la barra móvil (consecuencia de «cuatro destinos fijos y Más») · Evidencia: misma entrada.
