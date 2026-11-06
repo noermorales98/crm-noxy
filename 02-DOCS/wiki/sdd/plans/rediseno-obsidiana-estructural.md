@@ -360,3 +360,40 @@ Comandos comunes de los done-checks:
 - F3: T008 aclara que se pintan los widgets configurados del usuario, sin widgets nuevos.
 - F4: precondición de sesión del dueño desde T006.
 - Plan con enmienda aprobado por el dueño («Apruebo, empieza T001»).
+
+## Ronda 2 (2026-11-06)
+<!-- añadida tras la enmienda «Ronda 2» del spec; IDs estables, continúan desde T014 -->
+
+**Contratos nuevos.**
+- `crm-navigation.ts`: `NAV_GROUPS` pasa a tres grupos con **entradas de área**. Tipo nuevo
+  `NavArea = { kind: "area"; section: ContextualSection; label; href; permission }` junto a
+  `NavItem`. `ContextualSection` gana `"contacts" | "sales" | "agenda"`; cada una lista sus
+  destinos en `AREA_ITEMS: Record<"contacts"|"sales"|"agenda", NavItem[]>` con las rutas y
+  etiquetas de siempre. `contextualSectionFor` mapea `/contacts`, `/companies` → contacts;
+  `/pipeline`, `/cotizaciones`, `/forms` → sales; `/appointments`, `/appointment-types`,
+  `/availability` → agenda. La entrada de área navega a su primer destino. Los 17 destinos siguen
+  alcanzables y con su permiso.
+- Marca: `<img src="/Isotipo_Azul.svg" alt="" width="20">` + «Noxy» (sin cuadro).
+- `redesign-screens-contract.test.ts`: `SCREENS` gana las pantallas de la ronda 2. Campo nuevo
+  `level: "recompose" | "pass"`: en `pass` no se exige DataList/Board, el resto de reglas sí.
+
+| ID | [P] | Task | Done-check | Depends-on | Trace | Risk |
+| --- | --- | --- | --- | --- | --- | --- |
+| T015 |  | Regroup navigation into areas and swap the brand mark | `crm-navigation.test.ts` con áreas verde; `CHECK` del shell en 1440/375; los 17 destinos alcanzables | T014 | AC1, AC4 | 1 |
+| T016 |  | Extend the screens contract with round-2 screens (red) | casos nuevos fallan por la razón esperada | T015 | AC3, AC7, AC8 | 1 |
+| T017 | [P] | Recompose Formularios (lista) + pass on the builder `/forms/[id]` | casos `forms` verdes; `CHECK`; `STATES` | T016 | AC3, AC7, AC8 | 1 |
+| T018 | [P] | Recompose Cotizaciones (lista, folio, nueva, configuración) | casos `quotes` verdes; `CHECK`; `STATES` | T016 | AC3, AC7, AC8 | 1 |
+| T019 | [P] | Recompose Agenda: Tipos de cita y Disponibilidad | casos `agenda` verdes; `CHECK`; `STATES` | T016 | AC3, AC7, AC8 | 1 |
+| T020 | [P] | Pass on Correo `/emails` | casos `mail` verdes; `CHECK`; sin escrituras | T016 | AC3, AC7, AC8 | 1 |
+| T021 | [P] | Recompose Campañas | casos `campaigns` verdes; `CHECK`; `STATES` | T016 | AC3, AC7, AC8 | 1 |
+| T022 | [P] | Recompose Docs lista + pass on KbEditor/KbFolderView | casos `kb` verdes; `CHECK` | T016 | AC3, AC7, AC8 | 1 |
+| T023 | [P] | Recompose Bóveda + pass on Contenido | casos `vault`, `content` verdes; `CHECK` | T016 | AC3, AC7, AC8 | 1 |
+| T024 | [P] | Recompose Ajustes (4) y Perfil | casos `settings` verdes; `CHECK` | T016 | AC3, AC7, AC8 | 1 |
+| T025 | [P] | Pass on details: deal `/pipeline/[id]`, resumen e info de proyecto | casos `details` verdes; `CHECK` | T016 | AC3, AC7, AC8 | 1 |
+| T026 |  | Closing gate round 2 and single commit | igual que T014 sobre todo el alcance; confirmar con el dueño antes del commit | T015–T025 | todos | 1 |
+
+Fuera: asistente (chrome propio) y todas las superficies públicas (`/form`, `/cotizar`, `/schedule`,
+`/calendario`, `/book`, `/docs`, `/proyecto`, `/login`).
+
+**Review Workload Forecast (ronda 2).** Unas 17 000 líneas tocadas en ~45 archivos; todo tier 1;
+un revisor por tarea. Entrega: se une a la ronda 1 en el mismo commit único (no hay commit aún).

@@ -53,17 +53,18 @@ lenguaje viva en tokens y piezas comunes, no en clases sueltas por pantalla (ver
 ## Non-goals / out of scope
 - **Superficies públicas**: `/form/*`, `/book/*`, `/schedule/*`, `/docs/*`, `/cotizar/*`,
   `/calendario/*`, `/proyecto/*` y `/login`. Conservan su aspecto actual y Noxy Índigo.
-- Pantallas privadas fuera de las siete del alcance: correo, Docs/KB, asistente, bóveda, contenido,
-  formularios (constructor), cotizaciones, campañas, ajustes, perfil, tipos de cita, disponibilidad
-  y el detalle interno de cada proyecto más allá de su cabecera. Heredan el shell nuevo, pero su
-  contenido no se rediseña.
+- ~~Pantallas privadas fuera de las siete del alcance~~ — **sustituido por la ronda 2** (ver
+  Revisions, 2026-11-06): ahora entran Formularios, Cotizaciones, Tipos de cita, Disponibilidad,
+  Correo, Campañas, Docs, Bóveda, Gestión de contenido, Ajustes, Perfil y los detalles internos
+  (deal, proyecto, formulario, cotización, página de Docs). Sigue fuera el **asistente**, que
+  tiene su propio chrome.
 - **Modo oscuro** de la aplicación: diferido. Los tokens deben permitirlo después, pero no se
   entrega.
 - Cambiar la paleta Noxy (Índigo, Discord, Azul Recuerdo, Lima, Obsidiana, Jazmín, Lavanda) o la
   tipografía Open Sauce Two. Cambia cómo se usan, no cuáles son.
 - Eliminar o reducir los 10 temas personales.
 - Cambiar rutas, etiquetas de los destinos de navegación, nombres o el orden de campos de
-  formulario, logo o favicon. (La **estructura** de la navegación sí cambia: ver Behaviour,
+  formulario, o el favicon. (El **logo del sidebar** sí cambia en la ronda 2: isotipo oficial.) (La **estructura** de la navegación sí cambia: ver Behaviour,
   Navegación.)
 - Contadores nuevos en la navegación: solo se mantienen los que ya existen (p. ej. correo sin
   leer).
@@ -246,3 +247,25 @@ maqueta.
   «etiquetas de la navegación principal» por «etiquetas de los destinos». Estado → `draft` hasta
   aprobar la enmienda.
 - 2026-11-05 — Enmienda de navegación aprobada por el dueño («Apruebo, empieza T001»). Estado → `clarified`.
+- 2026-11-06 — **Ronda 2, pedida por el dueño** tras ver la ronda 1: «hace falta aplicar el nuevo
+  diseño en varias secciones», «no me gusta ese icono… simplificarlo», «el sidebar se ve muy
+  saturado… dividirlo y categorizarlo». Decisiones del dueño:
+  - **Marca:** isotipo oficial azul (`public/Isotipo_Azul.svg`, 20 px, sin cuadro de fondo) +
+    «Noxy».
+  - **Navegación por áreas con submenú:** primer nivel Inicio · Contactos › · Tareas · Proyectos;
+    «Áreas»: Ventas › · Agenda ›; «Espacios»: Correo › · Docs › · Asistente · Bóveda › ·
+    Contenido ›. Contactos agrupa Contactos y Empresas; Ventas agrupa Pipeline de ventas, Clientes,
+    Cotizaciones y Formularios; Agenda agrupa Citas agendadas, Tipos de cita y Disponibilidad. Cada
+    área abre su submenú con «Volver», como ya hace Correo. Mismas rutas, etiquetas de destino y
+    permisos; la barra móvil no cambia.
+  - **Alcance:** todas las pantallas privadas listadas arriba, incluidos sus detalles
+    (`/forms/:id`, `/cotizaciones/:folio`, etc.).
+  - *Suposición tomada:* dos niveles de trabajo. **Recomponer** (piezas comunes: PageHeader, listas,
+    estados) en las pantallas de lista; **pasada de lenguaje** (PageHeader donde la página tiene
+    título propio, tokens, suelo de 12 px, sin mayúsculas con tracking, una familia de iconos,
+    toques de 44 px, estados de carga/error donde hay datos) en editores y detalles grandes
+    (constructor de formularios, editor de Docs, calendario de contenido, detalle de deal). *Base:*
+    reescribir editores de 1000+ líneas multiplica el riesgo sin cambiar lo que se ve. *Riesgo:* si
+    el dueño quiere esos editores reestructurados, es otra ronda.
+  Estado → `draft` hasta que el dueño apruebe la ronda 2.
+
