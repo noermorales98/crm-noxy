@@ -7,3 +7,4 @@
 | Decisiones | `02-DOCS/wiki/harness/decisions.md` |
 | Project constitution (SDD non-negotiables) | `02-DOCS/wiki/sdd/constitution.md` |
 | Qué mira el revisor | `REVIEW.md` |
+| Spec — Rediseño «Obsidiana estructural» (draft) | `02-DOCS/wiki/sdd/specs/rediseno-obsidiana-estructural.md` |
