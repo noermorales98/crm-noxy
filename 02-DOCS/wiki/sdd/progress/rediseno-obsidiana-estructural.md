@@ -47,3 +47,7 @@ las skills del repo (`nextjs`, `design`).
 
 ## Decision queue
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
+
+## Entorno — 2026-11-05
+- `npx prisma generate` (aprobado por el dueño). Dashboard `/` carga con datos y `/api/contacts` → 200 tras reiniciar el servidor de desarrollo.
+- tsc: 66 → 19 errores (tipos de Prisma). Línea base efectiva del trabajo: 19.
