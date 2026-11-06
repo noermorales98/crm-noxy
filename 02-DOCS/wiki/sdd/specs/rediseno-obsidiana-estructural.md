@@ -86,8 +86,9 @@ Cada pantalla del alcance se corresponde con una **referencia visual aprobada po
 en escritorio (1440 px) y en móvil (375 px). Referencia propuesta:
 [`assets/rediseno-obsidiana-estructural/maqueta.html`](assets/rediseno-obsidiana-estructural/maqueta.html)
 (vistas `#dashboard`, `#lista`, `#tablero`; es responsive, así que a 375 px muestra la versión
-móvil). *Pendiente de aprobación del dueño.* La maqueta fija el lenguaje y los patrones; los datos
-que muestra son de ejemplo.
+móvil). **Aprobada por el dueño el 2026-11-05** («Apruebo la maqueta»). La maqueta fija el
+lenguaje y los patrones; los datos que muestra son de ejemplo y sus iconos (Tabler) son solo de la
+maqueta.
 
 ## What it must respect
 - Constitution P13: la UI respeta los tokens de `DESIGN.md` (enmendado por este cambio) y el texto
@@ -167,10 +168,6 @@ que muestra son de ejemplo.
   anota.
 
 ## Points to clarify
-- **pregunta abierta** — Referencia visual: ¿apruebas la maqueta enlazada en «What result they
-  get» (shell + dashboard, patrón lista y patrón tablero, en 1440 y 375 px)? Bloquea la aprobación.
-  Verificada por el agente: sin scroll horizontal a 375 px y sin texto de menos de 12 px en las tres
-  vistas.
 - **suposición tomada** — La barra superior de escritorio también es Obsidiana (marco en «L»).
   *Base:* la opción elegida habla de sidebar y barra superior. *Riesgo:* si se prefiere solo la
   sidebar oscura, cambia la referencia, no el resto del spec.
@@ -205,3 +202,5 @@ que muestra son de ejemplo.
   predeterminado, Obsidiana); entrega en un único commit a `main` al terminar y verificar (*riesgo
   aceptado:* `main` no ve nada hasta el final y el despliegue concentra todo el cambio); modo de la
   cadena: parar para aprobación en cada fase (no autopilot). Referencia visual propuesta: maqueta.
+- 2026-11-05 — Maqueta aprobada por el dueño («Apruebo la maqueta»). Se cierra la última pregunta
+  abierta; quedan suposiciones por validar y decisiones diferidas.
