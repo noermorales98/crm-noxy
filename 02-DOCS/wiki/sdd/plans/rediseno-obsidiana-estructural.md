@@ -128,6 +128,25 @@ navActiveInk(theme) -> hex
 Lo usan el texto, el icono y la barra de 3 px del destino activo (sidebar y barra móvil).
 ```
 
+**Modelo de navegación** (añadido en T005, `src/lib/crm-navigation.ts`, puro y con test):
+```text
+NAV_GROUPS: {label, items: {href, label, permission, badge?: "unread-mail"}[]}[]   17 destinos, 4 grupos
+visibleNavGroups(role, permissions) -> grupos filtrados por permiso, sin grupos vacíos
+CONTEXTUAL_SECTIONS = mail · kb · vault · assistant · content
+contextualSectionFor(pathname) -> sección | null   (/emails y /campaigns → mail; límites de segmento)
+contextualSectionLabel(section) -> etiqueta del destino (Correo, Docs, Bóveda, Asistente, Gestión de contenido)
+activeNavHref(pathname, hrefs) -> href más específico; «/» solo exacto
+MOBILE_TABS / visibleMobileTabs(role, permissions) -> Inicio · Contactos · Pipeline · Tareas (permiso crm)
+```
+Permisos: Principal, Ventas y Calendario usan `crm` (como `HomeNav`); Espacios usa `SECTION_PERMISSION`.
+**Bóveda es contextual** (desviación del spec, que listaba cuatro): su submenú `VaultNav` es el único
+selector de clientes de la Bóveda; sin modo contextual se perdería una función actual.
+**Tinta en CSS:** `crmThemeCssVariables(theme)` expone `--nav-active-ink: navActiveInk(theme)`;
+`:root` lleva el valor por defecto `#3545D6`. Sidebar y barra móvil la usan para texto, icono y barra.
+**Barra móvil:** pestañas fijas; se retira la personalización por usuario («Editar barra», guardada en
+`localStorage`) por decisión del dueño («cuatro destinos fijos y Más»). «Volver» es un `<button
+data-nav-back>` que muestra la lista plana sin cambiar de ruta.
+
 **Piezas comunes** (props a nivel de contrato):
 ```text
 PageHeader { title, subtitle?, actions? (máx. 1 primaria) }       h1 24/600
@@ -280,7 +299,7 @@ Comandos comunes de los done-checks:
 - `TEST` = `node --test <archivo>` (mismo runner que `npm test`).
 - `TSC` = `npx tsc --noEmit 2>&1 | grep -c "error TS"` ≤ 66, y `npx tsc --noEmit 2>&1 | grep -E "<archivos de la tarea>"` vacío.
 - `LINT` = `npx eslint <archivos de la tarea> -f json` → errores por archivo ≤ los registrados antes de la tarea (línea base por archivo guardada en `progress/rediseno-obsidiana-estructural/lint-baseline.json` al empezar T002).
-- `CHECK` = script de navegador `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural/check.js` (lo crea T006): devuelve `{docW, vw, small:[], glass:false, minTap}` por ruta; pasa si `docW ≤ vw`, `small` vacío, `glass` false y `minTap ≥ 44` en < 1024 px.
+- `CHECK` (desde T006 incluye también `/assistant`, donde vive el botón de panel móvil) = script de navegador `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural/check.js` (lo crea T006): devuelve `{docW, vw, small:[], glass:false, minTap}` por ruta; pasa si `docW ≤ vw`, `small` vacío, `glass` false y `minTap ≥ 44` en < 1024 px.
 - `STATES` = en la pantalla, con DevTools: estado de carga visible como `Skeleton` (red lenta emulada) y estado de error como `ErrorState` (petición de datos bloqueada) sin romper el resto; un texto largo se trunca con el valor completo en `title` o nombre accesible.
 - **Precondición de T006 en adelante:** el dueño ha iniciado sesión en `localhost:3000` en el panel del navegador. Sin sesión, la tarea se para y se pide.
 - `SHOT` = capturas 1440×900 y 375×812 en `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural/<ruta>-{1440,375}.png` + visto bueno del dueño frente a la maqueta.

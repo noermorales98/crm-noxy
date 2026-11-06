@@ -68,6 +68,8 @@ las skills del repo (`nextjs`, `design`).
 - files: src/components/ui/* (nuevos), app/globals.css, plan («T007–T013 — Interfaces»)
 
 ## Decision queue
+- **review-after** · T005 · tier 1 · ¿Bóveda como 5.ª sección contextual (conserva `VaultNav`, su selector de clientes)? · Opciones: (a) contextual, (b) plana y perder el selector · Recomendación: (a) · Evidencia: decisions.md «Modelo de navegación y dos consecuencias».
+- **review-after** · T005 · tier 1 · Se retira «Editar barra» de la barra móvil (consecuencia de «cuatro destinos fijos y Más») · Evidencia: misma entrada.
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
 
 ## Entorno — 2026-11-05
