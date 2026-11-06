@@ -5,13 +5,12 @@ description: Principios no negociables que obedece cada fase de rsc-sdd en Noxy 
 tags: [sdd, constitution]
 timestamp: 2026-11-06T02:30:00Z
 topic: sdd
-status: draft
-version: v1.0.0-rc
+version: v1.0.0
 ---
 
 # crm-noxy — Constitution
 
-> Versión: v1.0.0-rc (pendiente de ratificar) · Ratificada: — · Última enmienda: 2026-11-06
+> Versión: v1.0.0 · Ratificada: 2026-11-06 · Última enmienda: 2026-11-06
 > Las reglas que obedece cada fase de rsc-sdd. La mecánica de cada herramienta vive en su
 > config (`tsconfig.json`, `eslint.config.mjs`, `prisma/schema.prisma`); aquí solo va la regla.
 
@@ -105,3 +104,4 @@ Software · alcance `complex` · los cambios van directo a `main`.
 |------|---------|--------|-----|
 | 2026-11-06 | draft | Borrador generado por `rsc onboard`. | El suelo SDD necesita una constitution; ratificarla es de la fase `constitution`. |
 | 2026-11-06 | v1.0.0-rc | Principios 1–24 y DoD redactados a partir del repo y de 3 decisiones del dueño (gitmoji, sin fallos nuevos, revisión humana en auth y rutas públicas). | Completar el borrador; pendiente de ratificación explícita. |
+| 2026-11-06 | v1.0.0 | Ratificada por el dueño sin cambios sobre v1.0.0-rc. | Ratificación explícita ("Ratifico"). |

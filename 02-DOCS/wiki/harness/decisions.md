@@ -4,7 +4,7 @@
 - Project kind: software.
 - SDD: selected.
 
-## 2026-11-06 — Constitution v1.0.0-rc (pendiente de ratificar)
+## 2026-11-06 — Constitution v1.0.0 (ratificada)
 
 - Commits: gitmoji + Conventional Commits en español (opciones: gitmoji / frases en español sin prefijo). Por qué: log escaneable y versionado semántico; el guard de rsc ya lo impone.
 - Barra de tests: sin fallos nuevos sobre la línea base (75 tests, 4 fallos conocidos en noxy-brand-contract) (opciones: sin fallos nuevos / todo en verde primero). Se añade `npm test`.
