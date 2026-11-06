@@ -61,3 +61,7 @@ las skills del repo (`nextjs`, `design`).
 ## Entorno — 2026-11-05
 - `npx prisma generate` (aprobado por el dueño). Dashboard `/` carga con datos y `/api/contacts` → 200 tras reiniciar el servidor de desarrollo.
 - tsc: 66 → 19 errores (tipos de Prisma). Línea base efectiva del trabajo: 19.
+
+## Entorno — 2026-11-05 (T004)
+- La caché persistente de Turbopack (`.next/dev/cache/turbopack`, 1,3 GB) servía un `globals.css` antiguo: los tokens de estado nuevos no llegaban al navegador ni tras reiniciar ni tras `touch`. Borrada (está en `.gitignore` y se regenera); tras reiniciar, el CSS servido incluye los tokens.
+- El agente `react-reviewer` instalado por rsc no arranca: su frontmatter declara herramientas `read, search` que Claude Code no reconoce. Revisión de T004 lanzada con el agente general. Pendiente: arreglar el frontmatter del agente (fuera del alcance de este trabajo).
