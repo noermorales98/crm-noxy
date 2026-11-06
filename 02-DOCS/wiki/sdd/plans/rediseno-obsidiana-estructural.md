@@ -137,6 +137,11 @@ contextualSectionFor(pathname) -> sección | null   (/emails y /campaigns → ma
 contextualSectionLabel(section) -> etiqueta del destino (Correo, Docs, Bóveda, Asistente, Gestión de contenido)
 activeNavHref(pathname, hrefs) -> href más específico; «/» solo exacto
 MOBILE_TABS / visibleMobileTabs(role, permissions) -> Inicio · Contactos · Pipeline · Tareas (permiso crm)
+activeMobileTab(pathname, tabs) -> href de la pestaña activa | null (la ruta vive en «Más»)
+sidebarView(pathname, dismissedPath) -> {mode:"flat"} | {mode:"contextual", section}
+  «Volver» guarda la ruta en la que se pulsó; en otra ruta se vuelve a decidir.
+NAV_ITEM_ACTIVE / MOBILE_TAB_ACTIVE -> clases del destino/pestaña activos (tinta en texto, icono y barra + peso)
+Imports en src/lib con extensión `.ts` (convención del repo, para que `node --test` los resuelva).
 ```
 Permisos: Principal, Ventas y Calendario usan `crm` (como `HomeNav`); Espacios usa `SECTION_PERMISSION`.
 **Bóveda es contextual** (desviación del spec, que listaba cuatro): su submenú `VaultNav` es el único
