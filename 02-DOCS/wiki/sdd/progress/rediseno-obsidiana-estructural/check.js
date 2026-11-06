@@ -38,7 +38,11 @@
         .map(({ el, h, w }) => `${el.tagName.toLowerCase()}(${w}x${h}): ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 24)}`)
     : [];
   const minTap = taps.length ? Math.min(...taps.map(({ h, w }) => Math.min(h, w))) : null;
-  const result = { path: location.pathname, scope: shellOnly ? "shell" : "page", vw, docW, small, glass, minTap, underTap };
-  result.ok = docW <= vw && small.length === 0 && !glass && (!mobile || underTap.length === 0);
+  // Contenido recortado: un control cuya etiqueta no cabe (revisión de T006).
+  const clipped = taps
+    .filter(({ el }) => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== "auto")
+    .map(({ el }) => `${el.tagName.toLowerCase()}(${el.clientWidth}<${el.scrollWidth}): ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 24)}`);
+  const result = { path: location.pathname, scope: shellOnly ? "shell" : "page", vw, docW, small, glass, minTap, underTap, clipped };
+  result.ok = docW <= vw && small.length === 0 && !glass && clipped.length === 0 && (!mobile || underTap.length === 0);
   return result;
 })();

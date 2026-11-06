@@ -341,6 +341,8 @@ Comandos comunes de los done-checks:
 
 **T007–T013 — Interfaces**
 - Las páginas conservan su carga de datos, sus handlers, sus llamadas `fetch` y sus nombres de campo. El diff se limita a JSX, clases e imports de piezas comunes e iconos.
+- Barra superior (añadido en T007, lo implementa T008): `HeaderConfig.pageHeader?: boolean`. Con `true`, `Header` no pinta el título como `<h1>` (en escritorio no lo muestra; en móvil lo muestra como texto). Toda página del alcance que llame a `setConfig` pasa `pageHeader: true` y lleva su acción principal en `PageHeader` (sin `addButton`); ordenación y filtros siguen en la barra.
+- Colores: solo los neutros crudos (`gray/slate/zinc/neutral/stone`, `bg-white`, `text-black`) pasan a tokens; los de datos, categorías y semántica se conservan (DESIGN.md).
 - Uso de las piezas (revisión de T004): `cn` no fusiona utilidades, así que el `className` que se pasa a `Block` o `Enter` no repite propiedades de su base (fondo, radio, borde). `DataTable`: `render` y `mobileRow` puros, sin `id`, `name` ni controles de formulario. `Board`: la zona de soltar de cada columna lleva su propio `min-h-24`; la página envuelve cada `BoardCard` con el elemento arrastrable.
 
 ## Review Workload Forecast

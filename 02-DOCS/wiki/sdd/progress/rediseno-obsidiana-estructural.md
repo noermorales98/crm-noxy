@@ -89,6 +89,46 @@ las skills del repo (`nextjs`, `design`).
 - red: `node --test src/lib/redesign-screens-contract.test.ts` → 22 ✖ por aserción.
 - decisión: las pantallas marcan `pageHeader: true` (la barra superior no pinta un segundo h1) y mueven la acción principal de `addButton` a `PageHeader`; ordenación y filtros siguen en la barra.
 
+## T006 — 2026-11-06 (cierre)
+- status: complete
+- review: ronda 1 → 5 (1 should-fix: botones con etiqueta de la cabecera fijados a 40 px de ancho en ≥ 1024 px por `lg:size-10`, medido por el revisor; 4 nits) → corregido (`h-11 w-11 sm:w-auto lg:h-10`, `transition-colors`) y retorno de foco de respaldo; ronda 2 → pass. Ledger L62/L65 fixed; L63/L64/L66 intentional (altura 40 px en escritorio según DESIGN.md; `dismissedPath` residual inocuo; «Más» sin aria-expanded y sin contador).
+- clase corregida en la herramienta: `check.js` ahora detecta controles con contenido recortado.
+- navegador tras la corrección: /contacts 1440 → «Ordenar» 100×40, «Agregar contacto» 166×40, ningún control del shell recortado; 375 → todos los controles de la cabecera 44×44.
+- controls: tests ✅ (116 ✔; los ✖ son los 4 conocidos + el rojo de T007) · tsc 19 ✅ · eslint ≤ línea base en todos los archivos tocados ✅ · traceability ✅ (AC1–AC4, AC10, criterios de navegación)
+- files: Sidebar, Header, DashboardShell, MobileBottomTabBar, AssistantSidebarShell, MobileSidebarToggle, GlobalSearchTrigger, crm-navigation.ts, crm-themes.ts, globals.css, assistant-sidebar-navigation-contract.test.ts, check.js
+
+## T007 — 2026-11-06 (cierre)
+- status: complete
+- red: `node --test src/lib/redesign-screens-contract.test.ts` → 22 ✖ por aserción.
+- review: ronda 1 → 8 (5 should-fix: paleta demasiado amplia frente a DESIGN.md, EmptyState heredado, regex de lista entre archivos, mayúsculas dependientes del orden, subpáginas sin cubrir); ronda 2 → 4 (2 should-fix: genéricos en `tagAt`, comillas en `literals`); ronda 3 → pass (1 nit aceptado: T008 usará `{!config.pageHeader && … <h1`). Ledger L67–L77 fixed, L78 intentional (`bg-white` se prohíbe: el blanco del contenido es `surface-elevated`).
+- decisiones: solo neutros crudos a tokens; `pageHeader` en la barra superior (T008); acción principal en PageHeader.
+- controls: tests ✅ (rojo esperado) · tsc 19 ✅ · eslint 0 ✅ · traceability ✅ (AC3, AC7, AC8)
+- files: src/lib/redesign-screens-contract.test.ts, plan («T007–T013 — Interfaces»)
+
+## T008 — 2026-11-06
+- status: complete
+- green: contrato `dashboard` 3/3 (incluye ahora DashboardWidgets.tsx y dashboardTabs.tsx); `npm test` sin fallos nuevos; tsc 19; eslint ≤ línea base.
+- cambios: `HeaderConfig.pageHeader` + h1 de la barra superior condicionado (y contador `lg:hidden`); DashboardCustomizer con PageHeader (saludo, fecha calculada en cliente, «Personalizar»), Enter; WidgetCard → Block; KpiWidget plano y vertical (`crm-lift`); DashboardGrid sin Lucide, spans responsivos; listas de widgets → DataList + EmptyState común; tabla de pestañas con marco, EmptyState común y sin «—»; WelcomeHeaderTitle eliminado (sin referencias).
+- hallazgo de infraestructura: reglas heredadas `[data-crm-theme]` anulaban los bordes `border-border-subtle` → token nuevo `line` (decisions.md).
+- navegador: / a 1440 y 375 → check.js página completa ok; KPI blancos con borde; personalizador abre/cierra sin escrituras (fetch interceptado: 0 no-GET).
+- review: ronda 1 → 7 (3 should-fix); ronda 2 → 2 (1 should-fix: marco de la tabla de pestañas); ronda 3 → pass.
+- controls: tests ✅ · tsc 19 ✅ · eslint ✅ · traceability ✅ (AC1–AC3, AC7, AC8)
+
+## T010 — 2026-11-06
+- status: complete
+- green: contratos `contacts` y `companies` 3/3; tsc 19; eslint contacts 7→5, companies 7.
+- cambios: PageHeader con acción principal (sin `addButton`), Segmented de vista (contactos), DataTable con filas móviles (teléfono `tel:` y web incluidos), Chip, Skeleton/ErrorState/EmptyState (estado de error nuevo: antes solo consola), modales con `role=dialog` + `useDialog` (foco, Tab, Escape, retorno), sin «—».
+- piezas: DataTable con desplazamiento propio (`overflow-x-auto`); hook común `useDialog`.
+- navegador: 1440/375 check ok; 1100 px companies → tabla desplazable dentro de su caja; STATES ok (skeleton, error 500 + reintento); modal de contactos: foco dentro, Tab envuelve, Escape cierra, foco vuelve.
+- review: ronda 1 → 8 (4 should-fix); ronda 2 → pass (nits: foco inicial → primer campo, corregido; restauración si el opener desaparece y Escape no anidado, aceptados).
+
+## T012 — 2026-11-06
+- status: complete
+- green: contrato `tasks` 3/3; tsc 19; eslint 8→6.
+- cambios: PageHeader («Nueva tarea» + acceso a Proyectos), Segmented Pendientes/Completadas con contadores, DataList, casilla de completar 44 px, chips (vencida = late), iconos Hugeicons en vez de emojis, Skeleton/ErrorState/EmptyState, modal con `useDialog`, fallback de Suspense con Skeleton.
+- navegador: 1440/375 check ok; STATES ok (skeleton, error 500 + reintento).
+- review: ronda 1 → pass (6 nits/pregunta); corregidos: aria-pressed contradictorio, error de recarga ya no oculta la lista cargada, chip de filtro, fallback. Aceptados: labels del modal sin htmlFor (previo), estado `any[]` (previo).
+
 ## Decision queue
 - **review-after** · T005 · tier 1 · ¿Bóveda como 5.ª sección contextual (conserva `VaultNav`, su selector de clientes)? · Opciones: (a) contextual, (b) plana y perder el selector · Recomendación: (a) · Evidencia: decisions.md «Modelo de navegación y dos consecuencias».
 - **review-after** · T005 · tier 1 · Se retira «Editar barra» de la barra móvil (consecuencia de «cuatro destinos fijos y Más») · Evidencia: misma entrada.
@@ -106,3 +146,23 @@ las skills del repo (`nextjs`, `design`).
 - hecho: `crm-navigation.ts` implementado (16/16); `--nav-active-ink` en temas y `:root`; Sidebar con lista plana + modo contextual + «Volver» + iconos currentColor; DashboardShell en L (`h-dvh`, hoja `data-crm-sheet`); MobileBottomTabBar fija (Inicio · Contactos · Pipeline · Tareas · Más); AssistantSidebarShell sin Lucide ni vidrio; MobileSidebarToggle 44 px con Hugeicons; Header con botones 44/40 px y sin texto < 12 px; `assistant-sidebar-navigation-contract.test.ts` actualizado a la navegación nueva.
 - verde: contratos de shell, modelo y temas 24/24; `npm test` solo los 4 conocidos; tsc 19.
 - falta: script CHECK y verificación en navegador (1440 y 375 px en /, /contacts, /emails, /kb, /assistant; «Volver»; «Más» con teclado/Escape); capturas; revisión tier 1 de T006; eslint por archivo frente a la línea base.
+
+## T013 — 2026-11-06
+- status: complete
+- red: `node --test src/lib/redesign-screens-contract.test.ts` (appointments 3 casos) fallaba antes de recomponer
+- green: los 3 casos de appointments pasan
+- files: app/appointments/page.tsx
+- risk: tier 1 — 1 revisor (sonnet, contexto limpio)
+- review: ronda 1: 6 reportados (2 should-fix, 3 nits, 1 pregunta) → 4 arreglados (L102–L105), 2 intencionados (L106 Segmented común, L107 enlaces mailto/tel)
+- controls: tests ✅ (appointments) · tsc 19 = baseline ✅ · eslint 1 error < baseline 2 ✅ · navegador 1440/375 ✅ · estados: esqueleto, error+reintentar, vacío ✅; recarga fallida con datos simulados (PATCH interceptado, sin escrituras) conserva la lista y muestra toast ✅ · traceability AC3/AC7/AC8 ✅
+- decision: decisions.md «Citas: recarga fallida conserva la lista; enlaces mailto/tel»
+
+## T011 — 2026-11-06
+- status: complete
+- red: casos `projects` de `redesign-screens-contract.test.ts` fallaban antes de recomponer
+- green: los 3 casos de projects pasan
+- files: app/projects/page.tsx, src/components/ProjectWorkspaceHeader.tsx, src/components/ProjectHeaderSetter.tsx, src/components/DeleteProjectButton.tsx, src/components/ProjectSharePanel.tsx
+- risk: tier 1 — 1 revisor (sonnet, contexto limpio)
+- review: ronda 1: 3 reportados (2 nits, 1 pregunta), VERDICT pass → L109, L110 arreglados; L108 intencionado
+- controls: tests ✅ · tsc 19 = baseline ✅ · eslint ≤ baseline en los 5 archivos ✅ · navegador: lista 1440/375 ✅, cabecera del espacio 1440/375 ✅ (un h1, toques 44 px) · estados esqueleto/error/vacío ✅ (fetch interceptado, solo lectura) · traceability AC3/AC7/AC8 ✅
+- pendiente fuera de alcance: el resumen `app/projects/[id]/page.tsx` tiene texto < 12 px y enlaces «Ver todas» de 16 px

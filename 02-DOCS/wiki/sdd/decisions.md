@@ -71,3 +71,21 @@ Interfaz nueva — `--nav-active-ink` en `crmThemeCssVariables` y `:root`.
 Context   — Ronda 3 en pass con 1 pregunta y 3 nits.
 Decision   — (1) **UX de «Volver»**: elegir cualquier destino de la lista plana anula el descarte, así que pulsar «Correo» estando en /emails reabre su submenú (contrato: `setX(null)`). (2) Los iconos de navegación heredan `currentColor` (sin `ICON_COLOR` ni `color` fijo), para que la tinta activa llegue al icono. (3) Las clases de la barra móvil se buscan en el `<nav>` o su primer hijo, no en una ventana de 400 caracteres. (4) El setter de «Volver» acepta cualquier nombre de variable que venga de `usePathname()`.
 Why        — Ajustes de precisión del contrato sin cambio de alcance; registrados en lugar de una 4.ª ronda.
+
+## 2026-11-06 — Token `line` frente a las reglas heredadas de bordes  (feature: rediseno-obsidiana-estructural, task: T008)
+Context   — `globals.css` tiene tres reglas antiguas bajo `[data-crm-theme]` que, para todo elemento con `border-border-subtle`, ponen el borde transparente, el fondo de enlaces/botones en Lavanda y fuerzan el radio de superficie (diseño previo «sin bordes»). Anulaban los bordes de la maqueta aprobada (bloques, hoja, KPI).
+Options    — (a) borrar las reglas (cambia de golpe el aspecto de pantallas fuera de alcance); (b) token nuevo `line` (`@theme inline`, mismo color que `border-subtle` y sigue al tema) usado por el lenguaje nuevo; las reglas siguen aplicando solo al código heredado.
+Decision   — (b). Piezas, shell y pantallas del alcance usan `border-line` / `divide-line`; los contratos lo exigen.
+Why        — Respeta el alcance (pantallas fuera de alcance sin cambios) y deja retirar las reglas heredadas en otro ciclo.
+
+## 2026-11-06 — Citas: recarga fallida conserva la lista; enlaces mailto/tel  (feature: rediseno-obsidiana-estructural, task: T013)
+Context   — La revisión de T013 vio que una recarga fallida tras Completar/Cancelar/Eliminar sustituía la lista por ErrorState, que `updateStatus` no trataba errores y que el email y teléfono del invitado pasaron a ser enlaces.
+Options    — (a) dejar el comportamiento; (b) ErrorState solo sin datos y toast en recargas; (c) revertir los enlaces.
+Decision   — (b). `fetchAppointments({ refresh: true })` tras una acción: si falla, la lista se queda y sale un toast. `updateStatus` comprueba `res.ok` y avisa con un toast. El esqueleto y «Cargando citas…» solo salen en la primera carga. Los enlaces mailto/tel se mantienen.
+Why        — El spec pide estados de error visibles sin perder datos ya cargados. Los enlaces siguen el mismo patrón que contactos y empresas (filas móviles con `tel:`), así que son coherencia del rediseño, no una función nueva. El Segmented de 4 opciones con scroll horizontal a 375 px es el comportamiento común de la pieza; se revisa en T014.
+
+## 2026-11-06 — Proyectos: lista en DataList, borrado visible y onDeleted  (feature: rediseno-obsidiana-estructural, task: T011)
+Context   — La rejilla de tarjetas de proyectos tenía el borrado oculto hasta hover y `router.refresh()` no quitaba la fila de una lista pedida en el cliente. La cabecera del espacio usaba iconos de Lucide en el panel de compartir y un disparador de 32×24.
+Options    — (a) conservar la rejilla; (b) DataList con borrado siempre visible.
+Decision   — (b). `DeleteProjectButton` recibe `onDeleted` y la lista quita la fila. Se añade estado de error con reintentar. `ProjectSharePanel` pasa a Hugeicons y su disparador mide 44 px. `ProjectHeaderSetter` marca `pageHeader: true`. El resumen del proyecto (`app/projects/[id]/page.tsx`) queda fuera de T011 y conserva texto pequeño.
+Why        — Con el borrado visible, la fila que no desaparecía parecería un fallo. El aviso de lint `set-state-in-effect` del montaje se acepta: el archivo queda en 1 error frente a 3 de la línea base.
