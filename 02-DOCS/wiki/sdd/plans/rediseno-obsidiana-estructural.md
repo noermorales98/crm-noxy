@@ -120,6 +120,14 @@ mantienen. Solo cambian valores si DESIGN.md enmendado lo exige (radios 10/12, `
 test de contraste existente se amplía con el par «`action-primary` sobre `surface-elevated`» (activo
 del marco) en los 10 temas.
 
+**Tinta del destino activo** (añadido en T001):
+```text
+navActiveInk(theme) -> hex
+  = theme.tokens.actionPrimary  si contraste(actionPrimary, surfaceElevated) ≥ 4.5
+  = theme.tokens.textPrimary    si no (noxy-memory, noxy-lime: regla de pares de DESIGN.md)
+Lo usan el texto, el icono y la barra de 3 px del destino activo (sidebar y barra móvil).
+```
+
 **Piezas comunes** (props a nivel de contrato):
 ```text
 PageHeader { title, subtitle?, actions? (máx. 1 primaria) }       h1 24/600
@@ -156,9 +164,10 @@ foco atrapado, Escape cierra (reutiliza el drawer móvil existente).
 
 **Movimiento:**
 ```text
---duration-state 180ms · --duration-enter 420ms · --stagger 55ms · --ease cubic-bezier(.16,1,.3,1)
-Clases: entrada (opacity 0→1, translateY 8px→0), hover de tarjeta (translateY −1px),
-pulsación de botón (translateY 1px). Todo dentro de no-preference.
+--duration-state 180ms · --duration-enter 280ms · --stagger 40ms (máx. índice 5: 280+5×40 = 480 ms < 500) · --ease cubic-bezier(.16,1,.3,1)
+Clases: `.crm-enter` (opacity 0→1, translateY 8px→0; keyframes solo transform/opacity),
+`.crm-lift:hover` (translateY(-1px)), `.crm-press:active` (translateY(1px)). Todo dentro de
+`@media (prefers-reduced-motion: no-preference)`.
 ```
 
 ## 4. Data model & flow
@@ -279,7 +288,7 @@ Comandos comunes de los done-checks:
 | ID | [P] | Task | Done-check | Depends-on | Trace | Risk |
 | --- | --- | --- | --- | --- | --- | --- |
 | T001 |  | Write failing tokens/docs contract tests | `TEST src/lib/redesign-contract.test.ts` falla por: radios 12/20, clases `.crm-glass*`, `backdrop-filter` en `globals.css`, keyframes de entrada ausentes, DESIGN.md sin sección «Marco»; `TEST src/lib/crm-themes.test.ts` falla en el par activo nuevo solo si algún tema no llega a 4.5:1 (si todos llegan, el test nace verde y se anota) | — | AC4, AC5, AC6, AC12 | 1 |
-| T002 |  | Implement tokens, motion and brand-doc amendments | T001 verde; `npm test` con ≤ 4 fallos (los conocidos); `grep -c backdrop app/globals.css` = 0; `TSC` | T001 | AC4, AC5, AC6, AC12 | 1 |
+| T002 |  | Implement tokens, motion and brand-doc amendments | T001 verde (incluye: ningún `backdrop-filter` fuera de las reglas `.kb-*` de Docs, que quedan fuera de alcance); `npm test` con ≤ 4 fallos (los conocidos); `TSC` | T001 | AC4, AC5, AC6, AC12 | 1 |
 | T003 |  | Write failing contract test for common UI pieces | `TEST src/components/ui/ui-contract.test.ts` falla: no existen las 14 piezas | T002 | AC7, AC8 | 1 |
 | T004 |  | Implement the 14 common UI pieces | T003 verde; `TSC` y `LINT` sin errores en `src/components/ui/**` | T003 | AC2, AC3, AC6, AC7, AC8 | 1 |
 | T005 |  | Write failing shell contract test | `TEST src/lib/redesign-shell-contract.test.ts` falla: shell usa `h-screen`, `crm-glass`, Lucide, `text-[10px]`, activo sin barra; la sidebar no declara los 17 destinos en 4 grupos; no hay modo contextual con «Volver»; la barra móvil no es Inicio · Contactos · Pipeline · Tareas · Más | T004 | AC1, AC2, AC3, AC4 | 1 |
@@ -292,6 +301,9 @@ Comandos comunes de los done-checks:
 | T012 | [P] | Recompose tasks | casos `tasks` verdes; `CHECK /tasks`; `SHOT`; `STATES` | T007 | AC2, AC3, AC7, AC8 | 1 |
 | T013 | [P] | Recompose scheduled appointments | casos `appointments` verdes; `CHECK /appointments`; `SHOT`; `STATES` | T007 | AC2, AC3, AC7, AC8 | 1 |
 | T014 |  | Run closing gate and create the single commit | `npm test` ≤ 4 fallos (los conocidos); `TSC` total ≤ 66; eslint total ≤ 572; `npm run build` verde; `CHECK` en las 7 pantallas con movimiento normal y con `reduce` (`getAnimations()` vacío); `/form/<id>` sin cambios (`git diff --stat` sin rutas públicas); capturas de 3 pantallas fuera de alcance; `.gitignore` con la skill, `skills-lock.json` añadido, `.claude/launch.json` restaurado; commit gitmoji sin co-autoría que excluye `src/lib/ai-models.ts` y `src/hooks/useStoredAiModel.ts` | T008–T013 | todos (AC1–AC12) | 1 |
+
+**T002 — Interfaces**
+- Produces: `navActiveInk(theme: CrmThemeDefinition): string` en `src/lib/crm-themes.ts` (contrato en §3); tokens `--duration-enter: 280ms`, `--stagger: 40ms` en `:root`; clases `.crm-enter` (usa `--i` como índice), `.crm-lift`, `.crm-press`; radios `--radius-control: 10px`, `--radius-surface: 12px` y ningún `--radius-*` > 16px en `@theme` y `:root`.
 
 **T004 — Interfaces**
 - Produces (en `src/components/ui/`, exportados con nombre): `PageHeader {title: string; subtitle?: ReactNode; actions?: ReactNode}` · `StatStrip {items: {label: string; value: ReactNode; delta?: string; tone?: "up"|"down"; flag?: string}[]}` · `Block {title: string; action?: {label: string; href?: string; onClick?: () => void}; children}` · `DataList<T> {rows: T[]; renderRow: (row: T) => ReactNode; empty: ReactNode; getKey: (row: T) => string}` · `DataTable<T> {columns: {key: string; header: string; align?: "left"|"right"; render: (row: T) => ReactNode}[]; rows: T[]; mobileRow: (row: T) => ReactNode; empty: ReactNode; getKey: (row: T) => string}` · `FilterBar {search?: ReactNode; segments?: ReactNode; actions?: ReactNode}` · `Segmented {options: {value: string; label: string}[]; value: string; onChange: (v: string) => void; label: string}` · `Chip {tone?: "neutral"|"hot"|"late"|"done"; children}` · `Board`, `BoardColumn {title; count: number; sum?: string; children}`, `BoardCard {children; dragging?: boolean}` (Board no envuelve la lógica de arrastre: la página sigue dueña de `DragDropContext`) · `EmptyState {title: string; body?: string; action?: ReactNode}` · `ErrorState {title: string; onRetry?: () => void}` · `Skeleton {shape: "rows"|"stats"|"board"; count?: number}` · `Enter {index: number; children}`.
