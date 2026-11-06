@@ -6,13 +6,13 @@ tags: [sdd, plan, design]
 timestamp: 2026-11-05T13:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
-status: draft
+status: approved
 ---
 
 # Plan — Rediseño del CRM privado (marco claro)
 
 > Spec: [../specs/rediseno-obsidiana-estructural.md](../specs/rediseno-obsidiana-estructural.md) ·
-> Constitution: [../constitution.md](../constitution.md) · Status: draft (enmienda de navegación pendiente de aprobar)
+> Constitution: [../constitution.md](../constitution.md) · Status: approved (dueño, 2026-11-05, con enmienda de navegación)
 > Referencia visual aprobada: [maqueta](../specs/assets/rediseno-obsidiana-estructural/maqueta.html)
 > Last updated: 2026-11-05
 
@@ -318,3 +318,4 @@ Comandos comunes de los done-checks:
 - F2/F5: done-check `STATES` (carga, error, truncado) en T008–T013.
 - F3: T008 aclara que se pintan los widgets configurados del usuario, sin widgets nuevos.
 - F4: precondición de sesión del dueño desde T006.
+- Plan con enmienda aprobado por el dueño («Apruebo, empieza T001»).

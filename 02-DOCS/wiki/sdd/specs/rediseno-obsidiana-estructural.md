@@ -6,12 +6,12 @@ tags: [sdd, spec, design]
 timestamp: 2026-11-05T12:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
-status: draft
+status: clarified
 ---
 
 # Spec — Rediseño del CRM privado (marco claro)
 
-> Slug: `rediseno-obsidiana-estructural` · Status: draft (enmienda de navegación pendiente de aprobar) · Created: 2026-11-05
+> Slug: `rediseno-obsidiana-estructural` · Status: clarified (aprobada con enmienda de navegación 2026-11-05) · Created: 2026-11-05
 > Inherits: [constitution](../constitution.md) · Enmienda: `DESIGN.md`, `PRODUCT.md`
 > Auditoría de partida: notas de sesión `rediseno-auditoria.md` (resumida abajo).
 
@@ -245,3 +245,4 @@ maqueta.
   Contactos · Pipeline · Tareas · Más; solo los contadores que ya existen. Se sustituye el non-goal
   «etiquetas de la navegación principal» por «etiquetas de los destinos». Estado → `draft` hasta
   aprobar la enmienda.
+- 2026-11-05 — Enmienda de navegación aprobada por el dueño («Apruebo, empieza T001»). Estado → `clarified`.

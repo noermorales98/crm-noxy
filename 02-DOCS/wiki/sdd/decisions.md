@@ -32,3 +32,13 @@
 - Opciones: mantener la navegación actual con estilo nuevo / adoptar la de la maqueta. Elegida **adoptar la maqueta**.
 - Sidebar plana con los 17 destinos actuales en 4 grupos (Principal, Ventas, Calendario, Espacios); submenú contextual con «Volver» en Correo, Docs, Contenido y Asistente; barra móvil Inicio · Contactos · Pipeline · Tareas · Más; solo contadores existentes.
 - Analyze re-run: PASS (2 LOW aceptados).
+
+## 2026-11-05 — Tinta del destino activo  (feature: rediseno-obsidiana-estructural, task: T001)
+Context   — En el marco claro, el activo usa texto/icono/barra de color. `actionPrimary` no llega a 4.5:1 sobre blanco en noxy-memory (2.75) ni noxy-lime (1.19): son rellenos que llevan Obsidiana encima (regla de pares).
+Options    — (a) cambiar los colores de acción de esos temas; (b) pastilla rellena con acción + su foreground; (c) tinta derivada: acción si ≥ 4.5:1, si no Obsidiana.
+Decision   — (c) `navActiveInk(theme)`.
+Why        — No altera la identidad de ningún tema ni la maqueta aprobada en los 8 temas que cumplen, y respeta la regla de pares de DESIGN.md. Revisable por el dueño (review-after).
+
+## 2026-11-05 — Sin config SDD  (feature: rediseno-obsidiana-estructural, task: T001)
+Context   — `02-DOCS/wiki/sdd/config.yaml` no existe; implement recomienda `sdd-init`.
+Decision   — Usar los comandos de la constitution como fallback y no bloquear; recomendar `sdd-init` como mejora posterior.
