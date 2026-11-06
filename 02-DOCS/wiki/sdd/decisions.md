@@ -26,3 +26,9 @@
 - Plan aprobado por el dueño («Apruebo el plan»).
 - Aislamiento: carpeta principal, directo en `main` (opciones: carpeta principal / worktree sin rama). Por qué: constitution P15; la otra sesión detectada es la que lanzó este trabajo.
 - taste-skill: se commitea solo `skills-lock.json`; la carpeta `.claude/skills/design-taste-frontend` (37 MB) va a `.gitignore` (opciones: solo lockfile / ambos / ninguno).
+
+## 2026-11-05 — Enmienda de navegación (analyze F1)
+
+- Opciones: mantener la navegación actual con estilo nuevo / adoptar la de la maqueta. Elegida **adoptar la maqueta**.
+- Sidebar plana con los 17 destinos actuales en 4 grupos (Principal, Ventas, Calendario, Espacios); submenú contextual con «Volver» en Correo, Docs, Contenido y Asistente; barra móvil Inicio · Contactos · Pipeline · Tareas · Más; solo contadores existentes.
+- Analyze re-run: PASS (2 LOW aceptados).

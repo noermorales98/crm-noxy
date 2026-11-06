@@ -6,12 +6,12 @@ tags: [sdd, spec, design]
 timestamp: 2026-11-05T12:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
-status: clarified
+status: draft
 ---
 
 # Spec — Rediseño del CRM privado (marco claro)
 
-> Slug: `rediseno-obsidiana-estructural` · Status: clarified (reaprobada con marco claro 2026-11-05) · Created: 2026-11-05
+> Slug: `rediseno-obsidiana-estructural` · Status: draft (enmienda de navegación pendiente de aprobar) · Created: 2026-11-05
 > Inherits: [constitution](../constitution.md) · Enmienda: `DESIGN.md`, `PRODUCT.md`
 > Auditoría de partida: notas de sesión `rediseno-auditoria.md` (resumida abajo).
 
@@ -62,8 +62,11 @@ lenguaje viva en tokens y piezas comunes, no en clases sueltas por pantalla (ver
 - Cambiar la paleta Noxy (Índigo, Discord, Azul Recuerdo, Lima, Obsidiana, Jazmín, Lavanda) o la
   tipografía Open Sauce Two. Cambia cómo se usan, no cuáles son.
 - Eliminar o reducir los 10 temas personales.
-- Cambiar rutas, etiquetas de la navegación principal, nombres o el orden de campos de formulario,
-  logo o favicon.
+- Cambiar rutas, etiquetas de los destinos de navegación, nombres o el orden de campos de
+  formulario, logo o favicon. (La **estructura** de la navegación sí cambia: ver Behaviour,
+  Navegación.)
+- Contadores nuevos en la navegación: solo se mantienen los que ya existen (p. ej. correo sin
+  leer).
 - Nueva funcionalidad: widgets, filtros, vistas o datos que hoy no existen. Tampoco se añaden
   «por si acaso» buscadores, atajos, onboarding ni ilustraciones.
 - Arreglar errores de tsc o eslint preexistentes fuera de los archivos tocados.
@@ -133,7 +136,18 @@ maqueta.
 - Movimiento: al cargar una pantalla, cabecera y contenido entran escalonados y breves. Hover y
   pulsación responden en los controles. Mover una tarjeta en el tablero se anima hasta su sitio.
   Con movimiento reducido, todo aparece en su estado final al instante.
-- Móvil: el marco claro se convierte en barra superior y barra inferior sólidas (sin vidrio).
+- Navegación (escritorio): la sidebar deja el selector de secciones y pasa a una **lista plana**
+  con todos los destinos actuales y sus etiquetas de hoy, agrupados: *Principal* (Inicio, Empresas,
+  Contactos, Tareas, Proyectos), *Ventas* (Pipeline de ventas, Clientes, Formularios, Cotizaciones),
+  *Calendario* (Tipos de Cita, Disponibilidad, Citas Agendadas) y *Espacios* (Correo, Docs,
+  Asistente, Bóveda, Gestión de contenido).
+- Navegación contextual: al entrar en Correo, Docs, Gestión de contenido o Asistente, la sidebar
+  muestra el submenú que esa sección tiene hoy (carpetas y cuentas, árbol de páginas, calendarios,
+  conversaciones) con un control «Volver» que regresa a la lista plana. Ninguna función de esos
+  submenús se pierde.
+- Móvil: el marco claro se convierte en barra superior y barra inferior sólidas (sin vidrio). La
+  barra inferior tiene Inicio, Contactos, Pipeline, Tareas y «Más»; «Más» abre la navegación
+  completa (la misma lista plana, y el submenú contextual cuando corresponde) en un panel.
   Las tablas pasan a una presentación apta para 375 px sin scroll horizontal de la página.
 - Edge: sin datos, cada lista o widget muestra un estado vacío que explica cómo llenarlo. Con
   muchos datos, la densidad se mantiene legible. Los textos largos se truncan con el contenido
@@ -165,6 +179,13 @@ maqueta.
   propia versión).
 - Given una pantalla pública (`/form/:id` como representante), When se abre, Then su aspecto y su
   ausencia de movimiento no cambian respecto a antes del rediseño.
+- Given la sidebar de escritorio en una pantalla de *Principal*, When se recorre, Then contiene los
+  17 destinos actuales con sus etiquetas y rutas de hoy, agrupados en Principal, Ventas, Calendario
+  y Espacios, sin selector de secciones.
+- Given una ruta de Correo, Docs, Gestión de contenido o Asistente, When se abre, Then la sidebar
+  muestra el submenú de esa sección con «Volver», y cada enlace del submenú de hoy sigue presente.
+- Given 375 px, When se pulsa «Más» en la barra inferior, Then se abre un panel con la navegación
+  completa, operable con teclado y cerrable con Escape.
 - Given el usuario con un tema guardado, When entra tras el despliegue, Then sigue viendo su tema.
 - Given el repositorio tras el cambio, When se ejecutan `npm test`, tsc, eslint y `npm run build`,
   Then no hay fallos ni errores nuevos sobre la línea base de la constitution.
@@ -218,3 +239,9 @@ maqueta.
   la maqueta se rehace y vuelve a necesitar aprobación. Estado → `draft` hasta reaprobar.
 - 2026-11-05 — Maqueta con marco claro aprobada por el dueño («Apruebo marco claro»). El spec
   revisado queda aprobado (la reaprobación se condicionó a esta maqueta). Estado → `clarified`.
+- 2026-11-05 — **Enmienda de navegación** (hallazgo F1 de `analyze`): el dueño elige adoptar la
+  navegación de la maqueta. Decisiones: sidebar plana con todos los destinos actuales agrupados;
+  submenú contextual en Correo, Docs, Contenido y Asistente con «Volver»; barra móvil Inicio ·
+  Contactos · Pipeline · Tareas · Más; solo los contadores que ya existen. Se sustituye el non-goal
+  «etiquetas de la navegación principal» por «etiquetas de los destinos». Estado → `draft` hasta
+  aprobar la enmienda.

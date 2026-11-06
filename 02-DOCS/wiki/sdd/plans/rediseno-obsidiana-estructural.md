@@ -6,13 +6,13 @@ tags: [sdd, plan, design]
 timestamp: 2026-11-05T13:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
-status: approved
+status: draft
 ---
 
 # Plan — Rediseño del CRM privado (marco claro)
 
 > Spec: [../specs/rediseno-obsidiana-estructural.md](../specs/rediseno-obsidiana-estructural.md) ·
-> Constitution: [../constitution.md](../constitution.md) · Status: approved (dueño, 2026-11-05)
+> Constitution: [../constitution.md](../constitution.md) · Status: draft (enmienda de navegación pendiente de aprobar)
 > Referencia visual aprobada: [maqueta](../specs/assets/rediseno-obsidiana-estructural/maqueta.html)
 > Last updated: 2026-11-05
 
@@ -38,7 +38,7 @@ Toda tarea los incluye implícitamente; el revisor los lee primero.
   sobre `surfaceElevated`. Lima nunca como indicador sobre el marco claro (1.02:1).
 - **Alcance:** shell + dashboard + pipeline (con Clientes e historial) + contactos + empresas +
   proyectos (lista y cabecera del detalle) + tareas + citas agendadas. Nada público.
-- **No cambia:** rutas, etiquetas de navegación principal, nombres u orden de campos, logo, favicon,
+- **No cambia:** rutas, etiquetas de los destinos de navegación, nombres u orden de campos, logo, favicon,
   permisos, datos.
 - **Calidad:** `npm test` ≤ 4 fallos (los conocidos); tsc ≤ 66; eslint ≤ 572; ningún error nuevo en
   archivos tocados; `npm run build` verde.
@@ -139,10 +139,19 @@ Enter      { index, children }   aplica la entrada escalonada solo al montar la 
 ```text
 DashboardShell: rejilla en L ≥ 1024 px (sidebar 248 px + top 56 px + hoja con radio 12 px arriba a
 la izquierda); < 1024 px: TopBar 56 px + hoja + TabBar 64 px. Altura 100dvh, no h-screen.
-Sidebar y TopBar: fondo surface-sidebar; mismos grupos, etiquetas y rutas que hoy; activo = fondo
+Sidebar (enmienda 2026-11-05): lista plana con los 17 destinos actuales, etiquetas y rutas de hoy,
+en 4 grupos: Principal (Inicio, Empresas, Contactos, Tareas, Proyectos) · Ventas (Pipeline de
+ventas, Clientes, Formularios, Cotizaciones) · Calendario (Tipos de Cita, Disponibilidad, Citas
+Agendadas) · Espacios (Correo, Docs, Asistente, Bóveda, Gestión de contenido). Sin selector de
+secciones. Modo contextual en rutas de Correo, Docs, Contenido y Asistente: muestra el submenú
+existente (MailNav, KbNav, ContentNav, AssistantNav, reutilizados sin cambiar su lógica) bajo un
+control «Volver» a la lista plana. Contadores: solo los existentes (correo sin leer).
+Sidebar y TopBar: fondo surface-sidebar; activo = fondo
 surface-elevated + texto e icono action-primary 600 + barra de 3 px action-primary (dos señales).
 Hoja: surface-app, radio 12 px y borde border-subtle arriba/izquierda (≥ 1024 px).
-TabBar móvil: sólida surface-sidebar, 5 destinos actuales, activo con icono y texto action-primary.
+TabBar móvil: sólida surface-sidebar; Inicio · Contactos · Pipeline · Tareas · Más; activo con
+icono y texto action-primary. «Más» abre un panel con la misma navegación (plana o contextual),
+foco atrapado, Escape cierra (reutiliza el drawer móvil existente).
 ```
 
 **Movimiento:**
@@ -263,6 +272,8 @@ Comandos comunes de los done-checks:
 - `TSC` = `npx tsc --noEmit 2>&1 | grep -c "error TS"` ≤ 66, y `npx tsc --noEmit 2>&1 | grep -E "<archivos de la tarea>"` vacío.
 - `LINT` = `npx eslint <archivos de la tarea> -f json` → errores por archivo ≤ los registrados antes de la tarea (línea base por archivo guardada en `progress/rediseno-obsidiana-estructural/lint-baseline.json` al empezar T002).
 - `CHECK` = script de navegador `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural/check.js` (lo crea T006): devuelve `{docW, vw, small:[], glass:false, minTap}` por ruta; pasa si `docW ≤ vw`, `small` vacío, `glass` false y `minTap ≥ 44` en < 1024 px.
+- `STATES` = en la pantalla, con DevTools: estado de carga visible como `Skeleton` (red lenta emulada) y estado de error como `ErrorState` (petición de datos bloqueada) sin romper el resto; un texto largo se trunca con el valor completo en `title` o nombre accesible.
+- **Precondición de T006 en adelante:** el dueño ha iniciado sesión en `localhost:3000` en el panel del navegador. Sin sesión, la tarea se para y se pide.
 - `SHOT` = capturas 1440×900 y 375×812 en `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural/<ruta>-{1440,375}.png` + visto bueno del dueño frente a la maqueta.
 
 | ID | [P] | Task | Done-check | Depends-on | Trace | Risk |
@@ -271,15 +282,15 @@ Comandos comunes de los done-checks:
 | T002 |  | Implement tokens, motion and brand-doc amendments | T001 verde; `npm test` con ≤ 4 fallos (los conocidos); `grep -c backdrop app/globals.css` = 0; `TSC` | T001 | AC4, AC5, AC6, AC12 | 1 |
 | T003 |  | Write failing contract test for common UI pieces | `TEST src/components/ui/ui-contract.test.ts` falla: no existen las 14 piezas | T002 | AC7, AC8 | 1 |
 | T004 |  | Implement the 14 common UI pieces | T003 verde; `TSC` y `LINT` sin errores en `src/components/ui/**` | T003 | AC2, AC3, AC6, AC7, AC8 | 1 |
-| T005 |  | Write failing shell contract test | `TEST src/lib/redesign-shell-contract.test.ts` falla: shell usa `h-screen`, `crm-glass`, Lucide, `text-[10px]`, activo sin barra | T004 | AC1, AC2, AC3, AC4 | 1 |
-| T006 |  | Implement light L-frame shell and check script | T005 verde; `CHECK` en `/` y `/contacts` a 375 y 1440 px; `SHOT` de `/`; `TSC`; `LINT` | T005 | AC1, AC2, AC3, AC4, AC10 | 1 |
+| T005 |  | Write failing shell contract test | `TEST src/lib/redesign-shell-contract.test.ts` falla: shell usa `h-screen`, `crm-glass`, Lucide, `text-[10px]`, activo sin barra; la sidebar no declara los 17 destinos en 4 grupos; no hay modo contextual con «Volver»; la barra móvil no es Inicio · Contactos · Pipeline · Tareas · Más | T004 | AC1, AC2, AC3, AC4 | 1 |
+| T006 |  | Implement light L-frame shell, flat and contextual navigation, and check script | T005 verde; `CHECK` en `/`, `/contacts`, `/emails` y `/kb` a 375 y 1440 px; en `/emails` y `/kb` cada enlace del submenú de antes sigue presente (lista de hrefs antes/después igual); «Más» abre y cierra con teclado y Escape; `SHOT` de `/` y `/emails`; `TSC`; `LINT` | T005 | AC1, AC2, AC3, AC4, AC10, AC-nav | 1 |
 | T007 |  | Write failing screen contract tests (7 screens) | `TEST src/lib/redesign-screens-contract.test.ts` falla por pantalla: no importa `PageHeader`, sin `empty`, `text-[≤11px]`, grises/azules Tailwind crudos, Lucide | T006 | AC3, AC7, AC8 | 1 |
-| T008 |  | Recompose dashboard with common pieces | casos `dashboard` de T007 verdes; `CHECK /`; `SHOT /` vs `#dashboard`; personalizador abre y cierra sin guardar | T007 | AC1, AC2, AC3, AC7, AC8 | 1 |
-| T009 | [P] | Recompose pipeline, clients and history | casos `pipeline` de T007 verdes; `CHECK` en `/pipeline`, `/pipeline/clientes`, `/pipeline/historial`; `SHOT` vs `#tablero`; arrastre iniciado y cancelado (Esc) sin cambio de etapa | T007 | AC2, AC3, AC6, AC7, AC8 | 1 |
-| T010 | [P] | Recompose contacts and companies | casos `contacts`, `companies` verdes; `CHECK` en ambas; `SHOT` vs `#lista`; búsqueda/filtro no reanima (`getAnimations()` vacío tras filtrar) | T007 | AC2, AC3, AC6, AC7, AC8 | 1 |
-| T011 | [P] | Recompose projects list and project header | casos `projects` verdes; `CHECK` en `/projects` y un `/projects/<id>`; `SHOT` | T007 | AC2, AC3, AC7, AC8 | 1 |
-| T012 | [P] | Recompose tasks | casos `tasks` verdes; `CHECK /tasks`; `SHOT` | T007 | AC2, AC3, AC7, AC8 | 1 |
-| T013 | [P] | Recompose scheduled appointments | casos `appointments` verdes; `CHECK /appointments`; `SHOT` | T007 | AC2, AC3, AC7, AC8 | 1 |
+| T008 |  | Recompose dashboard with common pieces | casos `dashboard` de T007 verdes; `CHECK /`; `STATES`; `SHOT /` vs `#dashboard`; el dashboard pinta **los widgets que el usuario tiene configurados** (mismo conjunto y orden que antes) con los patrones nuevos, sin widgets nuevos (el bloque «Hoy» de la maqueta es solo patrón); personalizador abre y cierra sin guardar | T007 | AC1, AC2, AC3, AC7, AC8 | 1 |
+| T009 | [P] | Recompose pipeline, clients and history | casos `pipeline` de T007 verdes; `CHECK` en `/pipeline`, `/pipeline/clientes`, `/pipeline/historial`; `SHOT` vs `#tablero`; arrastre iniciado y cancelado (Esc) sin cambio de etapa; `STATES` | T007 | AC2, AC3, AC6, AC7, AC8 | 1 |
+| T010 | [P] | Recompose contacts and companies | casos `contacts`, `companies` verdes; `CHECK` en ambas; `SHOT` vs `#lista`; búsqueda/filtro no reanima (`getAnimations()` vacío tras filtrar); `STATES` | T007 | AC2, AC3, AC6, AC7, AC8 | 1 |
+| T011 | [P] | Recompose projects list and project header | casos `projects` verdes; `CHECK` en `/projects` y un `/projects/<id>`; `SHOT`; `STATES` | T007 | AC2, AC3, AC7, AC8 | 1 |
+| T012 | [P] | Recompose tasks | casos `tasks` verdes; `CHECK /tasks`; `SHOT`; `STATES` | T007 | AC2, AC3, AC7, AC8 | 1 |
+| T013 | [P] | Recompose scheduled appointments | casos `appointments` verdes; `CHECK /appointments`; `SHOT`; `STATES` | T007 | AC2, AC3, AC7, AC8 | 1 |
 | T014 |  | Run closing gate and create the single commit | `npm test` ≤ 4 fallos (los conocidos); `TSC` total ≤ 66; eslint total ≤ 572; `npm run build` verde; `CHECK` en las 7 pantallas con movimiento normal y con `reduce` (`getAnimations()` vacío); `/form/<id>` sin cambios (`git diff --stat` sin rutas públicas); capturas de 3 pantallas fuera de alcance; `.gitignore` con la skill, `skills-lock.json` añadido, `.claude/launch.json` restaurado; commit gitmoji sin co-autoría que excluye `src/lib/ai-models.ts` y `src/hooks/useStoredAiModel.ts` | T008–T013 | todos (AC1–AC12) | 1 |
 
 **T004 — Interfaces**
@@ -301,3 +312,9 @@ Comandos comunes de los done-checks:
 | Files / areas | ~35 archivos: `app/globals.css`, `src/lib/crm-*`, `src/components/ui/*` (nuevo), shell (5), dashboard (6), 7 pantallas (~11), 4 tests, DESIGN.md, PRODUCT.md, `.gitignore`, `skills-lock.json` | tokens → piezas → shell → pantallas |
 | Risk | máx. tier 1; 0 tareas tier 2 | ninguna toca auth, permisos, `app/api/**` ni datos |
 | Suggested delivery | `exception` | supera el presupuesto de 400 líneas; el dueño decidió explícitamente un único commit. Se compensa con revisión por tarea y aprobación visual del dueño en cada pantalla |
+
+### Cambios tras `analyze` (2026-11-05)
+- F1: navegación de la maqueta adoptada (spec enmendado). §3 Shell y T005/T006 actualizados.
+- F2/F5: done-check `STATES` (carga, error, truncado) en T008–T013.
+- F3: T008 aclara que se pintan los widgets configurados del usuario, sin widgets nuevos.
+- F4: precondición de sesión del dueño desde T006.

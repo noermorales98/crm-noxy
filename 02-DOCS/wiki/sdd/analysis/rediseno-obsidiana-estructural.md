@@ -3,14 +3,18 @@ type: analysis
 title: Análisis — Rediseño del CRM privado (marco claro)
 description: Lectura cruzada constitution ↔ spec ↔ plan ↔ tasks antes de implementar.
 tags: [sdd, analysis]
-timestamp: 2026-11-05T14:00:00Z
+timestamp: 2026-11-05T15:00:00Z
 topic: sdd
 slug: rediseno-obsidiana-estructural
 ---
 
 # Análisis — Rediseño del CRM privado (marco claro)
 
-**GATE: BLOCKED** · 0 CRITICAL · 1 HIGH · 3 MEDIUM · 3 LOW
+**GATE: PASS** (re-run 2026-11-05) · 0 CRITICAL · 0 HIGH · 0 MEDIUM · 2 LOW aceptados (F6, F7)
+
+> Primera pasada: BLOCKED (1 HIGH, 3 MEDIUM, 3 LOW). Resueltos: F1 por enmienda del spec y del plan
+> (navegación de la maqueta adoptada); F2, F3, F4 y F5 por ajustes en tasks. El paso a `implement`
+> sigue condicionado a que el dueño apruebe la enmienda de navegación (spec y plan en `draft`).
 
 Artefactos: [constitution](../constitution.md) · [spec](../specs/rediseno-obsidiana-estructural.md) ·
 [plan + tasks](../plans/rediseno-obsidiana-estructural.md) ·
@@ -32,8 +36,11 @@ Artefactos: [constitution](../constitution.md) · [spec](../specs/rediseno-obsid
 | R10 | Tema guardado se respeta | §3 tema | T006 | covered |
 | R11 | Barra de calidad (test, tsc, eslint, build) | §0 | T002, T004, T006, T014 | covered |
 | R12 | DESIGN.md y PRODUCT.md enmendados | §6 T1 | T001, T002 | covered |
-| R13 | Estados de carga y error (Goals, Behaviour) | §3 piezas | T004 (solo la pieza) | AMBIGUOUS (ninguna pantalla lo comprueba) |
-| R14 | Truncado accesible de textos largos (Behaviour, Edge) | — | — | AMBIGUOUS (sin done-check) |
+| R13 | Estados de carga y error (Goals, Behaviour) | §3 piezas | T004, T008–T013 (`STATES`) | covered |
+| R14 | Truncado accesible de textos largos (Behaviour, Edge) | §5 | T008–T013 (`STATES`) | covered |
+| R15 | Sidebar plana con 17 destinos en 4 grupos (enmienda) | §3 Shell | T005, T006 | covered |
+| R16 | Submenú contextual con «Volver» en Correo, Docs, Contenido, Asistente | §3 Shell | T005, T006 | covered |
+| R17 | Barra móvil Inicio · Contactos · Pipeline · Tareas · Más | §3 Shell | T005, T006 | covered |
 | —  | `.gitignore` de la skill, `skills-lock.json`, restaurar `launch.json` | §6 T10 | T014 | DRIFT (aceptado: decisión del dueño, limpieza) |
 
 ## Findings
@@ -53,7 +60,21 @@ Sin hallazgos en: stack canon (sin dependencias nuevas), auth/permisos/API (no s
 Portadores para implementadores aislados: §0 Global Constraints presente; Interfaces en T004, T006
 y T007–T013.
 
-## Recommended routing
+## Estado de los hallazgos (re-run)
+
+| # | Estado | Cómo |
+|---|---|---|
+| F1 | resuelto | Spec: non-goal reescrito, Behaviour «Navegación» y 3 criterios nuevos. Plan §3 Shell y T005/T006. Sin contradicción con la constitution (P13 se cumple: DESIGN.md se enmienda en T002). |
+| F2 | resuelto | `STATES` en T008–T013. |
+| F3 | resuelto | T008: widgets configurados del usuario, sin widgets nuevos. |
+| F4 | resuelto | Precondición de sesión desde T006. |
+| F5 | resuelto | Truncado dentro de `STATES`. |
+| F6, F7 | aceptados | Sin cambio. |
+
+Comprobación nueva: el modo contextual reutiliza los submenús existentes sin cambiar su lógica, así
+que Correo, Docs, Contenido y Asistente siguen fuera de alcance en su contenido (sin DRIFT).
+
+## Recommended routing (primera pasada)
 
 1. **F1 (bloquea):** el dueño decide entre:
    - **(a) Mantener la navegación actual** (selector de secciones y 6 destinos en móvil) con el estilo nuevo. La maqueta queda como referencia de estilo, no de estructura de la navegación. Hay que corregir «5 destinos» en el plan.
