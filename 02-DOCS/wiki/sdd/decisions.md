@@ -42,3 +42,9 @@ Why        — No altera la identidad de ningún tema ni la maqueta aprobada en 
 ## 2026-11-05 — Sin config SDD  (feature: rediseno-obsidiana-estructural, task: T001)
 Context   — `02-DOCS/wiki/sdd/config.yaml` no existe; implement recomienda `sdd-init`.
 Decision   — Usar los comandos de la constitution como fallback y no bloquear; recomendar `sdd-init` como mejora posterior.
+
+## 2026-11-05 — Tests de superficie con valores superados  (feature: rediseno-obsidiana-estructural, task: T002)
+Context   — `src/lib/crm-surface-style.test.ts` (2026-08-18) fijaba `--radius-surface: 20px`, `--radius-control: 12px` y la sombra de menú `0 10px 28px …`. Contradice el §0 del plan aprobado (control 10 px, superficie 12 px, solo overlay `0 8px 8px`) y el `DESIGN.md` previo (10/12). `analyze` no lo detectó.
+Options    — (a) mantener los valores viejos y no cumplir el plan; (b) actualizar los valores esperados al contrato aprobado con la misma exigencia; (c) borrar los tests.
+Decision   — (b). Se conserva la aserción exacta (equal), solo cambian los valores y el nombre del test.
+Why        — Es la misma regla con la decisión nueva; (c) sería debilitar la red de tests.
