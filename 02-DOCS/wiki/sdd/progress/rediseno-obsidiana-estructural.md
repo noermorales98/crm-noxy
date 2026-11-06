@@ -67,6 +67,16 @@ las skills del repo (`nextjs`, `design`).
 - controls: tests ✅ · build: tsc 19, 0 en `src/components/ui` ✅ · eslint 0 ✅ · security: no aplica · traceability ✅ (AC2, AC3, AC6, AC7, AC8)
 - files: src/components/ui/* (nuevos), app/globals.css, plan («T007–T013 — Interfaces»)
 
+## T005 — 2026-11-05
+- status: complete
+- red: `node --test src/lib/crm-navigation.test.ts src/lib/redesign-shell-contract.test.ts` → 19 ✖ por aserción; `crm-themes.test.ts` → 1 ✖ (`--nav-active-ink`).
+- enfoque: tras la ronda 1, el modelo de navegación pasa a `src/lib/crm-navigation.ts` (stub) y se prueba ejecutándolo (destinos, permisos, contextuales, destino activo, pestañas, `sidebarView`, estilos activos); el contrato del shell solo mira JSX/CSS con un analizador de etiquetas.
+- decisiones: Bóveda contextual (5.ª); se retira «Editar barra»; `--nav-active-ink`; elegir un destino anula «Volver» (ver decisions.md).
+- risk: tier 1 — 1 revisor
+- review: ronda 1 → 14 (8 should-fix); ronda 2 → 6 (1 should-fix); ronda 3 → pass (1 pregunta + 3 nits, corregidos y registrados). Ledger L42–L61 = fixed.
+- controls: tests ✅ (rojo esperado) · tsc 19 ✅ · eslint 0 errores ✅ · traceability ✅ (AC1–AC4, AC10, criterios de navegación)
+- files: src/lib/crm-navigation.ts (stub), src/lib/crm-navigation.test.ts, src/lib/redesign-shell-contract.test.ts, src/lib/crm-themes.test.ts, plan §3
+
 ## Decision queue
 - **review-after** · T005 · tier 1 · ¿Bóveda como 5.ª sección contextual (conserva `VaultNav`, su selector de clientes)? · Opciones: (a) contextual, (b) plana y perder el selector · Recomendación: (a) · Evidencia: decisions.md «Modelo de navegación y dos consecuencias».
 - **review-after** · T005 · tier 1 · Se retira «Editar barra» de la barra móvil (consecuencia de «cuatro destinos fijos y Más») · Evidencia: misma entrada.
@@ -79,3 +89,8 @@ las skills del repo (`nextjs`, `design`).
 ## Entorno — 2026-11-05 (T004)
 - La caché persistente de Turbopack (`.next/dev/cache/turbopack`, 1,3 GB) servía un `globals.css` antiguo: los tokens de estado nuevos no llegaban al navegador ni tras reiniciar ni tras `touch`. Borrada (está en `.gitignore` y se regenera); tras reiniciar, el CSS servido incluye los tokens.
 - El agente `react-reviewer` instalado por rsc no arranca: su frontmatter declara herramientas `read, search` que Claude Code no reconoce. Revisión de T004 lanzada con el agente general. Pendiente: arreglar el frontmatter del agente (fuera del alcance de este trabajo).
+
+## T006 — 2026-11-05 (EN CURSO, interrumpido por límite de uso)
+- hecho: `crm-navigation.ts` implementado (16/16); `--nav-active-ink` en temas y `:root`; Sidebar con lista plana + modo contextual + «Volver» + iconos currentColor; DashboardShell en L (`h-dvh`, hoja `data-crm-sheet`); MobileBottomTabBar fija (Inicio · Contactos · Pipeline · Tareas · Más); AssistantSidebarShell sin Lucide ni vidrio; MobileSidebarToggle 44 px con Hugeicons; Header con botones 44/40 px y sin texto < 12 px; `assistant-sidebar-navigation-contract.test.ts` actualizado a la navegación nueva.
+- verde: contratos de shell, modelo y temas 24/24; `npm test` solo los 4 conocidos; tsc 19.
+- falta: script CHECK y verificación en navegador (1440 y 375 px en /, /contacts, /emails, /kb, /assistant; «Volver»; «Más» con teclado/Escape); capturas; revisión tier 1 de T006; eslint por archivo frente a la línea base.

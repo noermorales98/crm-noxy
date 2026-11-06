@@ -66,3 +66,8 @@ Decision   — Modelo puro `src/lib/crm-navigation.ts` probado ejecutándolo; el
 Consecuencia 1 — **Bóveda contextual** (5.ª sección): `VaultNav` es el único selector de clientes; el spec decía «ninguna función de esos submenús se pierde». Desviación del texto del spec (que listaba 4), registrada para revisión del dueño (review-after).
 Consecuencia 2 — **Se retira «Editar barra»** de la barra móvil (personalización por usuario en `localStorage`): el dueño eligió «cuatro destinos fijos y Más». Las preferencias guardadas quedan sin uso.
 Interfaz nueva — `--nav-active-ink` en `crmThemeCssVariables` y `:root`.
+
+## 2026-11-05 — Cierre de T005 tras la ronda 3 (pass)  (feature: rediseno-obsidiana-estructural, task: T005)
+Context   — Ronda 3 en pass con 1 pregunta y 3 nits.
+Decision   — (1) **UX de «Volver»**: elegir cualquier destino de la lista plana anula el descarte, así que pulsar «Correo» estando en /emails reabre su submenú (contrato: `setX(null)`). (2) Los iconos de navegación heredan `currentColor` (sin `ICON_COLOR` ni `color` fijo), para que la tinta activa llegue al icono. (3) Las clases de la barra móvil se buscan en el `<nav>` o su primer hijo, no en una ventana de 400 caracteres. (4) El setter de «Volver» acepta cualquier nombre de variable que venga de `usePathname()`.
+Why        — Ajustes de precisión del contrato sin cambio de alcance; registrados en lugar de una 4.ª ronda.
