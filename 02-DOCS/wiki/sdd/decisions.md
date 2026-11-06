@@ -8,3 +8,15 @@
 - Se mantienen paleta Noxy, Open Sauce Two y los 10 temas personales. Sin modo oscuro en este ciclo.
 - Movimiento «Expresivo»: enmienda la regla de DESIGN.md contra secuencias de entrada; /form sigue sin movimiento.
 - Spec: `specs/rediseno-obsidiana-estructural.md`.
+
+## 2026-11-05 — Plan del rediseño: tokens de marco y movimiento con CSS
+
+- Marco oscuro con 6 tokens nuevos (`frame*`) por tema, en vez de oscurecer `surface-sidebar` (339 usos como panel Lavanda dentro del contenido). Mantiene intacto el resto y deja preparado el modo oscuro.
+- Movimiento solo con CSS (keyframes y transiciones con tokens), sin dependencia nueva. El arrastre sigue con `@hello-pangea/dnd`.
+- Deuda aceptada: Lucide sale solo de los archivos tocados; la dependencia sigue por pantallas fuera de alcance.
+
+## 2026-11-05 — Revisión: marco claro
+
+- El dueño pide sidebar clara («lo único que quiero que cambies es el color del sidebar, que sea claro») y elige «Ajuste: marco claro»: se mantiene todo el rediseño, sidebar y barra superior en el tono de sidebar de cada tema.
+- Consecuencias: el activo pasa de Lima a Índigo (Lima sobre Lavanda = 1.02:1); se anulan «marco oscuro tintado por tema» y los 6 tokens `frame*` del plan; el marco reutiliza el contrato de 14 tokens existente.
+- El slug `rediseno-obsidiana-estructural` se conserva para no romper enlaces; los títulos pasan a «marco claro».

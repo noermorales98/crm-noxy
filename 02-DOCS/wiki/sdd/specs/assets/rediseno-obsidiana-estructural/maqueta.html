@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maqueta · Obsidiana estructural</title>
+<title>Maqueta · Rediseño marco claro</title>
 <!-- Maqueta de referencia del spec rediseno-obsidiana-estructural. No es código de producción.
      Iconos: Tabler webfont solo para la maqueta; el producto usará su familia única (Hugeicons). -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-two@5.3.0/400.css">
@@ -13,9 +13,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 :root{
-  /* Marco (tema noxy-indigo → Obsidiana) */
-  --frame:#0B0B18; --frame-raised:#161628; --frame-line:rgb(255 255 255/.08);
-  --frame-text:#E6E8F2; --frame-muted:#9A9FB4; --frame-active-bg:rgb(255 255 255/.07);
+  /* Marco claro (tema noxy-indigo → Lavanda, el surfaceSidebar actual de cada tema) */
+  --frame:#EBEDFA; --frame-raised:#FFFFFF; --frame-line:#DCDFE6;
+  --frame-text:#0B0B18; --frame-muted:#555B6E; --frame-active-bg:#FFFFFF; --frame-active:#3545D6;
   /* Contenido */
   --canvas:#F5F6FB; --sheet:#FFFFFF; --panel:#EBEDFA; --line:#DCDFE6;
   --ink:#0B0B18; --muted:#5F6578; --memory:#7F96F9;
@@ -35,16 +35,16 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .app{display:grid;grid-template-columns:248px 1fr;grid-template-rows:56px 1fr;height:100dvh}
 .side{grid-row:1/3;display:flex;flex-direction:column;padding:12px;gap:4px;color:var(--frame-text)}
 .brand{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px;margin-bottom:8px}
-.brand-mark{width:28px;height:28px;border-radius:8px;background:var(--lime);color:var(--frame);display:grid;place-items:center;font-weight:800;font-size:15px}
+.brand-mark{width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--lime);display:grid;place-items:center;font-weight:800;font-size:15px}
 .brand b{font-weight:600;font-size:15px;letter-spacing:-.01em}
 .brand small{display:block;color:var(--frame-muted);font-size:12px;line-height:1.2}
 .nav-label{color:var(--frame-muted);font-size:12px;font-weight:600;padding:16px 10px 6px}
 .nav a{position:relative;display:flex;align-items:center;gap:10px;min-height:38px;padding:0 10px;border-radius:var(--r-control);color:var(--frame-text);text-decoration:none;font-weight:500;transition:background .18s var(--ease),color .18s}
 .nav a i{font-size:18px;color:var(--frame-muted);transition:color .18s}
-.nav a:hover{background:rgb(255 255 255/.05)}
-.nav a[aria-current=page]{background:var(--frame-active-bg);color:#fff;font-weight:600}
-.nav a[aria-current=page] i{color:var(--lime)}
-.nav a[aria-current=page]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--lime)}
+.nav a:hover{background:rgb(255 255 255/.6)}
+.nav a[aria-current=page]{background:var(--frame-active-bg);color:var(--frame-active);font-weight:600;box-shadow:inset 0 0 0 1px var(--frame-line)}
+.nav a[aria-current=page] i{color:var(--frame-active)}
+.nav a[aria-current=page]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--frame-active)}
 .nav .count{margin-left:auto;font-size:12px;color:var(--frame-muted)}
 .side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--frame-line)}
 .avatar{width:32px;height:32px;border-radius:999px;display:grid;place-items:center;font-weight:600;font-size:12px;flex:none}
@@ -56,11 +56,11 @@ button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 .search kbd{margin-left:auto;font:500 12px 'Open Sauce Two';color:var(--frame-muted);border:1px solid var(--frame-line);border-radius:6px;padding:0 6px}
 .top-actions{margin-left:auto;display:flex;gap:4px}
 .icon-btn{width:36px;height:36px;border-radius:var(--r-control);display:grid;place-items:center;color:var(--frame-text);font-size:18px;transition:background .18s}
-.icon-btn:hover{background:rgb(255 255 255/.07)}
-.dot{position:relative}.dot::after{content:"";position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:9px;background:var(--lime);box-shadow:0 0 0 2px var(--frame)}
+.icon-btn:hover{background:rgb(255 255 255/.7)}
+.dot{position:relative}.dot::after{content:"";position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:9px;background:var(--action);box-shadow:0 0 0 2px var(--frame)}
 
 /* ── Hoja de contenido ───────────────────── */
-.sheet{background:var(--canvas);border-top-left-radius:var(--r-surface);overflow:auto;min-width:0}
+.sheet{background:var(--canvas);border-top-left-radius:var(--r-surface);border-top:1px solid var(--frame-line);border-left:1px solid var(--frame-line);overflow:auto;min-width:0}
 .page{max-width:1280px;margin:0 auto;padding:28px 32px 48px}
 .page-head{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-bottom:20px}
 .page-head h1{font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.02em}
@@ -165,7 +165,7 @@ tbody tr{transition:background .15s} tbody tr:hover{background:#FAFAFD}
   .top{padding:0 8px 0 16px}
   .top .search{display:none}
   .top-title{font-weight:600;font-size:16px}
-  .sheet{border-radius:0}
+  .sheet{border-radius:0;border-left:0}
   .page{padding:20px 16px 32px}
   .page-head{align-items:flex-start;gap:12px}
   .page-head h1{font-size:22px}
@@ -187,8 +187,8 @@ tbody tr{transition:background .15s} tbody tr:hover{background:#FAFAFD}
   .tabbar{display:grid;grid-template-columns:repeat(5,1fr);background:var(--frame);border-top:1px solid var(--frame-line);padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;color:var(--frame-muted);text-decoration:none;font-size:12px;font-weight:500}
   .tabbar a i{font-size:20px}
-  .tabbar a[aria-current=page]{color:#fff}
-  .tabbar a[aria-current=page] i{color:var(--lime)}
+  .tabbar a[aria-current=page]{color:var(--frame-active);font-weight:600}
+  .tabbar a[aria-current=page] i{color:var(--frame-active)}
 }
 @media (min-width:1024px){.top-title{display:none}}
 </style>

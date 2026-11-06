@@ -1,6 +1,6 @@
 ---
 type: spec
-title: Spec — Rediseño «Obsidiana estructural» del CRM privado
+title: Spec — Rediseño del CRM privado (marco claro)
 description: WHAT y WHY del nuevo lenguaje visual del shell autenticado y de siete pantallas principales de Noxy CRM.
 tags: [sdd, spec, design]
 timestamp: 2026-11-05T12:00:00Z
@@ -9,9 +9,9 @@ slug: rediseno-obsidiana-estructural
 status: draft
 ---
 
-# Spec — Rediseño «Obsidiana estructural» del CRM privado
+# Spec — Rediseño del CRM privado (marco claro)
 
-> Slug: `rediseno-obsidiana-estructural` · Status: draft · Created: 2026-11-05
+> Slug: `rediseno-obsidiana-estructural` · Status: draft (revisión tras aprobación: marco claro, pendiente de reaprobar) · Created: 2026-11-05
 > Inherits: [constitution](../constitution.md) · Enmienda: `DESIGN.md`, `PRODUCT.md`
 > Auditoría de partida: notas de sesión `rediseno-auditoria.md` (resumida abajo).
 
@@ -36,8 +36,10 @@ lenguaje nuevo sin mecanismo que lo imponga volverá a desviarse. Por eso este s
 lenguaje viva en tokens y piezas comunes, no en clases sueltas por pantalla (ver Goals).
 
 ## Goals
-- El CRM privado tiene un lenguaje propio reconocible como Noxy: **marco Obsidiana** (navegación
-  lateral y barra superior oscuras) que encuadra un **contenido claro y denso**.
+- El CRM privado tiene un lenguaje propio reconocible como Noxy: un **marco claro en «L»**
+  (navegación lateral y barra superior en el tono de sidebar de cada tema, Lavanda por defecto) que
+  encuadra una **hoja de contenido** con esquina redondeada, cabeceras con cifras clave y listas y
+  tableros densos.
 - La jerarquía es evidente: en cada pantalla, lo urgente y lo importante se distingue sin leer todo.
 - El lenguaje es uno solo y reutilizable: cabecera de página, barra de filtros, lista/tabla,
   tablero, estado vacío, estado de carga y estado de error se ven y se comportan igual en todas las
@@ -86,7 +88,8 @@ Cada pantalla del alcance se corresponde con una **referencia visual aprobada po
 en escritorio (1440 px) y en móvil (375 px). Referencia propuesta:
 [`assets/rediseno-obsidiana-estructural/maqueta.html`](assets/rediseno-obsidiana-estructural/maqueta.html)
 (vistas `#dashboard`, `#lista`, `#tablero`; es responsive, así que a 375 px muestra la versión
-móvil). **Aprobada por el dueño el 2026-11-05** («Apruebo la maqueta»). La maqueta fija el
+móvil). La primera versión (marco oscuro) se aprobó el 2026-11-05; **la versión actual, con marco
+claro, está pendiente de reaprobación**. La maqueta fija el
 lenguaje y los patrones; los datos que muestra son de ejemplo y sus iconos (Tabler) son solo de la
 maqueta.
 
@@ -122,27 +125,29 @@ maqueta.
 - Un test de contrato de marca nuevo para las reglas del lenguaje que se puedan comprobar en código.
 
 ## Behaviour
-- Main path: al iniciar sesión, la persona ve el marco Obsidiana con la navegación. El elemento
-  activo lo marca Lima y el contenido es claro. Cada pantalla abre con una cabecera que dice dónde
+- Main path: al iniciar sesión, la persona ve el marco claro con la navegación. El elemento
+  activo lo marca Índigo (fondo blanco, texto e icono Índigo, barra lateral de 3 px) y Lima queda
+  para lo urgente. Cada pantalla abre con una cabecera que dice dónde
   está, las cifras clave y una sola acción principal en Índigo. Listas y tableros comparten la misma
   gramática.
 - Movimiento: al cargar una pantalla, cabecera y contenido entran escalonados y breves. Hover y
   pulsación responden en los controles. Mover una tarjeta en el tablero se anima hasta su sitio.
   Con movimiento reducido, todo aparece en su estado final al instante.
-- Móvil: el marco Obsidiana se convierte en barra superior y barra inferior sólidas (sin vidrio).
+- Móvil: el marco claro se convierte en barra superior y barra inferior sólidas (sin vidrio).
   Las tablas pasan a una presentación apta para 375 px sin scroll horizontal de la página.
 - Edge: sin datos, cada lista o widget muestra un estado vacío que explica cómo llenarlo. Con
   muchos datos, la densidad se mantiene legible. Los textos largos se truncan con el contenido
   completo accesible.
 - Error: si la base de datos no responde, el aviso existente sigue visible con la nueva gramática.
   Un fallo de carga de un bloque muestra su estado de error sin romper el resto de la pantalla.
-- Temas: con un tema personal distinto del predeterminado, el marco es un tono oscuro propio de
-  ese tema y los acentos siguen el tema, sin bajar nunca del contraste AA.
+- Temas: con un tema personal distinto del predeterminado, el marco usa el tono de sidebar de ese
+  tema y el activo su color de acción, sin bajar nunca del contraste AA.
 
 ## Acceptance criteria
 - Given una sesión iniciada con el tema predeterminado, When se abre cualquier pantalla del alcance
-  en escritorio, Then la navegación lateral tiene fondo Obsidiana, el elemento activo se distingue
-  con Lima y por algo más que el color, y el área de contenido es clara.
+  en escritorio, Then la navegación lateral y la barra superior tienen el fondo de sidebar del tema
+  (Lavanda en el predeterminado), el elemento activo se distingue con el color de acción y por algo
+  más que el color, y el contenido va en una hoja separada del marco.
 - Given cualquier pantalla del alcance, When se renderiza a 375 px, Then el documento no tiene
   scroll horizontal y todos los controles táctiles miden al menos 44 px.
 - Given cualquier pantalla del alcance, When se inspecciona el texto visible, Then ningún texto
@@ -164,32 +169,32 @@ maqueta.
 - Given el repositorio tras el cambio, When se ejecutan `npm test`, tsc, eslint y `npm run build`,
   Then no hay fallos ni errores nuevos sobre la línea base de la constitution.
 - Given `DESIGN.md` y `PRODUCT.md`, When se leen tras el cambio, Then describen el lenguaje
-  «Obsidiana estructural», incluida la regla de movimiento enmendada, y el registro de enmiendas lo
+  «marco claro», incluida la regla de movimiento enmendada, y el registro de enmiendas lo
   anota.
 
 ## Points to clarify
-- **suposición tomada** — La barra superior de escritorio también es Obsidiana (marco en «L»).
+- **suposición tomada** (validada 2026-11-05; revisada a claro) — La barra superior de escritorio comparte el tono del marco (marco en «L»).
   *Base:* la opción elegida habla de sidebar y barra superior. *Riesgo:* si se prefiere solo la
-  sidebar oscura, cambia la referencia, no el resto del spec.
-- **suposición tomada** — Las entradas escalonadas solo ocurren en la primera carga de una pantalla,
+  marco solo lateral, cambia la referencia, no el resto del spec.
+- **suposición tomada** (validada 2026-11-05) — Las entradas escalonadas solo ocurren en la primera carga de una pantalla,
   no al refiltrar ni al paginar, y duran menos de medio segundo en total. *Base:* jornadas largas;
   el movimiento repetido en cada filtro cansa. *Riesgo:* si se quiere animar también al refiltrar,
   cambia el criterio de movimiento.
-- **suposición tomada** — Pipeline incluye la lista de Clientes (`/pipeline/clientes`) y el
+- **suposición tomada** (validada 2026-11-05) — Pipeline incluye la lista de Clientes (`/pipeline/clientes`) y el
   historial; Proyectos incluye la lista y la cabecera del detalle; «calendario» privado significa
   Citas agendadas. *Base:* auditoría y navegación actual. *Riesgo:* ampliar a tipos de cita y
   disponibilidad suma dos pantallas.
-- **suposición tomada** — Los iconos se unifican en una sola familia (la que ya usa la mayoría del
+- **suposición tomada** (validada 2026-11-05) — Los iconos se unifican en una sola familia (la que ya usa la mayoría del
   código). *Base:* `DESIGN.md` exige una gramática y la auditoría vio dos familias mezcladas.
   *Riesgo:* bajo.
-- **suposición tomada** — La verificación en navegador se hace contra la base de datos de
+- **suposición tomada** (validada 2026-11-05) — La verificación en navegador se hace contra la base de datos de
   producción con la sesión del dueño, solo leyendo. *Base:* no hay seed ni entorno de pruebas.
   *Riesgo:* cualquier acción de escritura durante la verificación tocaría datos reales, así que no
   se hace ninguna.
 - **decisión diferida** — Modo oscuro completo de la aplicación. Otro ciclo.
 - **decisión diferida** — Llevar el lenguaje a las pantallas privadas fuera del alcance (correo,
   Docs, asistente, bóveda…). Otro ciclo.
-- **área no formulable** — Cómo se lleva el «marco oscuro» a las superficies públicas si algún día
+- **área no formulable** — Cómo se lleva el «marco claro» a las superficies públicas si algún día
   se quiere coherencia. Hoy quedan fuera por la Private-Scope Rule.
 
 ## Revisions
@@ -204,3 +209,10 @@ maqueta.
   cadena: parar para aprobación en cada fase (no autopilot). Referencia visual propuesta: maqueta.
 - 2026-11-05 — Maqueta aprobada por el dueño («Apruebo la maqueta»). Se cierra la última pregunta
   abierta; quedan suposiciones por validar y decisiones diferidas.
+- 2026-11-05 — **Spec aprobada por el dueño** («Apruebo el spec»), con las cinco suposiciones
+  validadas tal como están escritas. Estado → `clarified`. Siguiente fase: `plan`.
+- 2026-11-05 — **Revisión del dueño tras aprobar:** «lo único que quiero que cambies es el color del
+  sidebar, que sea claro» → opción «Ajuste: marco claro». Se mantiene todo el rediseño; sidebar y
+  barra superior pasan a claro (tono de sidebar de cada tema). Consecuencias: el activo pasa de Lima
+  a Índigo (Lima sobre Lavanda da 1.02:1); se anula la decisión «marco oscuro tintado por tema»;
+  la maqueta se rehace y vuelve a necesitar aprobación. Estado → `draft` hasta reaprobar.
