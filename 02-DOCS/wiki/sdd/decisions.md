@@ -53,3 +53,9 @@ Why        — Es la misma regla con la decisión nueva; (c) sería debilitar la
 Context   — El dashboard y `/api/contacts` fallaban en local con `Unknown argument hideContacts`: el cliente generado en `node_modules/.prisma` era del 5 de octubre y el esquema añadió el campo después.
 Decision   — `npx prisma generate` (aprobado por el dueño: «Sí, ambas cosas»). Solo regenera código local; no toca la base de datos ni archivos versionados.
 Effect     — tsc baja de 66 a 19 errores (los 47 restantes eran tipos de Prisma desactualizados). Para el trinquete de este trabajo se usa **19** como línea base efectiva: ninguna tarea puede subirla. La constitution (≤ 66) sigue cumpliéndose; actualizar su cifra es decisión del dueño (enmienda).
+
+## 2026-11-05 — Cierre de T003 tras la ronda 3  (feature: rediseno-obsidiana-estructural, task: T003)
+Context   — La ronda 3 (máximo del ledger) dejó 1 should-fix y 3 nits, todos de precisión en las regex del propio test de contrato (StatStrip tone/flag, extractor de clases con template literals, límites del clamp).
+Options    — (a) aparcar T003 en la cola de decisiones (bloquea T004); (b) corregir y registrar como trivial sin peso de negocio (implement, paso g).
+Decision   — (b). Corregidos y validados con fixtures de scratch: formas correctas pasan (`cn(… dragging && overlay)`, desestructuración, claves entre comillas, `Math.min(5, Math.max(0, i))`) y formas incorrectas fallan (`hover:transition-colors` y `transition-[transform]` junto a `crm-lift`, transición en `${cond ? … : "transition-colors"}`, límite 3).
+Why        — Sin cambio de alcance ni de contrato de producto; el riesgo residual es de falso rojo en T004, que se detectaría y corregiría al implementar.

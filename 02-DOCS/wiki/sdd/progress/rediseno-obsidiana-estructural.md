@@ -45,6 +45,16 @@ las skills del repo (`nextjs`, `design`).
 - controls: tests ✅ · build: tsc 66 = línea base, 0 nuevos en archivos tocados ✅; CSS compila en dev (200) ✅ · eslint 0 en archivos tocados ✅ · security: no aplica · traceability ✅ (AC4, AC5, AC6, AC12)
 - files: app/globals.css, src/lib/crm-themes.ts, DESIGN.md, PRODUCT.md, src/lib/crm-surface-style.test.ts, plan (T005, T004 Interfaces)
 
+## T003 — 2026-11-05
+- status: complete
+- red: `node --test src/components/ui/ui-contract.test.ts` → 16/16 ✖ por aserción (ninguna por E/S); `npm test` → 4 conocidos + 16 de T003.
+- contrato: 13 archivos / 15 componentes (BoardColumn, BoardCard), exports con nombre, solo tokens (sin paleta cruda, hex ni < 12 px), sin vidrio, sombras decorativas ni radios > 16 px, regla de movimiento por elemento, tokens de estado (`@theme` y `:root`, no personalizables), PageHeader h1 24/600, StatStrip dl + tabular-nums, Block h2 + acción 44 px, DataList/DataTable con `empty` obligatorio y filas ≥ 56 px, Segmented accesible, Chip por tonos, Board sin dnd propio y sombra overlay solo al arrastrar, estados vacío/error/carga anunciados, Enter acotado 0-5.
+- risk: tier 1 — 1 revisor
+- review: ronda 1 → 9 (5 should-fix); ronda 2 → 7 (3 should-fix); ronda 3 → 4 (1 should-fix, 3 nits). Ronda 3 cerrada como trivial (ver decisions.md). Ledger L15–L34 = fixed.
+- plan: «T004 — Interfaces» añade tokens de estado `--color-danger/-soft`, `--color-success/-soft` (valores de la maqueta).
+- controls: tests ✅ (rojo esperado) · build: tsc 19 = línea base efectiva, 0 en el archivo nuevo ✅ · eslint 0 ✅ · security: no aplica · traceability ✅ (AC2, AC3, AC6, AC7, AC8)
+- files: src/components/ui/ui-contract.test.ts (nuevo), plan («T004 — Interfaces»)
+
 ## Decision queue
 - **review-after** · T001 · tier 1 · ¿Vale la «tinta activa» Obsidiana en los temas noxy-memory y noxy-lime (su color de acción no llega a AA sobre blanco)? · Opciones: (a) cambiar sus colores de acción, (b) pastilla rellena, (c) tinta derivada · Recomendación: (c) · Evidencia: `decisions.md` 2026-11-05 «Tinta del destino activo».
 
