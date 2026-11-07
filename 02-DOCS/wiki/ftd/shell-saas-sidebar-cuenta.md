@@ -44,6 +44,8 @@ Fuera de alcance: el contenido de las páginas.
 - La revisión en navegador queda pendiente para la vista previa de TasteCode: sin una sesión iniciada no se llega al shell.
 - 2026-11-07: la vista previa con `npm run dev` falló porque ya había otro `next dev` corriendo en la carpeta (Next 16 bloquea `.next/dev/lock`). Se rehízo `next build` y se comprobó `npm run start -- --hostname 127.0.0.1 --port 3124`: arranca junto al dev server (✓ Ready), `/login` responde 200 y `/assistant/new` redirige a `/login` (307) sin sesión.
 
+- 2026-11-07 (petición de Noeli): «Ajustes» al pie pasa a ser un enlace directo a /settings, sin desplegable, también en el riel. La cuenta queda **solo al pie de la sidebar** (opción elegida por Noeli entre tres): se quita de la barra superior, que conserva las notificaciones. `tsc` y `eslint` limpios; `npm test`: 177 pass y los mismos 4 fallos previos de HEAD.
+
 ## Next
 
 Revisar en el navegador a 1440, 1024 y 390px con una sesión real: ramas, ⌘B, menú de cuenta, fijar y soltar en /assistant/new, y movimiento reducido.
