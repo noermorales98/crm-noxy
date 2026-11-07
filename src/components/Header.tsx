@@ -104,19 +104,23 @@ export default function Header() {
         {config.backHref && (
           <Link
             href={config.backHref}
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
+            className="flex size-11 lg:size-10 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary transition-colors"
             title="Regresar"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </Link>
         )}
-        {typeof config.title === "string" ? (
+        {/* Con PageHeader en la página, el título solo se muestra en móvil y como texto. */}
+        {config.pageHeader && config.title ? (
+          <p className="flex min-w-0 items-center truncate text-base font-semibold text-text-primary lg:hidden">{config.title}</p>
+        ) : null}
+        {!config.pageHeader && (typeof config.title === "string" ? (
           <h1 className="truncate text-base font-bold text-text-primary sm:text-lg">{config.title}</h1>
         ) : config.title ? (
           <div className="flex min-w-0 items-center">{config.title}</div>
-        ) : null}
+        ) : null)}
         {(config.titleBadge || config.titleBadge === 0) && (
-          <span className="px-2 py-0.5 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full shrink-0">
+          <span className={`shrink-0 rounded-full bg-surface-elevated px-2 py-0.5 text-xs font-semibold tabular-nums text-text-secondary ${config.pageHeader ? "lg:hidden" : ""}`}>
             {config.titleBadge}
           </span>
         )}
@@ -130,7 +134,7 @@ export default function Header() {
           <div className="relative" ref={sortRef}>
             <button
               onClick={() => { setSortOpen(!sortOpen); setFiltersOpen(false); setNotifOpen(false); }}
-              className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${
+              className={`flex h-11 w-11 items-center justify-center gap-1.5 lg:h-10 rounded-lg text-sm font-medium transition-colors sm:w-auto sm:px-3 ${
                 sortField
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
@@ -164,7 +168,7 @@ export default function Header() {
                   </button>
                 ))}
                 {sortField && (
-                  <div className="border-t border-border-subtle mt-1 pt-1">
+                  <div className="border-t border-line mt-1 pt-1">
                     <button
                       onClick={() => { setSort(""); setSortOpen(false); }}
                       className="w-full px-4 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-sidebar text-left"
@@ -183,7 +187,7 @@ export default function Header() {
           <div className="relative" ref={filtersRef}>
             <button
               onClick={() => { setFiltersOpen(!filtersOpen); setSortOpen(false); setNotifOpen(false); }}
-              className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${
+              className={`flex h-11 w-11 items-center justify-center gap-1.5 lg:h-10 rounded-lg text-sm font-medium transition-colors sm:w-auto sm:px-3 ${
                 activeFilterCount > 0
                   ? "bg-nav-active text-text-primary"
                   : "text-text-secondary hover:text-text-primary hover:bg-nav-hover"
@@ -192,7 +196,7 @@ export default function Header() {
               <HugeiconsIcon icon={SlidersHorizontalIcon} size={14} />
               <span className="hidden sm:inline">Filtros</span>
               {activeFilterCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-white text-text-primary text-[10px] font-bold flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-white text-text-primary text-xs font-bold flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -202,7 +206,7 @@ export default function Header() {
               <div className="crm-floating-menu absolute left-0 z-[80] mt-2 flex w-56 flex-col gap-4 rounded-lg bg-surface-elevated p-4">
                 {config.filterGroups!.map((group) => (
                   <div key={group.key}>
-                    <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">{group.label}</p>
+                    <p className="mb-2 text-xs font-semibold text-text-secondary">{group.label}</p>
                     <select
                       value={activeFilters[group.key] || ""}
                       onChange={(e) => setFilter(group.key, e.target.value)}
@@ -232,7 +236,7 @@ export default function Header() {
         {config.addButton && (
           <button
             onClick={config.addButton.onClick}
-            className={`flex size-8 items-center justify-center gap-1.5 rounded-lg bg-action-primary text-sm font-medium text-action-primary-foreground transition-opacity hover:opacity-90 sm:h-auto sm:w-auto sm:px-3 sm:py-1.5 ${config.addButton.hideOnMobile ? "max-sm:hidden" : ""}`}
+            className={`flex h-11 w-11 items-center justify-center gap-1.5 lg:h-10 rounded-lg bg-action-primary text-sm font-medium text-action-primary-foreground transition-opacity hover:opacity-90 sm:w-auto sm:px-3 ${config.addButton.hideOnMobile ? "max-sm:hidden" : ""}`}
           >
             <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
             <span className="hidden sm:inline">{config.addButton.label}</span>
@@ -245,18 +249,18 @@ export default function Header() {
         ))}
 
         {/* Global search */}
-        <GlobalSearchTrigger compact className="w-64 max-xl:w-40 max-sm:w-9 max-sm:px-2.5" />
+        <GlobalSearchTrigger compact className="w-64 max-xl:w-40 max-sm:w-11 max-sm:px-3" />
 
         {/* ── Notification Bell ── */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); setSortOpen(false); setFiltersOpen(false); }}
-            className="relative flex size-8 items-center justify-center rounded-lg bg-white/80 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
+            className="relative flex size-11 lg:size-10 items-center justify-center rounded-lg bg-surface-elevated text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
             title="Notificaciones"
           >
             <HugeiconsIcon icon={Notification01Icon} size={17} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-danger text-white text-xs font-bold rounded-full flex items-center justify-center leading-none">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
@@ -265,7 +269,7 @@ export default function Header() {
           {notifOpen && (
             <div className="crm-floating-menu absolute right-0 z-[80] mt-2 w-80 overflow-hidden rounded-lg bg-surface-elevated">
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-line">
                 <p className="text-sm font-bold text-text-primary">Notificaciones</p>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
@@ -290,7 +294,7 @@ export default function Header() {
               </div>
 
               {/* List */}
-              <div className="max-h-96 overflow-y-auto divide-y divide-border-subtle">
+              <div className="max-h-96 overflow-y-auto divide-y divide-line">
                 {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-10 text-text-secondary">
                     <HugeiconsIcon icon={Notification01Icon} size={28} color="#d1d5db" />
@@ -316,7 +320,7 @@ export default function Header() {
         <div className="relative ml-1 hidden sm:block" ref={userMenuRef}>
           <button
             onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-            className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+            className="size-11 lg:size-10 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
             title={session?.user?.name || "Usuario"}
           >
             <img src={userAvatarSrc(session?.user?.sexo)} alt={session?.user?.name || "Usuario"} className="h-full w-full object-cover" />
@@ -324,7 +328,7 @@ export default function Header() {
 
           {userMenuOpen && (
             <div className="crm-floating-menu absolute right-0 z-[80] mt-2 w-52 rounded-lg bg-surface-elevated py-1">
-              <div className="px-4 py-3 border-b border-border-subtle">
+              <div className="px-4 py-3 border-b border-line">
                 <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                 <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
               </div>
@@ -356,7 +360,7 @@ export default function Header() {
                   Configuración
                 </Link>
               )}
-              <div className="border-t border-border-subtle mt-1 pt-1">
+              <div className="border-t border-line mt-1 pt-1">
                 <button
                   onClick={() => signOut()}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
@@ -390,10 +394,10 @@ function HeaderActionButton({ action }: { action: HeaderAction }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const buttonClass = `relative flex size-8 items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
+  const buttonClass = `relative flex size-11 lg:size-10 items-center justify-center rounded-lg transition-colors disabled:opacity-50 ${
     action.active
       ? "bg-action-primary text-action-primary-foreground hover:opacity-90"
-      : "bg-white/80 text-text-secondary hover:text-text-primary hover:bg-nav-hover"
+      : "bg-surface-elevated text-text-secondary hover:text-text-primary hover:bg-nav-hover"
   }`;
   const icon = <HugeiconsIcon icon={action.icon} size={16} className={action.spinning ? "animate-spin" : ""} />;
 
@@ -487,7 +491,7 @@ function NotificationItem({
         {notification.body && (
           <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{notification.body}</p>
         )}
-        <p className="text-[10px] text-gray-300 mt-1">{timeAgo(notification.createdAt)}</p>
+        <p className="mt-1 text-xs text-text-secondary">{timeAgo(notification.createdAt)}</p>
       </div>
       <div className="flex items-center gap-1 shrink-0 mt-1">
         {!notification.isRead && (

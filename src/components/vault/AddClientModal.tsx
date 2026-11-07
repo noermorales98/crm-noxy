@@ -53,8 +53,8 @@ export default function AddClientModal({
 
   return (
     <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+      <div className="bg-surface-elevated rounded-lg w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line">
           <h2 className="text-base font-bold text-text-primary">Nuevo cliente</h2>
           <button onClick={onClose} className="p-1 text-text-secondary hover:text-text-primary rounded-lg">
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
@@ -87,18 +87,18 @@ export default function AddClientModal({
               placeholder="Opcional"
             />
           </div>
-          <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
+          <div className="flex gap-3 pt-2 border-t border-line mt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
+              className="flex-1 py-2.5 font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg text-sm transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {saving ? "Guardando…" : "Crear cliente"}
             </button>

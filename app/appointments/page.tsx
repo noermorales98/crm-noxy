@@ -2,15 +2,29 @@
 
 import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CalendarCheckIn01Icon, Clock01Icon, User02Icon, Mail01Icon, CallIcon, CheckmarkCircle01Icon, Cancel01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
+import { Clock01Icon, User02Icon, Mail01Icon, CallIcon, CheckmarkCircle01Icon, Cancel01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
+import { Chip, DataList, EmptyState, Enter, ErrorState, FilterBar, PageHeader, Segmented, Skeleton, type ChipTone } from "@/src/components/ui";
 
-const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "bg-blue-50 text-blue-700 border border-blue-100",
-  COMPLETED: "bg-green-50 text-green-700 border border-green-100",
-  CANCELLED: "bg-red-50 text-red-500 border border-red-100",
+type AppointmentRow = {
+  id: string;
+  status: string;
+  startTime: string;
+  endTime: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone?: string | null;
+  notes?: string | null;
+  appointmentType?: { name?: string | null; color?: string | null } | null;
+};
+
+// Estado de la cita (semántico): confirmada = neutral, completada = éxito, cancelada = error.
+const STATUS_TONES: Record<string, ChipTone> = {
+  CONFIRMED: "neutral",
+  COMPLETED: "done",
+  CANCELLED: "late",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -27,9 +41,12 @@ const FILTER_TABS = [
 ];
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState("ALL");
+  // Solo la primera carga (sin datos todavía) muestra el esqueleto; una recarga no hace parpadear la cabecera.
+  const firstLoad = isLoading && appointments.length === 0 && !loadError;
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState } = useHeader();
@@ -41,27 +58,52 @@ export default function AppointmentsPage() {
   useEffect(() => {
     setConfig({
       title: "Citas agendadas",
-      titleBadge: isLoading ? undefined : appointments.length,
+      titleBadge: firstLoad ? undefined : appointments.length,
+      pageHeader: true,
     });
     return () => setConfig({});
-  }, [isLoading, appointments.length]);
+  }, [firstLoad, appointments.length]);
 
   useEffect(() => { fetchAppointments(); }, []);
 
-  const fetchAppointments = async () => {
+  // `refresh`: recarga tras una acción; si falla, la lista ya cargada se queda y se avisa con un toast.
+  const fetchAppointments = async ({ refresh = false }: { refresh?: boolean } = {}) => {
     setIsLoading(true);
-    const res = await fetch("/api/appointments");
-    if (res.ok) setAppointments(await res.json());
+    if (!refresh) setLoadError(false);
+    let ok = false;
+    try {
+      const res = await fetch("/api/appointments");
+      if (res.ok) {
+        setAppointments(await res.json());
+        setLoadError(false);
+        ok = true;
+      }
+    } catch {
+      // se trata abajo
+    }
+    if (!ok) {
+      if (refresh) addToast("No se pudo actualizar la lista de citas.", "error");
+      else setLoadError(true);
+    }
     setIsLoading(false);
   };
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(`/api/appointments/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    fetchAppointments();
+    try {
+      const res = await fetch(`/api/appointments/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        addToast("No se pudo actualizar la cita.", "error");
+        return;
+      }
+    } catch {
+      addToast("Error de red.", "error");
+      return;
+    }
+    fetchAppointments({ refresh: true });
   };
 
   const handleDelete = async (id: string) => {
@@ -75,7 +117,7 @@ export default function AppointmentsPage() {
     if (!isConfirmed) return;
     try {
       const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" });
-      if (res.ok) { addToast("Cita eliminada y horario liberado.", "success"); fetchAppointments(); }
+      if (res.ok) { addToast("Cita eliminada y horario liberado.", "success"); fetchAppointments({ refresh: true }); }
       else addToast("Error al eliminar.", "error");
     } catch { addToast("Error de red.", "error"); }
   };
@@ -89,110 +131,123 @@ export default function AppointmentsPage() {
     CANCELLED: appointments.filter(a => a.status === "CANCELLED").length,
   };
 
-  return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
-
-          {/* Page header */}
-          <div className="mb-6">
-            <p className="text-sm text-text-secondary">Visualiza y gestiona todas las citas de tus clientes.</p>
+  const renderAppointment = (appt: AppointmentRow) => {
+    const start = new Date(appt.startTime);
+    const end = new Date(appt.endTime);
+    const time = (d: Date) => d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+    return (
+      <div className="flex w-full min-w-0 flex-col gap-3 py-2 sm:flex-row sm:items-start">
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          {/* Color del tipo de cita (dato configurado por el usuario). */}
+          <span className="w-1 self-stretch rounded-full" style={{ backgroundColor: appt.appointmentType?.color || "#3545D6" }} aria-hidden="true" />
+          <div className="w-14 shrink-0 rounded-control border border-line bg-surface-sidebar px-2 py-1.5 text-center">
+            <div className="text-xs font-semibold text-text-secondary">{start.toLocaleDateString("es-MX", { month: "short" })}</div>
+            <div className="text-2xl font-semibold leading-none tabular-nums text-text-primary">{start.getDate()}</div>
           </div>
-
-          {/* Filter tabs */}
-          <div className="flex items-center border-b border-border-subtle mb-6 gap-1">
-            {FILTER_TABS.map(tab => (
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-text-primary">{appt.appointmentType?.name || "Cita"}</span>
+              <Chip tone={STATUS_TONES[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] || appt.status}</Chip>
+            </div>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
+              <HugeiconsIcon icon={Clock01Icon} size={14} />
+              <span className="tabular-nums">
+                {time(start)} a {time(end)} · {start.toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+              </span>
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-text-secondary">
+              <span className="inline-flex min-w-0 items-center gap-1.5"><HugeiconsIcon icon={User02Icon} size={14} />{appt.guestName}</span>
+              <a href={`mailto:${appt.guestEmail}`} className="inline-flex min-h-11 min-w-0 items-center gap-1.5 hover:text-action-primary lg:min-h-0">
+                <HugeiconsIcon icon={Mail01Icon} size={14} />
+                <span className="truncate">{appt.guestEmail}</span>
+              </a>
+              {appt.guestPhone && (
+                <a href={`tel:${appt.guestPhone}`} className="inline-flex min-h-11 items-center gap-1.5 tabular-nums hover:text-action-primary lg:min-h-0">
+                  <HugeiconsIcon icon={CallIcon} size={14} />
+                  {appt.guestPhone}
+                </a>
+              )}
+            </div>
+            {appt.notes && <p className="mt-2 rounded-control bg-surface-sidebar px-3 py-2 text-sm text-text-secondary">{appt.notes}</p>}
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
+          {appt.status === "CONFIRMED" && (
+            <>
               <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${filter === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
+                type="button"
+                onClick={() => updateStatus(appt.id, "COMPLETED")}
+                className="crm-press inline-flex min-h-11 items-center gap-1.5 rounded-control border border-line bg-surface-elevated px-3 text-sm font-semibold text-success hover:bg-success-soft lg:min-h-9"
               >
-                {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${filter === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>
-                  {counts[tab.key as keyof typeof counts]}
-                </span>
+                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} /> Completar
               </button>
-            ))}
-          </div>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
-                <HugeiconsIcon icon={CalendarCheckIn01Icon} size={28} color="#9ca3af" />
-              </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">
-                {filter === "ALL" ? "Sin citas" : `Sin citas ${STATUS_LABELS[filter]?.toLowerCase() || ""}`}
-              </h3>
-              <p className="text-sm text-text-secondary">Las citas agendadas aparecerán aquí.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filtered.map(appt => {
-                const start = new Date(appt.startTime);
-                const end = new Date(appt.endTime);
-                return (
-                  <div key={appt.id} className="bg-white border border-border-subtle rounded-lg p-5 transition-all flex items-start justify-between gap-4 group">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      {/* Color accent */}
-                      <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType?.color || "#3545D6" }} />
-                      {/* Date badge */}
-                      <div className="w-14 shrink-0 text-center bg-surface-sidebar rounded-lg p-2 border border-border-subtle">
-                        <div className="text-[10px] font-bold uppercase text-text-secondary tracking-widest">
-                          {start.toLocaleDateString("es-MX", { month: "short" })}
-                        </div>
-                        <div className="text-2xl font-bold text-text-primary leading-none mt-0.5">
-                          {start.getDate()}
-                        </div>
-                      </div>
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                          <span className="font-bold text-text-primary">{appt.appointmentType?.name || "Cita"}</span>
-                          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_COLORS[appt.status] || "bg-gray-100 text-text-secondary"}`}>
-                            {STATUS_LABELS[appt.status] || appt.status}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-sm text-text-secondary mb-2">
-                          <HugeiconsIcon icon={Clock01Icon} size={13} />
-                          <span>
-                            {start.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })} – {end.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-                            {" · "}
-                            {start.toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-3 text-sm text-text-secondary">
-                          <div className="flex items-center gap-1.5"><HugeiconsIcon icon={User02Icon} size={13} />{appt.guestName}</div>
-                          <div className="flex items-center gap-1.5"><HugeiconsIcon icon={Mail01Icon} size={13} />{appt.guestEmail}</div>
-                          {appt.guestPhone && <div className="flex items-center gap-1.5"><HugeiconsIcon icon={CallIcon} size={13} />{appt.guestPhone}</div>}
-                        </div>
-                        {appt.notes && (
-                          <p className="text-xs text-text-secondary mt-2 italic bg-surface-sidebar px-3 py-1.5 rounded-lg">{appt.notes}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Actions */}
-                    <div className="flex flex-col gap-2 shrink-0">
-                      {appt.status === "CONFIRMED" && (
-                        <>
-                          <button onClick={() => updateStatus(appt.id, "COMPLETED")} className="flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-lg transition-colors border border-green-100">
-                            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={13} /> Completar
-                          </button>
-                          <button onClick={() => updateStatus(appt.id, "CANCELLED")} className="flex items-center gap-1.5 text-xs font-semibold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors border border-red-100">
-                            <HugeiconsIcon icon={Cancel01Icon} size={13} /> Cancelar
-                          </button>
-                        </>
-                      )}
-                      <button onClick={() => handleDelete(appt.id)} className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary hover:text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                        <HugeiconsIcon icon={Delete01Icon} size={13} /> Eliminar
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              <button
+                type="button"
+                onClick={() => updateStatus(appt.id, "CANCELLED")}
+                className="crm-press inline-flex min-h-11 items-center gap-1.5 rounded-control border border-line bg-surface-elevated px-3 text-sm font-semibold text-danger hover:bg-danger-soft lg:min-h-9"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} /> Cancelar
+              </button>
+            </>
           )}
+          <button
+            type="button"
+            onClick={() => handleDelete(appt.id)}
+            className="crm-press inline-flex min-h-11 items-center gap-1.5 rounded-control px-3 text-sm font-semibold text-text-secondary hover:bg-danger-soft hover:text-danger lg:min-h-9"
+          >
+            <HugeiconsIcon icon={Delete01Icon} size={16} /> Eliminar
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+      <Enter index={0}>
+        <PageHeader
+          title="Citas agendadas"
+          subtitle={firstLoad ? "Cargando citas…" : `${counts.CONFIRMED} confirmadas · ${counts.COMPLETED} completadas · ${counts.CANCELLED} canceladas`}
+        />
+      </Enter>
+      <Enter index={1}>
+        <FilterBar
+          segments={
+            <Segmented
+              label="Estado de las citas"
+              value={filter}
+              onChange={setFilter}
+              options={FILTER_TABS.map((tab) => ({ value: tab.key, label: `${tab.label} · ${counts[tab.key as keyof typeof counts]}` }))}
+            />
+          }
+        />
+      </Enter>
+      <Enter index={2}>
+        {firstLoad ? (
+          <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <Skeleton shape="rows" count={4} label="Cargando citas" />
+          </div>
+        ) : loadError && appointments.length === 0 ? (
+          <div className="rounded-surface border border-line bg-surface-elevated">
+            <ErrorState title="No se pudieron cargar las citas" onRetry={() => fetchAppointments()} />
+          </div>
+        ) : (
+          <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <DataList
+              label="Citas agendadas"
+              rows={filtered}
+              getKey={(a) => a.id}
+              renderRow={renderAppointment}
+              empty={
+                <EmptyState
+                  title={filter === "ALL" ? "Sin citas" : `Sin citas ${STATUS_LABELS[filter]?.toLowerCase() || ""}`}
+                  body="Las citas que agenden tus clientes aparecerán aquí."
+                />
+              }
+            />
+          </section>
+        )}
+      </Enter>
     </main>
   );
 }

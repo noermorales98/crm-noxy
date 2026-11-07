@@ -65,8 +65,8 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
   };
 
   return (
-    <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-      <div className="px-6 py-4 border-b border-border-subtle">
+    <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+      <div className="px-6 py-4 border-b border-line">
         <h2 className="text-sm font-bold text-text-primary">Avisos WhatsApp extra</h2>
         <p className="text-xs text-text-secondary mt-0.5">
           Además del owner, estos números reciben un aviso CallMeBot cuando alguien se registra en este formulario.
@@ -78,7 +78,7 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
         ) : recipients.length === 0 ? (
           <p className="text-xs text-text-secondary">Aún no hay destinatarios extra.</p>
         ) : (
-          <ul className="divide-y divide-gray-50 border border-border-subtle rounded-lg overflow-hidden">
+          <ul className="divide-y divide-line border border-line rounded-lg overflow-hidden">
             {recipients.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                 <div className="min-w-0">
@@ -88,8 +88,9 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
                 <button
                   type="button"
                   onClick={() => handleDelete(r.id)}
-                  className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-9"
                   title="Eliminar"
+                  aria-label={`Eliminar ${r.label || r.phone}`}
                 >
                   <HugeiconsIcon icon={Delete01Icon} size={15} />
                 </button>
@@ -100,24 +101,25 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
 
         <form onSubmit={handleAdd} className="flex flex-col gap-2">
           <input
-            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
             placeholder="Nombre (ej. Ana)"
             value={form.label}
             onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
           />
           <input
-            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
             placeholder="Teléfono con lada (ej. +5215512345678)"
             value={form.phone}
             onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
           />
           <input
-            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
             placeholder="API key de CallMeBot"
             value={form.apiKey}
             onChange={(e) => setForm((f) => ({ ...f, apiKey: e.target.value }))}
           />
-          <p className="text-xs text-text-secondary">
+          {/* Enlace en línea dentro de una frase: exento del tamaño mínimo de toque. */}
+          <p className="text-xs text-text-secondary" data-check-ignore-tap>
             Obtén la API key enviando &quot;I allow callmebot to send me messages&quot; al número de{" "}
             <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-primary hover:underline">
               CallMeBot
@@ -127,7 +129,7 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
           <button
             type="submit"
             disabled={saving || !form.phone.trim() || !form.apiKey.trim()}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-semibold disabled:opacity-50"
+            className="crm-press inline-flex min-h-11 items-center justify-center gap-1.5 px-3 py-2.5 rounded-control bg-action-primary hover:bg-action-secondary text-action-primary-foreground text-sm font-semibold disabled:opacity-50"
           >
             <HugeiconsIcon icon={Add01Icon} size={14} />
             {saving ? "Agregando…" : "Agregar número"}

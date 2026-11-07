@@ -33,14 +33,14 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
 
   return (
     <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
-      <div className="bg-white border border-border-subtle rounded-lg p-6">
+      <div className="bg-surface-elevated border border-line rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-text-primary text-sm">Descripción</h3>
         </div>
         <p className="text-sm text-text-secondary">{project.description || "Sin descripción."}</p>
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-lg p-6">
+      <div className="bg-surface-elevated border border-line rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-text-primary text-sm">Asociaciones</h3>
         </div>
@@ -49,12 +49,12 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {associations.map((a) => (
-              <Link key={a.label} href={a.href} className="flex items-center gap-3 p-3 rounded-lg border border-border-subtle hover:bg-nav-hover transition-colors">
+              <Link key={a.label} href={a.href} className="flex items-center gap-3 p-3 rounded-lg border border-line hover:bg-nav-hover transition-colors">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: a.bg }}>
                   <HugeiconsIcon icon={a.icon} size={16} color={a.color} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">{a.label}</p>
+                  <p className="text-xs font-semibold text-text-secondary">{a.label}</p>
                   <p className="text-sm font-semibold text-text-primary truncate">{a.name}</p>
                 </div>
               </Link>
@@ -64,19 +64,19 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-border-subtle rounded-lg p-6">
+        <div className="bg-surface-elevated border border-line rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <HugeiconsIcon icon={BrowserIcon} size={18} color="#22c55e" />
             <h3 className="font-bold text-text-primary text-sm">Formularios</h3>
-            <span className="ml-auto bg-gray-100 text-text-secondary text-xs font-bold px-2 py-0.5 rounded-full">{project.forms.length}</span>
+            <span className="ml-auto bg-surface-sidebar text-text-secondary text-xs font-bold px-2 py-0.5 rounded-full">{project.forms.length}</span>
           </div>
           {project.forms.length === 0 ? (
             <p className="text-sm text-text-secondary text-center py-6">Sin formularios vinculados</p>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-line">
               {project.forms.map((f) => (
                 <li key={f.id} className="py-2.5 flex items-center justify-between gap-2">
-                  <Link href={`/projects/${id}/registros?formId=${f.id}`} className="text-sm font-medium text-text-primary truncate hover:text-action-primary">
+                  <Link href={`/projects/${id}/registros?formId=${f.id}`} className="block min-h-11 truncate text-sm font-medium leading-[44px] text-text-primary hover:text-action-primary lg:min-h-0 lg:leading-normal">
                     {f.name}
                   </Link>
                   <span className="text-xs text-text-secondary shrink-0">
@@ -86,30 +86,30 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
               ))}
             </ul>
           )}
-          <Link href={`/forms?projectId=${id}`} className="flex items-center justify-between text-xs font-semibold text-text-secondary hover:text-text-primary mt-4 pt-4 border-t border-border-subtle">
+          <Link href={`/forms?projectId=${id}`} className="mt-4 flex min-h-11 items-center justify-between border-t border-line pt-4 text-sm font-semibold text-text-secondary hover:text-text-primary lg:min-h-0 lg:text-xs">
             Ver en Formularios <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
           </Link>
         </div>
 
-        <div className="bg-white border border-border-subtle rounded-lg p-6">
+        <div className="bg-surface-elevated border border-line rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <HugeiconsIcon icon={Mail01Icon} size={18} color="#f97316" />
             <h3 className="font-bold text-text-primary text-sm">Campañas</h3>
-            <span className="ml-auto bg-gray-100 text-text-secondary text-xs font-bold px-2 py-0.5 rounded-full">{project.campaigns.length}</span>
+            <span className="ml-auto bg-surface-sidebar text-text-secondary text-xs font-bold px-2 py-0.5 rounded-full">{project.campaigns.length}</span>
           </div>
           {project.campaigns.length === 0 ? (
             <p className="text-sm text-text-secondary text-center py-6">Sin campañas vinculadas</p>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-line">
               {project.campaigns.map((c) => (
                 <li key={c.id} className="py-2.5 flex items-center justify-between">
                   <span className="text-sm font-medium text-text-primary truncate max-w-[200px]">{c.subject}</span>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${c.status === "COMPLETED" ? "bg-green-50 text-green-700" : c.status === "SENDING" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-text-secondary"}`}>{c.status}</span>
+                  <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${c.status === "COMPLETED" ? "bg-green-50 text-green-700" : c.status === "SENDING" ? "bg-blue-50 text-blue-700" : "bg-surface-sidebar text-text-secondary"}`}>{c.status}</span>
                 </li>
               ))}
             </ul>
           )}
-          <Link href={`/campaigns?projectId=${id}`} className="flex items-center justify-between text-xs font-semibold text-text-secondary hover:text-text-primary mt-4 pt-4 border-t border-border-subtle">
+          <Link href={`/campaigns?projectId=${id}`} className="mt-4 flex min-h-11 items-center justify-between border-t border-line pt-4 text-sm font-semibold text-text-secondary hover:text-text-primary lg:min-h-0 lg:text-xs">
             Ver en Campañas <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
           </Link>
         </div>

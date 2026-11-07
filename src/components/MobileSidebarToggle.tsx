@@ -1,5 +1,7 @@
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Menu01Icon } from "@hugeicons/core-free-icons";
 import { useOptionalMobileChrome } from "@/src/context/MobileChromeContext";
 
 export default function MobileSidebarToggle({
@@ -16,19 +18,9 @@ export default function MobileSidebarToggle({
       aria-label="Mostrar barra lateral"
       aria-controls="assistant-sidebar"
       onClick={() => mobileChrome.openMobileSidebar()}
-      className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden ${className}`}
+      className={`flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-elevated/60 hover:text-text-primary lg:hidden ${className}`}
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.8}
-        stroke="currentColor"
-        className="size-[18px]"
-        aria-hidden="true"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
-      </svg>
+      <HugeiconsIcon icon={Menu01Icon} size={20} aria-hidden="true" />
     </button>
   );
 }

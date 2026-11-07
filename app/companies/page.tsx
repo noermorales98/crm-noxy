@@ -1,21 +1,31 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Delete01Icon, Building04Icon, Cancel01Icon, ServerStack01Icon, GlobeIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { Chip, DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
 
 function CompanyAvatar({ name }: { name: string }) {
   const colors = ["bg-blue-100 text-blue-700", "bg-purple-100 text-purple-700", "bg-green-100 text-green-700", "bg-amber-100 text-amber-700", "bg-rose-100 text-rose-700", "bg-cyan-100 text-cyan-700"];
   const color = colors[name.charCodeAt(0) % colors.length];
   return (
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 ${color}`}>
+    <div className={`flex size-9 shrink-0 items-center justify-center rounded-control text-sm font-semibold ${color}`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );
 }
+
+type CompanyRow = {
+  id: string;
+  name: string;
+  industry?: string | null;
+  website?: string | null;
+  hideContacts?: boolean;
+  _count?: { contacts?: number };
+};
 
 export default function CompaniesPage() {
   const { addToast } = useToast();
@@ -24,6 +34,7 @@ export default function CompaniesPage() {
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: "", website: "", industry: "" });
@@ -34,6 +45,11 @@ export default function CompaniesPage() {
   const [testEmail, setTestEmail] = useState("");
   const [isSavingSmtp, setIsSavingSmtp] = useState(false);
   const [isTestingSmtp, setIsTestingSmtp] = useState(false);
+
+  const companyDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(companyDialogRef, showModal, () => setShowModal(false));
+  const smtpDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(smtpDialogRef, showSmtpModal, () => setShowSmtpModal(false));
 
   useEffect(() => {
     resetState();
@@ -48,7 +64,7 @@ export default function CompaniesPage() {
         { label: "Industria", value: "industry" },
         { label: "Contactos", value: "contacts" },
       ],
-      addButton: { label: "Agregar empresa", onClick: () => { setEditingId(null); setFormData({ name: "", website: "", industry: "" }); setShowModal(true); } },
+      pageHeader: true,
     });
     return () => setConfig({});
   }, [loading, companies.length]);
@@ -56,11 +72,19 @@ export default function CompaniesPage() {
   useEffect(() => { fetchCompanies(); }, []);
 
   const fetchCompanies = async () => {
+    setLoadError(false);
     try {
       const res = await fetch("/api/companies");
       if (res.ok) setCompanies(await res.json());
-    } catch (error) { console.error(error); }
+      else setLoadError(true);
+    } catch (error) { console.error(error); setLoadError(true); }
     finally { setLoading(false); }
+  };
+
+  const openCreateModal = () => {
+    setEditingId(null);
+    setFormData({ name: "", website: "", industry: "" });
+    setShowModal(true);
   };
 
   const displayed = useMemo(() => {
@@ -161,106 +185,151 @@ export default function CompaniesPage() {
     } catch { addToast("Error al probar la conexión.", "error"); } finally { setIsTestingSmtp(false); }
   };
 
+  const primaryAction = (
+    <button
+      type="button"
+      onClick={openCreateModal}
+      className="crm-press inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary lg:min-h-10"
+    >
+      Agregar empresa
+    </button>
+  );
+
+  const rowActions = (c: CompanyRow) => (
+    <div className="flex items-center justify-end gap-1">
+      <button
+        type="button"
+        onClick={() => openEditModal(c)}
+        aria-label={`Editar ${c.name}`}
+        className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-action-primary lg:size-9"
+      >
+        <HugeiconsIcon icon={PencilEdit01Icon} size={16} />
+      </button>
+      <button
+        type="button"
+        onClick={() => handleDelete(c)}
+        aria-label={`Eliminar ${c.name}`}
+        className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-9"
+      >
+        <HugeiconsIcon icon={Delete01Icon} size={16} />
+      </button>
+    </div>
+  );
+
+  const contactsCell = (c: CompanyRow) => (
+    <div className="flex flex-wrap items-center gap-2">
+      <Chip>{`${c._count?.contacts || 0}`}</Chip>
+      {c.hideContacts && <Chip tone="late">Contactos ocultos</Chip>}
+      <button
+        type="button"
+        onClick={() => toggleHideContacts(c)}
+        className="inline-flex min-h-11 items-center rounded-control px-2 text-xs font-semibold text-text-secondary hover:text-text-primary lg:min-h-8"
+      >
+        {c.hideContacts ? "Mostrar" : "Ocultar"}
+      </button>
+    </div>
+  );
+
+  const smtpButton = (c: CompanyRow) => (
+    <button
+      type="button"
+      onClick={() => openSmtpModal(c)}
+      className="crm-press inline-flex min-h-11 items-center gap-1.5 rounded-control border border-line bg-surface-elevated px-3 text-xs font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-8"
+    >
+      <HugeiconsIcon icon={ServerStack01Icon} size={14} />
+      Configurar
+    </button>
+  );
+
+  const website = (c: CompanyRow) =>
+    c.website ? (
+      <a
+        href={c.website.startsWith("http") ? c.website : `https://${c.website}`}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex min-h-11 items-center gap-1.5 font-medium text-action-primary hover:text-action-secondary lg:min-h-0"
+      >
+        <HugeiconsIcon icon={GlobeIcon} size={14} />
+        <span className="truncate">{c.website.replace(/^https?:\/\//, "")}</span>
+      </a>
+    ) : (
+      <span className="text-text-secondary">Sin website</span>
+    );
+
+  const columns = [
+    {
+      key: "name",
+      header: "Empresa",
+      render: (c: CompanyRow) => (
+        <div className="flex min-w-0 items-center gap-3">
+          <CompanyAvatar name={c.name} />
+          <span className="truncate font-semibold text-text-primary" title={c.name}>{c.name}</span>
+        </div>
+      ),
+    },
+    { key: "industry", header: "Industria", render: (c: CompanyRow) => (c.industry ? <Chip>{c.industry}</Chip> : <span className="text-text-secondary">Sin industria</span>) },
+    { key: "website", header: "Website", render: website },
+    { key: "contacts", header: "Contactos", render: contactsCell },
+    { key: "smtp", header: "SMTP", render: smtpButton },
+    { key: "actions", header: "Acciones", align: "right" as const, render: rowActions },
+  ];
+
+  const mobileRow = (c: CompanyRow) => (
+    <div className="flex min-w-0 flex-1 flex-col gap-2 py-1">
+      <div className="flex min-w-0 items-center gap-3">
+        <CompanyAvatar name={c.name} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-text-primary">{c.name}</p>
+          <p className="truncate text-xs text-text-secondary">{c.industry || "Sin industria"}</p>
+        </div>
+        {rowActions(c)}
+      </div>
+      <div className="flex flex-wrap items-center gap-2 pl-12">
+        {c.website && <span className="inline-flex min-h-11 max-w-full items-center">{website(c)}</span>}
+        {contactsCell(c)}
+        {smtpButton(c)}
+      </div>
+    </div>
+  );
+
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
-
-          {/* Page header */}
-          <div className="mb-6">
-            <p className="text-sm text-text-secondary">Administra las empresas y sus configuraciones de correo (SMTP).</p>
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+      <Enter index={0}>
+        <PageHeader
+          title="Empresas"
+          subtitle={loading ? "Cargando empresas…" : `${companies.length} ${companies.length === 1 ? "empresa" : "empresas"} · Cuentas y su correo (SMTP)`}
+          actions={primaryAction}
+        />
+      </Enter>
+      <Enter index={1}>
+        {loading ? (
+          <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <Skeleton shape="rows" count={6} label="Cargando empresas" />
           </div>
+        ) : loadError ? (
+          <div className="rounded-surface border border-line bg-surface-elevated">
+            <ErrorState title="No se pudieron cargar las empresas" onRetry={() => { setLoading(true); fetchCompanies(); }} />
+          </div>
+        ) : (
+          <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <DataTable
+              label="Empresas"
+              columns={columns}
+              rows={displayed}
+              getKey={(c: CompanyRow) => c.id}
+              mobileRow={mobileRow}
+              empty={<EmptyState title="No hay empresas" body="Agrega tu primera empresa para comenzar." action={primaryAction} />}
+            />
+          </section>
+        )}
+      </Enter>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
-            </div>
-          ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
-                <HugeiconsIcon icon={Building04Icon} size={28} color="#9ca3af" />
-              </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">No hay empresas</h3>
-              <p className="text-sm text-text-secondary">Agrega tu primera empresa para comenzar.</p>
-            </div>
-          ) : (
-            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-surface-sidebar/60">
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Empresa</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Industria</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Website</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Contactos</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">SMTP</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {displayed.map((c) => (
-                    <tr key={c.id} className="hover:bg-surface-sidebar/50 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <CompanyAvatar name={c.name} />
-                          <span className="font-semibold text-text-primary">{c.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {c.industry ? (
-                          <span className="px-2.5 py-1 bg-gray-100 text-text-secondary text-xs font-semibold rounded-full">{c.industry}</span>
-                        ) : <span className="text-text-secondary">—</span>}
-                      </td>
-                      <td className="px-6 py-4">
-                        {c.website ? (
-                          <a href={c.website.startsWith("http") ? c.website : `https://${c.website}`} target="_blank" className="flex items-center gap-1.5 text-action-primary hover:text-action-secondary font-medium">
-                            <HugeiconsIcon icon={GlobeIcon} size={13} />
-                            {c.website.replace(/^https?:\/\//, "")}
-                          </a>
-                        ) : <span className="text-text-secondary">—</span>}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="px-2.5 py-1 bg-nav-hover text-action-primary text-xs font-semibold rounded-full">{c._count?.contacts || 0}</span>
-                          {c.hideContacts && (
-                            <span className="px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full">Contactos ocultos</span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => toggleHideContacts(c)}
-                            className="text-xs font-semibold text-text-secondary hover:text-text-primary"
-                          >
-                            {c.hideContacts ? "Mostrar" : "Ocultar"}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button onClick={() => openSmtpModal(c)} className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">
-                          <HugeiconsIcon icon={ServerStack01Icon} size={13} />
-                          Configurar
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openEditModal(c)} className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Editar">
-                            <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
-                          </button>
-                          <button onClick={() => handleDelete(c)} className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
-                            <HugeiconsIcon icon={Delete01Icon} size={15} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Create/Edit Modal */}
           {showModal && (
             <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
-                  <h2 className="text-base font-bold text-text-primary">{editingId ? "Editar empresa" : "Agregar empresa"}</h2>
-                  <button onClick={() => setShowModal(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
+              <div ref={companyDialogRef} role="dialog" aria-modal="true" aria-labelledby="company-modal-title" className="w-full max-w-md overflow-hidden rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+                <div className="flex items-center justify-between px-6 py-5 border-b border-line">
+                  <h2 id="company-modal-title" className="text-base font-semibold text-text-primary">{editingId ? "Editar empresa" : "Agregar empresa"}</h2>
+                  <button type="button" onClick={() => setShowModal(false)} aria-label="Cerrar" className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-9">
                     <HugeiconsIcon icon={Cancel01Icon} size={20} />
                   </button>
                 </div>
@@ -278,8 +347,8 @@ export default function CompaniesPage() {
                     <input type="text" value={formData.industry} onChange={e => setFormData({ ...formData, industry: e.target.value })} className={inputCls} placeholder="Tecnología, Retail..." />
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
-                    <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
+                    <button type="button" onClick={() => setShowModal(false)} className="inline-flex min-h-11 items-center justify-center lg:min-h-10 px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-control transition-colors">Cancelar</button>
+                    <button type="submit" className="inline-flex min-h-11 items-center justify-center lg:min-h-10 px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-action-secondary rounded-lg transition-colors">{editingId ? "Guardar cambios" : "Crear empresa"}</button>
                   </div>
                 </form>
               </div>
@@ -289,13 +358,13 @@ export default function CompaniesPage() {
           {/* SMTP Modal */}
           {showSmtpModal && (
             <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden">
-                <div className="flex items-start justify-between px-6 py-5 border-b border-border-subtle">
+              <div ref={smtpDialogRef} role="dialog" aria-modal="true" aria-labelledby="smtp-modal-title" className="w-full max-w-lg overflow-hidden rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+                <div className="flex items-start justify-between px-6 py-5 border-b border-line">
                   <div>
-                    <h2 className="text-base font-bold text-text-primary">Configuración SMTP</h2>
+                    <h2 id="smtp-modal-title" className="text-base font-semibold text-text-primary">Configuración SMTP</h2>
                     <p className="text-xs text-text-secondary mt-0.5">Los correos de <span className="font-semibold">{currentSmtpCompany?.name}</span> se enviarán con estas credenciales.</p>
                   </div>
-                  <button onClick={() => setShowSmtpModal(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
+                  <button type="button" onClick={() => setShowSmtpModal(false)} aria-label="Cerrar" className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-9">
                     <HugeiconsIcon icon={Cancel01Icon} size={20} />
                   </button>
                 </div>
@@ -317,26 +386,26 @@ export default function CompaniesPage() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-text-primary">Contraseña SMTP</label>
                     <input type="password" value={smtpData.smtpPass} onChange={e => setSmtpData({ ...smtpData, smtpPass: e.target.value })} className={inputCls} placeholder="••••••••" />
-                    <p className="text-[10px] text-text-secondary">Dejar vacío para no cambiar la contraseña actual.</p>
+                    <p className="text-xs text-text-secondary">Dejar vacío para no cambiar la contraseña actual.</p>
                   </div>
                   <label className="flex items-center gap-2.5 cursor-pointer">
-                    <input type="checkbox" checked={smtpData.smtpSecure} onChange={e => setSmtpData({ ...smtpData, smtpSecure: e.target.checked })} className="rounded border-border-subtle w-4 h-4" />
+                    <input type="checkbox" checked={smtpData.smtpSecure} onChange={e => setSmtpData({ ...smtpData, smtpSecure: e.target.checked })} className="rounded border-line w-4 h-4" />
                     <span className="text-sm font-medium text-text-primary">Usar conexión segura (SSL/TLS)</span>
                   </label>
 
-                  <div className="mt-2 pt-4 border-t border-border-subtle">
+                  <div className="mt-2 pt-4 border-t border-line">
                     <p className="text-sm font-semibold text-text-primary mb-3">Probar conexión</p>
                     <div className="flex gap-2">
                       <input type="email" value={testEmail} onChange={e => setTestEmail(e.target.value)} className={inputCls + " flex-1"} placeholder="correo@prueba.com" />
-                      <button type="button" onClick={handleSmtpTest} disabled={isTestingSmtp} className="px-4 py-2.5 text-sm font-semibold text-text-primary border border-border-subtle bg-white hover:bg-surface-sidebar rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap">
+                      <button type="button" onClick={handleSmtpTest} disabled={isTestingSmtp} className="inline-flex min-h-11 items-center justify-center lg:min-h-10 px-4 py-2.5 text-sm font-semibold text-text-primary border border-line bg-surface-elevated hover:bg-surface-sidebar rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap">
                         {isTestingSmtp ? "Probando..." : "Enviar prueba"}
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-2 border-t border-border-subtle mt-2">
-                    <button type="button" onClick={() => setShowSmtpModal(false)} className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors">Cancelar</button>
-                    <button disabled={isSavingSmtp} type="submit" className="px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
+                  <div className="flex justify-end gap-2 pt-2 border-t border-line mt-2">
+                    <button type="button" onClick={() => setShowSmtpModal(false)} className="inline-flex min-h-11 items-center justify-center lg:min-h-10 px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-control transition-colors">Cancelar</button>
+                    <button disabled={isSavingSmtp} type="submit" className="inline-flex min-h-11 items-center justify-center lg:min-h-10 px-5 py-2.5 text-sm font-semibold text-action-primary-foreground bg-action-primary hover:bg-action-secondary rounded-lg transition-colors disabled:opacity-50">{isSavingSmtp ? "Guardando..." : "Guardar configuración"}</button>
                   </div>
                 </form>
               </div>

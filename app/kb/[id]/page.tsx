@@ -7,7 +7,8 @@ import { useAi } from "@/src/hooks/useAi";
 import KbEditor from "@/src/components/kb/KbEditor";
 import type { KbTreeNodeDto } from "@/src/components/kb/KbFolderView";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
-import { FileText } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { File01Icon } from "@hugeicons/core-free-icons";
 
 interface KbPage {
   id: string;
@@ -80,7 +81,7 @@ export default function KbPageEditor() {
     return (
       <div className="flex-1 flex items-center justify-center bg-surface-elevated">
         <div className="flex flex-col items-center gap-3 text-text-secondary">
-          <div className="w-10 h-10 border-2 border-border-subtle border-t-text-primary rounded-full animate-spin" />
+          <div className="w-10 h-10 border-2 border-line border-t-text-primary rounded-full animate-spin" />
           <p className="text-sm">Cargando página...</p>
         </div>
       </div>
@@ -92,7 +93,7 @@ export default function KbPageEditor() {
       <div className="flex-1 flex items-center justify-center bg-surface-elevated">
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="w-16 h-16 rounded-lg bg-surface-sidebar flex items-center justify-center">
-            <FileText size={28} className="text-text-secondary" />
+            <HugeiconsIcon icon={File01Icon} size={28} className="text-text-secondary" />
           </div>
           <div>
             <p className="text-sm font-semibold text-text-primary mb-1">Página no encontrada</p>

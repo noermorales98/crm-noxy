@@ -1,11 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Clock01Icon, Add01Icon, Delete01Icon, Cancel01Icon, CalendarOffIcon, CalendarCheckIn01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
+import { Block, DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog, type DataColumn } from "@/src/components/ui";
+
+const primaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
+const secondaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10";
+const iconAction =
+  "crm-press flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-sidebar hover:text-text-primary lg:size-9";
+const deleteAction = `${iconAction} hover:bg-danger-soft hover:text-danger`;
+
+type ExtendedRow = { id: string; title?: string | null; date: string; startTime: string; endTime: string };
+type BlockedRow = { id: string; title?: string | null; start: string; end: string };
 
 const DAYS = [
   { id: 0, label: "Domingo" },
@@ -65,6 +77,7 @@ export default function AvailabilityPage() {
   const { setConfig, resetState } = useHeader();
   const [schedules, setSchedules] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<any>(null);
 
@@ -96,6 +109,15 @@ export default function AvailabilityPage() {
   // Extended Availability State
   const [extendedTimes, setExtendedTimes] = useState<any[]>([]);
   const [isExtendedModalOpen, setIsExtendedModalOpen] = useState(false);
+  // Estado propio de cada tabla: «Sin excepciones» solo se afirma cuando la carga terminó bien.
+  const [blockedState, setBlockedState] = useState<"loading" | "ready" | "error">("loading");
+  const [extendedState, setExtendedState] = useState<"loading" | "ready" | "error">("loading");
+  const scheduleDialogRef = useRef<HTMLDivElement>(null);
+  const blockedDialogRef = useRef<HTMLDivElement>(null);
+  const extendedDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(scheduleDialogRef, isModalOpen, () => setIsModalOpen(false));
+  useDialog(blockedDialogRef, isBlockedModalOpen, () => setIsBlockedModalOpen(false));
+  useDialog(extendedDialogRef, isExtendedModalOpen, () => setIsExtendedModalOpen(false));
   const [extendedTitle, setExtendedTitle] = useState("");
   const [extendedDate, setExtendedDate] = useState("");
   const [extendedStart, setExtendedStart] = useState("09:00");
@@ -104,10 +126,7 @@ export default function AvailabilityPage() {
 
   useEffect(() => {
     resetState();
-    setConfig({
-      title: "Disponibilidad",
-      addButton: { label: "Nuevo horario", onClick: openCreate },
-    });
+    setConfig({ title: "Disponibilidad", pageHeader: true });
     return () => setConfig({});
   }, []);
 
@@ -130,19 +149,41 @@ export default function AvailabilityPage() {
 
   const fetchSchedules = async () => {
     setIsLoading(true);
-    const res = await fetch("/api/availability");
-    if (res.ok) setSchedules(await res.json());
+    setLoadError(false);
+    try {
+      const res = await fetch("/api/availability");
+      if (res.ok) setSchedules(await res.json());
+      else setLoadError(true);
+    } catch {
+      setLoadError(true);
+    }
     setIsLoading(false);
   };
 
   const fetchBlockedTimes = async () => {
-    const res = await fetch("/api/availability/blocked");
-    if (res.ok) setBlockedTimes(await res.json());
+    setBlockedState("loading");
+    try {
+      const res = await fetch("/api/availability/blocked");
+      if (res.ok) {
+        setBlockedTimes(await res.json());
+        setBlockedState("ready");
+      } else setBlockedState("error");
+    } catch {
+      setBlockedState("error");
+    }
   };
 
   const fetchExtendedTimes = async () => {
-    const res = await fetch("/api/availability/extended");
-    if (res.ok) setExtendedTimes(await res.json());
+    setExtendedState("loading");
+    try {
+      const res = await fetch("/api/availability/extended");
+      if (res.ok) {
+        setExtendedTimes(await res.json());
+        setExtendedState("ready");
+      } else setExtendedState("error");
+    } catch {
+      setExtendedState("error");
+    }
   };
 
   const defaultSlots = (): SlotState[] => DAYS.map(d => ({
@@ -342,218 +383,233 @@ export default function AvailabilityPage() {
     });
   };
 
+  const longDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+
+  const extendedColumns: DataColumn<ExtendedRow>[] = [
+    {
+      key: "title",
+      header: "Motivo",
+      render: (ext) => (
+        <span className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-success" aria-hidden="true" />
+          <span className="font-medium text-text-primary">{ext.title || "Horario extendido"}</span>
+        </span>
+      ),
+    },
+    { key: "date", header: "Fecha", render: (ext) => <span className="text-text-secondary">{longDate(ext.date)}</span> },
+    {
+      key: "time",
+      header: "Horario",
+      render: (ext) => (
+        <span className="inline-flex h-6 items-center rounded-full bg-success-soft px-2.5 text-xs font-semibold tabular-nums text-success">
+          {ext.startTime} a {ext.endTime}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Acción",
+      align: "right",
+      render: (ext) => (
+        <button type="button" onClick={() => handleDeleteExtended(ext.id)} className={`${deleteAction} ml-auto`} aria-label={`Eliminar ${ext.title || "horario extendido"}`} title="Eliminar">
+          <HugeiconsIcon icon={Delete01Icon} size={16} />
+        </button>
+      ),
+    },
+  ];
+
+  const blockedColumns: DataColumn<BlockedRow>[] = [
+    { key: "title", header: "Motivo", render: (b) => <span className="font-medium text-text-primary">{b.title || "No especificado"}</span> },
+    { key: "start", header: "Inicia", render: (b) => <span className="text-text-secondary">{formatBlockedDate(b.start)}</span> },
+    { key: "end", header: "Finaliza", render: (b) => <span className="text-text-secondary">{formatBlockedDate(b.end)}</span> },
+    {
+      key: "actions",
+      header: "Acción",
+      align: "right",
+      render: (b) => (
+        <button type="button" onClick={() => handleDeleteBlocked(b.id)} className={`${deleteAction} ml-auto`} aria-label={`Eliminar bloqueo ${b.title || ""}`.trim()} title="Eliminar">
+          <HugeiconsIcon icon={Delete01Icon} size={16} />
+        </button>
+      ),
+    },
+  ];
+
   return (
     <>
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
-          <div className="mb-6">
-            <p className="text-sm text-text-secondary">Configura tus horarios de atención y bloquea días no disponibles.</p>
-          </div>
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <Enter index={0}>
+          <PageHeader
+            title="Disponibilidad"
+            subtitle="Configura tus horarios de atención y bloquea días no disponibles."
+            actions={
+              <button type="button" onClick={openCreate} className={primaryAction}>
+                <HugeiconsIcon icon={Add01Icon} size={16} />
+                Nuevo horario
+              </button>
+            }
+          />
+        </Enter>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
+        <Enter index={1}>
+          {isLoading && schedules.length === 0 ? (
+            <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+              <Skeleton shape="rows" count={3} label="Cargando horarios" />
+            </div>
+          ) : loadError && schedules.length === 0 ? (
+            <div className="rounded-surface border border-line bg-surface-elevated">
+              <ErrorState title="No se pudieron cargar los horarios" onRetry={fetchSchedules} />
             </div>
           ) : schedules.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <HugeiconsIcon icon={Clock01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-text-primary mb-1">Sin horarios</h3>
-              <p className="text-text-secondary text-sm mb-4">Define tus horarios de disponibilidad para recibir citas.</p>
-              <button
-                onClick={openCreate}
-                className="inline-flex items-center gap-2 text-sm font-medium text-text-primary bg-gray-100 hover:bg-nav-active px-4 py-2 rounded-lg transition-colors"
-              >
-                <HugeiconsIcon icon={Add01Icon} size={16} /> Crear Horario
-              </button>
+            <div className="rounded-surface border border-line bg-surface-elevated">
+              <EmptyState
+                title="Sin horarios"
+                body="Define tus horarios de disponibilidad para recibir citas."
+                action={
+                  <button type="button" onClick={openCreate} className={primaryAction}>
+                    <HugeiconsIcon icon={Add01Icon} size={16} /> Crear horario
+                  </button>
+                }
+              />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {schedules.map(schedule => (
-                <div key={schedule.id} className="bg-white border border-border-subtle rounded-lg p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-text-primary">{schedule.name}</h3>
-                      <p className="text-xs text-text-secondary mt-0.5">{schedule.timezone}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(schedule.id, schedule.name)}
-                        className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <HugeiconsIcon icon={Delete01Icon} size={16} />
-                      </button>
-                      <button
-                        onClick={() => openEdit(schedule)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
-                      >
-                        Editar
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    {schedule.slots.filter((s: any) => s.isAvailable).map((slot: any) => (
-                      <div key={slot.id} className="flex items-center justify-between text-sm">
-                        <span className="font-medium text-text-primary w-24">
-                          {DAYS.find(d => d.id === slot.dayOfWeek)?.label}
-                        </span>
-                        <span className="text-text-secondary">{slot.startTime} – {slot.endTime}</span>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {schedules.map((schedule) => {
+                const open = schedule.slots.filter((s: any) => s.isAvailable);
+                return (
+                  <section key={schedule.id} aria-label={schedule.name} className="rounded-surface border border-line bg-surface-elevated p-5">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h2 className="truncate text-base font-semibold text-text-primary">{schedule.name}</h2>
+                        <p className="mt-0.5 text-xs text-text-secondary">{schedule.timezone}</p>
                       </div>
-                    ))}
-                    {schedule.slots.filter((s: any) => s.isAvailable).length === 0 && (
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button type="button" onClick={() => openEdit(schedule)} className={secondaryAction}>Editar</button>
+                        <button type="button" onClick={() => handleDelete(schedule.id, schedule.name)} className={deleteAction} aria-label={`Eliminar ${schedule.name}`} title="Eliminar">
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    {open.length === 0 ? (
                       <p className="text-sm text-text-secondary">Sin días disponibles configurados.</p>
+                    ) : (
+                      <dl className="divide-y divide-line">
+                        {open.map((slot: any) => (
+                          <div key={slot.id} className="flex items-center justify-between py-1.5 text-sm">
+                            <dt className="font-medium text-text-primary">{DAYS.find((d) => d.id === slot.dayOfWeek)?.label}</dt>
+                            <dd className="tabular-nums text-text-secondary">{slot.startTime} a {slot.endTime}</dd>
+                          </div>
+                        ))}
+                      </dl>
                     )}
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </Enter>
+
+        <Enter index={2}>
+          <div className="mt-8">
+            <Block
+              title="Horarios extendidos"
+              action={{ label: "Agregar horario", onClick: openExtendedModal }}
+            >
+              <p className="px-4 pb-1 pt-3 text-sm text-text-secondary sm:px-5">Agrega disponibilidad adicional fuera de tu horario regular (ej. un sábado especial).</p>
+              {extendedState === "loading" ? (
+                <Skeleton shape="rows" count={2} label="Cargando horarios extendidos" />
+              ) : extendedState === "error" ? (
+                <ErrorState title="No se pudieron cargar los horarios extendidos" onRetry={fetchExtendedTimes} />
+              ) : (
+              <DataTable
+                label="Horarios extendidos"
+                columns={extendedColumns}
+                rows={extendedTimes}
+                getKey={(e) => e.id}
+                mobileRow={(ext) => (
+                  <div className="flex w-full min-w-0 items-center justify-between gap-3 py-1">
+                    <span className="min-w-0">
+                      <span className="block font-medium text-text-primary">{ext.title || "Horario extendido"}</span>
+                      <span className="block text-xs text-text-secondary">{longDate(ext.date)}</span>
+                      <span className="block text-xs font-semibold tabular-nums text-success">{ext.startTime} a {ext.endTime}</span>
+                    </span>
+                    <button type="button" onClick={() => handleDeleteExtended(ext.id)} className={deleteAction} aria-label={`Eliminar ${ext.title || "horario extendido"}`}>
+                      <HugeiconsIcon icon={Delete01Icon} size={16} />
+                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Extended Availability Section */}
-          <div className="mt-16 mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary tracking-tight flex items-center gap-2">
-                <HugeiconsIcon icon={CalendarCheckIn01Icon} size={24} color="#22c55e" />
-                Horarios Extendidos
-              </h2>
-              <p className="text-sm text-text-secondary mt-1">Agrega disponibilidad adicional fuera de tu horario regular (Ej: Sábado especial)</p>
-            </div>
-            <button
-              onClick={openExtendedModal}
-              className="flex items-center gap-2 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              <HugeiconsIcon icon={Add01Icon} size={18} /> Agregar Horario
-            </button>
+                )}
+                empty={<EmptyState title="Sin horarios extendidos" body="Agrega uno para abrir disponibilidad fuera de tu horario regular." />}
+              />
+              )}
+            </Block>
           </div>
+        </Enter>
 
-          {!isLoading && extendedTimes.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border border-dashed border-border-subtle mb-12">
-              <HugeiconsIcon icon={CalendarCheckIn01Icon} size={40} color="#d1d5db" className="mx-auto mb-3" />
-              <p className="text-text-secondary text-sm">No tienes horarios extendidos. Agrega uno para abrir disponibilidad fuera de tu horario regular.</p>
-            </div>
-          ) : extendedTimes.length > 0 ? (
-            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg mb-12">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-surface-sidebar/50">
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Motivo</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Fecha</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Horario</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {extendedTimes.map(ext => (
-                    <tr key={ext.id} className="hover:bg-surface-sidebar/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
-                          <span className="font-medium text-text-primary">{ext.title || "Horario extendido"}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-text-secondary">{new Date(ext.date).toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })}</td>
-                      <td className="px-6 py-4 text-text-secondary">
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-50 text-green-700 text-xs font-semibold">
-                          {ext.startTime} – {ext.endTime}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDeleteExtended(ext.id)}
-                          className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <HugeiconsIcon icon={Delete01Icon} size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : null}
-
-          {/* Blocked Times Section */}
-          <div className="mt-16 mb-8 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary tracking-tight flex items-center gap-2">
-                <HugeiconsIcon icon={CalendarOffIcon} size={24} color="#9ca3af" />
-                Excepciones y Días Especiales
-              </h2>
-              <p className="text-sm text-text-secondary mt-1">Bloquea fechas u horas específicas donde no estarás disponible (Ej: Vacaciones)</p>
-            </div>
-            <button
-              onClick={openBlockedModal}
-              className="flex items-center gap-2 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        <Enter index={3}>
+          <div className="mt-6">
+            <Block
+              title="Excepciones y días especiales"
+              action={{ label: "Bloquear fecha", onClick: openBlockedModal }}
             >
-              <HugeiconsIcon icon={Add01Icon} size={18} /> Bloquear Fecha
-            </button>
+              <p className="px-4 pb-1 pt-3 text-sm text-text-secondary sm:px-5">Bloquea fechas u horas en las que no estarás disponible (ej. vacaciones).</p>
+              {blockedState === "loading" ? (
+                <Skeleton shape="rows" count={2} label="Cargando excepciones y días especiales" />
+              ) : blockedState === "error" ? (
+                <ErrorState title="No se pudieron cargar las excepciones" onRetry={fetchBlockedTimes} />
+              ) : (
+              <DataTable
+                label="Excepciones y días especiales"
+                columns={blockedColumns}
+                rows={blockedTimes}
+                getKey={(b) => b.id}
+                mobileRow={(b) => (
+                  <div className="flex w-full min-w-0 items-center justify-between gap-3 py-1">
+                    <span className="min-w-0">
+                      <span className="block font-medium text-text-primary">{b.title || "No especificado"}</span>
+                      <span className="block text-xs text-text-secondary">{formatBlockedDate(b.start)} a {formatBlockedDate(b.end)}</span>
+                    </span>
+                    <button type="button" onClick={() => handleDeleteBlocked(b.id)} className={deleteAction} aria-label={`Eliminar bloqueo ${b.title || ""}`.trim()}>
+                      <HugeiconsIcon icon={Delete01Icon} size={16} />
+                    </button>
+                  </div>
+                )}
+                empty={<EmptyState title="Sin excepciones" body="No tienes vacaciones ni bloqueos programados próximamente." />}
+              />
+              )}
+            </Block>
           </div>
-
-          {!isLoading && blockedTimes.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg border border-dashed border-border-subtle">
-              <HugeiconsIcon icon={CalendarOffIcon} size={40} color="#d1d5db" className="mx-auto mb-3" />
-              <p className="text-text-secondary text-sm">No tienes ninguna excursión o vacación programada próximamente.</p>
-            </div>
-          ) : (
-            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg mb-12">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-surface-sidebar/50">
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Motivo</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Inicia</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider">Finaliza</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">Acción</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {blockedTimes.map(blocked => (
-                    <tr key={blocked.id} className="hover:bg-surface-sidebar/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-text-primary">{blocked.title || "No especificado"}</td>
-                      <td className="px-6 py-4 text-text-secondary">{formatBlockedDate(blocked.start)}</td>
-                      <td className="px-6 py-4 text-text-secondary">{formatBlockedDate(blocked.end)}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDeleteBlocked(blocked.id)}
-                          className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <HugeiconsIcon icon={Delete01Icon} size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
+        </Enter>
+      </main>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
+          <div ref={scheduleDialogRef} role="dialog" aria-modal="true" aria-label={editingSchedule ? "Editar horario" : "Nuevo horario"} className="bg-surface-elevated rounded-surface w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh] shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-5 border-b border-line flex items-center justify-between">
               <h3 className="text-lg font-bold text-text-primary">
-                {editingSchedule ? "Editar Horario" : "Nuevo Horario"}
+                {editingSchedule ? "Editar horario" : "Nuevo horario"}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-text-secondary">
+              <button type="button" aria-label="Cerrar" onClick={() => setIsModalOpen(false)} className={iconAction}>
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="scheduleForm" onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Nombre del horario *</label>
-                  <input
+                  <label htmlFor="av-field-1" className="text-sm font-semibold text-text-primary">Nombre del horario *</label>
+                  <input id="av-field-1"
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                    className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                     placeholder="Ej: Horario laboral"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Zona horaria</label>
-                  <select
+                  <label htmlFor="av-field-2" className="text-sm font-semibold text-text-primary">Zona horaria</label>
+                  <select id="av-field-2"
                     value={timezone}
                     onChange={e => setTimezone(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                    className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                   >
                     {TIMEZONES.map((tz, i) => (
                       <option key={i} value={tz.value} disabled={tz.disabled}>{tz.label}</option>
@@ -561,20 +617,18 @@ export default function AvailabilityPage() {
                   </select>
                 </div>
                 <div className="flex flex-col gap-3">
-                  <label className="text-sm font-semibold text-text-primary">Días y horarios disponibles</label>
+                  <p className="text-sm font-semibold text-text-primary">Días y horarios disponibles</p>
                   {slots.map(slot => (
-                    <div key={slot.dayOfWeek} className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id={`day-${slot.dayOfWeek}`}
-                        checked={slot.isAvailable}
-                        onChange={e => updateSlot(slot.dayOfWeek, "isAvailable", e.target.checked)}
-                        className="w-4 h-4 rounded text-text-primary border-border-subtle"
-                      />
-                      <label
-                        htmlFor={`day-${slot.dayOfWeek}`}
-                        className="text-sm font-medium text-text-primary w-24"
-                      >
+                    <div key={slot.dayOfWeek} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      {/* La etiqueta entera es el área de toque; la casilla va dentro. */}
+                      <label htmlFor={`day-${slot.dayOfWeek}`} data-check-ignore-tap className="flex min-h-11 w-28 cursor-pointer items-center gap-2 text-sm font-medium text-text-primary lg:min-h-9">
+                        <input
+                          type="checkbox"
+                          id={`day-${slot.dayOfWeek}`}
+                          checked={slot.isAvailable}
+                          onChange={e => updateSlot(slot.dayOfWeek, "isAvailable", e.target.checked)}
+                          className="size-4 rounded border-line accent-action-primary"
+                        />
                         {DAYS.find(d => d.id === slot.dayOfWeek)?.label}
                       </label>
                       {slot.isAvailable && (
@@ -583,14 +637,14 @@ export default function AvailabilityPage() {
                             type="time"
                             value={slot.startTime}
                             onChange={e => updateSlot(slot.dayOfWeek, "startTime", e.target.value)}
-                            className="px-2 py-1 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                            className="min-h-11 px-2 rounded-control border border-line bg-surface-sidebar text-sm lg:min-h-9"
                           />
-                          <span className="text-text-secondary text-sm">–</span>
+                          <span className="text-text-secondary text-sm">a</span>
                           <input
                             type="time"
                             value={slot.endTime}
                             onChange={e => updateSlot(slot.dayOfWeek, "endTime", e.target.value)}
-                            className="px-2 py-1 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                            className="min-h-11 px-2 rounded-control border border-line bg-surface-sidebar text-sm lg:min-h-9"
                           />
                         </>
                       )}
@@ -599,11 +653,11 @@ export default function AvailabilityPage() {
                 </div>
               </form>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
+            <div className="p-4 border-t border-line flex justify-end gap-3 bg-surface-sidebar/50">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover"
+                className={secondaryAction}
               >
                 Cancelar
               </button>
@@ -611,7 +665,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="scheduleForm"
                 disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className={primaryAction}
               >
                 {isSubmitting ? "Guardando..." : editingSchedule ? "Actualizar" : "Crear"}
               </button>
@@ -623,32 +677,32 @@ export default function AvailabilityPage() {
       {/* BLOCKED TIME MODAL */}
       {isBlockedModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-primary">Bloquear Fecha / Hora</h3>
-              <button onClick={() => setIsBlockedModalOpen(false)} className="text-text-secondary hover:text-text-secondary">
+          <div ref={blockedDialogRef} role="dialog" aria-modal="true" aria-label="Bloquear fecha u hora" className="bg-surface-elevated rounded-surface w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-5 border-b border-line flex items-center justify-between">
+              <h3 className="text-lg font-bold text-text-primary">Bloquear fecha u hora</h3>
+              <button type="button" aria-label="Cerrar" onClick={() => setIsBlockedModalOpen(false)} className={iconAction}>
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="blockedForm" onSubmit={handleCreateBlocked} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Título / Motivo (Opcional)</label>
-                  <input
+                  <label htmlFor="av-field-3" className="text-sm font-semibold text-text-primary">Título / Motivo (Opcional)</label>
+                  <input id="av-field-3"
                     value={blockedTitle}
                     onChange={e => setBlockedTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                    className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                     placeholder="Ej: Consulta odontológica"
                   />
                 </div>
 
-                <div className="flex gap-4 border-b border-border-subtle pb-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-primary">
-                    <input type="radio" checked={blockedType === "HOURS"} onChange={() => setBlockedType("HOURS")} className="text-text-primary focus:ring-gray-900" />
+                <div className="flex gap-4 border-b border-line pb-2">
+                  <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer text-sm font-medium text-text-primary lg:min-h-9">
+                    <input type="radio" checked={blockedType === "HOURS"} onChange={() => setBlockedType("HOURS")} className="size-4 accent-action-primary focus:ring-action-primary" />
                     <span>Por Horas</span>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-text-primary">
-                    <input type="radio" checked={blockedType === "ALL_DAY"} onChange={() => setBlockedType("ALL_DAY")} className="text-text-primary focus:ring-gray-900" />
+                  <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer text-sm font-medium text-text-primary lg:min-h-9">
+                    <input type="radio" checked={blockedType === "ALL_DAY"} onChange={() => setBlockedType("ALL_DAY")} className="size-4 accent-action-primary focus:ring-action-primary" />
                     <span>Días Completos</span>
                   </label>
                 </div>
@@ -656,17 +710,17 @@ export default function AvailabilityPage() {
                 {blockedType === "HOURS" && (
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-semibold text-text-primary">Seleccionar Día *</label>
-                      <input type="date" required value={hoursDate} onChange={e => setHoursDate(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm" />
+                      <label htmlFor="av-field-4" className="text-sm font-semibold text-text-primary">Seleccionar Día *</label>
+                      <input id="av-field-4" type="date" required value={hoursDate} onChange={e => setHoursDate(e.target.value)} className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-semibold text-text-primary">De (Hora) *</label>
-                        <input type="time" required value={hoursStart} onChange={e => setHoursStart(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm" />
+                        <label htmlFor="av-field-5" className="text-sm font-semibold text-text-primary">De (Hora) *</label>
+                        <input id="av-field-5" type="time" required value={hoursStart} onChange={e => setHoursStart(e.target.value)} className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm" />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-semibold text-text-primary">A (Hora) *</label>
-                        <input type="time" required value={hoursEnd} onChange={e => setHoursEnd(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm" />
+                        <label htmlFor="av-field-6" className="text-sm font-semibold text-text-primary">A (Hora) *</label>
+                        <input id="av-field-6" type="time" required value={hoursEnd} onChange={e => setHoursEnd(e.target.value)} className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm" />
                       </div>
                     </div>
                   </div>
@@ -674,19 +728,19 @@ export default function AvailabilityPage() {
 
                 {blockedType === "ALL_DAY" && (
                   <div className="flex flex-col gap-3">
-                    <label className="text-sm font-semibold text-text-primary">Seleccionar Días *</label>
+                    <label htmlFor="av-field-allday" className="text-sm font-semibold text-text-primary">Seleccionar Días *</label>
                     <div className="flex gap-2">
-                      <input
+                      <input id="av-field-allday"
                         type="date"
                         value={allDayInput}
                         onChange={e => setAllDayInput(e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                        className="flex-1 min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                       />
                       <button
                         type="button"
                         onClick={addAllDayDate}
                         disabled={!allDayInput}
-                        className="px-3 py-2 rounded-lg bg-action-primary text-action-primary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-colors"
+                        className="min-h-11 shrink-0 px-4 rounded-control bg-action-primary text-action-primary-foreground text-sm font-semibold hover:bg-action-secondary disabled:opacity-40 transition-colors lg:min-h-10"
                       >
                         Agregar
                       </button>
@@ -696,15 +750,16 @@ export default function AvailabilityPage() {
                         {allDayDates.map(d => (
                           <span
                             key={d}
-                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-text-primary text-xs font-medium"
+                            className="inline-flex items-center gap-1 rounded-full bg-surface-sidebar pl-3 text-text-primary text-xs font-medium"
                           >
                             {new Date(d + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })}
                             <button
                               type="button"
                               onClick={() => removeAllDayDate(d)}
-                              className="text-text-secondary hover:text-red-500 transition-colors"
+                              aria-label={`Quitar ${new Date(d + "T12:00:00").toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}`}
+                              className="flex size-11 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-8"
                             >
-                              ×
+                              <HugeiconsIcon icon={Cancel01Icon} size={14} />
                             </button>
                           </span>
                         ))}
@@ -721,11 +776,11 @@ export default function AvailabilityPage() {
                 </p>
               </form>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
+            <div className="p-4 border-t border-line flex justify-end gap-3 bg-surface-sidebar/50">
               <button
                 type="button"
                 onClick={() => setIsBlockedModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover"
+                className={secondaryAction}
               >
                 Cancelar
               </button>
@@ -733,7 +788,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="blockedForm"
                 disabled={isSubmittingBlocked}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className={primaryAction}
               >
                 {isSubmittingBlocked ? "Guardando..." : "Bloquear"}
               </button>
@@ -745,53 +800,53 @@ export default function AvailabilityPage() {
       {/* EXTENDED AVAILABILITY MODAL */}
       {isExtendedModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-primary">Agregar Horario Extendido</h3>
-              <button onClick={() => setIsExtendedModalOpen(false)} className="text-text-secondary hover:text-text-secondary">
+          <div ref={extendedDialogRef} role="dialog" aria-modal="true" aria-label="Agregar horario extendido" className="bg-surface-elevated rounded-surface w-full max-w-md overflow-hidden flex flex-col max-h-[90vh] shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-5 border-b border-line flex items-center justify-between">
+              <h3 className="text-lg font-bold text-text-primary">Agregar horario extendido</h3>
+              <button type="button" aria-label="Cerrar" onClick={() => setIsExtendedModalOpen(false)} className={iconAction}>
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
               <form id="extendedForm" onSubmit={handleCreateExtended} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Título / Motivo (Opcional)</label>
-                  <input
+                  <label htmlFor="av-field-7" className="text-sm font-semibold text-text-primary">Título / Motivo (Opcional)</label>
+                  <input id="av-field-7"
                     value={extendedTitle}
                     onChange={e => setExtendedTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                    className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                     placeholder="Ej: Sábado especial, Atención fin de año"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Fecha *</label>
-                  <input
+                  <label htmlFor="av-field-8" className="text-sm font-semibold text-text-primary">Fecha *</label>
+                  <input id="av-field-8"
                     type="date"
                     required
                     value={extendedDate}
                     onChange={e => setExtendedDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                    className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">De (Hora) *</label>
-                    <input
+                    <label htmlFor="av-field-9" className="text-sm font-semibold text-text-primary">De (Hora) *</label>
+                    <input id="av-field-9"
                       type="time"
                       required
                       value={extendedStart}
                       onChange={e => setExtendedStart(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                      className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">A (Hora) *</label>
-                    <input
+                    <label htmlFor="av-field-10" className="text-sm font-semibold text-text-primary">A (Hora) *</label>
+                    <input id="av-field-10"
                       type="time"
                       required
                       value={extendedEnd}
                       onChange={e => setExtendedEnd(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
+                      className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm"
                     />
                   </div>
                 </div>
@@ -800,11 +855,11 @@ export default function AvailabilityPage() {
                 </p>
               </form>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
+            <div className="p-4 border-t border-line flex justify-end gap-3 bg-surface-sidebar/50">
               <button
                 type="button"
                 onClick={() => setIsExtendedModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover"
+                className={secondaryAction}
               >
                 Cancelar
               </button>
@@ -812,7 +867,7 @@ export default function AvailabilityPage() {
                 type="submit"
                 form="extendedForm"
                 disabled={isSubmittingExtended}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
+                className={primaryAction}
               >
                 {isSubmittingExtended ? "Guardando..." : "Agregar"}
               </button>

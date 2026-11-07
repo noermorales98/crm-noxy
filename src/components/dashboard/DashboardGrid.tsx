@@ -1,7 +1,9 @@
 "use client";
 
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { GripVertical, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, DragDropVerticalIcon } from "@hugeicons/core-free-icons";
+import { EmptyState } from "@/src/components/ui";
 import { WIDGET_MAP, widgetSizeClass } from "@/src/lib/dashboardWidgets";
 import type { DashboardData } from "@/src/lib/dashboardData";
 
@@ -26,15 +28,15 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
 
   if (widgets.length === 0) {
     return (
-      <div className="bg-surface-elevated rounded-surface p-10 text-center text-sm text-text-secondary">
-        No hay widgets en tu dashboard. Activa &quot;Personalizar&quot; para agregar algunos.
+      <div className="rounded-surface border border-line bg-surface-elevated">
+        <EmptyState title="No hay widgets en tu dashboard" body="Pulsa «Personalizar» para agregar los que necesites." />
       </div>
     );
   }
 
   if (!editMode) {
     return (
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {widgets.map((w) => (
           <div key={w.id} className={widgetSizeClass(w.size)}>
             {w.render(data)}
@@ -48,7 +50,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="dashboard-widgets" direction="horizontal">
         {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {widgets.map((w, index) => (
               <Draggable key={w.id} draggableId={w.id} index={index}>
                 {(dragProvided, dragSnapshot) => (
@@ -60,16 +62,17 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
                     <div className="absolute inset-0 rounded-surface ring-2 ring-action-primary/20 pointer-events-none" />
                     <div
                       {...dragProvided.dragHandleProps}
-                      className="absolute top-2 left-2 z-20 w-6 h-6 rounded-md bg-surface-elevated border border-border-subtle flex items-center justify-center cursor-grab active:cursor-grabbing text-text-secondary hover:text-text-primary shadow-sm"
+                      className="absolute left-2 top-2 z-20 flex size-8 cursor-grab items-center justify-center rounded-[8px] border border-line bg-surface-elevated text-text-secondary hover:text-text-primary active:cursor-grabbing"
+                      aria-label={`Mover ${w.label}`}
                     >
-                      <GripVertical size={14} />
+                      <HugeiconsIcon icon={DragDropVerticalIcon} size={14} />
                     </div>
                     <button
                       onClick={() => onRemove(w.id)}
-                      className="absolute top-2 right-2 z-20 w-6 h-6 rounded-md bg-surface-elevated border border-border-subtle flex items-center justify-center text-text-secondary hover:text-red-600 hover:border-red-200 shadow-sm"
+                      className="absolute right-2 top-2 z-20 flex size-8 items-center justify-center rounded-[8px] border border-line bg-surface-elevated text-text-secondary hover:border-danger/40 hover:text-danger"
                       aria-label={`Quitar ${w.label}`}
                     >
-                      <X size={14} />
+                      <HugeiconsIcon icon={Cancel01Icon} size={14} />
                     </button>
                     <div className="opacity-90 pointer-events-none h-full">{w.render(data)}</div>
                   </div>

@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AI_MODELS } from "@/src/lib/ai-models";
-import { Pencil, Trash2, Plus, X, Check, RotateCcw } from "lucide-react";
+import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader } from "@/src/components/ui";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, Cancel01Icon, Delete02Icon, PencilEdit01Icon, ReloadIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 
 interface CustomModel {
   id: string;
@@ -17,6 +20,13 @@ interface CustomModel {
 const EMPTY_FORM = { modelId: "", name: "", group: "Personalizados", description: "", tags: "" };
 
 export default function AiModelsPage() {
+  const { setConfig, resetState } = useHeader();
+  useEffect(() => {
+    resetState();
+    setConfig({ title: "Modelos de IA", pageHeader: true });
+    return () => setConfig({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [customs, setCustoms] = useState<CustomModel[]>([]);
   const [hiddenBuiltins, setHiddenBuiltins] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +146,7 @@ export default function AiModelsPage() {
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         disabled={key === "modelId" && !!editId}
-        className="w-full px-3.5 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle text-sm disabled:opacity-50"
+        className="min-h-11 lg:min-h-10 w-full px-3.5 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 text-sm disabled:opacity-50"
       />
       {opts?.hint && <p className="text-xs text-text-secondary">{opts.hint}</p>}
     </div>
@@ -146,31 +156,30 @@ export default function AiModelsPage() {
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
       <div className="max-w-3xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary tracking-tight">Modelos de IA</h1>
-            <p className="text-sm text-text-secondary mt-1">
-              Agrega modelos personalizados de OpenRouter o edita los existentes.
-            </p>
-          </div>
-          <button
-            onClick={openAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:bg-black transition-colors"
-          >
-            <Plus size={14} />
-            Agregar modelo
-          </button>
-        </div>
+        <PageHeader
+          title="Modelos de IA"
+          subtitle="Agrega modelos personalizados de OpenRouter o edita los existentes."
+          actions={
+            <button
+              type="button"
+              onClick={openAdd}
+              className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary lg:min-h-10"
+            >
+              <HugeiconsIcon icon={Add01Icon} size={16} />
+              Agregar modelo
+            </button>
+          }
+        />
 
         {/* Add / Edit form */}
         {showForm && (
-          <div className="bg-white rounded-xl border border-border-subtle p-6 mb-6 shadow-sm">
+          <div className="bg-surface-elevated rounded-xl border border-line p-6 mb-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-text-primary">
                 {editId ? "Editar modelo" : "Nuevo modelo de OpenRouter"}
               </h2>
               <button onClick={closeForm} className="text-text-secondary hover:text-text-primary">
-                <X size={16} />
+                <HugeiconsIcon icon={Cancel01Icon} size={16} />
               </button>
             </div>
             <form onSubmit={handleSave} className="flex flex-col gap-4">
@@ -190,12 +199,12 @@ export default function AiModelsPage() {
                 <button
                   type="submit"
                   disabled={saving || !form.modelId.trim() || !form.name.trim()}
-                  className="flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:bg-black transition-colors disabled:opacity-40"
+                  className="min-h-11 lg:min-h-10 flex items-center gap-2 px-4 py-2 bg-action-primary text-action-primary-foreground text-sm font-medium rounded-lg hover:bg-brand-obsidian transition-colors disabled:opacity-40"
                 >
-                  <Check size={13} />
+                  <HugeiconsIcon icon={Tick02Icon} size={13} />
                   {saving ? "Guardando…" : "Guardar"}
                 </button>
-                <button type="button" onClick={closeForm} className="px-4 py-2 text-sm text-text-secondary border border-border-subtle rounded-lg hover:bg-surface-sidebar transition-colors">
+                <button type="button" onClick={closeForm} className="min-h-11 lg:min-h-10 px-4 py-2 text-sm text-text-secondary border border-line rounded-lg hover:bg-surface-sidebar transition-colors">
                   Cancelar
                 </button>
               </div>
@@ -204,8 +213,8 @@ export default function AiModelsPage() {
         )}
 
         {/* Custom models */}
-        <div className="bg-white rounded-xl border border-border-subtle overflow-hidden mb-6">
-          <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
+        <div className="bg-surface-elevated rounded-xl border border-line overflow-hidden mb-6">
+          <div className="px-5 py-4 border-b border-line flex items-center justify-between">
             <h2 className="text-sm font-semibold text-text-primary">Modelos personalizados</h2>
             <span className="text-xs text-text-secondary">{customs.length} modelo{customs.length !== 1 ? "s" : ""}</span>
           </div>
@@ -215,10 +224,10 @@ export default function AiModelsPage() {
           ) : customs.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <p className="text-sm text-text-secondary mb-2">No hay modelos personalizados aún.</p>
-              <button onClick={openAdd} className="text-sm text-[#3545D6] hover:underline">Agregar el primero</button>
+              <button type="button" onClick={openAdd} className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline">Agregar el primero</button>
             </div>
           ) : (
-            <div className="divide-y divide-border-subtle">
+            <div className="divide-y divide-line">
               {customs.map((m) => {
                 const tags: string[] = JSON.parse(m.tags || "[]");
                 return (
@@ -228,7 +237,7 @@ export default function AiModelsPage() {
                         <span className="text-sm font-medium text-text-primary">{m.name}</span>
                         <span className="text-xs text-text-secondary/60 font-mono">{m.modelId}</span>
                         {tags.map((t) => (
-                          <span key={t} className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary">
+                          <span key={t} className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary">
                             {t}
                           </span>
                         ))}
@@ -238,22 +247,22 @@ export default function AiModelsPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => openEdit(m)}
-                        className="p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface-sidebar transition-colors"
-                        title="Editar"
+                        className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface-sidebar transition-colors"
+                        title="Editar" aria-label="Editar modelo"
                       >
-                        <Pencil size={13} />
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={13} />
                       </button>
                       {deleteId === m.id ? (
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleDeleteCustom(m.id)}
-                            className="px-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                            className="min-h-11 lg:min-h-10 px-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                           >
                             Confirmar
                           </button>
                           <button
                             onClick={() => setDeleteId(null)}
-                            className="px-2 py-1 text-xs border border-border-subtle rounded-md hover:bg-surface-sidebar transition-colors text-text-secondary"
+                            className="min-h-11 lg:min-h-10 px-2 py-1 text-xs border border-line rounded-md hover:bg-surface-sidebar transition-colors text-text-secondary"
                           >
                             Cancelar
                           </button>
@@ -261,10 +270,10 @@ export default function AiModelsPage() {
                       ) : (
                         <button
                           onClick={() => setDeleteId(m.id)}
-                          className="p-1.5 rounded-md text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
-                          title="Eliminar"
+                          className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 rounded-md text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Eliminar" aria-label="Eliminar modelo"
                         >
-                          <Trash2 size={13} />
+                          <HugeiconsIcon icon={Delete02Icon} size={13} />
                         </button>
                       )}
                     </div>
@@ -276,8 +285,8 @@ export default function AiModelsPage() {
         </div>
 
         {/* Built-in models */}
-        <div className="bg-white rounded-xl border border-border-subtle overflow-hidden">
-          <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
+        <div className="bg-surface-elevated rounded-xl border border-line overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-text-primary">Modelos integrados</h2>
               <p className="text-xs text-text-secondary mt-0.5">
@@ -287,7 +296,7 @@ export default function AiModelsPage() {
             </div>
             <span className="text-xs text-text-secondary">{AI_MODELS.length} modelos</span>
           </div>
-          <div className="divide-y divide-border-subtle">
+          <div className="divide-y divide-line">
             {AI_MODELS.map((m) => {
               const isHidden = hiddenBuiltins.includes(m.id);
               return (
@@ -297,9 +306,9 @@ export default function AiModelsPage() {
                       <span className={`text-sm font-medium ${isHidden ? "line-through text-text-secondary" : "text-text-primary"}`}>
                         {m.name}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#EBEDFA] text-[#3545D6] font-semibold">{m.group}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-nav-active text-action-primary font-semibold">{m.group}</span>
                       {isHidden && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Oculto</span>
+                        <span className="text-xs px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Oculto</span>
                       )}
                     </div>
                     <p className="text-xs text-text-secondary mt-0.5 font-mono">{m.id}</p>
@@ -308,23 +317,23 @@ export default function AiModelsPage() {
                     {isHidden ? (
                       <button
                         onClick={() => toggleBuiltin(m.id, "restore")}
-                        className="flex items-center gap-1 px-2 py-1 text-xs text-text-secondary border border-border-subtle rounded-md hover:bg-surface-sidebar transition-colors"
+                        className="min-h-11 lg:min-h-10 flex items-center gap-1 px-2 py-1 text-xs text-text-secondary border border-line rounded-md hover:bg-surface-sidebar transition-colors"
                         title="Restaurar"
                       >
-                        <RotateCcw size={10} />
+                        <HugeiconsIcon icon={ReloadIcon} size={10} />
                         Restaurar
                       </button>
                     ) : pendingBuiltin === m.id ? (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => toggleBuiltin(m.id, "hide")}
-                          className="px-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                          className="min-h-11 lg:min-h-10 px-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                         >
                           Confirmar
                         </button>
                         <button
                           onClick={() => setPendingBuiltin(null)}
-                          className="px-2 py-1 text-xs border border-border-subtle rounded-md hover:bg-surface-sidebar transition-colors text-text-secondary"
+                          className="min-h-11 lg:min-h-10 px-2 py-1 text-xs border border-line rounded-md hover:bg-surface-sidebar transition-colors text-text-secondary"
                         >
                           Cancelar
                         </button>
@@ -332,10 +341,10 @@ export default function AiModelsPage() {
                     ) : (
                       <button
                         onClick={() => setPendingBuiltin(m.id)}
-                        className="p-1.5 rounded-md text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
-                        title="Eliminar"
+                        className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 rounded-md text-text-secondary hover:text-red-500 hover:bg-red-50 transition-colors"
+                        title="Eliminar" aria-label="Eliminar modelo"
                       >
-                        <Trash2 size={13} />
+                        <HugeiconsIcon icon={Delete02Icon} size={13} />
                       </button>
                     )}
                   </div>

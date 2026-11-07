@@ -41,6 +41,7 @@ export function ProjectHeaderSetter({ projectId, projectName, initial }: Project
     setConfig({
       title: section ? `${projectName} · ${section.label}` : projectName,
       backHref: "/projects",
+      pageHeader: true,
       actions: [
         {
           key: "edit-associations",

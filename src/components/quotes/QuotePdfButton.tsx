@@ -325,7 +325,7 @@ export default function QuotePdfButton({ quote, sender }: Props) {
     <button
       onClick={handleDownload}
       disabled={loading}
-      className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
+      className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-control hover:bg-nav-hover transition-colors disabled:opacity-50 lg:min-h-9"
     >
       <HugeiconsIcon icon={Download01Icon} size={15} />
       {loading ? "Generando…" : "PDF"}

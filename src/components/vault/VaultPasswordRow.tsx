@@ -37,7 +37,7 @@ export default function VaultPasswordRow({
 
   if (editing) {
     return (
-      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 border border-border-subtle">
+      <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 border border-line">
         <input
           value={form.label}
           onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
@@ -82,13 +82,13 @@ export default function VaultPasswordRow({
         <div className="flex gap-2">
           <button
             onClick={() => setEditing(false)}
-            className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+            className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={save}
-            className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors"
+            className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg transition-colors"
           >
             Guardar
           </button>
@@ -98,7 +98,7 @@ export default function VaultPasswordRow({
   }
 
   return (
-    <div className="group/vault flex items-start gap-3 bg-white border border-border-subtle rounded-lg p-4 hover:border-border-subtle transition-colors">
+    <div className="group/vault flex items-start gap-3 bg-surface-elevated border border-line rounded-lg p-4 hover:border-line transition-colors">
       <div className="w-9 h-9 rounded-lg bg-action-primary flex items-center justify-center shrink-0">
         <HugeiconsIcon icon={LockPasswordIcon} size={16} color="white" />
       </div>
@@ -109,18 +109,22 @@ export default function VaultPasswordRow({
         )}
         {entry.password && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-mono text-text-primary tracking-wider">
+            <span className="text-xs font-mono text-text-primary">
               {show ? entry.password : "•".repeat(Math.min(entry.password.length, 12))}
             </span>
             <button
+              type="button"
               onClick={() => setShow((s) => !s)}
-              className="text-text-secondary hover:text-text-secondary"
+              aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-pressed={show}
+              className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary lg:size-8"
             >
-              <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={13} />
+              <HugeiconsIcon icon={show ? ViewOffIcon : EyeIcon} size={16} />
             </button>
             <button
+              type="button"
               onClick={() => navigator.clipboard.writeText(entry.password)}
-              className="text-[10px] font-semibold text-text-secondary hover:text-text-primary bg-gray-100 hover:bg-nav-active px-2 py-0.5 rounded-lg transition-colors"
+              className="min-h-11 text-sm font-semibold text-text-secondary hover:text-text-primary bg-surface-sidebar hover:bg-nav-active px-3 rounded-control transition-colors lg:min-h-8"
             >
               Copiar
             </button>
@@ -131,25 +135,29 @@ export default function VaultPasswordRow({
             href={entry.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-500 hover:underline truncate block mt-0.5"
+            className="block truncate text-xs leading-[44px] text-blue-600 hover:underline lg:mt-0.5 lg:leading-normal"
           >
             {entry.url}
           </a>
         )}
         {entry.notes && <p className="text-xs text-text-secondary mt-1">{entry.notes}</p>}
       </div>
-      <div className="flex gap-1 opacity-0 group-hover/vault:opacity-100 transition-opacity">
+      <div className="flex gap-1 transition-opacity lg:opacity-0 lg:group-hover/vault:opacity-100 lg:focus-within:opacity-100">
         <button
+          type="button"
           onClick={() => setEditing(true)}
-          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg"
+          aria-label={`Editar ${entry.label}`}
+          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary lg:size-8"
         >
-          <HugeiconsIcon icon={Edit01Icon} size={13} />
+          <HugeiconsIcon icon={Edit01Icon} size={16} />
         </button>
         <button
+          type="button"
           onClick={() => onDelete(entry.id)}
-          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg"
+          aria-label={`Eliminar ${entry.label}`}
+          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-8"
         >
-          <HugeiconsIcon icon={Delete02Icon} size={13} />
+          <HugeiconsIcon icon={Delete02Icon} size={16} />
         </button>
       </div>
     </div>

@@ -218,8 +218,8 @@ export default function DatePicker({
         type="button"
         onClick={toggle}
         className={[
-          "w-full bg-surface-sidebar hover:bg-nav-hover focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-border-subtle transition-colors text-left flex items-center gap-2",
-          compact ? "px-3 py-2 rounded-lg text-xs" : "px-4 py-2.5 rounded-lg text-sm",
+          "w-full bg-surface-sidebar hover:bg-nav-hover focus:bg-surface-elevated focus:outline-none focus:ring-2 focus:ring-focus/40 transition-colors text-left flex items-center gap-2",
+          compact ? "min-h-11 px-3 py-2 rounded-lg text-xs lg:min-h-0" : "min-h-11 px-4 py-2.5 rounded-lg text-sm lg:min-h-10",
         ].join(" ")}
       >
         <HugeiconsIcon icon={CalendarCheckIn01Icon} size={compact ? 14 : 16} color="#6B7184" />

@@ -7,3 +7,7 @@
 | Decisiones | `02-DOCS/wiki/harness/decisions.md` |
 | Project constitution (SDD non-negotiables) | `02-DOCS/wiki/sdd/constitution.md` |
 | Qué mira el revisor | `REVIEW.md` |
+| Spec — Rediseño del CRM privado, marco claro (aprobada) | `02-DOCS/wiki/sdd/specs/rediseno-obsidiana-estructural.md` |
+| Plan — Rediseño del CRM privado, marco claro (aprobado) | `02-DOCS/wiki/sdd/plans/rediseno-obsidiana-estructural.md` |
+| Análisis — Rediseño del CRM privado (marco claro) | `02-DOCS/wiki/sdd/analysis/rediseno-obsidiana-estructural.md` |
+| Progreso — Rediseño del CRM privado | `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural.md` |

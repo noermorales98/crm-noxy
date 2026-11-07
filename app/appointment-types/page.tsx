@@ -1,12 +1,33 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Add01Icon, Delete01Icon, PencilEdit01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
+import { input as inputCls } from "@/src/lib/crm-ui";
+import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
+
+const primaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
+const secondaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10";
+type TypeRow = {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  isActive: boolean;
+  duration: number;
+  description?: string | null;
+  company?: { name: string } | null;
+  _count?: { appointments?: number; forms?: number };
+};
+
+const iconAction =
+  "crm-press flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-sidebar hover:text-text-primary lg:size-9";
 
 export default function AppointmentTypesPage() {
   const { addToast } = useToast();
@@ -16,6 +37,8 @@ export default function AppointmentTypesPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [schedulesError, setSchedulesError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingType, setEditingType] = useState<any>(null);
 
@@ -30,6 +53,8 @@ export default function AppointmentTypesPage() {
   const [bufferAfter, setBufferAfter] = useState("0");
   const [maxAdvanceDays, setMaxAdvanceDays] = useState("30");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialog(dialogRef, isModalOpen, () => setIsModalOpen(false));
 
   useEffect(() => {
     resetState();
@@ -44,7 +69,7 @@ export default function AppointmentTypesPage() {
         { label: "Duración", value: "duration" },
         { label: "Citas", value: "appointments" },
       ],
-      addButton: { label: "Nuevo tipo", onClick: openCreate },
+      pageHeader: true,
     });
     return () => setConfig({});
   }, [schedules.length, isLoading, types.length]); // Re-run if schedules change but don't reset state
@@ -55,6 +80,7 @@ export default function AppointmentTypesPage() {
 
   const fetchAll = async () => {
     setIsLoading(true);
+    setLoadError(false);
     try {
       const [t, s, c] = await Promise.all([
         fetch("/api/appointment-types"),
@@ -62,14 +88,24 @@ export default function AppointmentTypesPage() {
         fetch("/api/companies"),
       ]);
       if (t.ok) setTypes(await t.json());
-      if (s.ok) setSchedules(await s.json());
+      else {
+        setLoadError(true);
+        // Con filas ya cargadas, el fallo no las sustituye: se avisa con un toast.
+        if (types.length > 0) addToast("Error al cargar datos", "error");
+      }
+      if (s.ok) {
+        setSchedules(await s.json());
+        setSchedulesError(false);
+      } else setSchedulesError(true);
       if (c.ok) {
         const cData = await c.json();
         setCompanies(Array.isArray(cData) ? cData : (cData.companies ?? []));
       }
     } catch (error) {
       console.error("Error fetching appointment types:", error);
-      addToast("Error al cargar datos", "error");
+      setLoadError(true);
+      setSchedulesError(true);
+      if (types.length > 0) addToast("Error al cargar datos", "error");
     } finally {
       setIsLoading(false);
     }
@@ -143,254 +179,182 @@ export default function AppointmentTypesPage() {
     return result;
   }, [types, sortField, sortOrder]);
 
+  const renderType = (type: TypeRow) => (
+    <div className="flex w-full min-w-0 flex-col gap-3 py-2 lg:flex-row lg:items-center">
+      <button type="button" onClick={() => openEdit(type)} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary">
+        {/* Color del tipo de cita: dato que guarda el usuario. */}
+        <span className="mt-1.5 size-3 shrink-0 rounded-full" style={{ backgroundColor: type.color }} aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-semibold text-text-primary">{type.name}</span>
+            <Chip tone={type.isActive ? "done" : "neutral"}>{type.isActive ? "Activo" : "Inactivo"}</Chip>
+          </span>
+          <span className="block truncate text-xs text-text-secondary">/schedule/{type.slug}</span>
+          {type.description && <span className="mt-0.5 block truncate text-sm text-text-secondary">{type.description}</span>}
+          <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+            <span className="flex items-center gap-1"><HugeiconsIcon icon={Clock01Icon} size={12} /> {type.duration} min</span>
+            <span className="tabular-nums">{type._count?.appointments || 0} citas</span>
+            {(type._count?.forms ?? 0) > 0 && (
+              <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Note01Icon} size={12} /> Con formulario</span>
+            )}
+            {type.company && (
+              <span className="flex items-center gap-1">
+                <HugeiconsIcon icon={Building04Icon} size={12} /> {type.company.name}
+                <HugeiconsIcon icon={Mail01Icon} size={12} className="text-success" aria-label="Correo de confirmación" />
+              </span>
+            )}
+          </span>
+        </span>
+      </button>
+      <div className="flex shrink-0 items-center gap-1">
+        <button type="button" onClick={() => copyLink(type.slug)} className={iconAction} aria-label={`Copiar link de ${type.name}`} title="Copiar link">
+          <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDelete(type.id, type.name)}
+          className={`${iconAction} hover:bg-danger-soft hover:text-danger`}
+          aria-label={`Eliminar ${type.name}`}
+          title="Eliminar"
+        >
+          <HugeiconsIcon icon={Delete01Icon} size={16} />
+        </button>
+      </div>
+    </div>
+  );
+
+  const label = "text-sm font-semibold text-text-primary";
+
   return (
     <>
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-sm text-text-secondary">Define los tipos de reunión que tus clientes pueden agendar.</p>
-            </div>
-            <Link href="/availability" className="flex items-center gap-2 border border-border-subtle bg-white hover:bg-surface-sidebar text-text-secondary px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
-              Gestionar disponibilidad
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <Enter index={0}>
+          <PageHeader
+            title="Tipos de cita"
+            subtitle="Define los tipos de reunión que tus clientes pueden agendar."
+            actions={
+              <>
+                <Link href="/availability" className={secondaryAction}>Gestionar disponibilidad</Link>
+                <button type="button" onClick={openCreate} disabled={schedules.length === 0} className={primaryAction}>
+                  <HugeiconsIcon icon={Add01Icon} size={16} />
+                  Nuevo tipo
+                </button>
+              </>
+            }
+          />
+        </Enter>
+
+        {schedules.length === 0 && !isLoading && !loadError && !schedulesError && (
+          <div className="mb-4 flex flex-col items-start gap-3 rounded-surface border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-amber-900">Primero necesitas crear un horario de disponibilidad.</p>
+            <Link href="/availability" className="inline-flex min-h-11 items-center rounded-control bg-amber-100 px-4 text-sm font-semibold text-amber-900 hover:bg-amber-200 lg:min-h-9">
+              Crear disponibilidad
             </Link>
           </div>
+        )}
 
-          {schedules.length === 0 && !isLoading && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 text-center">
-              <p className="text-amber-800 font-medium">Primero necesitas crear un horario de disponibilidad.</p>
-              <Link
-                href="/availability"
-                className="inline-block mt-3 text-sm font-medium text-amber-900 bg-amber-100 hover:bg-amber-200 px-4 py-2 rounded-lg transition-colors"
-              >
-                Crear Disponibilidad
-              </Link>
-            </div>
-          )}
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div>
-            </div>
-          ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
-                <HugeiconsIcon icon={Calendar01Icon} size={28} color="#9ca3af" />
-              </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">Sin tipos de cita</h3>
-              <p className="text-sm text-text-secondary">Crea tu primer tipo de cita para que tus clientes puedan agendar.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayed.map(type => (
-                <div key={type.id} className="bg-white border border-border-subtle rounded-lg p-6 transition-shadow flex flex-col">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: type.color }}></div>
-                      <div>
-                        <h3 className="text-lg font-bold text-text-primary">{type.name}</h3>
-                        <span className="text-xs text-text-secondary">/{type.slug}</span>
-                      </div>
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-md ${type.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
-                      {type.isActive ? "Activo" : "Inactivo"}
-                    </span>
-                  </div>
-
-                  {type.description && (
-                    <p className="text-sm text-text-secondary mb-4 flex-1 line-clamp-2">{type.description}</p>
-                  )}
-
-                  <div className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-text-secondary mb-4">
-                    <HugeiconsIcon icon={Clock01Icon} size={14} />
-                    <span>{type.duration} min</span>
-                    <span className="mx-1 text-gray-200">·</span>
-                    <span>{type._count?.appointments || 0} citas</span>
-                    {type._count?.forms > 0 && (
-                      <>
-                        <span className="mx-1 text-gray-200">·</span>
-                        <div className="flex items-center gap-1 text-action-primary font-medium">
-                          <HugeiconsIcon icon={Note01Icon} size={14} />
-                          <span>Con Formulario</span>
-                        </div>
-                      </>
-                    )}
-                    {type.company && (
-                      <div className="w-full flex items-center gap-1 mt-1 text-xs text-text-secondary">
-                        <HugeiconsIcon icon={Building04Icon} size={12} />
-                        <span>{type.company.name}</span>
-                        <HugeiconsIcon icon={Mail01Icon} size={12} className="ml-1 text-green-500" color="#22c55e" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2 mt-auto pt-4 border-t border-border-subtle">
-                    <button
-                      onClick={() => copyLink(type.slug)}
-                      className="p-2 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors"
-                      title="Copiar link"
-                    >
-                      <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
-                    </button>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(type.id, type.name)}
-                        className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <HugeiconsIcon icon={Delete01Icon} size={16} />
-                      </button>
-                      <button
-                        onClick={() => openEdit(type)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-primary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
-                      >
-                        <HugeiconsIcon icon={PencilEdit01Icon} size={14} /> Editar
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
+        <Enter index={1}>
+          <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            {isLoading && types.length === 0 ? (
+              <Skeleton shape="rows" count={4} label="Cargando tipos de cita" />
+            ) : loadError && types.length === 0 ? (
+              <ErrorState title="No se pudieron cargar los tipos de cita" onRetry={fetchAll} />
+            ) : (
+              <DataList
+                label="Tipos de cita"
+                rows={displayed}
+                getKey={(t) => t.id}
+                renderRow={renderType}
+                empty={<EmptyState title="Sin tipos de cita" body="Crea tu primer tipo de cita para que tus clientes puedan agendar." />}
+              />
+            )}
+          </section>
+        </Enter>
+      </main>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
-              <h3 className="text-lg font-bold text-text-primary">
-                {editingType ? "Editar Tipo de Cita" : "Nuevo Tipo de Cita"}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-secondary hover:text-text-secondary">
+          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="type-modal-title" className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+              <h2 id="type-modal-title" className="text-base font-semibold text-text-primary">
+                {editingType ? "Editar tipo de cita" : "Nuevo tipo de cita"}
+              </h2>
+              <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Cerrar" className={iconAction}>
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1">
+            <div className="flex-1 overflow-y-auto p-6">
               <form id="typeForm" onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Nombre *</label>
+                  <label htmlFor="type-name" className={label}>Nombre *</label>
                   <input
+                    id="type-name"
                     required
                     value={name}
                     onChange={e => { setName(e.target.value); if (!editingType) autoSlug(e.target.value); }}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white text-sm"
+                    className={inputCls}
                     placeholder="Ej: Consulta inicial"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Descripción</label>
-                  <textarea
-                    rows={2}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white text-sm resize-none"
-                  ></textarea>
+                  <label htmlFor="type-description" className={label}>Descripción</label>
+                  <textarea id="type-description" rows={2} value={description} onChange={e => setDescription(e.target.value)} className={`${inputCls} resize-none`} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">Duración (min) *</label>
-                    <select
-                      value={duration}
-                      onChange={e => setDuration(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                    >
+                    <label htmlFor="type-duration" className={label}>Duración (min) *</label>
+                    <select id="type-duration" value={duration} onChange={e => setDuration(e.target.value)} className={inputCls}>
                       {[15, 20, 30, 45, 60, 90, 120].map(d => <option key={d} value={d}>{d} min</option>)}
                     </select>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">Color</label>
-                    <input
-                      type="color"
-                      value={color}
-                      onChange={e => setColor(e.target.value)}
-                      className="w-full h-[38px] rounded-lg border border-border-subtle cursor-pointer"
-                    />
+                    <label htmlFor="type-color" className={label}>Color</label>
+                    <input id="type-color" type="color" value={color} onChange={e => setColor(e.target.value)} className="h-11 w-full cursor-pointer rounded-control border border-line" />
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">URL / Ubicación</label>
-                  <input
-                    value={location}
-                    onChange={e => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                    placeholder="https://meet.google.com/... o dirección física"
-                  />
+                  <label htmlFor="type-location" className={label}>URL / Ubicación</label>
+                  <input id="type-location" value={location} onChange={e => setLocation(e.target.value)} className={inputCls} placeholder="https://meet.google.com/... o dirección física" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Slug (URL) *</label>
-                  <input
-                    required
-                    value={slug}
-                    onChange={e => setSlug(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm font-mono"
-                    placeholder="consulta-inicial"
-                  />
+                  <label htmlFor="type-slug" className={label}>Slug (URL) *</label>
+                  <input id="type-slug" required value={slug} onChange={e => setSlug(e.target.value)} className={`${inputCls} font-mono`} placeholder="consulta-inicial" />
                   <p className="text-xs text-text-secondary">/schedule/{slug || "tu-slug"}</p>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Horario de disponibilidad *</label>
-                  <select
-                    required
-                    value={scheduleId}
-                    onChange={e => setScheduleId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                  >
+                  <label htmlFor="type-schedule" className={label}>Horario de disponibilidad *</label>
+                  <select id="type-schedule" required value={scheduleId} onChange={e => setScheduleId(e.target.value)} className={inputCls}>
                     <option value="">Seleccionar horario</option>
                     {schedules.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-text-primary">Empresa (para envío de correo)</label>
-                  <select
-                    value={companyId}
-                    onChange={e => setCompanyId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                  >
+                  <label htmlFor="type-company" className={label}>Empresa (para envío de correo)</label>
+                  <select id="type-company" value={companyId} onChange={e => setCompanyId(e.target.value)} className={inputCls}>
                     <option value="">Sin empresa asignada</option>
                     {companies.map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.name}{c.smtpHost ? " ✓ SMTP configurado" : " (sin SMTP)"}
+                        {c.name}{c.smtpHost ? " (SMTP configurado)" : " (sin SMTP)"}
                       </option>
                     ))}
                   </select>
                   <p className="text-xs text-text-secondary">El correo de confirmación se enviará usando el SMTP de esta empresa.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">Buffer después (min)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={bufferAfter}
-                      onChange={e => setBufferAfter(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                    />
+                    <label htmlFor="type-buffer" className={label}>Buffer después (min)</label>
+                    <input id="type-buffer" type="number" min="0" value={bufferAfter} onChange={e => setBufferAfter(e.target.value)} className={inputCls} />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-semibold text-text-primary">Máx. días adelante</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={maxAdvanceDays}
-                      onChange={e => setMaxAdvanceDays(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-surface-sidebar text-sm"
-                    />
+                    <label htmlFor="type-advance" className={label}>Máx. días adelante</label>
+                    <input id="type-advance" type="number" min="1" value={maxAdvanceDays} onChange={e => setMaxAdvanceDays(e.target.value)} className={inputCls} />
                   </div>
                 </div>
               </form>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                form="typeForm"
-                disabled={isSubmitting}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 disabled:opacity-50"
-              >
+            <div className="flex justify-end gap-2 border-t border-line px-6 py-4">
+              <button type="button" onClick={() => setIsModalOpen(false)} className={secondaryAction}>Cancelar</button>
+              <button type="submit" form="typeForm" disabled={isSubmitting} className={primaryAction}>
                 {isSubmitting ? "Guardando..." : editingType ? "Actualizar" : "Crear"}
               </button>
             </div>

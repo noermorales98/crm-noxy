@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { CRM_THEMES, DEFAULT_CRM_THEME_ID, contrastRatio, crmThemeCssVariables, isCrmThemeId, resolveCrmTheme, type CrmThemeTokens } from "./crm-themes.ts";
+import { CRM_THEMES, DEFAULT_CRM_THEME_ID, contrastRatio, crmThemeCssVariables, isCrmThemeId, navActiveInk, resolveCrmTheme, type CrmThemeTokens } from "./crm-themes.ts";
 
 const TOKEN_KEYS: Array<keyof CrmThemeTokens> = [
   "surfaceApp",
@@ -68,5 +68,24 @@ test("theme text and primary actions meet WCAG AA contrast", () => {
       );
     }
     assert.ok(contrastRatio(tokens.focus, tokens.surfaceElevated) >= 3, `${id}: focus indicator`);
+  }
+});
+
+test("light frame pairs meet WCAG AA in every theme", () => {
+  for (const theme of CRM_THEMES) {
+    const { id, tokens } = theme;
+    // Marco claro: texto secundario e iconos sobre el fondo del marco.
+    assert.ok(contrastRatio(tokens.textSecondary, tokens.surfaceSidebar) >= 4.5, `${id}: secondary text on frame`);
+    // Destino activo: su tinta sobre la pastilla blanca.
+    const ink = navActiveInk(theme);
+    assert.ok(contrastRatio(ink, tokens.surfaceElevated) >= 4.5, `${id}: active ink ${ink} on elevated`);
+    // La tinta es la acción del tema cuando llega a AA (identidad del tema); si no, Obsidiana
+    // (regla de pares de DESIGN.md: Azul Recuerdo y Lima siempre con Obsidiana).
+    const actionPasses = contrastRatio(tokens.actionPrimary, tokens.surfaceElevated) >= 4.5;
+    assert.equal(ink, actionPasses ? tokens.actionPrimary : tokens.textPrimary, `${id}: active ink choice`);
+    // La tinta llega al shell como variable CSS del tema.
+    assert.equal((crmThemeCssVariables(theme) as Record<string, string>)["--nav-active-ink"], ink, `${id}: --nav-active-ink`);
+    // Foco visible también sobre el marco.
+    assert.ok(contrastRatio(tokens.focus, tokens.surfaceSidebar) >= 3, `${id}: focus on frame`);
   }
 });

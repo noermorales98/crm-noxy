@@ -4,13 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
-import {
-  Plus, Clock, ChevronRight, BookOpen,
-  Globe, Lock, Hash, Folder,
-} from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, ArrowRight01Icon, Clock01Icon, Folder01Icon } from "@hugeicons/core-free-icons";
 import PageIcon from "@/src/components/kb/PageIcon";
-import { KbCreateMenu, KbItemMenu } from "@/src/components/kb/KbMobileMenus";
+import { KbItemMenu } from "@/src/components/kb/KbMobileMenus";
 import { useOptionalKbContext } from "@/src/context/KbContext";
+import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, StatStrip } from "@/src/components/ui";
 
 interface KbPage {
   id: string;
@@ -24,6 +23,11 @@ interface KbPage {
   updatedAt: string;
   _count: { children: number; relations: number };
 }
+
+const primaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
+const secondaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar disabled:opacity-50 lg:min-h-10";
 
 function timeAgo(date: string) {
   const diff = (Date.now() - new Date(date).getTime()) / 1000;
@@ -40,24 +44,24 @@ export default function KbHomePage() {
   const { setConfig, resetState } = useHeader();
   const [pages, setPages] = useState<KbPage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    setConfig({
-      title: "Knowledge Base",
-      addButton: {
-        label: "Nueva página",
-        onClick: () => createPage(false),
-        hideOnMobile: true,
-      },
-    });
+    setConfig({ title: "Knowledge Base", pageHeader: true });
     return () => resetState();
   }, []); // eslint-disable-line
 
   const fetchPages = useCallback(async () => {
     setLoading(true);
-    const res = await fetch("/api/kb?all=true");
-    if (res.ok) setPages(await res.json());
+    setLoadError(false);
+    try {
+      const res = await fetch("/api/kb?all=true");
+      if (res.ok) setPages(await res.json());
+      else setLoadError(true);
+    } catch {
+      setLoadError(true);
+    }
     setLoading(false);
   }, []);
 
@@ -79,214 +83,118 @@ export default function KbHomePage() {
     setCreating(false);
   };
 
-  const filtered = pages;
   const rootPages = pages.filter((page) => !page.parentId);
+  const docs = pages.filter((p) => !p.isFolder);
+
+  const createActions = (
+    <>
+      <button type="button" onClick={() => createPage(true)} disabled={creating} className={secondaryAction}>
+        <HugeiconsIcon icon={Folder01Icon} size={16} />
+        Nueva carpeta
+      </button>
+      <button type="button" onClick={() => createPage(false)} disabled={creating} className={primaryAction}>
+        <HugeiconsIcon icon={Add01Icon} size={16} />
+        Nueva página
+      </button>
+    </>
+  );
+
+  const empty = (
+    <EmptyState
+      title="Tu knowledge base está vacío"
+      body="Crea tu primera página para documentar procesos, guías y más."
+      action={<div className="flex flex-wrap justify-center gap-2">{createActions}</div>}
+    />
+  );
+
+  const renderPage = (page: KbPage, withMenu: boolean) => (
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <Link href={`/kb/${page.id}`} className="group flex min-h-14 min-w-0 flex-1 items-center gap-4 rounded-control py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary">
+        <PageIcon emoji={page.emoji} iconColor={page.iconColor} iconBg={page.iconBg} isFolder={page.isFolder} size={20} block className="shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-text-primary group-hover:underline">{page.title || "Sin título"}</span>
+          <span className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-secondary">
+            <span className="flex items-center gap-1"><HugeiconsIcon icon={Clock01Icon} size={12} /> {timeAgo(page.updatedAt)}</span>
+            {page._count.children > 0 && (
+              <span>
+                {page._count.children} {page.isFolder ? "página" : "subpágina"}{page._count.children > 1 ? "s" : ""}
+              </span>
+            )}
+            {!page.isFolder && page._count.relations > 0 && (
+              <span>
+                {page._count.relations} relación{page._count.relations > 1 ? "es" : ""}
+              </span>
+            )}
+          </span>
+        </span>
+        <span className="hidden shrink-0 items-center gap-2 sm:flex">
+          {page.isFolder ? (
+            <Chip>Carpeta</Chip>
+          ) : (
+            <Chip tone={page.isPublished ? "done" : "neutral"}>{page.isPublished ? "Publicado" : "Borrador"}</Chip>
+          )}
+          <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="text-text-secondary" />
+        </span>
+      </Link>
+      {withMenu && (
+        <KbItemMenu id={page.id} title={page.title} parentId={null} isFolder={page.isFolder} onChanged={() => void fetchPages()} />
+      )}
+    </div>
+  );
 
   return (
-    <main className="crm-mobile-bottom-clearance min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
-          <div className="lg:hidden">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h1 className="min-w-0 truncate text-sm font-semibold text-text-primary">Inicio Docs</h1>
-              <KbCreateMenu disabled={creating} onCreate={(isFolder) => void createPage(isFolder)} />
-            </div>
-            {loading ? (
-              <div className="flex flex-col gap-3 rounded-lg border border-border-subtle bg-white p-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-10 animate-pulse rounded-lg bg-gray-100" />
-                ))}
-              </div>
-            ) : rootPages.length === 0 ? (
-              <p className="rounded-lg border border-border-subtle bg-white px-4 py-8 text-center text-sm text-text-secondary">
-                Inicio Docs está vacío.
-              </p>
-            ) : (
-              <div className="divide-y divide-gray-50 overflow-hidden rounded-lg border border-border-subtle bg-white">
-                {rootPages.map((page) => (
-                  <div key={page.id} className="flex items-center gap-2 px-3 py-2">
-                    <Link href={`/kb/${page.id}`} className="flex min-w-0 flex-1 items-center gap-3 py-1">
-                      <PageIcon
-                        emoji={page.emoji}
-                        iconColor={page.iconColor}
-                        iconBg={page.iconBg}
-                        isFolder={page.isFolder}
-                        size={18}
-                        block
-                      />
-                      <span className="truncate text-sm font-medium text-text-primary">{page.title || "Sin título"}</span>
-                    </Link>
-                    <KbItemMenu
-                      id={page.id}
-                      title={page.title}
-                      parentId={null}
-                      isFolder={page.isFolder}
-                      onChanged={() => void fetchPages()}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    <main className="crm-mobile-bottom-clearance min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+      <Enter index={0}>
+        <PageHeader title="Docs" subtitle="Documentación, guías y notas del equipo" actions={createActions} />
+      </Enter>
 
-          {/* Page header */}
-          <div className="mb-6 hidden flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between lg:flex">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-action-primary">
-                <BookOpen size={18} color="white" />
-              </div>
-              <p className="text-sm text-text-secondary">Documentación, guías y notas del equipo</p>
-            </div>
-            {/* Extra actions */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => createPage(true)}
-                disabled={creating}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border-subtle bg-white px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-sidebar disabled:opacity-50 sm:flex-none"
-              >
-                <Folder size={14} />
-                Nueva carpeta
-              </button>
-              <button
-                onClick={() => createPage(false)}
-                disabled={creating}
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-action-primary px-3 py-2 text-sm font-medium text-action-primary-foreground transition-colors hover:bg-black disabled:opacity-50 sm:flex-none"
-              >
-                <Plus size={14} />
-                Nueva página
-              </button>
-            </div>
-          </div>
+      <Enter index={1}>
+        <div className="mb-4 hidden lg:block">
+          <StatStrip
+            items={[
+              { label: "Total", value: docs.length },
+              { label: "Publicadas", value: docs.filter((p) => p.isPublished).length },
+              { label: "Borradores", value: docs.filter((p) => !p.isPublished).length },
+            ]}
+          />
+        </div>
+      </Enter>
 
-          {/* Stats */}
-          <div className="mb-6 hidden grid-cols-3 gap-2 sm:mb-8 sm:gap-4 lg:grid">
-            {[
-              { label: "Total",       value: pages.filter(p => !p.isFolder).length, icon: BookOpen, color: "text-action-primary bg-nav-hover" },
-              { label: "Publicadas",  value: pages.filter(p => !p.isFolder && p.isPublished).length, icon: Globe,    color: "text-green-600 bg-green-50" },
-              { label: "Borradores",  value: pages.filter(p => !p.isFolder && !p.isPublished).length, icon: Lock,    color: "text-amber-600 bg-amber-50" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex min-w-0 items-center gap-2 rounded-lg border border-border-subtle bg-white p-2.5 sm:gap-4 sm:p-5">
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${stat.color}`}>
-                  <stat.icon className="size-4 sm:size-[18px]" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-lg font-bold leading-tight text-text-primary sm:text-2xl">{stat.value}</p>
-                  <p className="truncate text-[10px] text-text-secondary sm:text-xs">{stat.label}</p>
-                </div>
+      <Enter index={2}>
+        <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+          <header className="flex min-h-14 items-center gap-2 border-b border-line px-4 sm:px-5">
+            <h2 className="text-base font-semibold text-text-primary">
+              <span className="lg:hidden">Inicio Docs</span>
+              <span className="hidden lg:inline">Todas las páginas</span>
+            </h2>
+            <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-xs font-semibold tabular-nums text-text-secondary">
+              <span className="lg:hidden">{rootPages.length}</span>
+              <span className="hidden lg:inline">{pages.length}</span>
+            </span>
+          </header>
+          {loading && pages.length === 0 ? (
+            <Skeleton shape="rows" count={4} label="Cargando páginas" />
+          ) : loadError && pages.length === 0 ? (
+            <ErrorState title="No se pudieron cargar las páginas" onRetry={() => void fetchPages()} />
+          ) : (
+            <>
+              {/* Móvil: páginas raíz con su menú de acciones (en escritorio, el árbol de la sidebar). */}
+              <div className="lg:hidden">
+                <DataList
+                  label="Inicio Docs"
+                  rows={rootPages}
+                  getKey={(p) => p.id}
+                  renderRow={(p) => renderPage(p, true)}
+                  empty={pages.length > 0 ? <EmptyState title="Inicio Docs está vacío" body="Las páginas existentes están dentro de carpetas." /> : empty}
+                />
               </div>
-            ))}
-          </div>
-
-          {/* Pages list */}
-          <div className="hidden rounded-lg border border-border-subtle bg-white lg:block">
-            <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Hash size={14} className="text-text-secondary" />
-                <span className="text-sm font-semibold text-text-primary">Todas las páginas</span>
-                <span className="text-xs text-text-secondary bg-surface-sidebar px-2 py-0.5 rounded-full">{filtered.length}</span>
+              <div className="hidden lg:block">
+                <DataList label="Todas las páginas" rows={pages} getKey={(p) => p.id} renderRow={(p) => renderPage(p, false)} empty={empty} />
               </div>
-            </div>
-
-            {loading ? (
-              <div className="p-6 flex flex-col gap-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-4 items-center">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 animate-pulse shrink-0" />
-                    <div className="flex-1 flex flex-col gap-1.5">
-                      <div className="h-4 bg-gray-100 rounded animate-pulse w-48" />
-                      <div className="h-3 bg-surface-sidebar rounded animate-pulse w-32" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-4">
-                <div className="w-16 h-16 rounded-lg bg-surface-sidebar flex items-center justify-center">
-                  <BookOpen size={28} className="text-gray-200" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium text-text-primary mb-1">Tu knowledge base está vacío</p>
-                  <p className="text-xs text-text-secondary mb-4">Crea tu primera página para documentar procesos, guías y más</p>
-                  <div className="flex items-center gap-2 justify-center">
-                    <button
-                      onClick={() => createPage(false)}
-                      disabled={creating}
-                      className="flex items-center gap-2 px-4 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <Plus size={14} />
-                      Nueva página
-                    </button>
-                    <button
-                      onClick={() => createPage(true)}
-                      disabled={creating}
-                      className="flex items-center gap-2 px-4 py-2.5 border border-border-subtle text-text-secondary hover:bg-surface-sidebar text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <Folder size={14} />
-                      Nueva carpeta
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {filtered.map((page) => (
-                  <Link
-                    key={page.id}
-                    href={`/kb/${page.id}`}
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-surface-sidebar/70 transition-colors group"
-                  >
-                    {/* Icon */}
-                    <PageIcon
-                      emoji={page.emoji}
-                      iconColor={page.iconColor}
-                      iconBg={page.iconBg}
-                      isFolder={page.isFolder}
-                      size={22}
-                      block
-                      className="shrink-0 group-hover:opacity-90 transition-opacity"
-                    />
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-text-primary truncate group-hover:text-text-primary">
-                        {page.title || "Sin título"}
-                      </p>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        <span className="flex items-center gap-1 text-xs text-text-secondary">
-                          <Clock size={10} />
-                          {timeAgo(page.updatedAt)}
-                        </span>
-                        {page._count.children > 0 && (
-                          <span className="text-xs text-text-secondary">
-                            {page._count.children} {page.isFolder ? "página" : "subpágina"}{page._count.children > 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {!page.isFolder && page._count.relations > 0 && (
-                          <span className="text-xs text-text-secondary">
-                            {page._count.relations} relación{page._count.relations > 1 ? "es" : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Status */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {page.isFolder ? (
-                        <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-amber-50 text-amber-600">
-                          Carpeta
-                        </span>
-                      ) : (
-                        <span className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
-                          page.isPublished ? "bg-green-50 text-green-600" : "bg-surface-sidebar text-text-secondary"
-                        }`}>
-                          {page.isPublished ? "Publicado" : "Borrador"}
-                        </span>
-                      )}
-                      <ChevronRight size={14} className="text-gray-300 group-hover:text-text-secondary transition-colors" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </main>
+            </>
+          )}
+        </section>
+      </Enter>
+    </main>
   );
 }

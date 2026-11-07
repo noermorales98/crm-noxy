@@ -234,7 +234,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-line border-t-gray-900 rounded-full animate-spin" />
       </div>
     );
   }
@@ -242,7 +242,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex flex-col gap-6">
       {/* ── Remitente ───────────────────────────────────────────────────── */}
-      <section className="bg-white border border-border-subtle rounded-lg p-6">
+      <section className="bg-surface-elevated border border-line rounded-lg p-6">
         <h2 className="text-sm font-bold text-text-primary mb-1">Remitente</h2>
         <p className="text-xs text-text-secondary mb-4">
           La empresa que emite la cotización y desde cuyo correo se envía. Opcional: si no eliges una, se usan los datos manuales de la configuración.
@@ -266,7 +266,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       </section>
 
       {/* ── Cliente ─────────────────────────────────────────────────────── */}
-      <section className="bg-white border border-border-subtle rounded-lg p-6">
+      <section className="bg-surface-elevated border border-line rounded-lg p-6">
         <h2 className="text-sm font-bold text-text-primary mb-4">Cliente</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5 md:col-span-2">
@@ -304,11 +304,11 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       </section>
 
       {/* ── Ítems ───────────────────────────────────────────────────────── */}
-      <section className="bg-white border border-border-subtle rounded-lg p-6">
+      <section className="bg-surface-elevated border border-line rounded-lg p-6">
         <h2 className="text-sm font-bold text-text-primary mb-4">Ítems</h2>
         <div className="hidden md:grid grid-cols-[1fr_90px_130px_110px_120px_36px] gap-2 mb-2">
           {["Descripción", "Cantidad", "Precio unit.", "Desc. %", "Total", ""].map((h) => (
-            <p key={h} className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">{h}</p>
+            <p key={h} className="text-xs font-semibold text-text-secondary">{h}</p>
           ))}
         </div>
         <div className="flex flex-col gap-2">
@@ -354,7 +354,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
               <button
                 type="button"
                 onClick={() => removeItem(i)}
-                className="p-2 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors justify-self-end"
+                className="flex size-11 items-center justify-center text-text-secondary hover:text-danger hover:bg-danger-soft rounded-control transition-colors justify-self-end lg:size-9"
                 title="Quitar ítem"
               >
                 <HugeiconsIcon icon={Delete01Icon} size={15} />
@@ -365,14 +365,14 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         <button
           type="button"
           onClick={() => setItems((prev) => [...prev, { ...emptyItem }])}
-          className="mt-4 flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary px-3 py-2 rounded-lg hover:bg-nav-hover transition-colors"
+          className="mt-4 flex min-h-11 items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary px-3 py-2 rounded-control hover:bg-nav-hover transition-colors lg:min-h-9"
         >
           <HugeiconsIcon icon={Add01Icon} size={14} />
           Agregar ítem
         </button>
 
         {/* Totales */}
-        <div className="mt-6 pt-4 border-t border-border-subtle flex flex-col items-end gap-1.5">
+        <div className="mt-6 pt-4 border-t border-line flex flex-col items-end gap-1.5">
           <div className="flex items-center gap-6 text-sm">
             <span className="text-text-secondary">Subtotal</span>
             <span className="font-medium w-32 text-right">{fmt(totals.subtotal)}</span>
@@ -399,7 +399,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       </section>
 
       {/* ── Condiciones ─────────────────────────────────────────────────── */}
-      <section className="bg-white border border-border-subtle rounded-lg p-6">
+      <section className="bg-surface-elevated border border-line rounded-lg p-6">
         <h2 className="text-sm font-bold text-text-primary mb-4">Condiciones</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
@@ -432,17 +432,17 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       </section>
 
       {/* ── Pagos parciales ─────────────────────────────────────────────── */}
-      <section className="bg-white border border-border-subtle rounded-lg p-6">
+      <section className="bg-surface-elevated border border-line rounded-lg p-6">
         <h2 className="text-sm font-bold text-text-primary mb-1">Pagos parciales</h2>
         <p className="text-xs text-text-secondary mb-4">
           Divide el cobro en un pago inicial (anticipo) y un pago final. Se generan dos links de pago cuando el cliente acepta.
         </p>
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+        <label data-check-ignore-tap className="flex min-h-11 items-center gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={splitPayment}
             onChange={(e) => setSplitPayment(e.target.checked)}
-            className="w-4 h-4 rounded accent-gray-900"
+            className="w-4 h-4 rounded accent-action-primary"
           />
           <span className="text-sm font-medium text-text-primary">
             Dividir el cobro en dos pagos (anticipo + pago final)
@@ -480,7 +480,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-lg transition-colors"
+          className="min-h-11 px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-nav-hover rounded-control transition-colors lg:min-h-10"
         >
           Cancelar
         </button>

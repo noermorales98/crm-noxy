@@ -10,7 +10,6 @@ import {
   Logout01Icon,
   More01Icon,
 } from "@hugeicons/core-free-icons";
-import { ChevronLeft, Globe, Lock, Edit2, Eye, Palette, ChevronDown, MessageSquare, Download, History } from "lucide-react";
 import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import KbSharePanel from "@/src/components/kb/KbSharePanel";
@@ -19,6 +18,7 @@ import {
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
 import { userAvatarSrc } from "@/src/lib/user-sexo";
+import { ArrowDown01Icon, ArrowRight01Icon, ArrowLeft01Icon, Clock01Icon, Download01Icon, Globe02Icon, LockIcon, Message01Icon, PaintBoardIcon, PencilEdit01Icon, ViewIcon } from "@hugeicons/core-free-icons";
 
 export interface KbBreadcrumb {
   id: string;
@@ -102,30 +102,30 @@ export default function KbEditorNavbar({
           : "";
 
   return (
-    <div className="crm-safe-top relative z-30 shrink-0 border-b border-border-subtle bg-surface-elevated">
+    <div className="crm-safe-top relative z-30 shrink-0 border-b border-line bg-surface-elevated">
       <div className="flex h-12 items-center gap-2 px-3 sm:h-14 sm:gap-3 sm:px-4">
         {/* Breadcrumbs / title */}
         <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-text-secondary sm:max-w-[28%] sm:flex-none">
           <MobileSidebarToggle />
           <Link
             href="/kb"
-            className="flex size-8 shrink-0 items-center justify-center rounded-lg hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:font-medium"
+            className="-ml-1 flex size-11 shrink-0 items-center justify-center rounded-control hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:min-h-11 sm:min-w-11 sm:justify-center sm:font-medium lg:min-h-0 lg:min-w-0"
             title="Docs"
           >
-            <ChevronLeft size={16} className="sm:hidden" />
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} className="sm:hidden" />
             <span className="hidden sm:inline">Docs</span>
           </Link>
           <span className="hidden min-w-0 items-center gap-1 sm:flex">
             {ancestors.map((bc) => (
               <span key={bc.id} className="flex min-w-0 items-center gap-1">
-                <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
-                <Link href={`/kb/${bc.id}`} className="truncate hover:text-text-primary">
+                <HugeiconsIcon icon={ArrowRight01Icon} size={12} className="shrink-0 opacity-50" />
+                <Link href={`/kb/${bc.id}`} className="inline-flex min-h-11 items-center truncate hover:text-text-primary lg:min-h-0">
                   {bc.title}
                 </Link>
               </span>
             ))}
             <span className="flex min-w-0 items-center gap-1">
-              <ChevronLeft size={10} className="rotate-180 shrink-0 opacity-50" />
+              <HugeiconsIcon icon={ArrowRight01Icon} size={12} className="shrink-0 opacity-50" />
               <span className="truncate font-medium text-text-primary">{pageTitle || "Sin título"}</span>
             </span>
           </span>
@@ -149,12 +149,12 @@ export default function KbEditorNavbar({
             <button
               type="button"
               onClick={onOpenSuggestionsReview}
-              className="relative hidden items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 sm:flex"
+              className="relative hidden items-center gap-1.5 rounded-lg bg-amber-50 min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 sm:flex"
               title="Ver sugerencias pendientes"
             >
-              <MessageSquare size={12} />
+              <HugeiconsIcon icon={Message01Icon} size={12} />
               <span className="hidden lg:inline">Sugerencias</span>
-              <span className="flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold text-white">
+              <span className="flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-semibold text-white">
                 {pendingSuggestions}
               </span>
             </button>
@@ -164,29 +164,30 @@ export default function KbEditorNavbar({
             <button
               type="button"
               onClick={onOpenHistory}
-              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover sm:flex"
+              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 min-w-11 justify-center px-2.5 py-1.5 lg:min-h-0 lg:min-w-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover sm:flex"
               title="Historial de cambios"
+              aria-label="Historial de cambios"
             >
-              <History size={12} />
+              <HugeiconsIcon icon={Clock01Icon} size={12} />
               <span className="hidden lg:inline">Historial</span>
             </button>
           )}
 
           <button
             onClick={onTogglePublished}
-            className={`flex size-8 items-center justify-center gap-1.5 rounded-lg text-xs font-medium transition-colors sm:h-auto sm:w-auto sm:px-2.5 sm:py-1.5 ${
+            className={`flex size-11 items-center justify-center gap-1.5 rounded-control text-xs font-medium transition-colors sm:h-auto sm:min-h-11 sm:w-auto sm:px-2.5 sm:py-1.5 lg:min-h-0 ${
               isPublished
                 ? "bg-green-50 text-green-700"
                 : "bg-surface-sidebar text-text-secondary"
             }`}
             title={isPublished ? "Publicado" : "Borrador"}
           >
-            {isPublished ? <Globe size={14} /> : <Lock size={14} />}
+            {isPublished ? <HugeiconsIcon icon={Globe02Icon} size={14} /> : <HugeiconsIcon icon={LockIcon} size={14} />}
             <span className="hidden sm:inline">{isPublished ? "Publicado" : "Borrador"}</span>
           </button>
 
           {hasLocalDraft && (
-            <span className="hidden rounded-lg bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-800 md:inline">
+            <span className="hidden rounded-lg bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 md:inline">
               Borrador local
             </span>
           )}
@@ -214,15 +215,15 @@ export default function KbEditorNavbar({
                     setUserMenuOpen(false);
                     setMoreOpen(false);
                   }}
-                  className="flex items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover"
+                  className="flex items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover"
                   title="Tema de markdown"
                 >
-                  <Palette size={12} />
+                  <HugeiconsIcon icon={PaintBoardIcon} size={12} />
                   <span className="hidden lg:inline">Tema</span>
-                  <ChevronDown size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
+                  <HugeiconsIcon icon={ArrowDown01Icon} size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
                 </button>
                 {themeMenuOpen && (
-                  <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-72 w-52 overflow-y-auto rounded-lg border border-border-subtle bg-surface-elevated py-1">
+                  <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-72 w-52 overflow-y-auto rounded-lg border border-line bg-surface-elevated py-1">
                     {KB_MARKDOWN_THEMES.map((t) => (
                       <button
                         key={t.id}
@@ -263,13 +264,13 @@ export default function KbEditorNavbar({
                     key={m}
                     onClick={() => onModeChange(m)}
                     title={m === "edit" ? "Editar" : "Vista previa"}
-                    className={`flex size-7 items-center justify-center rounded-md transition-colors ${
+                    className={`flex size-11 items-center justify-center rounded-control transition-colors lg:size-7 ${
                       mode === m
                         ? "bg-surface-elevated text-text-primary"
                         : "text-text-secondary hover:text-text-primary"
                     }`}
                   >
-                    {m === "edit" ? <Edit2 size={13} /> : <Eye size={13} />}
+                    {m === "edit" ? <HugeiconsIcon icon={PencilEdit01Icon} size={13} /> : <HugeiconsIcon icon={ViewIcon} size={13} />}
                   </button>
                 ))}
               </div>
@@ -280,9 +281,9 @@ export default function KbEditorNavbar({
                   onClick={onExportPdf}
                   disabled={exportPdfLoading}
                   title="Descargar PDF"
-                  className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-2.5 py-1.5 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
+                  className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
                 >
-                  <Download size={12} />
+                  <HugeiconsIcon icon={Download01Icon} size={12} />
                   <span className="hidden lg:inline">{exportPdfLoading ? "PDF..." : "PDF"}</span>
                 </button>
               )}
@@ -297,15 +298,15 @@ export default function KbEditorNavbar({
                 setMoreOpen((v) => !v);
                 setUserMenuOpen(false);
               }}
-              className="flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
+              className="flex size-11 items-center justify-center rounded-control lg:size-8 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
               aria-expanded={moreOpen}
               aria-label="Más acciones"
             >
               <HugeiconsIcon icon={More01Icon} size={18} />
             </button>
             {moreOpen && (
-              <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 w-52 overflow-hidden rounded-lg border border-border-subtle bg-surface-elevated py-1">
-                <div className="border-b border-border-subtle px-3 py-2">
+              <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 w-52 overflow-hidden rounded-lg border border-line bg-surface-elevated py-1">
+                <div className="border-b border-line px-3 py-2">
                   <KbSharePanel pageId={pageId} isFolder={isFolder} pendingSuggestions={pendingSuggestions} />
                 </div>
                 {!isFolder && pendingSuggestions > 0 && onOpenSuggestionsReview && (
@@ -317,7 +318,7 @@ export default function KbEditorNavbar({
                     }}
                     className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
                   >
-                    <MessageSquare size={14} />
+                    <HugeiconsIcon icon={Message01Icon} size={14} />
                     Sugerencias ({pendingSuggestions})
                   </button>
                 )}
@@ -330,13 +331,13 @@ export default function KbEditorNavbar({
                     }}
                     className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
                   >
-                    <History size={14} />
+                    <HugeiconsIcon icon={Clock01Icon} size={14} />
                     Historial
                   </button>
                 )}
                 {!isFolder && onMarkdownThemeChange && (
-                  <div className="border-t border-border-subtle px-3 py-2">
-                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                  <div className="border-t border-line px-3 py-2">
+                    <p className="mb-1.5 text-xs font-semibold text-text-secondary">
                       Tema
                     </p>
                     <div className="flex max-h-40 flex-col gap-0.5 overflow-y-auto">
@@ -366,14 +367,14 @@ export default function KbEditorNavbar({
                       setMoreOpen(false);
                     }}
                     disabled={exportPdfLoading}
-                    className="flex w-full items-center gap-2 border-t border-border-subtle px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover disabled:opacity-50"
+                    className="flex w-full items-center gap-2 border-t border-line px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover disabled:opacity-50"
                   >
-                    <Download size={14} />
+                    <HugeiconsIcon icon={Download01Icon} size={14} />
                     {exportPdfLoading ? "Generando PDF..." : "Descargar PDF"}
                   </button>
                 )}
                 {saveLabel && (
-                  <p className="border-t border-border-subtle px-3 py-2 text-xs text-text-secondary">
+                  <p className="border-t border-line px-3 py-2 text-xs text-text-secondary">
                     {saveLabel}
                   </p>
                 )}
@@ -388,7 +389,7 @@ export default function KbEditorNavbar({
                 setUserMenuOpen(!userMenuOpen);
                 setMoreOpen(false);
               }}
-              className="size-8 overflow-hidden rounded-lg transition-opacity hover:opacity-90"
+              className="size-11 overflow-hidden rounded-control lg:size-8 transition-opacity hover:opacity-90"
               title={session?.user?.name || "Usuario"}
             >
               <img
@@ -399,8 +400,8 @@ export default function KbEditorNavbar({
             </button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-border-subtle bg-surface-elevated py-1">
-                <div className="border-b border-border-subtle px-4 py-3">
+              <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-line bg-surface-elevated py-1">
+                <div className="border-b border-line px-4 py-3">
                   <p className="truncate text-sm font-semibold text-text-primary">
                     {session?.user?.name || "Usuario"}
                   </p>
@@ -422,7 +423,7 @@ export default function KbEditorNavbar({
                   <HugeiconsIcon icon={Settings01Icon} size={15} color="#6B7184" />
                   Configuración
                 </Link>
-                <div className="mt-1 border-t border-border-subtle pt-1">
+                <div className="mt-1 border-t border-line pt-1">
                   <button
                     onClick={() => signOut()}
                     className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"

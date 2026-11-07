@@ -39,7 +39,7 @@ export default function BovedaClientPage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-line border-t-action-primary rounded-full animate-spin" />
       </div>
     );
   }

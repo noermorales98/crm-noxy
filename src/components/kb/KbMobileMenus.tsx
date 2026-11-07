@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FolderInput, FolderPlus, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useOptionalKbContext } from "@/src/context/KbContext";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, Delete02Icon, FolderAddIcon, FolderTransferIcon, MoreHorizontalIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 
 interface FolderRow {
   id: string;
@@ -74,37 +75,37 @@ export function KbCreateMenu({
         aria-haspopup="menu"
         disabled={disabled}
         onClick={() => setOpen((value) => !value)}
-        className="flex size-9 items-center justify-center rounded-lg text-text-primary hover:bg-nav-hover disabled:opacity-50"
+        className="flex size-11 items-center justify-center rounded-control text-text-primary hover:bg-nav-hover disabled:opacity-50"
       >
-        <Plus size={18} />
+        <HugeiconsIcon icon={Add01Icon} size={18} />
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-30 mt-1 w-44 overflow-hidden rounded-lg border border-border-subtle bg-white shadow-lg"
+          className="absolute right-0 top-full z-30 mt-1 w-44 overflow-hidden rounded-lg border border-line bg-surface-elevated shadow-lg"
         >
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
             onClick={() => {
               setOpen(false);
               onCreate(false);
             }}
           >
-            <Plus size={14} />
+            <HugeiconsIcon icon={Add01Icon} size={14} />
             Nueva página
           </button>
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
             onClick={() => {
               setOpen(false);
               onCreate(true);
             }}
           >
-            <FolderPlus size={14} />
+            <HugeiconsIcon icon={FolderAddIcon} size={14} />
             Nueva carpeta
           </button>
         </div>
@@ -224,48 +225,48 @@ export function KbItemMenu({
         aria-expanded={menuPos !== null}
         aria-haspopup="menu"
         onClick={openMenu}
-        className="flex size-9 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary"
       >
-        <MoreHorizontal size={18} />
+        <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
       </button>
       {menuPos && (
         <div
           ref={menuRef}
           role="menu"
-          className="fixed z-40 w-40 overflow-hidden rounded-lg border border-border-subtle bg-white shadow-lg"
+          className="fixed z-40 w-40 overflow-hidden rounded-lg border border-line bg-surface-elevated shadow-lg"
           style={{ top: menuPos.top, right: menuPos.right }}
         >
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
             onClick={() => {
               setMenuPos(null);
               router.push(`/kb/${id}`);
             }}
           >
-            <Pencil size={14} />
+            <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
             Editar
           </button>
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover"
             onClick={() => void openMove()}
           >
-            <FolderInput size={14} />
+            <HugeiconsIcon icon={FolderTransferIcon} size={14} />
             Mover
           </button>
           <button
             type="button"
             role="menuitem"
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50"
+            className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-danger hover:bg-danger-soft"
             onClick={() => {
               setMenuPos(null);
               setConfirmDelete(true);
             }}
           >
-            <Trash2 size={14} />
+            <HugeiconsIcon icon={Delete02Icon} size={14} />
             Borrar
           </button>
         </div>
@@ -276,7 +277,7 @@ export function KbItemMenu({
           <div
             role="dialog"
             aria-label="Mover"
-            className="relative max-h-[70vh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 sm:max-w-sm sm:rounded-lg"
+            className="relative max-h-[70vh] w-full overflow-y-auto rounded-t-2xl bg-surface-elevated p-4 sm:max-w-sm sm:rounded-lg"
             onClick={(event) => event.stopPropagation()}
           >
             <p className="text-sm font-semibold text-text-primary">Mover «{title || "Sin título"}»</p>
@@ -300,28 +301,28 @@ export function KbItemMenu({
                 );
               })}
             </ul>
-            {moveError && <p className="mt-2 text-xs text-red-600">{moveError}</p>}
+            {moveError && <p className="mt-2 text-xs text-danger">{moveError}</p>}
           </div>
         </div>
       )}
       {confirmDelete && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center" onClick={() => setConfirmDelete(false)}>
           <div className="absolute inset-0 bg-brand-obsidian/35" />
-          <div className="relative mx-4 w-72 rounded-lg bg-white p-6" onClick={(event) => event.stopPropagation()}>
+          <div className="relative mx-4 w-72 rounded-lg bg-surface-elevated p-6" onClick={(event) => event.stopPropagation()}>
             <p className="mb-1 text-sm font-semibold text-text-primary">¿Eliminar?</p>
             <p className="mb-5 truncate text-xs text-text-secondary">«{title || "Sin título"}»</p>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="flex-1 rounded-lg py-2 text-sm text-text-primary hover:bg-surface-sidebar"
+                className="flex-1 min-h-11 rounded-control py-2 text-sm text-text-primary hover:bg-surface-sidebar"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={() => void remove()}
-                className="flex-1 rounded-lg bg-red-600 py-2 text-sm font-medium text-white hover:bg-red-700"
+                className="flex-1 min-h-11 rounded-control bg-danger py-2 text-sm font-medium text-white hover:opacity-90"
               >
                 Borrar
               </button>

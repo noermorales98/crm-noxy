@@ -13,10 +13,10 @@ export const inputCompact =
   "w-full min-h-10 px-3 py-2 rounded-control border border-border-subtle bg-surface-elevated text-text-primary text-sm outline-none focus:border-focus focus:ring-2 focus:ring-focus/15 transition-colors duration-200";
 
 export const btnPrimary =
-  "inline-flex min-h-10 items-center justify-center bg-action-primary text-action-primary-foreground rounded-control px-4 py-2 text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex min-h-11 lg:min-h-10 items-center justify-center bg-action-primary text-action-primary-foreground rounded-control px-4 py-2 text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50";
 
 export const btnGhost =
-  "inline-flex min-h-10 items-center justify-center bg-surface-sidebar text-text-primary rounded-control px-3 py-2 text-sm font-medium hover:bg-nav-hover transition-colors duration-200";
+  "inline-flex min-h-11 lg:min-h-10 items-center justify-center bg-surface-sidebar text-text-primary rounded-control px-3 py-2 text-sm font-medium hover:bg-nav-hover transition-colors duration-200";
 
 export const btnGhostActive = "inline-flex min-h-10 items-center justify-center bg-nav-active text-action-primary rounded-control px-3 py-2 text-sm font-semibold";
 
@@ -36,3 +36,6 @@ export const searchInput =
 
 export const iconPrimary = "#0B0B18";
 export const iconSecondary = "#6B7184";
+
+/** Selector en línea (barras de filtros): mismo campo, ancho según su contenido. */
+export const selectInline = input.replace("w-full", "w-auto");

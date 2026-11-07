@@ -328,6 +328,7 @@ export function crmThemeCssVariables(theme: CrmThemeDefinition): CrmThemeCssVari
     "--action-secondary": tokens.actionSecondary,
     "--focus": tokens.focus,
     "--highlight": tokens.highlight,
+    "--nav-active-ink": navActiveInk(theme),
   };
 }
 
@@ -343,4 +344,14 @@ export function contrastRatio(foreground: string, background: string): number {
   const lighter = Math.max(relativeLuminance(foreground), relativeLuminance(background));
   const darker = Math.min(relativeLuminance(foreground), relativeLuminance(background));
   return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Color del destino activo en el marco claro (texto, icono y barra de 3 px).
+ * Usa la acción del tema cuando alcanza AA sobre la pastilla blanca; si no (Azul Recuerdo, Lima),
+ * vuelve al texto principal, como manda la regla de pares de DESIGN.md.
+ */
+export function navActiveInk(theme: CrmThemeDefinition): string {
+  const { actionPrimary, surfaceElevated, textPrimary } = theme.tokens;
+  return contrastRatio(actionPrimary, surfaceElevated) >= 4.5 ? actionPrimary : textPrimary;
 }

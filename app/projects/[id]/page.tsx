@@ -60,7 +60,7 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
     <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="bg-white border border-border-subtle rounded-lg p-4 hover:bg-nav-hover transition-colors">
+          <Link key={s.label} href={s.href} className="bg-surface-elevated border border-line rounded-lg p-4 hover:bg-nav-hover transition-colors">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: `${s.color}1A` }}>
               <HugeiconsIcon icon={s.icon} size={16} color={s.color} />
             </div>
@@ -71,21 +71,21 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-border-subtle rounded-lg p-5">
+        <div className="bg-surface-elevated border border-line rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-text-primary text-sm">Últimas tareas</h3>
-            <Link href={`/projects/${id}/tareas`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+            <Link href={`/projects/${id}/tareas`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
               Ver todas <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </Link>
           </div>
           {recentTasks.length === 0 ? (
             <p className="text-sm text-text-secondary text-center py-8">Sin tareas vinculadas todavía</p>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-line">
               {recentTasks.map((t) => (
                 <li key={t.id} className="py-2.5 flex items-center justify-between gap-2">
                   <span className={`text-sm truncate ${t.isCompleted ? "text-text-secondary line-through" : "text-text-primary font-medium"}`}>{t.title}</span>
-                  <span className={`shrink-0 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
+                  <span className={`shrink-0 text-xs font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
                     {t.isCompleted ? "Hecha" : "Pendiente"}
                   </span>
                 </li>
@@ -93,21 +93,21 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
             </ul>
           )}
           {tasksTotal > 0 && (
-            <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-border-subtle">{tasksTotal} tareas en total</p>
+            <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-line">{tasksTotal} tareas en total</p>
           )}
         </div>
 
-        <div className="bg-white border border-border-subtle rounded-lg p-5">
+        <div className="bg-surface-elevated border border-line rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-text-primary text-sm">Últimos docs</h3>
-            <Link href={`/projects/${id}/docs`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+            <Link href={`/projects/${id}/docs`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
               Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
             </Link>
           </div>
           {docsRelations.length === 0 ? (
             <p className="text-sm text-text-secondary text-center py-8">Sin documentos vinculados todavía</p>
           ) : (
-            <ul className="divide-y divide-gray-50">
+            <ul className="divide-y divide-line">
               {docsRelations.map((r) => (
                 <li key={r.id} className="py-2.5">
                   <Link href={`/kb/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-primary">
@@ -121,17 +121,17 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
         </div>
       </div>
 
-      <div className="bg-white border border-border-subtle rounded-lg p-5">
+      <div className="bg-surface-elevated border border-line rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-text-primary text-sm">Últimos registros</h3>
-          <Link href={`/projects/${id}/registros`} className="text-xs font-semibold text-text-secondary hover:text-text-primary flex items-center gap-1">
+          <Link href={`/projects/${id}/registros`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
             Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
           </Link>
         </div>
         {recentSubmissions.length === 0 ? (
           <p className="text-sm text-text-secondary text-center py-8">Sin registros de formularios todavía</p>
         ) : (
-          <ul className="divide-y divide-gray-50">
+          <ul className="divide-y divide-line">
             {recentSubmissions.map((c) => (
               <li key={c.id} className="py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
@@ -139,10 +139,10 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
                     {c.firstName} {c.lastName || ""}
                   </span>
                   {c.sourceForm?.name && (
-                    <span className="text-[11px] text-text-secondary">{c.sourceForm.name}</span>
+                    <span className="text-xs text-text-secondary">{c.sourceForm.name}</span>
                   )}
                 </div>
-                <span className="shrink-0 text-[10px] font-semibold text-text-secondary">
+                <span className="shrink-0 text-xs font-semibold text-text-secondary">
                   {c.createdAt.toLocaleDateString("es-MX")}
                 </span>
               </li>
@@ -150,7 +150,7 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
           </ul>
         )}
         {submissionsCount > 0 && (
-          <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-border-subtle">{submissionsCount} registros en total</p>
+          <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-line">{submissionsCount} registros en total</p>
         )}
       </div>
     </div>

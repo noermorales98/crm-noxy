@@ -43,6 +43,8 @@ export interface HeaderConfig {
   filterGroups?: FilterGroup[];
   addButton?: { label: string; onClick: () => void; hideOnMobile?: boolean };
   actions?: HeaderAction[];
+  /** La página pinta su propio PageHeader (h1): la barra superior no repite el título como h1. */
+  pageHeader?: boolean;
 }
 
 interface HeaderContextValue {

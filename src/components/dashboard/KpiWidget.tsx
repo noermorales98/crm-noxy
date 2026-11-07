@@ -2,7 +2,8 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 interface KpiWidgetProps {
-  icon: any;
+  icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  /** Colores de dato del widget (se conservan: no son de marca). */
   iconBg: string;
   iconColor: string;
   value: string;
@@ -11,21 +12,28 @@ interface KpiWidgetProps {
   highlight?: boolean;
 }
 
+/** Cifra clave del dashboard: etiqueta, cifra grande tabular y un acento de dato. */
 export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlight }: KpiWidgetProps) {
   return (
     <Link
       href={href}
-      className={`bg-surface-elevated rounded-surface p-5 h-full flex items-start gap-3 hover:bg-nav-hover transition-colors ${
-        highlight ? "bg-red-50/50" : ""
+      className={`crm-lift flex h-full flex-col items-start gap-3 rounded-surface border bg-surface-elevated p-5 ${
+        highlight ? "border-danger/30 hover:border-danger/60" : "border-line hover:border-text-secondary/40"
       }`}
     >
-      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: iconBg }}>
-        <HugeiconsIcon icon={icon} size={20} color={iconColor} />
-      </div>
-      <div>
-        <p className={`text-xl font-bold ${highlight ? "text-red-600" : "text-text-primary"}`}>{value}</p>
-        <p className="text-xs text-text-secondary mt-0.5">{label}</p>
-      </div>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-control" style={{ backgroundColor: iconBg }}>
+        <HugeiconsIcon icon={icon} size={18} color={iconColor} />
+      </span>
+      <span className="w-full min-w-0">
+        <span className="block text-xs font-semibold text-text-secondary">{label}</span>
+        <span
+          className={`mt-1 block text-2xl font-semibold leading-tight tracking-[-0.02em] tabular-nums ${
+            highlight ? "text-danger" : "text-text-primary"
+          }`}
+        >
+          {value}
+        </span>
+      </span>
     </Link>
   );
 }

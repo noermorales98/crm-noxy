@@ -3,9 +3,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { X } from "lucide-react";
+import { ArrowRight01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { TAB_MAP } from "@/src/lib/dashboardTabs";
+import { EmptyState } from "@/src/components/ui";
 import type { DashboardData } from "@/src/lib/dashboardData";
 
 interface DashboardTabsTableProps {
@@ -37,8 +37,8 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
 
   if (tabs.length === 0) {
     return (
-      <div className="bg-surface-elevated rounded-surface p-10 text-center text-sm text-text-secondary">
-        No hay pestañas en la tabla. Activa &quot;Personalizar&quot; para agregar algunas.
+      <div className="rounded-surface border border-line bg-surface-elevated">
+        <EmptyState title="No hay pestañas en la tabla" body="Pulsa «Personalizar» para agregar las que necesites." />
       </div>
     );
   }
@@ -46,8 +46,8 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
   const activeTabData = tabs.find((t) => t.id === activeTab) ?? tabs[0];
 
   return (
-    <div className="bg-surface-elevated rounded-surface overflow-hidden">
-      <div className="flex items-center border-b border-border-subtle px-2">
+    <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+      <div className="flex items-center overflow-x-auto border-b border-line px-2">
         {editMode ? (
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="dashboard-tabs" direction="horizontal">
@@ -66,10 +66,11 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
                           {tab.label}
                           <button
                             onClick={() => onRemove(tab.id)}
-                            className="ml-1 w-4 h-4 rounded-full flex items-center justify-center hover:bg-red-100 hover:text-red-600"
+                            type="button"
+                            className="-my-2 ml-0.5 flex size-11 items-center justify-center rounded-full text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-7"
                             aria-label={`Quitar pestaña ${tab.label}`}
                           >
-                            <X size={11} />
+                            <HugeiconsIcon icon={Cancel01Icon} size={12} />
                           </button>
                         </div>
                       )}
@@ -88,14 +89,14 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
               className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
                 activeTabData.id === tab.id
                   ? "border-action-primary text-text-primary"
-                  : "border-transparent text-text-secondary hover:text-text-secondary hover:border-border-subtle"
+                  : "border-transparent text-text-secondary hover:text-text-secondary hover:border-line"
               }`}
             >
               <HugeiconsIcon icon={tab.icon} size={14} />
               {tab.label}
               {tab.count(data) > 0 && (
                 <span
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full tabular-nums ${
+                  className={`text-xs font-bold px-1.5 py-0.5 rounded-full tabular-nums ${
                     activeTabData.id === tab.id ? "bg-action-primary text-action-primary-foreground" : "bg-nav-active text-text-secondary"
                   }`}
                 >

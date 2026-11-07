@@ -21,14 +21,14 @@ test("authenticated CRM neutral borders keep geometry without visible color", ()
   assert.equal(rule.nodes.some((node) => node.type === "decl" && node.prop === "border-width"), false);
 });
 
-test("CRM cards are clearly rounder than controls", () => {
+test("CRM cards are rounder than controls (DESIGN.md: surface 12px, control 10px)", () => {
   const css = readFileSync(new URL("app/globals.css", projectRoot), "utf8");
   const root = postcss.parse(css);
   const theme = root.nodes.find((node) => node.type === "atrule" && node.name === "theme");
   const declarations = theme?.nodes?.filter((node) => node.type === "decl") ?? [];
 
-  assert.equal(declarations.find((node) => node.prop === "--radius-surface")?.value, "20px");
-  assert.equal(declarations.find((node) => node.prop === "--radius-control")?.value, "12px");
+  assert.equal(declarations.find((node) => node.prop === "--radius-surface")?.value, "12px");
+  assert.equal(declarations.find((node) => node.prop === "--radius-control")?.value, "10px");
   assert.equal(declarations.find((node) => node.prop === "--radius-lg")?.value, "14px");
 });
 
@@ -57,14 +57,17 @@ test("shared public panels retain their default outline outside the CRM shell", 
   assert.match(applyBySelector.get(".noxy-form-panel") ?? "", /\bborder\s+border-border-subtle\b/);
 });
 
-test("email composer uses a strong backdrop and a rounded clipped panel", () => {
+// Ronda 2 del rediseño (marco claro): sin cristal. El fondo del compositor es sólido (sin backdrop-blur)
+// y el panel usa la superficie elevada del tema.
+test("email composer uses a solid backdrop (no glass) and a rounded clipped panel", () => {
   const emails = readFileSync(new URL("app/emails/page.tsx", projectRoot), "utf8");
 
-  assert.match(emails, /Compose Modal[\s\S]*?bg-brand-obsidian\/55[^"\n]*backdrop-blur-\[2px\]/);
-  assert.match(emails, /Compose Modal[\s\S]*?bg-white rounded-surface overflow-hidden/);
+  assert.match(emails, /Compose Modal[\s\S]*?bg-brand-obsidian\/45/);
+  assert.doesNotMatch(emails, /Compose Modal[\s\S]{0,240}backdrop-blur/);
+  assert.match(emails, /Compose Modal[\s\S]*?bg-surface-elevated rounded-surface overflow-hidden/);
 });
 
-test("floating menus use subtle elevation without changing popup shadows", () => {
+test("floating menus use the structural overlay elevation without changing popup shadows", () => {
   const menuRule = crmStyleRules().find((candidate) => candidate.selector.split(",").some((selector) => selector.trim() === ".crm-floating-menu"));
   const emails = readFileSync(new URL("app/emails/page.tsx", projectRoot), "utf8");
   const crmUi = readFileSync(new URL("src/lib/crm-ui.ts", projectRoot), "utf8");
@@ -72,7 +75,7 @@ test("floating menus use subtle elevation without changing popup shadows", () =>
   assert.ok(menuRule, "floating menus need a dedicated elevation class");
   assert.equal(
     menuRule.nodes.find((node) => node.type === "decl" && node.prop === "box-shadow")?.value,
-    "0 10px 28px rgba(11, 11, 24, 0.12), 0 2px 6px rgba(11, 11, 24, 0.06)",
+    "0 8px 8px rgba(11, 11, 24, 0.10)",
   );
   assert.match(emails, /contactDropdownRef[\s\S]*?crm-floating-menu/);
   assert.match(emails, /shadow-\[0_24px_70px_rgba\(11,11,24,0\.28\)\]/);

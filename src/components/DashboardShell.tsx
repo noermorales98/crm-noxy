@@ -35,7 +35,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <EmailProvider>
           <MobileChromeProvider>
             <div
-              className="flex h-screen overflow-hidden bg-surface-app"
+              className="flex h-dvh overflow-hidden bg-surface-sidebar"
               data-crm-theme={themeId}
               style={crmThemeCssVariables(theme) as CSSProperties}
             >
@@ -51,7 +51,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                   </div>
                 </>
               )}
-              <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface-app">
+              <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 <DbOutageBanner />
                 {!hideHeader && <Header />}
                 {showAssistantMobileChrome && (
@@ -64,10 +64,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                     </div>
                   </div>
                 )}
+                {/* Hoja de contenido: lo que separa el marco claro del trabajo. */}
                 <div
-                  className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
-                    hideHeader ? "bg-transparent" : ""
-                  }`}
+                  data-crm-sheet
+                  className="flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app lg:rounded-tl-surface lg:border-l lg:border-t"
                 >
                   <PermissionGate>{children}</PermissionGate>
                 </div>

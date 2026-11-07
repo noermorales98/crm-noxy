@@ -19,7 +19,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { KpiWidget } from "@/src/components/dashboard/KpiWidget";
 import { WidgetCard } from "@/src/components/dashboard/WidgetCard";
-import { EmptyState } from "@/src/components/dashboard/EmptyState";
+import { DataList, EmptyState } from "@/src/components/ui";
 import { formatCurrency } from "@/src/lib/format";
 import { contentTypeLabel } from "@/src/lib/content-client-colors";
 import { publishStatusColor, publishStatusLabel } from "@/src/lib/content-publish";
@@ -49,23 +49,26 @@ function contentDayLabel(iso: string) {
 }
 
 function ContentPieceRows({ items, empty }: { items: ContentPieceRow[]; empty: string }) {
-  if (items.length === 0) {
-    return <EmptyState icon={Calendar01Icon} message={empty} />;
-  }
-  return items.map((item) => (
+  return (
+    <DataList
+      rows={items}
+      getKey={(item) => item.id}
+      empty={<EmptyState title={empty} />}
+      renderRow={(item) => (
     <ListRow
-      key={item.id}
       dotColor={publishStatusColor(item.publishStatus)}
       title={item.title || "Sin título"}
       subtitle={`${item.clientName} · ${contentTypeLabel(item.type)} · ${publishStatusLabel(item.publishStatus)}`}
       right={item.time ? `${contentDayLabel(item.date)} ${item.time}` : contentDayLabel(item.date)}
     />
-  ));
+      )}
+    />
+  );
 }
 
 function ListRow({ dotColor, title, subtitle, right }: { dotColor: string; title: string; subtitle?: string; right?: string }) {
   return (
-    <div className="flex items-center gap-3 px-5 py-3 border-b border-border-subtle last:border-b-0">
+    <div className="flex min-w-0 flex-1 items-center gap-3">
       <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text-primary truncate">{title}</p>
@@ -231,13 +234,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const contacts = d.latestContacts ?? [];
       return (
         <WidgetCard title="Últimos leads" href="/contacts">
-          {contacts.length > 0 ? (
-            contacts.map((c) => (
-              <ListRow key={c.id} dotColor="#4ade80" title={`${c.firstName} ${c.lastName ?? ""}`} subtitle={c.email ?? "—"} right={shortDate(new Date(c.createdAt))} />
-            ))
-          ) : (
-            <EmptyState icon={UserMultipleIcon} message="No hay contactos registrados" />
-          )}
+          <DataList rows={contacts} getKey={(c) => c.id} renderRow={(c) => <ListRow dotColor="#4ade80" title={`${c.firstName} ${c.lastName ?? ""}`} subtitle={c.email ?? "Sin email"} right={shortDate(new Date(c.createdAt))} />} empty={<EmptyState title="No hay contactos registrados" />} />
         </WidgetCard>
       );
     },
@@ -253,13 +250,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const appts = d.upcomingAppointments ?? [];
       return (
         <WidgetCard title="Próximas citas" href="/appointments">
-          {appts.length > 0 ? (
-            appts.map((a) => (
-              <ListRow key={a.id} dotColor={a.appointmentType.color} title={a.guestName} subtitle={a.appointmentType.name} right={shortDate(new Date(a.startTime))} />
-            ))
-          ) : (
-            <EmptyState icon={Calendar01Icon} message="No hay citas próximas" />
-          )}
+          <DataList rows={appts} getKey={(a) => a.id} renderRow={(a) => <ListRow dotColor={a.appointmentType.color} title={a.guestName} subtitle={a.appointmentType.name} right={shortDate(new Date(a.startTime))} />} empty={<EmptyState title="No hay citas próximas" />} />
         </WidgetCard>
       );
     },
@@ -275,18 +266,11 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const tasks = d.pendingTasks ?? [];
       return (
         <WidgetCard title="Tareas pendientes" href="/tasks">
-          {tasks.length > 0 ? (
-            tasks.map((t) => (
-              <ListRow
-                key={t.id}
+          <DataList rows={tasks} getKey={(t) => t.id} renderRow={(t) => <ListRow
                 dotColor="#fb923c"
                 title={t.title}
-                right={t.dueDate ? formatDistanceToNow(new Date(t.dueDate), { addSuffix: true, locale: es }) : "—"}
-              />
-            ))
-          ) : (
-            <EmptyState icon={Task01Icon} message="No hay tareas pendientes" />
-          )}
+                right={t.dueDate ? formatDistanceToNow(new Date(t.dueDate), { addSuffix: true, locale: es }) : "Sin fecha"}
+              />} empty={<EmptyState title="No hay tareas pendientes" />} />
         </WidgetCard>
       );
     },
@@ -318,7 +302,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
               ))}
             </div>
           ) : (
-            <EmptyState icon={BarChartIcon} message="No hay etapas configuradas" />
+            <EmptyState title="No hay etapas configuradas" />
           )}
         </WidgetCard>
       );
@@ -335,13 +319,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const campaigns = d.latestCampaigns ?? [];
       return (
         <WidgetCard title="Últimas campañas" href="/campaigns">
-          {campaigns.length > 0 ? (
-            campaigns.map((c) => (
-              <ListRow key={c.id} dotColor="#f87171" title={c.subject} subtitle={c.status} right={shortDate(new Date(c.createdAt))} />
-            ))
-          ) : (
-            <EmptyState icon={Mail01Icon} message="No hay campañas creadas" />
-          )}
+          <DataList rows={campaigns} getKey={(c) => c.id} renderRow={(c) => <ListRow dotColor="#f87171" title={c.subject} subtitle={c.status} right={shortDate(new Date(c.createdAt))} />} empty={<EmptyState title="No hay campañas creadas" />} />
         </WidgetCard>
       );
     },
@@ -357,13 +335,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const projects = d.recentProjects ?? [];
       return (
         <WidgetCard title="Proyectos recientes" href="/projects">
-          {projects.length > 0 ? (
-            projects.map((p) => (
-              <ListRow key={p.id} dotColor="#34d399" title={p.name} subtitle={p.description ?? undefined} right={shortDate(new Date(p.createdAt))} />
-            ))
-          ) : (
-            <EmptyState icon={FolderKanbanIcon} message="No hay proyectos creados" />
-          )}
+          <DataList rows={projects} getKey={(p) => p.id} renderRow={(p) => <ListRow dotColor="#34d399" title={p.name} subtitle={p.description ?? undefined} right={shortDate(new Date(p.createdAt))} />} empty={<EmptyState title="No hay proyectos creados" />} />
         </WidgetCard>
       );
     },
@@ -379,19 +351,12 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const payments = d.recentPayments ?? [];
       return (
         <WidgetCard title="Pagos recientes" href="/pipeline">
-          {payments.length > 0 ? (
-            payments.map((p) => (
-              <ListRow
-                key={p.id}
+          <DataList rows={payments} getKey={(p) => p.id} renderRow={(p) => <ListRow
                 dotColor={p.status === "RECIBIDO" ? "#4ade80" : "#fb923c"}
                 title={p.label}
                 subtitle={p.status}
                 right={formatCurrency(p.amount)}
-              />
-            ))
-          ) : (
-            <EmptyState icon={Money02Icon} message="No hay pagos registrados" />
-          )}
+              />} empty={<EmptyState title="No hay pagos registrados" />} />
         </WidgetCard>
       );
     },
@@ -407,19 +372,12 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const deals = d.followUpDeals ?? [];
       return (
         <WidgetCard title="Follow-ups vencidos" href="/pipeline">
-          {deals.length > 0 ? (
-            deals.map((f) => (
-              <ListRow
-                key={f.id}
+          <DataList rows={deals} getKey={(f) => f.id} renderRow={(f) => <ListRow
                 dotColor="#f87171"
                 title={f.title}
                 subtitle={f.contact ? `${f.contact.firstName} ${f.contact.lastName ?? ""}` : undefined}
                 right={new Date(f.followUpAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
-              />
-            ))
-          ) : (
-            <EmptyState icon={CalendarCheckIn01Icon} message="No hay follow-ups vencidos" />
-          )}
+              />} empty={<EmptyState title="No hay follow-ups vencidos" />} />
         </WidgetCard>
       );
     },
@@ -435,19 +393,12 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const activity = d.recentActivity ?? [];
       return (
         <WidgetCard title="Actividad reciente" href="/pipeline">
-          {activity.length > 0 ? (
-            activity.map((a) => (
-              <ListRow
-                key={a.id}
+          <DataList rows={activity} getKey={(a) => a.id} renderRow={(a) => <ListRow
                 dotColor="#60a5fa"
                 title={a.description}
                 subtitle={`${a.deal?.title ?? ""}${a.createdBy?.name ? ` · ${a.createdBy.name}` : ""}`}
                 right={formatDistanceToNow(new Date(a.createdAt), { addSuffix: true, locale: es })}
-              />
-            ))
-          ) : (
-            <EmptyState icon={Activity01Icon} message="No hay actividad reciente" />
-          )}
+              />} empty={<EmptyState title="No hay actividad reciente" />} />
         </WidgetCard>
       );
     },
@@ -496,19 +447,12 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const rows = d.clientPaymentsList ?? [];
       return (
         <WidgetCard title="Pagos de clientes" href="/pipeline/clientes">
-          {rows.length > 0 ? (
-            rows.map((c) => (
-              <ListRow
-                key={c.id}
+          <DataList rows={rows} getKey={(c) => c.id} renderRow={(c) => <ListRow
                 dotColor={c.isPaid ? "#4ade80" : "#fbbf24"}
                 title={c.name}
                 subtitle={`Día ${c.billingDay} · ${c.isPaid ? "Pagado" : "Pendiente"}`}
                 right={formatCurrency(c.monthlyFee)}
-              />
-            ))
-          ) : (
-            <EmptyState icon={Money02Icon} message="No hay clientes recurrentes activos" />
-          )}
+              />} empty={<EmptyState title="No hay clientes recurrentes activos" />} />
         </WidgetCard>
       );
     },
@@ -526,19 +470,21 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       return (
         <WidgetCard title="Próximos eventos" href="/appointments">
           {!cal?.connected ? (
-            <EmptyState icon={Calendar01Icon} message="Conecta tu Google Calendar en Ajustes para ver tus próximos eventos" />
-          ) : events.length > 0 ? (
-            events.map((e) => (
-              <ListRow
-                key={e.id}
-                dotColor="#60a5fa"
-                title={e.summary}
-                subtitle={e.location ?? undefined}
-                right={`${shortDate(new Date(e.start))} ${format(new Date(e.start), "h:mm a", { locale: es })}`}
-              />
-            ))
+            <EmptyState title="Conecta tu Google Calendar en Ajustes para ver tus próximos eventos" />
           ) : (
-            <EmptyState icon={Calendar01Icon} message="No hay eventos próximos" />
+            <DataList
+              rows={events}
+              getKey={(e) => e.id}
+              renderRow={(e) => (
+                <ListRow
+                  dotColor="#60a5fa"
+                  title={e.summary}
+                  subtitle={e.location ?? undefined}
+                  right={`${shortDate(new Date(e.start))} ${format(new Date(e.start), "h:mm a", { locale: es })}`}
+                />
+              )}
+              empty={<EmptyState title="No hay eventos próximos" />}
+            />
           )}
         </WidgetCard>
       );
@@ -651,8 +597,8 @@ export function widgetSizeClass(size: WidgetSize) {
     case "sm":
       return "col-span-1";
     case "md":
-      return "col-span-2";
+      return "col-span-1 sm:col-span-2";
     case "lg":
-      return "col-span-2 xl:col-span-4";
+      return "col-span-1 sm:col-span-2 xl:col-span-4";
   }
 }

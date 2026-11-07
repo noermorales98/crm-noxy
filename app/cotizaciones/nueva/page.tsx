@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
 import QuoteForm from "@/src/components/quotes/QuoteForm";
+import { PageHeader, Skeleton } from "@/src/components/ui";
 
 function NuevaCotizacionContent() {
   const searchParams = useSearchParams();
@@ -12,13 +13,17 @@ function NuevaCotizacionContent() {
 
   useEffect(() => {
     resetState();
-    setConfig({ title: editId ? "Editar cotización" : "Nueva cotización" });
+    setConfig({ title: editId ? "Editar cotización" : "Nueva cotización", backHref: "/cotizaciones", pageHeader: true });
     return () => setConfig({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editId]);
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+      <PageHeader
+        title={editId ? "Editar cotización" : "Nueva cotización"}
+        subtitle={editId ? "Cambia los conceptos o las condiciones y guarda." : "Elige el cliente, agrega conceptos y guarda o envía."}
+      />
       <QuoteForm mode={editId ? "edit" : "create"} quoteId={editId ?? undefined} />
     </main>
   );
@@ -28,9 +33,9 @@ export default function NuevaCotizacionPage() {
   return (
     <Suspense
       fallback={
-        <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+        <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+          <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <Skeleton shape="rows" count={4} label="Cargando cotización" />
           </div>
         </main>
       }

@@ -153,8 +153,8 @@ export default function ImportExistingModal({
 
   return (
     <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle shrink-0">
+      <div className="bg-surface-elevated rounded-lg w-full max-w-md max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line shrink-0">
           <h2 className="text-base font-bold text-text-primary">Agregar existente</h2>
           <button onClick={onClose} className="p-1 text-text-secondary hover:text-text-primary rounded-lg">
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
@@ -168,7 +168,7 @@ export default function ImportExistingModal({
               onClick={() => setTab("companies")}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 tab === "companies"
-                  ? "bg-white text-text-primary shadow-sm"
+                  ? "bg-surface-elevated text-text-primary shadow-sm"
                   : "text-text-secondary hover:text-text-primary"
               }`}
             >
@@ -179,14 +179,14 @@ export default function ImportExistingModal({
               onClick={() => setTab("contacts")}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 tab === "contacts"
-                  ? "bg-white text-text-primary shadow-sm"
+                  ? "bg-surface-elevated text-text-primary shadow-sm"
                   : "text-text-secondary hover:text-text-primary"
               }`}
             >
               Contactos
             </button>
           </div>
-          <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-sidebar border border-border-subtle focus-within:ring-1 focus-within:ring-border-subtle">
+          <div className="relative flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-sidebar border border-line focus-within:ring-1 focus-within:ring-line">
             <HugeiconsIcon icon={Search01Icon} size={15} color="#9ca3af" />
             <input
               type="text"
@@ -206,7 +206,7 @@ export default function ImportExistingModal({
         <div className="flex-1 overflow-y-auto px-6 pb-6 min-h-0">
           {loading ? (
             <div className="flex justify-center py-10">
-              <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-line border-t-action-primary rounded-full animate-spin" />
             </div>
           ) : tab === "companies" ? (
             availableCompanies.length === 0 ? (

@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
-  Link2, Plus, X, Search, FolderKanban,
-  FileText, Users, Building2, Calendar, User, Briefcase,
-} from "lucide-react";
+  Link01Icon, Add01Icon, Cancel01Icon, Search01Icon, FolderKanbanIcon,
+  File01Icon, UserMultipleIcon, Building04Icon, Calendar01Icon, User02Icon, Briefcase01Icon,
+} from "@hugeicons/core-free-icons";
 import { displayRelationLabel } from "@/src/lib/kb-relations";
 import {
   getMarkdownTheme,
@@ -30,14 +31,14 @@ interface SearchResult {
   typeLabel: string;
 }
 
-const ENTITY_CFG: Record<KbRelationType, { label: string; icon: React.ElementType; color: string; bg: string; href: (id: string) => string }> = {
-  PROJECT:          { label: "Proyecto",       icon: FolderKanban, color: "text-violet-600", bg: "bg-violet-50 border-violet-100", href: id => `/projects/${id}` },
-  FORM:             { label: "Formulario",     icon: FileText,     color: "text-blue-600",   bg: "bg-blue-50 border-blue-100",    href: id => `/forms/${id}` },
-  CLIENT:           { label: "Cliente",        icon: Users,        color: "text-green-600",  bg: "bg-green-50 border-green-100",  href: id => `/clients/${id}` },
-  COMPANY:          { label: "Empresa",        icon: Building2,    color: "text-amber-600",  bg: "bg-amber-50 border-amber-100",  href: id => `/companies/${id}` },
-  APPOINTMENT_TYPE: { label: "Tipo de Cita",   icon: Calendar,     color: "text-rose-600",   bg: "bg-rose-50 border-rose-100",    href: id => `/appointment-types/${id}` },
-  CONTACT:          { label: "Contacto",       icon: User,         color: "text-cyan-600",   bg: "bg-cyan-50 border-cyan-100",    href: id => `/contacts/${id}` },
-  DEAL:             { label: "Negocio",        icon: Briefcase,    color: "text-orange-600", bg: "bg-orange-50 border-orange-100",href: () => `/pipeline` },
+const ENTITY_CFG: Record<KbRelationType, { label: string; icon: IconSvgElement; color: string; bg: string; href: (id: string) => string }> = {
+  PROJECT:          { label: "Proyecto",       icon: FolderKanbanIcon, color: "text-violet-600", bg: "bg-violet-50 border-violet-100", href: id => `/projects/${id}` },
+  FORM:             { label: "Formulario",     icon: File01Icon,    color: "text-blue-600",   bg: "bg-blue-50 border-blue-100",    href: id => `/forms/${id}` },
+  CLIENT:           { label: "Cliente",        icon: UserMultipleIcon, color: "text-green-600",  bg: "bg-green-50 border-green-100",  href: id => `/clients/${id}` },
+  COMPANY:          { label: "Empresa",        icon: Building04Icon, color: "text-amber-600",  bg: "bg-amber-50 border-amber-100",  href: id => `/companies/${id}` },
+  APPOINTMENT_TYPE: { label: "Tipo de Cita",   icon: Calendar01Icon, color: "text-rose-600",   bg: "bg-rose-50 border-rose-100",    href: id => `/appointment-types/${id}` },
+  CONTACT:          { label: "Contacto",       icon: User02Icon,    color: "text-cyan-600",   bg: "bg-cyan-50 border-cyan-100",    href: id => `/contacts/${id}` },
+  DEAL:             { label: "Negocio",        icon: Briefcase01Icon, color: "text-orange-600", bg: "bg-orange-50 border-orange-100",href: () => `/pipeline` },
 };
 
 // ─── Add relation popover ─────────────────────────────────────────────────────
@@ -98,27 +99,27 @@ function AddRelationPopover({
   return (
     <div
       ref={containerRef}
-      className="crm-floating-menu absolute top-full left-0 mt-2 z-50 bg-white rounded-lg border border-border-subtle w-80 overflow-hidden"
+      className="crm-floating-menu absolute top-full left-0 mt-2 z-50 bg-surface-elevated rounded-lg border border-line w-80 overflow-hidden"
     >
       {/* Filter chips */}
-      <div className="flex gap-1 flex-wrap p-3 border-b border-border-subtle">
-        <button onClick={() => setFilterType("")} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>Todo</button>
+      <div className="flex gap-1 flex-wrap p-3 border-b border-line">
+        <button onClick={() => setFilterType("")} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === "" ? "bg-action-primary text-action-primary-foreground" : "bg-surface-sidebar text-text-secondary hover:bg-nav-active"}`}>Todo</button>
         {types.map(t => (
-          <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary hover:bg-nav-active"}`}>
+          <button key={t} onClick={() => setFilterType(t)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${filterType === t ? "bg-action-primary text-action-primary-foreground" : "bg-surface-sidebar text-text-secondary hover:bg-nav-active"}`}>
             {ENTITY_CFG[t].label}
           </button>
         ))}
       </div>
       {/* Search */}
       <div className="px-3 pt-2 pb-1 relative">
-        <Search size={13} className="absolute left-6 top-1/2 -translate-y-0 text-gray-300 mt-0.5" />
+        <HugeiconsIcon icon={Search01Icon} size={14} className="absolute left-6 top-1/2 -translate-y-0 text-text-secondary mt-0.5" />
         <input ref={ref} value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar..."
-          className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:border-border-subtle transition-all" />
+          className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:border-line transition-all" />
       </div>
       {/* Results */}
       <div className="max-h-56 overflow-y-auto p-2">
         {loading ? (
-          <div className="flex flex-col gap-1">{[1,2,3].map(i => <div key={i} className="h-9 rounded-lg bg-gray-100 animate-pulse" />)}</div>
+          <div className="flex flex-col gap-1">{[1,2,3].map(i => <div key={i} className="h-9 rounded-lg bg-surface-sidebar animate-pulse" />)}</div>
         ) : results.length === 0 ? (
           <p className="text-center text-xs text-text-secondary py-4">{q ? "Sin resultados" : "Escribe para buscar"}</p>
         ) : results.map(item => {
@@ -128,17 +129,17 @@ function AddRelationPopover({
             <button key={`${item.type}-${item.id}`} onClick={() => add(item)} disabled={adding === item.id}
               className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg hover:bg-surface-sidebar transition-colors text-left disabled:opacity-50">
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${cfg.bg}`}>
-                <Icon size={12} className={cfg.color} />
+                <HugeiconsIcon icon={Icon} size={12} className={cfg.color} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-text-primary truncate">{item.label}</p>
-                <p className="text-[10px] text-text-secondary truncate">
+                <p className="text-xs text-text-secondary truncate">
                   {item.subtitle || item.typeLabel}
                 </p>
               </div>
               {adding === item.id
-                ? <div className="w-3 h-3 border-2 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
-                : <Plus size={11} className="text-gray-300" />}
+                ? <div className="w-3 h-3 border-2 border-line border-t-action-primary rounded-full animate-spin" />
+                : <HugeiconsIcon icon={Add01Icon} size={12} className="text-text-secondary" />}
             </button>
           );
         })}
@@ -193,9 +194,9 @@ export default function KbRelationsInline({
       <div {...wrapperProps}>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-1.5 text-xs text-gray-300 hover:text-text-secondary transition-colors py-1"
+          className="flex min-h-11 items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
         >
-          <Link2 size={12} />
+          <HugeiconsIcon icon={Link01Icon} size={14} />
           <span>Agregar relación con el CRM</span>
         </button>
         {showAdd && (
@@ -220,16 +221,17 @@ export default function KbRelationsInline({
             href={cfg.href(rel.entityId)}
             className={pillClass}
           >
-            <Icon size={11} />
+            <HugeiconsIcon icon={Icon} size={12} />
             <span className="max-w-[180px] truncate">
               {displayRelationLabel(rel.entityType, rel.entityLabel)}
             </span>
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(rel.id); }}
-              className="opacity-0 group-hover:opacity-100 ml-0.5 text-current hover:opacity-100 transition-opacity"
+              className="-my-2 -mr-2 ml-0.5 flex size-11 items-center justify-center rounded-full text-current opacity-100 transition-opacity hover:opacity-70 lg:size-8 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
               title="Quitar relación"
+              aria-label="Quitar relación"
             >
-              <X size={10} />
+              <HugeiconsIcon icon={Cancel01Icon} size={12} />
             </button>
           </Link>
         );
@@ -239,9 +241,9 @@ export default function KbRelationsInline({
       <div className="relative">
         <button
           onClick={() => setShowAdd(v => !v)}
-          className="flex items-center gap-1 px-2 py-1 rounded-full border border-dashed border-border-subtle text-xs text-text-secondary hover:text-text-secondary hover:border-border-subtle transition-colors"
+          className="flex items-center gap-1 px-2 py-1 rounded-full border border-dashed border-line text-xs text-text-secondary hover:text-text-secondary hover:border-line transition-colors"
         >
-          <Plus size={11} /> Agregar
+          <HugeiconsIcon icon={Add01Icon} size={12} /> Agregar
         </button>
         {showAdd && (
           <AddRelationPopover pageId={pageId} onAdded={handleAdded} onClose={() => setShowAdd(false)} />

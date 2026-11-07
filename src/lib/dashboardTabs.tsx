@@ -10,7 +10,7 @@ import {
   Money02Icon,
   FolderKanbanIcon,
 } from "@hugeicons/core-free-icons";
-import { EmptyState } from "@/src/components/dashboard/EmptyState";
+import { EmptyState } from "@/src/components/ui";
 import { formatCurrency } from "@/src/lib/format";
 import type { DashboardData, DataKey } from "@/src/lib/dashboardData";
 
@@ -46,9 +46,9 @@ const COL_SPAN_CLASS: Record<number, string> = {
 
 function TableHeader({ columns }: { columns: { label: string; span: number }[] }) {
   return (
-    <div className="grid grid-cols-12 px-6 py-3 bg-surface-sidebar/60 border-b border-border-subtle">
+    <div className="grid grid-cols-12 px-4 sm:px-6 py-3 bg-surface-sidebar/60 border-b border-line">
       {columns.map((c) => (
-        <span key={c.label} className={`${COL_SPAN_CLASS[c.span]} text-[10px] font-semibold text-text-secondary uppercase tracking-widest`}>
+        <span key={c.label} className={`${COL_SPAN_CLASS[c.span]} text-xs font-semibold text-text-secondary`}>
           {c.label}
         </span>
       ))}
@@ -61,10 +61,10 @@ function Badge({ text, color }: { text: string; color: "green" | "blue" | "orang
     green: "bg-green-50 text-green-700 border-green-100",
     blue: "bg-blue-50 text-blue-700 border-blue-100",
     orange: "bg-orange-50 text-orange-700 border-orange-100",
-    gray: "bg-gray-50 text-gray-600 border-gray-100",
+    gray: "bg-surface-sidebar text-text-secondary border-line",
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold border tracking-wide ${colors[color]}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold border  ${colors[color]}`}>
       {text}
     </span>
   );
@@ -85,18 +85,18 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Fecha", span: 2 }, { label: "Nombre", span: 3 }, { label: "Email", span: 5 }, { label: "Estado", span: 2 }]} />
           {contacts.length > 0 ? (
             contacts.map((contact, i) => (
-              <div key={contact.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < contacts.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={contact.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < contacts.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-2 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
                   <span className="text-xs text-text-secondary tabular-nums">{formatShortDate(new Date(contact.createdAt))}</span>
                 </div>
                 <span className="col-span-3 text-sm font-medium text-text-primary truncate pr-3">{contact.firstName} {contact.lastName || ""}</span>
-                <span className="col-span-5 text-sm text-text-secondary truncate pr-3">{contact.email || "—"}</span>
+                <span className="col-span-5 text-sm text-text-secondary truncate pr-3">{contact.email || "Sin email"}</span>
                 <span className="col-span-2"><Badge text="ACTIVO" color="green" /></span>
               </div>
             ))
           ) : (
-            <EmptyState icon={UserMultipleIcon} message="No hay contactos registrados" />
+            <EmptyState title="No hay contactos registrados" />
           )}
         </div>
       );
@@ -116,7 +116,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Fecha", span: 3 }, { label: "Nombre", span: 4 }, { label: "Tipo", span: 3 }, { label: "Estado", span: 2 }]} />
           {appointments.length > 0 ? (
             appointments.map((appt, i) => (
-              <div key={appt.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < appointments.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={appt.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < appointments.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-3 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType.color }} />
                   <span className="text-xs text-text-secondary tabular-nums flex items-center gap-1">
@@ -130,7 +130,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
               </div>
             ))
           ) : (
-            <EmptyState icon={Calendar01Icon} message="No hay citas próximas" />
+            <EmptyState title="No hay citas próximas" />
           )}
         </div>
       );
@@ -150,19 +150,19 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Tarea", span: 7 }, { label: "Vencimiento", span: 3 }, { label: "Estado", span: 2 }]} />
           {tasks.length > 0 ? (
             tasks.map((task, i) => (
-              <div key={task.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < tasks.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={task.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < tasks.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-7 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
                   <span className="text-sm font-medium text-text-primary line-clamp-1 pr-3">{task.title}</span>
                 </div>
                 <span className="col-span-3 text-xs text-text-secondary">
-                  {task.dueDate ? formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: es }) : "—"}
+                  {task.dueDate ? formatDistanceToNow(new Date(task.dueDate), { addSuffix: true, locale: es }) : "Sin fecha"}
                 </span>
                 <span className="col-span-2"><Badge text="PENDIENTE" color="orange" /></span>
               </div>
             ))
           ) : (
-            <EmptyState icon={Task01Icon} message="No hay tareas pendientes" />
+            <EmptyState title="No hay tareas pendientes" />
           )}
         </div>
       );
@@ -182,7 +182,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Fecha", span: 2 }, { label: "Título", span: 4 }, { label: "Etapa", span: 3 }, { label: "Valor", span: 3 }]} />
           {deals.length > 0 ? (
             deals.map((deal, i) => (
-              <div key={deal.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < deals.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={deal.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < deals.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-2 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: deal.stage.color }} />
                   <span className="text-xs text-text-secondary tabular-nums">{formatShortDate(new Date(deal.createdAt))}</span>
@@ -193,7 +193,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
               </div>
             ))
           ) : (
-            <EmptyState icon={DollarCircleIcon} message="No hay deals registrados" />
+            <EmptyState title="No hay deals registrados" />
           )}
         </div>
       );
@@ -213,7 +213,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Fecha", span: 2 }, { label: "Deal / Cliente", span: 5 }, { label: "Monto", span: 3 }, { label: "Estado", span: 2 }]} />
           {payments.length > 0 ? (
             payments.map((p, i) => (
-              <div key={p.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < payments.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={p.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < payments.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-2 flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${p.status === "RECIBIDO" ? "bg-green-400" : "bg-orange-400"}`} />
                   <span className="text-xs text-text-secondary tabular-nums">{formatShortDate(new Date(p.createdAt))}</span>
@@ -226,7 +226,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
               </div>
             ))
           ) : (
-            <EmptyState icon={Money02Icon} message="No hay pagos registrados" />
+            <EmptyState title="No hay pagos registrados" />
           )}
         </div>
       );
@@ -246,17 +246,17 @@ export const TAB_REGISTRY: TabDefinition[] = [
           <TableHeader columns={[{ label: "Fecha", span: 2 }, { label: "Nombre", span: 5 }, { label: "Descripción", span: 5 }]} />
           {projects.length > 0 ? (
             projects.map((project, i) => (
-              <div key={project.id} className={`grid grid-cols-12 px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < projects.length - 1 ? "border-b border-border-subtle" : ""}`}>
+              <div key={project.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < projects.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-2 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                   <span className="text-xs text-text-secondary tabular-nums">{formatShortDate(new Date(project.createdAt))}</span>
                 </div>
                 <span className="col-span-5 text-sm font-medium text-text-primary truncate pr-3">{project.name}</span>
-                <span className="col-span-5 text-sm text-text-secondary truncate pr-3">{project.description || "—"}</span>
+                <span className="col-span-5 text-sm text-text-secondary truncate pr-3">{project.description || "Sin descripción"}</span>
               </div>
             ))
           ) : (
-            <EmptyState icon={FolderKanbanIcon} message="No hay proyectos creados" />
+            <EmptyState title="No hay proyectos creados" />
           )}
         </div>
       );

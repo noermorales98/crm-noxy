@@ -54,6 +54,7 @@ export default function ThemeSelector() {
                   </span>
                   <span className="flex-1 p-2.5">
                     <span
+                      aria-hidden="true"
                       className="block h-full rounded-md border p-2"
                       style={{ backgroundColor: tokens.surfaceElevated, borderColor: tokens.borderSubtle }}
                     >

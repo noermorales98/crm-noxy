@@ -19,17 +19,14 @@ function staticLinkTag(href: string): string {
   return tag;
 }
 
-const sectionSwitcherSource = sourceBetween("function SectionSwitcher(", "// ─── Delete confirmation modal");
 const assistantNavSource = sourceBetween("function AssistantNav(", "// ─── Main Sidebar");
 const sidebarComponentSource = sidebarSource.slice(sidebarSource.indexOf("export default function Sidebar("));
 
-test("section switching closes before every route push", () => {
-  assert.match(sectionSwitcherSource, /onNavigate\?: \(\) => void/);
-  assert.match(
-    sectionSwitcherSource,
-    /const selectSection =[\s\S]*?onNavigate\?\.\(\);[\s\S]*?router\.push\(section\.href\);/,
-  );
-  assert.match(sidebarComponentSource, /<SectionSwitcher[\s\S]*?onNavigate=\{onNavigate\}[\s\S]*?\/>/);
+// Rediseño «marco claro» (T006): el selector de secciones desaparece; los destinos de la lista
+// plana cierran el panel flotante al navegar (chooseDestination → onNavigate).
+test("flat-list destinations close the floating panel before navigating", () => {
+  assert.match(sidebarComponentSource, /const chooseDestination = \(\) => \{[\s\S]*?onNavigate\?\.\(\);[\s\S]*?\};/);
+  assert.match(sidebarComponentSource, /<FlatNav[\s\S]*?onChoose=\{chooseDestination\}[\s\S]*?\/>/);
 });
 
 test("assistant conversation destinations keep the floating panel open", () => {
@@ -56,10 +53,10 @@ test("assistant conversation destinations keep the floating panel open", () => {
   assert.match(shellSource, /dispatch\(\{ type: "unpin" \}\)/);
 });
 
-test("floating sidebar uses clear liquid glass and pin hover peek", () => {
-  assert.match(sidebarComponentSource, /variant === "floating"[\s\S]*?crm-glass/);
-  assert.match(sidebarComponentSource, /variant === "pinned"[\s\S]*?crm-glass/);
-  assert.match(shellSource, /crm-glass-clear/);
+test("floating sidebar is a solid light panel with pin hover peek", () => {
+  assert.match(sidebarComponentSource, /variant === "floating"[\s\S]*?bg-surface-sidebar/);
+  assert.match(sidebarComponentSource, /variant === "pinned"[\s\S]*?bg-surface-sidebar/);
+  assert.doesNotMatch(shellSource, /crm-glass/);
   assert.match(shellSource, /data-assistant-sidebar-edge/);
   assert.match(shellSource, /data-assistant-sidebar-pin-hint/);
   assert.match(shellSource, /data-assistant-sidebar-pinned/);

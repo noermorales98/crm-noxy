@@ -26,6 +26,19 @@ export type StatDef = {
 
 // ─── Stats Card ───────────────────────────────────────────────────────────────
 
+/** Variación con signo: neutra o de error; el texto lleva el sentido (DESIGN.md). */
+function StatBadge({ children, positive }: { children: string; positive?: boolean }) {
+  return (
+    <span
+      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
+        positive ? "bg-success-soft text-success" : "bg-danger-soft text-danger"
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function StatCard({
   label,
   value,
@@ -44,42 +57,42 @@ export function StatCard({
   onHide?: () => void;
 }) {
   return (
-    <div className="group relative bg-white border border-border-subtle rounded-lg p-3 flex-1 min-w-[140px]">
-      {onHide && (
-        <button
-          onClick={onHide}
-          title="Ocultar resumen"
-          className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 p-0.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-all"
-        >
-          <HugeiconsIcon icon={Cancel01Icon} size={12} />
-        </button>
-      )}
-      <p className="text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-wide pr-4">{label}</p>
+    <div className="relative flex min-w-[160px] flex-1 flex-col gap-1 border-line px-4 py-3 [&:not(:first-child)]:border-l">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs font-semibold text-text-secondary">{label}</p>
+        {onHide && (
+          <button
+            type="button"
+            onClick={onHide}
+            aria-label={`Ocultar ${label}`}
+            title="Ocultar resumen"
+            className="-m-2 flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-sidebar hover:text-text-primary lg:size-7"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} size={12} />
+          </button>
+        )}
+      </div>
       {values ? (
-        <div className="flex flex-col gap-0.5 mb-0.5">
+        <div className="flex flex-col gap-0.5">
           {values.map((v) => (
             <div key={v.label} className="flex items-baseline gap-1.5">
-              <p className="text-lg font-bold text-text-primary truncate">{v.amount}</p>
-              <span className="text-[10px] font-semibold text-text-secondary bg-gray-100 px-1.5 py-0.5 rounded-full shrink-0">{v.label}</span>
+              <p className="truncate text-lg font-semibold tabular-nums text-text-primary">{v.amount}</p>
+              <span className="shrink-0 rounded-full bg-surface-sidebar px-1.5 py-0.5 text-xs font-semibold text-text-secondary">{v.label}</span>
             </div>
           ))}
           {badge && (
-            <span className={`mt-0.5 self-start text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-              {badge}
+            <span className="self-start">
+              <StatBadge positive={badgePositive}>{badge}</StatBadge>
             </span>
           )}
         </div>
       ) : (
-        <div className="flex items-baseline gap-1.5 mb-0.5">
-          <p className="text-xl font-bold text-text-primary truncate">{value}</p>
-          {badge && (
-            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${badgePositive ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-              {badge}
-            </span>
-          )}
+        <div className="flex items-baseline gap-1.5">
+          <p className="truncate text-xl font-semibold tabular-nums text-text-primary">{value}</p>
+          {badge && <StatBadge positive={badgePositive}>{badge}</StatBadge>}
         </div>
       )}
-      <p className="text-[11px] text-text-secondary">{sub}</p>
+      <p className="text-xs text-text-secondary">{sub}</p>
     </div>
   );
 }
@@ -97,13 +110,15 @@ export function StatChip({
 }) {
   return (
     <button
+      type="button"
       onClick={onRestore}
       title="Restaurar resumen"
-      className="group flex items-center gap-2 shrink-0 bg-white border border-border-subtle rounded-lg px-3 py-1.5 hover:border-gray-300 hover:bg-nav-hover transition-colors"
+      aria-label={`Restaurar ${label}`}
+      className="crm-press group flex min-h-11 shrink-0 items-center gap-2 rounded-control border border-line bg-surface-elevated px-3 transition-colors hover:bg-surface-sidebar lg:min-h-9"
     >
-      <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wide">{label}</span>
-      <span className="text-xs font-bold text-text-primary truncate max-w-[140px]">{value}</span>
-      <span className="text-text-secondary group-hover:text-text-primary transition-colors">
+      <span className="text-xs font-semibold text-text-secondary">{label}</span>
+      <span className="max-w-[140px] truncate text-xs font-semibold tabular-nums text-text-primary">{value}</span>
+      <span className="text-text-secondary transition-colors group-hover:text-text-primary">
         <HugeiconsIcon icon={Add01Icon} size={12} />
       </span>
     </button>

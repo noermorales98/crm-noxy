@@ -20,6 +20,8 @@ interface Props {
   disabled?: boolean;
   /** Where the dropdown opens relative to the trigger button */
   placement?: "bottom-left" | "top-right";
+  /** En pantallas del CRM fuera del asistente: el disparador mide 44 px por debajo de lg. */
+  touch?: boolean;
 }
 
 interface MenuPosition {
@@ -49,6 +51,7 @@ export default function ModelSelector({
   value,
   onChange,
   disabled,
+  touch,
   placement = "bottom-left",
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -235,7 +238,7 @@ export default function ModelSelector({
         type="button"
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
-        className={btnClass}
+        className={touch ? `${btnClass} min-h-11 lg:min-h-0` : btnClass}
         title="Cambiar modelo de IA"
       >
         <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" />

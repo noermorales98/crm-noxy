@@ -108,7 +108,7 @@ export default function EmailsPage() {
     <Suspense
       fallback={
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-line border-t-action-primary rounded-full animate-spin" />
         </div>
       }
     >
@@ -705,12 +705,12 @@ function EmailsPageInner() {
       <div className="flex min-h-0 flex-1 overflow-hidden bg-surface-app font-sans">
         {/* Center: Email list */}
         <div
-          className={`w-full shrink-0 flex-col overflow-hidden border-border-subtle bg-white lg:w-80 lg:border-r ${
+          className={`w-full shrink-0 flex-col overflow-hidden border-line bg-surface-elevated lg:w-80 lg:border-r ${
             selectedEmail ? "hidden lg:flex" : "flex"
           }`}
         >
           {/* Header */}
-          <div className="px-4 py-4 border-b border-border-subtle shrink-0">
+          <div className="px-4 py-4 border-b border-line shrink-0">
             <p className="text-xs text-text-secondary mt-0.5">
               {selectedCompany ? `${selectedCompany.name} · ` : ""}{emails.length} correos
               {lastSyncLabel ? ` · Sync ${lastSyncLabel}` : ""}
@@ -721,7 +721,7 @@ function EmailsPageInner() {
           <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto">
             {isLoadingEmails ? (
               <div className="flex items-center justify-center py-16">
-                <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-600 rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-line border-t-action-primary rounded-full animate-spin" />
               </div>
             ) : emails.length === 0 ? (
               (() => {
@@ -789,7 +789,7 @@ function EmailsPageInner() {
               emails.map((email) => (
                 <div
                   key={email.id}
-                  className={`group flex items-stretch border-b border-border-subtle hover:bg-surface-sidebar transition-colors ${
+                  className={`group flex items-stretch border-b border-line hover:bg-surface-sidebar transition-colors ${
                     selectedEmail?.id === email.id ? "bg-blue-50 border-l-2 border-l-blue-500" : ""
                   }`}
                 >
@@ -815,7 +815,7 @@ function EmailsPageInner() {
                               ? `→ ${sanitizeEmail(email.toAddress)}`
                               : email.fromName || sanitizeEmail(email.fromAddress)}
                           </span>
-                          <span className="text-[10px] text-text-secondary shrink-0">
+                          <span className="text-xs text-text-secondary shrink-0">
                             {new Date(email.receivedAt).toLocaleDateString("es-MX", {
                               month: "short",
                               day: "numeric",
@@ -823,7 +823,7 @@ function EmailsPageInner() {
                           </span>
                         </div>
                         <p className="text-xs text-text-secondary truncate">{email.subject}</p>
-                        <p className="text-[11px] text-text-secondary truncate mt-0.5">
+                        <p className="text-xs text-text-secondary truncate mt-0.5">
                           {email.company.name}
                         </p>
                       </div>
@@ -832,7 +832,7 @@ function EmailsPageInner() {
                   <button
                     type="button"
                     onClick={() => void handleDelete(email.id)}
-                    className="shrink-0 self-center mr-2 p-1.5 rounded-lg text-text-secondary hover:text-red-600 hover:bg-red-50 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                    className="mr-1 flex size-11 shrink-0 items-center justify-center self-center rounded-control text-text-secondary transition-opacity hover:bg-danger-soft hover:text-danger lg:mr-2 lg:size-8 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
                     title="Eliminar correo"
                     aria-label="Eliminar correo"
                   >
@@ -852,18 +852,18 @@ function EmailsPageInner() {
         >
           {isLoadingDetail ? (
             <div className="flex flex-1 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-3 border-border-subtle border-t-gray-600" />
+              <div className="h-8 w-8 animate-spin rounded-full border-3 border-line border-t-action-primary" />
             </div>
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="shrink-0 border-b border-border-subtle bg-white px-4 py-2 sm:px-6 lg:py-4">
+              <div className="shrink-0 border-b border-line bg-surface-elevated px-4 py-2 sm:px-6 lg:py-4">
                 <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-3">
                   <div className="flex min-w-0 flex-1 gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedEmail(null)}
-                      className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
+                      className="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
                       title="Volver a la lista"
                       aria-label="Volver a la lista"
                     >
@@ -932,7 +932,7 @@ function EmailsPageInner() {
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
-                        className="hidden items-center gap-1.5 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-nav-active sm:flex"
+                        className="hidden min-h-11 items-center gap-1.5 rounded-control bg-surface-sidebar px-3 text-sm font-medium text-text-primary transition-colors hover:bg-nav-active sm:flex lg:min-h-8"
                       >
                         <HugeiconsIcon icon={MailReplyIcon} size={13} />
                         Responder
@@ -941,7 +941,7 @@ function EmailsPageInner() {
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
-                        className="flex size-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
+                        className="flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
                         title="Responder"
                       >
                         <HugeiconsIcon icon={MailReplyIcon} size={15} />
@@ -949,7 +949,7 @@ function EmailsPageInner() {
                     )}
                     <button
                       onClick={() => handleToggleRead(selectedEmail)}
-                      className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
                       title={selectedEmail.isRead ? "Marcar como no leído" : "Marcar como leído"}
                     >
                       {selectedEmail.isRead ? <HugeiconsIcon icon={ViewOffIcon} size={15} /> : <HugeiconsIcon icon={ViewIcon} size={15} />}
@@ -957,7 +957,7 @@ function EmailsPageInner() {
                     {selectedEmail.type === "RECEIVED" && !selectedEmail.isSpam && (
                       <button
                         onClick={() => handleToggleSpam(selectedEmail.id, true)}
-                        className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
                         title="Marcar como spam"
                       >
                         <HugeiconsIcon icon={SpamIcon} size={15} />
@@ -966,7 +966,7 @@ function EmailsPageInner() {
                     {selectedEmail.isSpam ? (
                       <button
                         onClick={() => handleToggleSpam(selectedEmail.id, false)}
-                        className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
                         title="No es spam"
                       >
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} size={15} />
@@ -975,7 +975,7 @@ function EmailsPageInner() {
                       !selectedEmail.isArchived && (
                         <button
                           onClick={() => handleArchive(selectedEmail.id)}
-                          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-nav-hover rounded-lg transition-colors"
+                          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
                           title="Archivar"
                         >
                           <HugeiconsIcon icon={ArchiveIcon} size={15} />
@@ -984,7 +984,7 @@ function EmailsPageInner() {
                     )}
                     <button
                       onClick={() => handleDelete(selectedEmail.id)}
-                      className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-8"
                       title="Eliminar"
                     >
                       <HugeiconsIcon icon={Delete01Icon} size={15} />
@@ -1009,7 +1009,7 @@ function EmailsPageInner() {
                         key={att.id}
                         href={`/api/emails/${selectedEmail.id}/attachments/${att.id}`}
                         download={att.filename}
-                        className="flex items-center gap-2 px-3 py-2 bg-white border border-border-subtle rounded-lg text-xs text-text-primary hover:bg-surface-sidebar transition-colors"
+                        className="flex min-h-11 items-center gap-2 px-3 py-2 bg-surface-elevated border border-line rounded-control text-xs text-text-primary hover:bg-surface-sidebar transition-colors lg:min-h-9"
                       >
                         <HugeiconsIcon icon={FileAttachmentIcon} size={14} color="#9ca3af" />
                         <span className="max-w-[200px] truncate">{att.filename}</span>
@@ -1020,7 +1020,8 @@ function EmailsPageInner() {
                   </div>
                 )}
 
-                <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
+                {/* Blanco literal a propósito: el HTML del correo asume fondo blanco. */}
+                <div className="bg-[#ffffff] rounded-lg border border-line overflow-hidden">
                   {selectedEmail.bodyHtml ? (
                     <iframe
                       srcDoc={withExternalLinks(selectedEmail.bodyHtml)}
@@ -1054,10 +1055,10 @@ function EmailsPageInner() {
 
       {/* Compose Modal */}
       {isComposing && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-brand-obsidian/55 backdrop-blur-[2px] p-4">
-          <div className="bg-white rounded-surface overflow-hidden w-full max-w-xl flex flex-col max-h-[85vh] shadow-[0_24px_70px_rgba(11,11,24,0.28)]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:justify-center bg-brand-obsidian/45 p-4">
+          <div className="bg-surface-elevated rounded-surface overflow-hidden w-full max-w-xl flex flex-col max-h-[85vh] shadow-[0_24px_70px_rgba(11,11,24,0.28)]">
             {/* Header */}
-            <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between shrink-0">
+            <div className="px-5 py-4 border-b border-line flex items-center justify-between shrink-0">
               <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
                 <HugeiconsIcon icon={PencilEdit01Icon} size={15} color="#9ca3af" />
                 Nuevo correo
@@ -1088,7 +1089,7 @@ function EmailsPageInner() {
             <form onSubmit={handleSend} className="flex-1 overflow-y-auto flex flex-col">
               {/* AI Draft Panel */}
               {showAiDraft && (
-                <div className="px-5 py-4 border-b border-border-subtle bg-[#F5F3FF]">
+                <div className="px-5 py-4 border-b border-line bg-[#F5F3FF]">
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2">
                       <HugeiconsIcon icon={SparklesIcon} size={14} color="#3545D6" />
@@ -1101,7 +1102,7 @@ function EmailsPageInner() {
                     placeholder="Describe lo que quieres comunicar... (ej: seguimiento a propuesta enviada la semana pasada)"
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
-                    className="w-full text-sm border border-[#DCDFE6] rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-[#3545D6] resize-none text-text-primary placeholder-gray-300"
+                    className="w-full text-sm border border-[#DCDFE6] rounded-lg px-3 py-2 bg-surface-elevated focus:outline-none focus:border-[#3545D6] resize-none text-text-primary placeholder:text-text-secondary"
                   />
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1">
@@ -1113,7 +1114,7 @@ function EmailsPageInner() {
                           className={`text-xs px-2.5 py-1 rounded-md transition-colors capitalize ${
                             aiTone === t
                               ? "bg-[#3545D6] text-white"
-                              : "bg-white text-text-secondary hover:bg-nav-hover"
+                              : "bg-surface-elevated text-text-secondary hover:bg-nav-hover"
                           }`}
                         >
                           {t === "formal" ? "Formal" : t === "casual" ? "Casual" : "Amigable"}
@@ -1136,7 +1137,7 @@ function EmailsPageInner() {
                   </div>
                   {/* Result */}
                   {aiResult && (
-                    <div className="mt-3 border border-[#DCDFE6] rounded-lg bg-white overflow-hidden">
+                    <div className="mt-3 border border-[#DCDFE6] rounded-lg bg-surface-elevated overflow-hidden">
                       <div className="px-3 py-2 border-b border-[#EDE9FE]">
                         <p className="text-xs text-text-secondary">Asunto: <span className="text-text-primary font-medium">{aiResult.subject}</span></p>
                       </div>
@@ -1169,7 +1170,7 @@ function EmailsPageInner() {
                   )}
                 </div>
               )}
-              <div className="flex flex-col divide-y divide-gray-100 px-5">
+              <div className="flex flex-col divide-y divide-line px-5">
                 {/* Company selector */}
                 <div className="py-3 flex items-center gap-3">
                   <span className="text-xs text-text-secondary w-16 shrink-0">Cuenta</span>
@@ -1207,7 +1208,7 @@ function EmailsPageInner() {
                       onFocus={() => {
                         if (composeData.to.length >= 1) setShowContactDropdown(true);
                       }}
-                      className="w-full text-sm bg-transparent focus:outline-none text-text-primary placeholder-gray-300"
+                      className="w-full text-sm bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary"
                     />
                     {showContactDropdown && (() => {
                       const q = composeData.to.toLowerCase();
@@ -1220,7 +1221,7 @@ function EmailsPageInner() {
                       return matches.length > 0 ? (
                         <div
                           ref={contactDropdownRef}
-                          className="crm-floating-menu absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border-subtle rounded-lg overflow-hidden"
+                          className="crm-floating-menu absolute top-full left-0 right-0 z-50 mt-1 bg-surface-elevated border border-line rounded-lg overflow-hidden"
                         >
                           {matches.map((c) => (
                             <button
@@ -1252,7 +1253,7 @@ function EmailsPageInner() {
                     placeholder="copia@email.com"
                     value={composeData.cc}
                     onChange={(e) => setComposeData((p) => ({ ...p, cc: e.target.value }))}
-                    className="flex-1 text-sm bg-transparent focus:outline-none text-text-primary placeholder-gray-300"
+                    className="flex-1 text-sm bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary"
                   />
                 </div>
                 {/* Subject */}
@@ -1264,7 +1265,7 @@ function EmailsPageInner() {
                     placeholder="Asunto del correo"
                     value={composeData.subject}
                     onChange={(e) => setComposeData((p) => ({ ...p, subject: e.target.value }))}
-                    className="flex-1 text-sm bg-transparent focus:outline-none text-text-primary placeholder-gray-300"
+                    className="flex-1 text-sm bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary"
                   />
                 </div>
               </div>
@@ -1273,12 +1274,12 @@ function EmailsPageInner() {
               <div className="flex-1 px-5 pt-3 pb-2 flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-text-secondary">Mensaje</span>
-                  <div className="flex items-center gap-0.5 bg-gray-100 p-1 rounded-lg">
+                  <div className="flex items-center gap-0.5 bg-surface-sidebar p-1 rounded-lg">
                     <button
                       type="button"
                       onClick={() => setPreviewCompose(false)}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                        !previewCompose ? "bg-white text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
+                        !previewCompose ? "bg-surface-elevated text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       <HugeiconsIcon icon={SourceCodeIcon} size={12} />
@@ -1288,7 +1289,7 @@ function EmailsPageInner() {
                       type="button"
                       onClick={() => setPreviewCompose(true)}
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-                        previewCompose ? "bg-white text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
+                        previewCompose ? "bg-surface-elevated text-text-primary" : "bg-nav-hover text-text-secondary hover:text-text-primary"
                       }`}
                     >
                       <HugeiconsIcon icon={ViewIcon} size={12} />
@@ -1304,10 +1305,10 @@ function EmailsPageInner() {
                     rows={8}
                     value={composeData.bodyHtml}
                     onChange={(e) => setComposeData((p) => ({ ...p, bodyHtml: e.target.value }))}
-                    className="w-full text-sm bg-transparent focus:outline-none text-text-primary placeholder-gray-300 resize-none"
+                    className="w-full text-sm bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary resize-none"
                   />
                 ) : (
-                  <div className="w-full rounded-lg border border-border-subtle overflow-hidden bg-white" style={{ minHeight: "200px" }}>
+                  <div className="w-full rounded-lg border border-line overflow-hidden bg-surface-elevated" style={{ minHeight: "200px" }}>
                     {composeData.bodyHtml.trim() ? (
                       <iframe
                         srcDoc={withExternalLinks(composeData.bodyHtml)}
@@ -1332,7 +1333,7 @@ function EmailsPageInner() {
                   {attachments.map((file, idx) => (
                     <span
                       key={`${file.name}-${idx}`}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-surface-sidebar border border-border-subtle rounded-lg text-xs text-text-primary"
+                      className="flex items-center gap-2 px-3 py-1.5 bg-surface-sidebar border border-line rounded-lg text-xs text-text-primary"
                     >
                       <HugeiconsIcon icon={FileAttachmentIcon} size={13} color="#9ca3af" />
                       <span className="max-w-[180px] truncate">{file.name}</span>
@@ -1351,7 +1352,7 @@ function EmailsPageInner() {
                 </div>
               )}
 
-              <div className="px-5 py-3 border-t border-border-subtle flex justify-between items-center shrink-0 bg-surface-sidebar/50">
+              <div className="px-5 py-3 border-t border-line flex justify-between items-center shrink-0 bg-surface-sidebar/50">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -1374,7 +1375,7 @@ function EmailsPageInner() {
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors border ${
                       attachments.length > 0
                         ? "border-blue-300 bg-blue-50 text-blue-700"
-                        : "border-border-subtle bg-surface-elevated text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+                        : "border-line bg-surface-elevated text-text-secondary hover:bg-nav-hover hover:text-text-primary"
                     }`}
                   >
                     <HugeiconsIcon icon={FileAttachmentIcon} size={14} />
@@ -1390,7 +1391,7 @@ function EmailsPageInner() {
                         value={composeData.scheduledAt}
                         min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
                         onChange={(e) => setComposeData((p) => ({ ...p, scheduledAt: e.target.value }))}
-                        className="text-xs border border-border-subtle rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                        className="text-xs border border-line rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-focus/40"
                       />
                     )}
                     <button
@@ -1403,7 +1404,7 @@ function EmailsPageInner() {
                       className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
                         composeData.scheduledAt
                           ? "border-blue-300 bg-blue-50 text-blue-700"
-                          : "border-border-subtle bg-surface-elevated text-text-secondary hover:bg-nav-hover"
+                          : "border-line bg-surface-elevated text-text-secondary hover:bg-nav-hover"
                       }`}
                     >
                       <HugeiconsIcon icon={Clock01Icon} size={14} />
@@ -1428,8 +1429,8 @@ function EmailsPageInner() {
       {/* IMAP/SMTP Config Modal */}
       {showImapModal && configCompanyId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg flex flex-col max-h-[90vh]">
-            <div className="px-6 py-5 border-b border-border-subtle flex items-center justify-between shrink-0">
+          <div className="bg-surface-elevated rounded-lg w-full max-w-lg flex flex-col max-h-[90vh]">
+            <div className="px-6 py-5 border-b border-line flex items-center justify-between shrink-0">
               <div>
                 <h3 className="text-base font-bold text-text-primary">
                   Configurar cuenta de correo
@@ -1461,7 +1462,7 @@ function EmailsPageInner() {
                       placeholder="smtp.gmail.com"
                       value={imapForm.smtpHost}
                       onChange={(e) => setImapForm((p) => ({ ...p, smtpHost: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1471,7 +1472,7 @@ function EmailsPageInner() {
                       placeholder="465"
                       value={imapForm.smtpPort}
                       onChange={(e) => setImapForm((p) => ({ ...p, smtpPort: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1481,7 +1482,7 @@ function EmailsPageInner() {
                       placeholder="tu@email.com"
                       value={imapForm.smtpUser}
                       onChange={(e) => setImapForm((p) => ({ ...p, smtpUser: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1491,7 +1492,7 @@ function EmailsPageInner() {
                       placeholder="••••••••"
                       value={imapForm.smtpPass}
                       onChange={(e) => setImapForm((p) => ({ ...p, smtpPass: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1 col-span-2">
@@ -1501,7 +1502,7 @@ function EmailsPageInner() {
                       placeholder="noreply@tuempresa.com"
                       value={imapForm.smtpFromEmail}
                       onChange={(e) => setImapForm((p) => ({ ...p, smtpFromEmail: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex items-center gap-2 col-span-2">
@@ -1533,7 +1534,7 @@ function EmailsPageInner() {
                       placeholder="imap.gmail.com"
                       value={imapForm.imapHost}
                       onChange={(e) => setImapForm((p) => ({ ...p, imapHost: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1543,7 +1544,7 @@ function EmailsPageInner() {
                       placeholder="993"
                       value={imapForm.imapPort}
                       onChange={(e) => setImapForm((p) => ({ ...p, imapPort: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1553,7 +1554,7 @@ function EmailsPageInner() {
                       placeholder="tu@email.com"
                       value={imapForm.imapUser}
                       onChange={(e) => setImapForm((p) => ({ ...p, imapUser: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -1563,7 +1564,7 @@ function EmailsPageInner() {
                       placeholder="••••••••"
                       value={imapForm.imapPass}
                       onChange={(e) => setImapForm((p) => ({ ...p, imapPass: e.target.value }))}
-                      className="px-3 py-2 rounded-lg border border-border-subtle text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                      className="px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                     />
                   </div>
                   <div className="flex items-center gap-2 col-span-2">
@@ -1581,7 +1582,7 @@ function EmailsPageInner() {
                 </div>
               </div>
 
-              <div className="pt-2 flex flex-wrap justify-between gap-3 border-t border-border-subtle">
+              <div className="pt-2 flex flex-wrap justify-between gap-3 border-t border-line">
                 <button
                   type="button"
                   onClick={() => void handleRemoveMailAccount()}

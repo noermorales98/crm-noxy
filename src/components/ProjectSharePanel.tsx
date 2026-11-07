@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Copy, Link2, RefreshCw, Share2, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Copy01Icon, Link01Icon, RefreshIcon, Share08Icon } from "@hugeicons/core-free-icons";
 
 type ShareData = {
   isPublic: boolean;
@@ -65,14 +66,16 @@ export default function ProjectSharePanel({ projectId }: { projectId: string }) 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+        aria-label="Compartir proyecto"
+        aria-expanded={open}
+        className={`crm-press flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-control px-3 text-sm font-semibold transition-colors lg:min-h-10 ${
           share?.isPublic
             ? "bg-blue-50 text-blue-700"
             : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
         }`}
         title="Compartir"
       >
-        <Share2 size={12} />
+        <HugeiconsIcon icon={Share08Icon} size={16} />
         <span className="hidden sm:inline">Compartir</span>
       </button>
 
@@ -81,7 +84,7 @@ export default function ProjectSharePanel({ projectId }: { projectId: string }) 
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-text-primary">Compartir públicamente</h3>
             <button type="button" onClick={() => setOpen(false)} className="text-text-secondary hover:text-text-primary">
-              <X size={14} />
+              <HugeiconsIcon icon={Cancel01Icon} size={14} />
             </button>
           </div>
 
@@ -112,7 +115,7 @@ export default function ProjectSharePanel({ projectId }: { projectId: string }) 
                     className="p-2 rounded-lg bg-surface-sidebar hover:bg-nav-hover shrink-0"
                     title="Copiar"
                   >
-                    {copied ? <Link2 size={14} className="text-green-600" /> : <Copy size={14} />}
+                    {copied ? <HugeiconsIcon icon={Link01Icon} size={14} className="text-green-600" /> : <HugeiconsIcon icon={Copy01Icon} size={14} />}
                   </button>
                 </div>
               </div>
@@ -123,7 +126,7 @@ export default function ProjectSharePanel({ projectId }: { projectId: string }) 
                   onClick={() => patch({ regenerateToken: true })}
                   className="flex-1 flex items-center justify-center gap-1 py-2 text-xs rounded-lg bg-surface-sidebar hover:bg-nav-hover disabled:opacity-50"
                 >
-                  <RefreshCw size={12} />
+                  <HugeiconsIcon icon={RefreshIcon} size={12} />
                   Regenerar
                 </button>
                 <button

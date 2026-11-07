@@ -139,14 +139,14 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 rounded-lg border border-border-subtle bg-surface-sidebar">
+        <div className="flex items-center justify-between p-4 rounded-lg border border-line bg-surface-sidebar">
           <div>
             <p className="text-sm font-medium text-text-primary">Habilitar API</p>
             <p className="text-xs text-text-secondary mt-0.5">
               Permite consultar los leads a través de la API
             </p>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex min-h-11 items-center cursor-pointer">
             <input
               type="checkbox"
               checked={config.isEnabled}
@@ -154,13 +154,13 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
               disabled={saving}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
+            <div className="w-11 h-6 bg-nav-active peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-elevated after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
           </label>
         </div>
 
         {config.isEnabled && (
           <>
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-subtle bg-surface-sidebar">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-line bg-surface-sidebar">
               <div>
                 <p className="text-sm font-medium text-text-primary">Acceso Público</p>
                 <p className="text-xs text-text-secondary mt-0.5">
@@ -169,7 +169,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
                     : "La API requiere un Bearer Token para acceder"}
                 </p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex min-h-11 items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.isPublic}
@@ -177,12 +177,12 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
                   disabled={saving}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
+                <div className="w-11 h-6 bg-nav-active peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-elevated after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
               </label>
             </div>
 
             {!config.isPublic && config.apiToken && (
-              <div className="space-y-3 p-4 rounded-lg border border-border-subtle bg-surface-elevated">
+              <div className="space-y-3 p-4 rounded-lg border border-line bg-surface-elevated">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-text-primary">Bearer Token</p>
                   <button
@@ -195,13 +195,14 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 py-2 text-xs font-mono bg-surface-sidebar rounded-lg border border-border-subtle overflow-x-auto">
+                  <code className="flex-1 px-3 py-2 text-xs font-mono bg-surface-sidebar rounded-lg border border-line overflow-x-auto">
                     {config.apiToken}
                   </code>
                   <button
                     onClick={() => copyToClipboard(config.apiToken!)}
-                    className="p-2 hover:bg-surface-sidebar rounded-lg transition-colors"
+                    className="flex size-11 shrink-0 items-center justify-center rounded-control transition-colors hover:bg-surface-sidebar lg:size-9"
                     title="Copiar token"
+                    aria-label="Copiar token"
                   >
                     <HugeiconsIcon 
                       icon={copied ? CheckmarkCircle01Icon : Copy01Icon} 
@@ -215,32 +216,33 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
               </div>
             )}
 
-            <div className="space-y-3 p-4 rounded-lg border border-border-subtle bg-surface-elevated">
+            <div className="space-y-3 p-4 rounded-lg border border-line bg-surface-elevated">
               <div className="flex items-center gap-2">
                 <HugeiconsIcon icon={LinkSquare02Icon} className="w-4 h-4 text-text-secondary" />
                 <p className="text-sm font-medium text-text-primary">URL del Endpoint</p>
               </div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 text-xs font-mono bg-surface-sidebar rounded-lg border border-border-subtle overflow-x-auto">
+                <code className="flex-1 px-3 py-2 text-xs font-mono bg-surface-sidebar rounded-lg border border-line overflow-x-auto">
                   {apiUrl}
                 </code>
                 <button
                   onClick={() => copyToClipboard(apiUrl)}
-                  className="p-2 hover:bg-surface-sidebar rounded-lg transition-colors"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-control transition-colors hover:bg-surface-sidebar lg:size-9"
                   title="Copiar URL"
+                  aria-label="Copiar URL"
                 >
                   <HugeiconsIcon icon={Copy01Icon} className="w-4 h-4 text-text-secondary" />
                 </button>
               </div>
             </div>
 
-            <div className="p-4 rounded-lg border border-border-subtle bg-surface-elevated space-y-3">
+            <div className="p-4 rounded-lg border border-line bg-surface-elevated space-y-3">
               <p className="text-sm font-medium text-text-primary">Ejemplo de Uso</p>
               <div className="space-y-2">
                 <p className="text-xs text-text-secondary">
                   {config.isPublic ? "GET sin autenticación:" : "GET con Bearer Token:"}
                 </p>
-                <pre className="p-3 text-xs font-mono bg-surface-sidebar rounded-lg border border-border-subtle overflow-x-auto">
+                <pre className="p-3 text-xs font-mono bg-surface-sidebar rounded-lg border border-line overflow-x-auto">
 {config.isPublic ? `curl "${apiUrl}?page=1&limit=50"` : `curl "${apiUrl}?page=1&limit=50" \\
   -H "Authorization: Bearer ${config.apiToken}"`}
                 </pre>

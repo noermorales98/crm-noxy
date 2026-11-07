@@ -213,7 +213,7 @@ export default function GeneralCalendarView() {
 
   useEffect(() => {
     const label = monthLabel(cursor.year, cursor.month);
-    const navBtn = "flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary";
+    const navBtn = "flex size-11 shrink-0 items-center justify-center rounded-control lg:size-8 text-text-secondary hover:bg-nav-hover hover:text-text-primary";
     setConfig({
       title: (
         <div className="flex min-w-0 items-center gap-0.5">
@@ -224,7 +224,7 @@ export default function GeneralCalendarView() {
           <button type="button" className={navBtn} aria-label="Mes siguiente" onClick={() => moveRef.current(1)}>
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
           </button>
-          <button type="button" className="min-h-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
+          <button type="button" className="min-h-11 min-w-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
             Hoy
           </button>
         </div>
@@ -280,7 +280,7 @@ export default function GeneralCalendarView() {
         {loading ? (
           <div className="min-h-0 flex-1 rounded-surface bg-surface-sidebar animate-pulse" />
         ) : clients.length === 0 ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-surface border border-dashed border-border-subtle bg-white text-center">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-surface border border-dashed border-line bg-surface-elevated text-center">
             <p className="mb-3 text-sm text-text-secondary">Crea un cliente o marca para armar el calendario.</p>
             <Link href="/contenido?new=1" className="text-sm font-semibold text-action-primary hover:underline">
               Nuevo cliente / marca
@@ -315,7 +315,7 @@ export default function GeneralCalendarView() {
               type="button"
               aria-pressed={filterId === null}
               onClick={() => setFilterId(null)}
-              className={`inline-flex min-h-8 shrink-0 items-center rounded-full border-0 px-3 text-[13px] ${filterId === null ? "bg-white font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-[#6B7184] hover:text-[#0B0B18]"}`}
+              className={`inline-flex min-h-8 shrink-0 items-center rounded-full border-0 px-3 text-[13px] ${filterId === null ? "bg-surface-elevated font-semibold text-text-primary shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-text-secondary hover:text-text-primary"}`}
             >
               Todos
             </button>
@@ -325,7 +325,7 @@ export default function GeneralCalendarView() {
                 type="button"
                 aria-pressed={filterId === client.id}
                 onClick={() => setFilterId((current) => (current === client.id ? null : client.id))}
-                className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border-0 px-3 text-[13px] ${filterId === client.id ? "bg-white font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-[#6B7184] hover:text-[#0B0B18]"}`}
+                className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border-0 px-3 text-[13px] ${filterId === client.id ? "bg-surface-elevated font-semibold text-text-primary shadow-[0_1px_3px_rgba(11,11,24,0.12)]" : "bg-transparent font-medium text-text-secondary hover:text-text-primary"}`}
               >
                 <i className="inline-block w-2 h-2 rounded-full" style={{ background: client.color }} />
                 {client.name}
@@ -337,6 +337,7 @@ export default function GeneralCalendarView() {
 
       {selected && (
         <ContentItemModal
+          crm
           item={selected}
           onClose={() => setSelected(null)}
           showReminder
@@ -380,7 +381,7 @@ export default function GeneralCalendarView() {
       {pickingClientFor && (
         <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setPickingClientFor(null)}>
           <div className="absolute inset-0 bg-brand-obsidian/35" />
-          <div className="relative bg-white w-full sm:max-w-md rounded-t-surface sm:rounded-surface border border-border-subtle p-5 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-surface-elevated w-full sm:max-w-md rounded-t-surface sm:rounded-surface border border-line p-5 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-semibold text-text-primary mb-1">¿Para qué cliente?</h2>
             <p className="text-sm text-text-secondary mb-4">La pieza se agrega al calendario de ese cliente.</p>
             <div className="flex flex-col gap-2">
@@ -393,7 +394,7 @@ export default function GeneralCalendarView() {
                     setNewForDate(pickingClientFor);
                     setPickingClientFor(null);
                   }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-control border border-border-subtle hover:bg-surface-sidebar text-left"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-control border border-line hover:bg-surface-sidebar text-left"
                 >
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ background: client.color }} />
                   <span className="text-sm font-medium text-text-primary">{client.name}</span>
@@ -407,7 +408,7 @@ export default function GeneralCalendarView() {
       {deleting && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-6" onClick={() => setDeleting(null)}>
           <div className="absolute inset-0 bg-brand-obsidian/35" />
-          <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-surface-elevated rounded-surface border border-line p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.title}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">Se quita del calendario del cliente y de Google Calendar, si estaba sincronizada.</p>
             <div className="flex gap-2">

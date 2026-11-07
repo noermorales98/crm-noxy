@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSoundSettings } from "@/src/context/SoundContext";
 import ThemeSelector from "@/src/components/settings/ThemeSelector";
+import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader } from "@/src/components/ui";
 
 type GoogleStatus = {
   connected: boolean;
@@ -44,6 +46,13 @@ const TIMEZONES = [
 ];
 
 export default function SettingsPage() {
+  const { setConfig, resetState } = useHeader();
+  useEffect(() => {
+    resetState();
+    setConfig({ title: "Configuración", pageHeader: true });
+    return () => setConfig({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [phone, setPhone] = useState("");
   const [callMeBotApiKey, setCallMeBotApiKey] = useState("");
   const [notificationEmail, setNotificationEmail] = useState("");
@@ -159,15 +168,13 @@ export default function SettingsPage() {
 
   return (
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-bold text-text-primary tracking-tight">Configuración / Integraciones</h1>
-          </div>
+          <PageHeader title="Configuración" subtitle="Integraciones, notificaciones y preferencias de la organización." />
 
-          <div className="bg-surface-elevated rounded-surface border border-border-subtle p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
+          <div className="bg-surface-elevated rounded-surface border border-line p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
 
             <ThemeSelector />
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Sonidos de interacción */}
             <div>
@@ -179,14 +186,18 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={toggleSound}
-                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${soundEnabled ? "bg-emerald-500" : "bg-nav-active"}`}
+                  role="switch"
+                  aria-checked={soundEnabled}
+                  aria-label="Sonidos de interacción"
+                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${soundEnabled ? "bg-emerald-500" : "bg-nav-active"}`}
+                  data-check-ignore-tap
                 >
-                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${soundEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                  <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${soundEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
                 </button>
               </label>
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Google Calendar */}
             <div>
@@ -202,7 +213,7 @@ export default function SettingsPage() {
               )}
 
               {googleStatus === null ? (
-                <div className="h-10 w-40 rounded-lg bg-gray-100 animate-pulse" />
+                <div className="h-10 w-40 rounded-lg bg-surface-sidebar animate-pulse" />
               ) : !googleStatus.configured ? (
                 <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-100 text-sm text-amber-700">
                   Para activar esta integración, configura <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_CLIENT_ID</code>, <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code> y <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_REDIRECT_URI</code> en tu <code className="font-mono text-xs bg-amber-100 px-1 rounded">.env.local</code>.
@@ -222,7 +233,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleDisconnectGoogle}
                     disabled={googleLoading}
-                    className="px-4 py-2.5 rounded-lg border border-border-subtle text-sm text-text-secondary hover:bg-surface-sidebar transition-colors disabled:opacity-50"
+                    className="min-h-11 lg:min-h-10 px-4 py-2.5 rounded-lg border border-line text-sm text-text-secondary hover:bg-surface-sidebar transition-colors disabled:opacity-50"
                   >
                     Desconectar
                   </button>
@@ -232,7 +243,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={handleConnectGoogle}
                   disabled={googleLoading}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-primary text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="min-h-11 lg:min-h-10 flex items-center gap-2 px-5 py-2.5 bg-surface-elevated border border-line hover:bg-surface-sidebar text-text-primary text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
@@ -245,7 +256,7 @@ export default function SettingsPage() {
               )}
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Timezone */}
             <div>
@@ -259,7 +270,7 @@ export default function SettingsPage() {
                   id="timezone"
                   value={timezone}
                   onChange={e => setTimezone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                 >
                   {TIMEZONES.map((tz, i) => (
                     <option key={i} value={tz.value} disabled={tz.disabled}>{tz.label}</option>
@@ -268,7 +279,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Email Notifications */}
             <div>
@@ -283,13 +294,13 @@ export default function SettingsPage() {
                   placeholder="tu@correo.com"
                   value={notificationEmail}
                   onChange={e => setNotificationEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                 />
                 <p className="text-xs text-text-secondary">Si lo dejas vacío, se usará el correo de tu cuenta. El SMTP debe estar configurado en la empresa del formulario.</p>
               </div>
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Pipeline Settings */}
             <div>
@@ -305,14 +316,14 @@ export default function SettingsPage() {
                     min={0}
                     value={autoArchiveDays}
                     onChange={e => setAutoArchiveDays(parseInt(e.target.value) || 0)}
-                    className="w-24 px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                    className="min-h-11 lg:min-h-10 w-24 px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                   />
                   <span className="text-sm text-text-secondary">{autoArchiveDays === 0 ? "Desactivado (nunca archivar)" : "días después de ganar"}</span>
                 </div>
               </div>
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* Digest summary */}
             <div>
@@ -322,19 +333,19 @@ export default function SettingsPage() {
               </p>
               <Link
                 href="/settings/digest"
-                className="inline-flex items-center px-4 py-2.5 border border-border-subtle text-sm font-semibold rounded-lg hover:bg-nav-hover transition-colors"
+                className="inline-flex min-h-11 items-center px-4 py-2.5 border border-line text-sm font-semibold rounded-control hover:bg-nav-hover transition-colors lg:min-h-10"
               >
                 Configurar resumen →
               </Link>
             </div>
 
-            <hr className="border-border-subtle" />
+            <hr className="border-line" />
 
             {/* WhatsApp */}
             <div>
               <h2 className="text-lg font-bold text-text-primary mb-1">Notificaciones por WhatsApp</h2>
-              <p className="text-sm text-text-secondary mb-5">
-                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" className="text-action-primary hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
+              <p className="text-sm text-text-secondary mb-5" data-check-ignore-tap>
+                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-primary hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
               </p>
             </div>
 
@@ -343,24 +354,24 @@ export default function SettingsPage() {
                 <label className="text-sm font-semibold text-text-primary">Phone Number</label>
                 <input
                   type="text"
-                  placeholder="e.g. +34612345678"
+                  placeholder="Ej. +34612345678"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                 />
-                <p className="text-xs text-text-secondary">Include country code (e.g., +1, +34, +52).</p>
+                <p className="text-xs text-text-secondary">Incluye el código de país (ej. +1, +34, +52).</p>
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-text-primary">CallMeBot API Key</label>
                 <input
                   type="password"
-                  placeholder="Your 6 or 7-digit API Key"
+                  placeholder="Tu clave de 6 o 7 dígitos"
                   value={callMeBotApiKey}
                   onChange={(e) => setCallMeBotApiKey(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                 />
-                <p className="text-xs text-text-secondary">Get this by sending &quot;I allow callmebot to send me messages&quot; to the CallMeBot WhatsApp number.</p>
+                <p className="text-xs text-text-secondary">Obtén la clave enviando &quot;I allow callmebot to send me messages&quot; al número de WhatsApp de CallMeBot.</p>
               </div>
 
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -370,7 +381,7 @@ export default function SettingsPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-5 py-2.5 bg-action-primary hover:opacity-90 text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="min-h-11 lg:min-h-10 px-5 py-2.5 bg-action-primary hover:opacity-90 text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   {loading ? "Guardando..." : "Guardar configuración"}
                 </button>

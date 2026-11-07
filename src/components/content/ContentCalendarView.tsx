@@ -151,7 +151,7 @@ export function ContentItemEditor({
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
       <div className="absolute inset-0 bg-brand-obsidian/35" />
       <div
-        className="relative bg-white w-full sm:max-w-xl rounded-t-surface sm:rounded-surface border border-border-subtle p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
+        className="relative bg-surface-elevated w-full sm:max-w-xl rounded-t-surface sm:rounded-surface border border-line p-5 sm:p-6 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -204,7 +204,7 @@ export function ContentItemEditor({
           <textarea className={`${inputClass} min-h-[90px] resize-y`} value={form.script} onChange={(e) => set("script", e.target.value)} />
         </div>
 
-        <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
+        <div className="mb-3 rounded-control border border-line bg-surface-app p-3">
           <label className={labelClass}>Estado de la publicación</label>
           <PublishStatusPicker
             value={form.publishStatus}
@@ -247,13 +247,13 @@ export function ContentItemEditor({
                 <label className={labelClass}>Texto para publicar / frase</label>
                 <textarea className={`${inputClass} min-h-[80px] resize-y`} value={form.caption} onChange={(e) => set("caption", e.target.value)} />
               </div>
-              <div className="mb-3 rounded-control border border-border-subtle bg-surface-app p-3">
-                <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+              <div className="mb-3 rounded-control border border-line bg-surface-app p-3">
+                <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 text-sm text-text-primary cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.reminderEnabled}
                     onChange={(e) => setForm((f) => ({ ...f, reminderEnabled: e.target.checked }))}
-                    className="rounded border-border-subtle"
+                    className="rounded border-line"
                   />
                   <span className="font-medium">Recordatorio por WhatsApp</span>
                 </label>
@@ -390,7 +390,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
   useEffect(() => {
     const label = monthLabel(cursor.year, cursor.month);
-    const navBtn = "flex size-8 shrink-0 items-center justify-center rounded-lg text-text-secondary hover:bg-nav-hover hover:text-text-primary";
+    const navBtn = "flex size-11 shrink-0 items-center justify-center rounded-control lg:size-8 text-text-secondary hover:bg-nav-hover hover:text-text-primary";
     setConfig({
       title: (
         <div className="flex min-w-0 items-center gap-0.5">
@@ -401,7 +401,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           <button type="button" className={navBtn} aria-label="Mes siguiente" onClick={() => moveRef.current(1)}>
             <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
           </button>
-          <button type="button" className="min-h-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
+          <button type="button" className="min-h-11 min-w-11 px-2 text-sm font-semibold text-text-primary" onClick={() => todayRef.current()}>
             Hoy
           </button>
         </div>
@@ -640,7 +640,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       className={`hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors sm:flex sm:text-sm ${
         panel === id
           ? "border-action-primary bg-nav-active text-action-primary font-semibold"
-          : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
+          : "border-line text-text-secondary hover:bg-surface-sidebar"
       }`}
     >
       <HugeiconsIcon icon={icon} size={14} color={panel === id ? "#3545D6" : "#0B0B18"} />
@@ -668,7 +668,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: compartir */}
         {panel === "share" && (
-          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-line bg-surface-elevated p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Enlace público del calendario</p>
             <p className="text-xs text-text-secondary mb-3">
               Mándale este enlace al cliente: verá el calendario (sin poder editarlo) con qué debe grabar y las sugerencias.
@@ -685,7 +685,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 </button>
                 <button
                   onClick={regenerateLink}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-border-subtle text-text-secondary hover:bg-surface-sidebar transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-line text-text-secondary hover:bg-surface-sidebar transition-colors"
                   title="Generar un enlace nuevo (invalida el anterior)"
                 >
                   <HugeiconsIcon icon={RefreshIcon} size={14} />
@@ -697,14 +697,14 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: WhatsApp */}
         {panel === "phones" && (
-          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-line bg-surface-elevated p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Números de WhatsApp (CallMeBot)</p>
             <p className="text-xs text-text-secondary mb-3">
               A estos números les llega el aviso de las piezas que tengan recordatorio activado (mismo día o N días antes).
               Cada número necesita su propia apikey de callmebot.com.
             </p>
 
-            <div className="mb-4 rounded-control border border-border-subtle bg-surface-app p-3">
+            <div className="mb-4 rounded-control border border-line bg-surface-app p-3">
               <p className="text-xs font-semibold text-text-primary mb-1">Recordatorios automáticos</p>
               <p className="text-xs text-text-secondary mb-3">
                 Configura cuándo y a qué hora sale el WhatsApp. Al guardar, se aplica a las piezas con recordatorio activado y queda como default de las nuevas.
@@ -757,14 +757,14 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
             {phones.length > 0 && (
               <div className="flex flex-col gap-2 mb-3">
                 {phones.map((p) => (
-                  <div key={p.id} className="flex items-center gap-2 text-sm bg-surface-app border border-border-subtle rounded-control px-3 py-2">
+                  <div key={p.id} className="flex items-center gap-2 text-sm bg-surface-app border border-line rounded-control px-3 py-2">
                     <span className="font-medium text-text-primary truncate">{p.label || "Sin nombre"}</span>
                     <span className="text-text-secondary text-xs">{p.phone}</span>
                     <button
                       type="button"
                       onClick={() => testPhone(p.id)}
                       disabled={testBusyId === p.id}
-                      className="ml-auto px-2 py-1 text-xs rounded-md border border-border-subtle text-text-secondary hover:bg-white disabled:opacity-50"
+                      className="ml-auto px-2 py-1 text-xs rounded-md border border-line text-text-secondary hover:bg-surface-elevated disabled:opacity-50"
                     >
                       {testBusyId === p.id ? "Enviando…" : "Enviar prueba"}
                     </button>
@@ -800,7 +800,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
 
         {/* Panel: IA */}
         {panel === "ai" && (
-          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-border-subtle bg-white p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
+          <div className="mb-2 max-h-[40vh] shrink-0 overflow-y-auto rounded-surface border border-line bg-surface-elevated p-4" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             <p className="text-sm font-semibold text-text-primary mb-1">Calendario del mes con IA</p>
             {client.context ? (
               <p className="text-xs text-text-secondary mb-3">
@@ -822,7 +822,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
               <label className="flex items-center gap-2 text-xs text-text-primary">
                 <span className="font-medium">Piezas por semana</span>
                 <select
-                  className="px-2 py-1.5 text-sm border border-border-subtle rounded-lg bg-white"
+                  className="px-2 py-1.5 text-sm border border-line rounded-lg bg-surface-elevated"
                   value={aiPerWeek}
                   onChange={(e) => setAiPerWeek(Number(e.target.value))}
                 >
@@ -845,7 +845,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                       className={`w-8 h-8 text-xs rounded-lg border font-medium transition-colors ${
                         active
                           ? "border-action-primary bg-nav-active text-action-primary"
-                          : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
+                          : "border-line text-text-secondary hover:bg-surface-sidebar"
                       }`}
                       title={`Semana ${w} (días ${(w - 1) * 7 + 1}–${Math.min(w * 7, 31)})`}
                     >
@@ -897,7 +897,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                 </div>
                 <div className="flex flex-col gap-2">
                   {aiIdeas.map((idea, idx) => (
-                    <div key={idx} className="border border-border-subtle rounded-control p-3 bg-surface-app">
+                    <div key={idx} className="border border-line rounded-control p-3 bg-surface-app">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-sm font-semibold text-text-primary">{idea.title}</p>
@@ -947,6 +947,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       {/* Modal detalle */}
       {selected && (
         <ContentItemModal
+          crm
           item={selected}
           onClose={() => setSelected(null)}
           onEdit={() => { setEditing(selected); setSelected(null); }}
@@ -972,7 +973,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
           advanced={
             <div className="ncc-block">
               <h3>Recordatorio WhatsApp</h3>
-              <label className="flex items-center gap-2 text-sm text-text-primary cursor-pointer">
+              <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 text-sm text-text-primary cursor-pointer">
                 <input
                   type="checkbox"
                   checked={!!selected.reminderEnabled}
@@ -980,7 +981,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                     reminderEnabled: e.target.checked,
                     reminderDaysBefore: selected.reminderDaysBefore ?? reminderDaysBefore,
                   })}
-                  className="rounded border-border-subtle"
+                  className="rounded border-line"
                 />
                 <span className="font-medium">Recordatorio por WhatsApp</span>
               </label>
@@ -1045,7 +1046,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       {deleting && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-6" onClick={() => setDeleting(null)}>
           <div className="absolute inset-0 bg-brand-obsidian/35" />
-          <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-surface-elevated rounded-surface border border-line p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.title}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">Se quitará del calendario, de Google Calendar si estaba sincronizada, y del enlace público.</p>
             <div className="flex gap-2">

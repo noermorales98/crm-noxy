@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Rediseño marco claro</title>
+<!-- Maqueta de referencia del spec rediseno-obsidiana-estructural. No es código de producción.
+     Iconos: Tabler webfont solo para la maqueta; el producto usará su familia única (Hugeicons). -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-two@5.3.0/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-two@5.3.0/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-two@5.3.0/600.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/open-sauce-two@5.3.0/700.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  /* Marco claro (tema noxy-indigo → Lavanda, el surfaceSidebar actual de cada tema) */
+  --frame:#EBEDFA; --frame-raised:#FFFFFF; --frame-line:#DCDFE6;
+  --frame-text:#0B0B18; --frame-muted:#555B6E; --frame-active-bg:#FFFFFF; --frame-active:#3545D6;
+  /* Contenido */
+  --canvas:#F5F6FB; --sheet:#FFFFFF; --panel:#EBEDFA; --line:#DCDFE6;
+  --ink:#0B0B18; --muted:#5F6578; --memory:#7F96F9;
+  --action:#3545D6; --action-hover:#5363EE; --on-action:#FFFFFF; --lime:#C8FE37;
+  --danger:#B42318; --danger-bg:#FDECEA; --ok:#067647; --ok-bg:#E7F6EE;
+  --r-control:10px; --r-surface:12px; --overlay:0 8px 8px rgb(11 11 24/.10);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--frame);color:var(--ink);font:400 14px/1.5 'Open Sauce Two',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+:where(a,button):focus-visible{outline:2px solid var(--lime);outline-offset:2px;border-radius:8px}
+
+/* ── Marco en L ─────────────────────────── */
+.app{display:grid;grid-template-columns:248px 1fr;grid-template-rows:56px 1fr;height:100dvh}
+.side{grid-row:1/3;display:flex;flex-direction:column;padding:12px;gap:2px;overflow-y:auto;color:var(--frame-text)}
+.brand{display:flex;align-items:center;gap:10px;height:44px;padding:0 8px;margin-bottom:8px}
+.brand-mark{width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--lime);display:grid;place-items:center;font-weight:800;font-size:15px}
+.brand b{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.brand small{display:block;color:var(--frame-muted);font-size:12px;line-height:1.2}
+.nav-label{color:var(--frame-muted);font-size:12px;font-weight:600;padding:12px 10px 4px}
+.nav a{position:relative;display:flex;align-items:center;gap:10px;min-height:36px;padding:0 10px;border-radius:var(--r-control);color:var(--frame-text);text-decoration:none;font-weight:500;transition:background .18s var(--ease),color .18s}
+.nav a i{font-size:18px;color:var(--frame-muted);transition:color .18s}
+.nav a:hover{background:rgb(255 255 255/.6)}
+.nav a[aria-current=page]{background:var(--frame-active-bg);color:var(--frame-active);font-weight:600;box-shadow:inset 0 0 0 1px var(--frame-line)}
+.nav a[aria-current=page] i{color:var(--frame-active)}
+.nav a[aria-current=page]::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--frame-active)}
+.nav .count{margin-left:auto;font-size:12px;color:var(--frame-muted)}
+.side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-top:1px solid var(--frame-line)}
+.avatar{width:32px;height:32px;border-radius:999px;display:grid;place-items:center;font-weight:600;font-size:12px;flex:none}
+.side-foot .avatar{background:var(--frame-raised);color:var(--frame-text);border:1px solid var(--frame-line)}
+.side-foot span{font-size:13px;color:var(--frame-text)} .side-foot small{display:block;color:var(--frame-muted);font-size:12px}
+
+.top{display:flex;align-items:center;gap:12px;padding:0 20px 0 8px;color:var(--frame-text)}
+.search{display:flex;align-items:center;gap:8px;height:36px;flex:0 1 420px;padding:0 12px;border-radius:var(--r-control);background:var(--frame-raised);border:1px solid var(--frame-line);color:var(--frame-muted)}
+.search kbd{margin-left:auto;font:500 12px 'Open Sauce Two';color:var(--frame-muted);border:1px solid var(--frame-line);border-radius:6px;padding:0 6px}
+.top-actions{margin-left:auto;display:flex;gap:4px}
+.icon-btn{width:36px;height:36px;border-radius:var(--r-control);display:grid;place-items:center;color:var(--frame-text);font-size:18px;transition:background .18s}
+.icon-btn:hover{background:rgb(255 255 255/.7)}
+.dot{position:relative}.dot::after{content:"";position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:9px;background:var(--action);box-shadow:0 0 0 2px var(--frame)}
+
+/* ── Hoja de contenido ───────────────────── */
+.sheet{background:var(--canvas);border-top-left-radius:var(--r-surface);border-top:1px solid var(--frame-line);border-left:1px solid var(--frame-line);overflow:auto;min-width:0}
+.page{max-width:1280px;margin:0 auto;padding:28px 32px 48px}
+.page-head{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;padding-bottom:20px}
+.page-head h1{font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.02em}
+.page-head p{color:var(--muted);margin-top:2px}
+.head-actions{margin-left:auto;display:flex;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border-radius:var(--r-control);font-weight:600;transition:background .18s var(--ease),transform .12s var(--ease)}
+.btn:active{transform:translateY(1px) scale(.99)}
+.btn-primary{background:var(--action);color:var(--on-action)} .btn-primary:hover{background:var(--action-hover)}
+.btn-quiet{background:var(--sheet);border:1px solid var(--line);font-weight:500} .btn-quiet:hover{background:var(--panel)}
+
+/* Cifras clave: una franja, no tarjetas */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-surface);margin-bottom:24px}
+.stat{padding:16px 20px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat dt{font-size:12px;font-weight:600;color:var(--muted)}
+.stat dd{font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.2;margin-top:4px}
+.stat .delta{font-size:12px;font-weight:600;margin-left:6px;vertical-align:middle}
+.up{color:var(--ok)} .down{color:var(--danger)}
+.stat.alert dd{display:flex;align-items:center;gap:8px}
+.flag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;background:var(--lime);color:var(--ink);font-size:12px;font-weight:600}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px}
+.block{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-surface);min-width:0}
+.block-head{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.block-head h2{font-size:16px;font-weight:600}
+.block-head a{margin-left:auto;color:var(--action);font-weight:600;text-decoration:none;font-size:13px}
+
+/* Barra de etapas */
+.stages{padding:20px}
+.stage-bar{display:flex;height:12px;border-radius:999px;overflow:hidden;gap:2px}
+.stage-bar span{display:block}
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+.legend b{display:block;font-size:18px;font-weight:600}
+.legend small{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+
+/* Filas */
+.rows{list-style:none;padding:0}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:56px;padding:8px 20px;transition:background .15s}
+.row+.row{border-top:1px solid var(--line)}
+.row:hover{background:#FAFAFD}
+.row .who b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who small{color:var(--muted);font-size:12px}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--panel);font-size:12px;font-weight:600;white-space:nowrap}
+.chip.hot{background:var(--lime)} .chip.late{background:var(--danger-bg);color:var(--danger)} .chip.done{background:var(--ok-bg);color:var(--ok)}
+.amount{font-weight:600;text-align:right;min-width:88px}
+
+/* Agenda */
+.agenda .row{grid-template-columns:56px minmax(0,1fr) auto}
+.time{font-weight:600;font-size:13px}
+.time small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+
+/* Tabla de lista */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:inline-flex;background:var(--panel);border-radius:var(--r-control);padding:3px}
+.seg button{min-height:32px;padding:0 12px;border-radius:8px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--sheet);color:var(--ink);font-weight:600}
+.field{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-control);background:var(--sheet);color:var(--muted);flex:0 1 280px}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:12px 20px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 20px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{transition:background .15s} tbody tr:hover{background:#FAFAFD}
+.person{display:flex;align-items:center;gap:12px}
+.person b{font-weight:600} .person small{display:block;color:var(--muted);font-size:12px}
+.cards-mobile{display:none}
+
+/* Tablero */
+.board{display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:16px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--panel);border-radius:var(--r-surface);padding:12px;min-height:420px}
+.col-head{display:flex;align-items:baseline;gap:8px;padding:2px 4px 12px}
+.col-head b{font-weight:600}
+.col-head span{color:var(--muted);font-size:12px}
+.col-head .sum{margin-left:auto;font-weight:600;font-size:13px;color:var(--ink)}
+.deal{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-surface);padding:12px;margin-bottom:8px;transition:transform .18s var(--ease),border-color .18s}
+.deal:hover{transform:translateY(-1px);border-color:#C5CAD8}
+.deal.dragging{box-shadow:var(--overlay);transform:rotate(-1.5deg)}
+.deal b{display:block;font-weight:600}
+.deal small{color:var(--muted);font-size:12px}
+.deal .meta{display:flex;align-items:center;gap:8px;margin-top:10px}
+.deal .meta .amount{margin-left:auto;min-width:0}
+
+/* Pestañas de la maqueta */
+.views{display:flex;gap:4px;margin-bottom:20px}
+.views a{white-space:nowrap;padding:6px 12px;border-radius:999px;text-decoration:none;color:var(--muted);font-weight:500;font-size:13px;border:1px solid transparent}
+.views a[aria-current=true]{background:var(--sheet);border-color:var(--line);color:var(--ink);font-weight:600}
+.view{display:none} .view.on{display:block}
+
+/* Entrada escalonada (solo primera carga) */
+@media (prefers-reduced-motion:no-preference){
+  .view.on .enter{opacity:0;transform:translateY(8px);animation:enter .42s var(--ease) forwards;animation-delay:calc(var(--i,0)*55ms)}
+  @keyframes enter{to{opacity:1;transform:none}}
+}
+
+/* Barra inferior móvil */
+.tabbar{display:none}
+
+/* ── 375 px ───────────────────────────────── */
+@media (max-width:1023px){
+  .app{grid-template-columns:1fr;grid-template-rows:56px 1fr 64px}
+  .side{display:none}
+  .top{padding:0 8px 0 16px}
+  .top .search{display:none}
+  .top-title{font-weight:600;font-size:16px}
+  .sheet{border-radius:0;border-left:0}
+  .page{padding:20px 16px 32px}
+  .page-head{align-items:flex-start;gap:12px}
+  .page-head h1{font-size:22px}
+  .head-actions{margin-left:0;width:100%}
+  .head-actions .btn{flex:1;justify-content:center;min-height:44px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(3){border-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--line)}
+  .stat dd{font-size:22px}
+  .grid{grid-template-columns:1fr;gap:16px}
+  .legend{grid-template-columns:repeat(2,1fr)}
+  .row{padding:8px 16px;min-height:60px}
+  .row .chip{display:none}
+  .table-wrap{display:none}
+  .cards-mobile{display:block}
+  .board{grid-template-columns:repeat(4,82%);scroll-snap-type:x mandatory}
+  .col{scroll-snap-align:start}
+  .views{overflow-x:auto}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);background:var(--frame);border-top:1px solid var(--frame-line);padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:44px;color:var(--frame-muted);text-decoration:none;font-size:12px;font-weight:500}
+  .tabbar a i{font-size:20px}
+  .tabbar a[aria-current=page]{color:var(--frame-active);font-weight:600}
+  .tabbar a[aria-current=page] i{color:var(--frame-active)}
+}
+@media (min-width:1024px){.top-title{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Navegación principal">
+    <div class="brand"><span class="brand-mark">N</span><span><b>Noxy</b><small>Noxy Digital</small></span></div>
+    <nav class="nav">
+      <a href="#dashboard" data-nav="dashboard" aria-current="page"><i class="ti ti-home"></i>Inicio</a>
+      <a href="#lista"><i class="ti ti-building"></i>Empresas</a>
+      <a href="#lista" data-nav="lista"><i class="ti ti-users"></i>Contactos</a>
+      <a href="#lista"><i class="ti ti-checklist"></i>Tareas</a>
+      <a href="#lista"><i class="ti ti-folders"></i>Proyectos</a>
+      <div class="nav-label">Ventas</div>
+      <a href="#tablero" data-nav="tablero"><i class="ti ti-chart-bar"></i>Pipeline de ventas</a>
+      <a href="#lista"><i class="ti ti-user-check"></i>Clientes</a>
+      <a href="#"><i class="ti ti-forms"></i>Formularios</a>
+      <a href="#"><i class="ti ti-file-invoice"></i>Cotizaciones</a>
+      <div class="nav-label">Calendario</div>
+      <a href="#"><i class="ti ti-calendar"></i>Tipos de Cita</a>
+      <a href="#"><i class="ti ti-clock"></i>Disponibilidad</a>
+      <a href="#lista"><i class="ti ti-calendar-check"></i>Citas Agendadas</a>
+      <div class="nav-label">Espacios</div>
+      <a href="#"><i class="ti ti-inbox"></i>Correo<span class="count num">4</span></a>
+      <a href="#"><i class="ti ti-book"></i>Docs</a>
+      <a href="#"><i class="ti ti-sparkles"></i>Asistente</a>
+      <a href="#"><i class="ti ti-lock"></i>Bóveda</a>
+      <a href="#"><i class="ti ti-speakerphone"></i>Gestión de contenido</a>
+    </nav>
+    <div class="side-foot"><span class="avatar">NM</span><span>Noé Morales<small>Administrador</small></span></div>
+  </aside>
+
+  <header class="top">
+    <span class="top-title" id="mtitle">Inicio</span>
+    <div class="search"><i class="ti ti-search"></i>Buscar contactos, empresas, deals<kbd>⌘K</kbd></div>
+    <div class="top-actions">
+      <button class="icon-btn" aria-label="Asistente"><i class="ti ti-sparkles"></i></button>
+      <button class="icon-btn dot" aria-label="Notificaciones, 3 sin leer"><i class="ti ti-bell"></i></button>
+    </div>
+  </header>
+
+  <main class="sheet">
+    <div class="page">
+      <nav class="views" aria-label="Vistas de la maqueta">
+        <a href="#dashboard" data-v="dashboard">Dashboard</a>
+        <a href="#lista" data-v="lista">Patrón lista · Contactos</a>
+        <a href="#tablero" data-v="tablero">Patrón tablero · Pipeline</a>
+      </nav>
+
+      <!-- DASHBOARD -->
+      <section class="view" id="v-dashboard">
+        <div class="page-head enter" style="--i:0">
+          <div><h1>Buenos días, Noé</h1><p>Jueves 5 de noviembre · 3 citas y 9 tareas para hoy</p></div>
+          <div class="head-actions"><button class="btn btn-quiet"><i class="ti ti-adjustments-horizontal"></i>Personalizar</button><button class="btn btn-primary"><i class="ti ti-plus"></i>Nuevo deal</button></div>
+        </div>
+        <dl class="stats enter" style="--i:1">
+          <div class="stat"><dt>Pipeline activo</dt><dd class="num">$486,300<span class="delta up">+12%</span></dd></div>
+          <div class="stat"><dt>Ingreso del mes</dt><dd class="num">$118,940<span class="delta up">+4%</span></dd></div>
+          <div class="stat"><dt>Tasa de cierre</dt><dd class="num">27.4%<span class="delta down">−2.1</span></dd></div>
+          <div class="stat alert"><dt>Follow-ups vencidos</dt><dd class="num">7 <span class="flag">Atender hoy</span></dd></div>
+        </dl>
+        <div class="grid">
+          <div style="display:grid;gap:24px;min-width:0">
+            <section class="block enter" style="--i:2">
+              <div class="block-head"><h2>Deals por etapa</h2><a href="#tablero">Ver pipeline</a></div>
+              <div class="stages">
+                <div class="stage-bar" role="img" aria-label="Distribución del pipeline por etapa">
+                  <span style="flex:14;background:var(--memory)"></span><span style="flex:11;background:var(--action-hover)"></span><span style="flex:7;background:var(--action)"></span><span style="flex:4;background:var(--ink)"></span>
+                </div>
+                <div class="legend num">
+                  <div><b>14</b><small><i style="background:var(--memory)"></i>Nuevo · $96k</small></div>
+                  <div><b>11</b><small><i style="background:var(--action-hover)"></i>Calificado · $142k</small></div>
+                  <div><b>7</b><small><i style="background:var(--action)"></i>Propuesta · $171k</small></div>
+                  <div><b>4</b><small><i style="background:var(--ink)"></i>Negociación · $77k</small></div>
+                </div>
+              </div>
+            </section>
+            <section class="block enter" style="--i:3">
+              <div class="block-head"><h2>Últimos leads</h2><a href="#lista">Ver todos</a></div>
+              <ul class="rows">
+                <li class="row"><span class="avatar" style="background:#E3E8FE;color:#2A37B0">MO</span><span class="who"><b>Mariana Ocampo</b><small>Clínica Arbórea · formulario web</small></span><span class="chip hot">Nuevo hoy</span><span class="amount num">$38,000</span></li>
+                <li class="row"><span class="avatar" style="background:#EEF7D6;color:#3B5200">IT</span><span class="who"><b>Iván Treviño</b><small>Grupo Tamarindo · referido</small></span><span class="chip">Calificado</span><span class="amount num">$64,500</span></li>
+                <li class="row"><span class="avatar" style="background:#EBEDFA;color:#0B0B18">LB</span><span class="who"><b>Lucía Barragán</b><small>Estudio Velasco · Instagram</small></span><span class="chip late">Sin respuesta 5 d</span><span class="amount num">$21,800</span></li>
+                <li class="row"><span class="avatar" style="background:#E3E8FE;color:#2A37B0">DS</span><span class="who"><b>Diego Salcedo</b><small>Cafetal Norte · llamada</small></span><span class="chip">Nuevo</span><span class="amount num">$12,400</span></li>
+              </ul>
+            </section>
+          </div>
+          <section class="block agenda enter" style="--i:4">
+            <div class="block-head"><h2>Hoy</h2><a href="#">Agenda</a></div>
+            <ul class="rows">
+              <li class="row"><span class="time num">10:00<small>45 min</small></span><span class="who"><b>Demo de propuesta</b><small>Grupo Tamarindo · Meet</small></span><span class="chip hot">En 40 min</span></li>
+              <li class="row"><span class="time num">13:30<small>30 min</small></span><span class="who"><b>Kickoff sitio web</b><small>Clínica Arbórea</small></span><span class="chip">Cita</span></li>
+              <li class="row"><span class="time num">17:00<small>Tarea</small></span><span class="who"><b>Enviar cotización revisada</b><small>Estudio Velasco</small></span><span class="chip late">Vence hoy</span></li>
+              <li class="row"><span class="time num">18:00<small>Tarea</small></span><span class="who"><b>Llamar a Renata Ibarra</b><small>Ferretería Olmos</small></span><span class="chip">Pendiente</span></li>
+            </ul>
+          </section>
+        </div>
+      </section>
+
+      <!-- LISTA -->
+      <section class="view" id="v-lista">
+        <div class="page-head enter" style="--i:0">
+          <div><h1>Contactos</h1><p class="num">1,284 contactos · 38 nuevos este mes</p></div>
+          <div class="head-actions"><button class="btn btn-quiet"><i class="ti ti-upload"></i>Importar</button><button class="btn btn-primary"><i class="ti ti-plus"></i>Nuevo contacto</button></div>
+        </div>
+        <div class="toolbar enter" style="--i:1">
+          <label class="field"><i class="ti ti-search"></i>Buscar por nombre o empresa</label>
+          <div class="seg" role="group" aria-label="Filtro"><button aria-pressed="true">Todos</button><button aria-pressed="false">Leads</button><button aria-pressed="false">Clientes</button></div>
+          <button class="btn btn-quiet" style="margin-left:auto"><i class="ti ti-filter"></i>Filtros</button>
+        </div>
+        <section class="block enter" style="--i:2">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Empresa</th><th>Estado</th><th>Último contacto</th><th style="text-align:right">Valor</th></tr></thead>
+              <tbody class="num">
+                <tr><td><div class="person"><span class="avatar" style="background:#E3E8FE;color:#2A37B0">MO</span><span><b>Mariana Ocampo</b><small>mariana@arborea.example</small></span></div></td><td>Clínica Arbórea</td><td><span class="chip hot">Nuevo hoy</span></td><td>Hoy, 09:12</td><td class="amount">$38,000</td></tr>
+                <tr><td><div class="person"><span class="avatar" style="background:#EEF7D6;color:#3B5200">IT</span><span><b>Iván Treviño</b><small>ivan@tamarindo.example</small></span></div></td><td>Grupo Tamarindo</td><td><span class="chip">Calificado</span></td><td>Ayer</td><td class="amount">$64,500</td></tr>
+                <tr><td><div class="person"><span class="avatar" style="background:#EBEDFA;color:#0B0B18">LB</span><span><b>Lucía Barragán</b><small>lucia@velasco.example</small></span></div></td><td>Estudio Velasco</td><td><span class="chip late">Sin respuesta 5 d</span></td><td>31 oct</td><td class="amount">$21,800</td></tr>
+                <tr><td><div class="person"><span class="avatar" style="background:#E7F6EE;color:#067647">RI</span><span><b>Renata Ibarra</b><small>renata@olmos.example</small></span></div></td><td>Ferretería Olmos</td><td><span class="chip done">Cliente</span></td><td>28 oct</td><td class="amount">$9,750</td></tr>
+                <tr><td><div class="person"><span class="avatar" style="background:#E3E8FE;color:#2A37B0">DS</span><span><b>Diego Salcedo</b><small>diego@cafetalnorte.example</small></span></div></td><td>Cafetal Norte</td><td><span class="chip">Nuevo</span></td><td>27 oct</td><td class="amount">$12,400</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <ul class="rows cards-mobile">
+            <li class="row" style="grid-template-columns:auto minmax(0,1fr) auto"><span class="avatar" style="background:#E3E8FE;color:#2A37B0">MO</span><span class="who"><b>Mariana Ocampo</b><small>Clínica Arbórea · Nuevo hoy</small></span><span class="amount num">$38,000</span></li>
+            <li class="row" style="grid-template-columns:auto minmax(0,1fr) auto"><span class="avatar" style="background:#EEF7D6;color:#3B5200">IT</span><span class="who"><b>Iván Treviño</b><small>Grupo Tamarindo · Calificado</small></span><span class="amount num">$64,500</span></li>
+            <li class="row" style="grid-template-columns:auto minmax(0,1fr) auto"><span class="avatar" style="background:#EBEDFA;color:#0B0B18">LB</span><span class="who"><b>Lucía Barragán</b><small>Estudio Velasco · Sin respuesta 5 d</small></span><span class="amount num">$21,800</span></li>
+            <li class="row" style="grid-template-columns:auto minmax(0,1fr) auto"><span class="avatar" style="background:#E7F6EE;color:#067647">RI</span><span class="who"><b>Renata Ibarra</b><small>Ferretería Olmos · Cliente</small></span><span class="amount num">$9,750</span></li>
+          </ul>
+        </section>
+      </section>
+
+      <!-- TABLERO -->
+      <section class="view" id="v-tablero">
+        <div class="page-head enter" style="--i:0">
+          <div><h1>Pipeline de ventas</h1><p class="num">36 deals · $486,300 activos · 3 vencidos</p></div>
+          <div class="head-actions"><button class="btn btn-quiet"><i class="ti ti-history"></i>Historial</button><button class="btn btn-primary"><i class="ti ti-plus"></i>Nuevo deal</button></div>
+        </div>
+        <div class="board num enter" style="--i:1">
+          <div class="col"><div class="col-head"><b>Nuevo</b><span>14</span><span class="sum">$96k</span></div>
+            <article class="deal"><b>Rediseño sitio</b><small>Clínica Arbórea</small><div class="meta"><span class="chip hot">Hoy</span><span class="amount">$38,000</span></div></article>
+            <article class="deal"><b>Branding</b><small>Cafetal Norte</small><div class="meta"><span class="chip">Nuevo</span><span class="amount">$12,400</span></div></article>
+          </div>
+          <div class="col"><div class="col-head"><b>Calificado</b><span>11</span><span class="sum">$142k</span></div>
+            <article class="deal dragging"><b>Campaña Q1</b><small>Grupo Tamarindo</small><div class="meta"><span class="chip">Demo 10:00</span><span class="amount">$64,500</span></div></article>
+            <article class="deal"><b>SEO anual</b><small>Ferretería Olmos</small><div class="meta"><span class="chip">Calificado</span><span class="amount">$18,000</span></div></article>
+          </div>
+          <div class="col"><div class="col-head"><b>Propuesta</b><span>7</span><span class="sum">$171k</span></div>
+            <article class="deal"><b>Contenido mensual</b><small>Estudio Velasco</small><div class="meta"><span class="chip late">Vencido 2 d</span><span class="amount">$21,800</span></div></article>
+          </div>
+          <div class="col"><div class="col-head"><b>Negociación</b><span>4</span><span class="sum">$77k</span></div>
+            <article class="deal"><b>App de reservas</b><small>Hotel Mirasol</small><div class="meta"><span class="chip">Contrato</span><span class="amount">$52,000</span></div></article>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <nav class="tabbar" aria-label="Navegación móvil">
+    <a href="#dashboard" data-nav="dashboard" aria-current="page"><i class="ti ti-home"></i>Inicio</a>
+    <a href="#lista" data-nav="lista"><i class="ti ti-users"></i>Contactos</a>
+    <a href="#tablero" data-nav="tablero"><i class="ti ti-chart-bar"></i>Pipeline</a>
+    <a href="#lista"><i class="ti ti-checklist"></i>Tareas</a>
+    <a href="#"><i class="ti ti-menu-2"></i>Más</a>
+  </nav>
+</div>
+<script>
+const titles={dashboard:'Inicio',lista:'Contactos',tablero:'Pipeline'};
+function show(){
+  const v=(location.hash.slice(1)||'dashboard'); const key=titles[v]?v:'dashboard';
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+key));
+  document.querySelectorAll('.views a').forEach(a=>a.setAttribute('aria-current',a.dataset.v===key));
+  document.querySelectorAll('[data-nav]').forEach(a=>a.dataset.nav===key?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+  document.getElementById('mtitle').textContent=titles[key];
+}
+addEventListener('hashchange',show); show();
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  Folder01Icon,
   ArrowLeft01Icon,
   Edit01Icon,
   CheckmarkCircle01Icon,
@@ -28,6 +29,8 @@ import DownloadProposalButton from "./DownloadProposalButton";
 import DatePicker from "./DatePicker";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { useAi } from "@/src/hooks/useAi";
+import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader } from "@/src/components/ui";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -49,7 +52,7 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 const PROPOSAL_STATUS: Record<string, { label: string; cls: string }> = {
-  BORRADOR:  { label: "Borrador",  cls: "bg-gray-100 text-text-secondary" },
+  BORRADOR:  { label: "Borrador",  cls: "bg-surface-sidebar text-text-secondary" },
   ENVIADA:   { label: "Enviada",   cls: "bg-blue-50 text-blue-700" },
   ACEPTADA:  { label: "Aceptada",  cls: "bg-green-50 text-green-700" },
   RECHAZADA: { label: "Rechazada", cls: "bg-red-50 text-red-600" },
@@ -60,10 +63,10 @@ const ACTIVITY_COLORS: Record<string, string> = {
   WHATSAPP: "bg-green-100 text-green-600",
   VISITA: "bg-amber-100 text-amber-600",
   EMAIL: "bg-purple-100 text-purple-600",
-  NOTA: "bg-gray-100 text-text-secondary",
+  NOTA: "bg-surface-sidebar text-text-secondary",
   PROPUESTA_ENVIADA: "bg-indigo-100 text-indigo-600",
   REUNION: "bg-pink-100 text-pink-600",
-  OTRO: "bg-gray-100 text-text-secondary",
+  OTRO: "bg-surface-sidebar text-text-secondary",
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -113,7 +116,7 @@ function ConfirmModal({
 }) {
   return (
     <div className="fixed inset-0 bg-brand-obsidian/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-sm overflow-hidden">
+      <div className="bg-surface-elevated rounded-lg w-full max-w-sm overflow-hidden">
         <div className="p-6">
           <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
             <HugeiconsIcon icon={Delete02Icon} size={22} color="#dc2626" />
@@ -124,14 +127,14 @@ function ConfirmModal({
         <div className="flex gap-3 px-6 pb-6">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
+            className="min-h-11 lg:min-h-10 flex-1 py-2.5 font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg text-sm transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 py-2.5 font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm transition-colors disabled:opacity-50"
+            className="min-h-11 lg:min-h-10 flex-1 py-2.5 font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm transition-colors disabled:opacity-50"
           >
             {loading ? "Eliminando..." : confirmLabel}
           </button>
@@ -144,6 +147,13 @@ function ConfirmModal({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
+  const { setConfig, resetState } = useHeader();
+  useEffect(() => {
+    resetState();
+    setConfig({ title: "Deal", backHref: "/pipeline", pageHeader: true });
+    return () => setConfig({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const router = useRouter();
   const [deal, setDeal] = useState(initialDeal);
   const [, startTransition] = useTransition();
@@ -579,12 +589,14 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     <main className="flex-1 overflow-y-auto bg-surface-app">
 
       {/* ── Header ── */}
-      <div className="bg-white border-b border-border-subtle">
+      <div className="bg-surface-elevated border-b border-line">
         {/* Top bar: back + breadcrumb + actions */}
-        <div className="flex items-center gap-3 px-6 pt-4 pb-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-4 pb-3 sm:px-6">
           <button
+            type="button"
             onClick={() => router.push("/pipeline")}
-            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
+            aria-label="Volver al pipeline"
+            className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors shrink-0"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           </button>
@@ -594,7 +606,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <span className="text-text-secondary truncate">{deal.stage?.pipeline?.name}</span>
           </div>
           {/* Action buttons: call + sms + whatsapp + email + delete */}
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
             {deal.contact?.phone && (() => {
               const rawPhone = deal.contact.phone.replace(/[\s\-().]/g, "");
               const waPhone = rawPhone.startsWith("+") ? rawPhone.slice(1) : rawPhone;
@@ -602,7 +614,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 <>
                   <a
                     href={`tel:${deal.contact.phone}`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                    className="flex min-h-11 items-center lg:min-h-0 gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                     title="Llamar"
                   >
                     <HugeiconsIcon icon={CallIcon} size={13} />
@@ -610,7 +622,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   </a>
                   <a
                     href={`sms:${deal.contact.phone}`}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                    className="flex min-h-11 items-center lg:min-h-0 gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                     title="Enviar SMS"
                   >
                     <HugeiconsIcon icon={Message01Icon} size={13} />
@@ -620,7 +632,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     href={`https://wa.me/${waPhone}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#25D366] hover:bg-[#1ebe5d] rounded-lg transition-colors"
+                    className="flex min-h-11 items-center lg:min-h-0 gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-[#25D366] hover:bg-[#1ebe5d] rounded-lg transition-colors"
                     title="Enviar WhatsApp"
                   >
                     <HugeiconsIcon icon={Message01Icon} size={13} />
@@ -632,7 +644,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             {deal.contact?.email && (
               <a
                 href={`mailto:${deal.contact.email}`}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                className="flex min-h-11 items-center lg:min-h-0 gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
               >
                 <HugeiconsIcon icon={Mail01Icon} size={13} />
                 Email
@@ -642,10 +654,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <button
               onClick={toggleArchive}
               disabled={archiving}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ${
+              className={`min-h-11 lg:min-h-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 ${
                 deal.isArchived
                   ? "text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200"
-                  : "text-text-secondary bg-gray-100 hover:bg-nav-active border border-transparent"
+                  : "text-text-secondary bg-surface-sidebar hover:bg-nav-active border border-transparent"
               }`}
               title={deal.isArchived ? "Desarchivar" : "Archivar"}
             >
@@ -653,7 +665,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             </button>
             <button
               onClick={() => setShowDeleteDeal(true)}
-              className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
               title="Eliminar deal"
             >
               <HugeiconsIcon icon={MoreHorizontalIcon} size={16} />
@@ -677,26 +689,30 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   value={titleValue}
                   onChange={(e) => setTitleValue(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") { setEditingTitle(false); setTitleValue(deal.title); } }}
-                  className="text-xl font-bold text-text-primary bg-transparent border-b-2 border-action-primary outline-none flex-1"
+                  className="min-h-11 lg:min-h-10 text-xl font-bold text-text-primary bg-transparent border-b-2 border-action-primary outline-none flex-1"
                   autoFocus
                 />
-                <button onClick={saveTitle} className="p-1 text-green-600 hover:bg-green-50 rounded-lg">
+                <button onClick={saveTitle} className="flex size-11 items-center justify-center lg:size-auto lg:p-1 text-green-600 hover:bg-green-50 rounded-lg">
                   <HugeiconsIcon icon={CheckmarkCircle01Icon} size={18} />
                 </button>
-                <button onClick={() => { setEditingTitle(false); setTitleValue(deal.title); }} className="p-1 text-text-secondary hover:bg-nav-hover rounded-lg">
+                <button onClick={() => { setEditingTitle(false); setTitleValue(deal.title); }} className="flex size-11 items-center justify-center lg:size-auto lg:p-1 text-text-secondary hover:bg-nav-hover rounded-lg">
                   <HugeiconsIcon icon={Cancel01Icon} size={18} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 group mb-1">
-                <h1 className="text-xl font-bold text-text-primary truncate">{deal.title}</h1>
-                <button
-                  onClick={() => setEditingTitle(true)}
-                  className="p-1 text-gray-300 opacity-0 group-hover:opacity-100 hover:text-text-secondary rounded-lg transition-all shrink-0"
-                >
-                  <HugeiconsIcon icon={Edit01Icon} size={13} />
-                </button>
-              </div>
+              <PageHeader
+                title={deal.title}
+                actions={
+                  <button
+                    type="button"
+                    onClick={() => setEditingTitle(true)}
+                    className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10"
+                  >
+                    <HugeiconsIcon icon={Edit01Icon} size={14} />
+                    Editar título
+                  </button>
+                }
+              />
             )}
 
             {/* Subtitle: contact name + email, creation date */}
@@ -711,11 +727,11 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <div className="flex items-center gap-2 flex-wrap">
               {/* Value editable badge */}
               {editingValue ? (
-                <div className="flex items-center gap-1.5 bg-surface-sidebar border border-border-subtle rounded-full px-3 py-1">
+                <div className="flex items-center gap-1.5 bg-surface-sidebar border border-line rounded-full px-3 py-1">
                   <select
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="text-xs font-semibold text-text-secondary bg-transparent outline-none cursor-pointer"
+                    className="min-h-11 lg:min-h-10 text-xs font-semibold text-text-secondary bg-transparent outline-none cursor-pointer"
                   >
                     <option value="USD">USD</option>
                     <option value="MXN">MXN</option>
@@ -726,7 +742,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     value={valueInput}
                     onChange={(e) => setValueInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") saveValue(); if (e.key === "Escape") setEditingValue(false); }}
-                    className="w-24 text-sm font-bold text-text-primary bg-transparent outline-none"
+                    className="min-h-11 lg:min-h-10 w-24 text-sm font-bold text-text-primary bg-transparent outline-none"
                     autoFocus min={0} step={0.01}
                   />
                   <button onClick={saveValue} className="text-green-600 hover:bg-green-50 rounded p-0.5">
@@ -739,7 +755,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               ) : (
                 <button
                   onClick={() => { setEditingValue(true); setValueInput(String(deal.value ?? "")); setTimeout(() => valueRef.current?.select(), 50); }}
-                  className="flex items-center gap-1 text-sm font-bold text-text-primary bg-gray-100 hover:bg-nav-active px-3 py-1 rounded-full transition-colors group/val"
+                  className="min-h-11 lg:min-h-10 flex items-center gap-1 text-sm font-bold text-text-primary bg-surface-sidebar hover:bg-nav-active px-3 py-1 rounded-full transition-colors group/val"
                 >
                   <HugeiconsIcon icon={DollarCircleIcon} size={13} color="#6b7280" />
                   {fmt(deal.value, deal.currency)}
@@ -753,7 +769,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   value={deal.stage?.id || ""}
                   onChange={(e) => changeStage(e.target.value)}
                   disabled={savingStage}
-                  className="appearance-none pl-3 pr-6 py-1 rounded-full text-xs font-semibold border cursor-pointer focus:outline-none disabled:opacity-50 bg-white transition-all"
+                  className="min-h-11 lg:min-h-10 appearance-none pl-3 pr-6 py-1 rounded-full text-xs font-semibold border cursor-pointer focus:outline-none disabled:opacity-50 bg-surface-elevated transition-all"
                   style={{ borderColor: currentStage?.color || "#e5e7eb", color: currentStage?.color || "#6b7280" }}
                 >
                   {stages.map((s: any) => (
@@ -766,22 +782,22 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               </div>
 
               {/* Probability badge */}
-              <span className="text-xs font-semibold text-text-secondary bg-gray-100 px-3 py-1 rounded-full">
+              <span className="text-xs font-semibold text-text-secondary bg-surface-sidebar px-3 py-1 rounded-full">
                 {probability}% prob.
               </span>
 
               {deal.stage?.isWon && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-100">
+                <span className="text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full border border-emerald-100">
                   Ganado
                 </span>
               )}
               {deal.stage?.isLost && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-100">
+                <span className="text-xs font-bold bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-100">
                   Perdido
                 </span>
               )}
               {isFollowUpOverdue && (
-                <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full border border-amber-100">
+                <span className="text-xs font-bold bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full border border-amber-100">
                   Seguimiento vencido
                 </span>
               )}
@@ -790,25 +806,25 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         </div>
 
         {deal.isArchived && (
-          <div className="bg-blue-50 border-t border-b border-blue-100 px-6 py-2 flex items-center justify-between">
+          <div className="bg-blue-50 border-t border-b border-blue-100 px-4 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-x-4">
             <p className="text-sm text-blue-800 flex items-center gap-2">
-              <span>📁</span> Este deal se encuentra archivado y no aparece en tu tablero Kanban.
+              <HugeiconsIcon icon={Folder01Icon} size={16} /> Este deal se encuentra archivado y no aparece en tu tablero Kanban.
             </p>
-            <button onClick={toggleArchive} disabled={archiving} className="text-xs font-semibold text-blue-700 hover:text-blue-900 underline">
+            <button type="button" onClick={toggleArchive} disabled={archiving} className="min-h-11 text-sm font-semibold text-blue-700 hover:text-blue-900 underline lg:min-h-0">
               Desarchivar
             </button>
           </div>
         )}
 
         {/* ── Details strip ── */}
-        <div className="border-t border-border-subtle px-6 py-0 flex items-stretch overflow-x-auto divide-x divide-gray-100">
+        <div className="border-t border-line px-6 py-0 flex items-stretch overflow-x-auto divide-x divide-line">
 
           {/* Contacto */}
           <div className="flex flex-col justify-center gap-0.5 pr-5 py-3 shrink-0 min-w-0 relative">
-            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Contacto</p>
+            <p className="text-xs font-semibold text-text-secondary">Contacto</p>
             {deal.contact ? (
               <div className="flex items-center gap-1.5 group/ct">
-                <div className="w-5 h-5 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-[9px] font-bold shrink-0">
+                <div className="w-5 h-5 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">
                   {deal.contact.firstName?.[0]?.toUpperCase()}
                 </div>
                 <span className="text-sm font-semibold text-text-primary truncate max-w-[120px]">
@@ -816,7 +832,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 </span>
                 <button
                   onClick={unlinkContact}
-                  className="opacity-0 group-hover/ct:opacity-100 p-0.5 text-gray-300 hover:text-red-500 transition-all rounded"
+                  className="opacity-0 group-hover/ct:opacity-100 p-0.5 text-text-secondary hover:text-red-500 transition-all rounded"
                   title="Desvincular"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={11} />
@@ -826,18 +842,18 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               <div className="relative">
                 <button
                   onClick={() => { setShowContactSearch(!showContactSearch); if (allContacts.length === 0) fetchContacts(); }}
-                  className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex min-h-11 items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors lg:min-h-0"
                 >
                   <HugeiconsIcon icon={Add01Icon} size={12} />
                   Vincular
                 </button>
                 {showContactSearch && (
-                  <div className="crm-floating-menu absolute top-full left-0 mt-1 w-64 bg-white border border-border-subtle rounded-lg z-20 p-3 flex flex-col gap-2">
+                  <div className="crm-floating-menu absolute top-full left-0 mt-1 w-64 bg-surface-elevated border border-line rounded-lg z-20 p-3 flex flex-col gap-2">
                     <input
                       value={contactSearch}
                       onChange={(e) => setContactSearch(e.target.value)}
                       placeholder="Buscar contacto..."
-                      className={`${inputCls} text-xs`}
+                      className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`}
                       autoFocus
                     />
                     <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
@@ -848,13 +864,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                           .filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) || c.email?.toLowerCase().includes(contactSearch.toLowerCase()))
                           .slice(0, 8)
                           .map((c) => (
-                            <button key={c.id} onClick={() => linkContact(c.id)} className="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-nav-hover transition-colors">
-                              <div className="w-6 h-6 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold shrink-0">
+                            <button key={c.id} onClick={() => linkContact(c.id)} className="min-h-11 lg:min-h-10 flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-nav-hover transition-colors">
+                              <div className="w-6 h-6 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">
                                 {c.firstName?.[0]?.toUpperCase()}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-text-primary truncate">{c.firstName} {c.lastName || ""}</p>
-                                {c.email && <p className="text-[10px] text-text-secondary truncate">{c.email}</p>}
+                                {c.email && <p className="text-xs text-text-secondary truncate">{c.email}</p>}
                               </div>
                             </button>
                           ))
@@ -863,7 +879,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         <p className="text-xs text-text-secondary text-center py-2">Sin resultados.</p>
                       )}
                     </div>
-                    <button onClick={() => { setShowContactSearch(false); setContactSearch(""); }} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors text-left">
+                    <button onClick={() => { setShowContactSearch(false); setContactSearch(""); }} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors text-left">
                       Cancelar
                     </button>
                   </div>
@@ -875,7 +891,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Teléfono */}
           {deal.contact?.phone && (
             <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Teléfono</p>
+              <p className="text-xs font-semibold text-text-secondary">Teléfono</p>
               <a href={`tel:${deal.contact.phone}`} className="text-sm text-text-primary hover:text-text-primary hover:underline transition-colors truncate max-w-[140px]">
                 {deal.contact.phone}
               </a>
@@ -885,7 +901,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Empresa */}
           {deal.company && (
             <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Empresa</p>
+              <p className="text-xs font-semibold text-text-secondary">Empresa</p>
               <div className="flex items-center gap-1.5">
                 <HugeiconsIcon icon={Building02Icon} size={12} color="#9ca3af" />
                 <span className="text-sm text-text-primary truncate max-w-[120px]">{deal.company.name}</span>
@@ -895,13 +911,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
           {/* Etapa */}
           <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
-            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Etapa</p>
+            <p className="text-xs font-semibold text-text-secondary">Etapa</p>
             <div className="relative">
               <select
                 value={deal.stage?.id || ""}
                 onChange={(e) => changeStage(e.target.value)}
                 disabled={savingStage}
-                className="appearance-none pl-2 pr-5 py-0 rounded-lg text-sm font-semibold border-0 bg-transparent cursor-pointer focus:outline-none disabled:opacity-50"
+                className="min-h-11 lg:min-h-10 appearance-none pl-2 pr-5 py-0 rounded-lg text-sm font-semibold border-0 bg-transparent cursor-pointer focus:outline-none disabled:opacity-50"
                 style={{ color: currentStage?.color || "#374151" }}
               >
                 {stages.map((s: any) => (
@@ -916,7 +932,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
           {/* Seguimiento */}
           <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
-            <p className={`text-[10px] font-semibold uppercase tracking-wide ${isFollowUpOverdue ? "text-red-500" : "text-text-secondary"}`}>
+            <p className={`text-xs font-semibold ${isFollowUpOverdue ? "text-red-500" : "text-text-secondary"}`}>
               Seguimiento{isFollowUpOverdue && " · vencido"}
             </p>
             <DatePicker value={followUpAt} onChange={setFollowUpAt} placeholder="Sin fecha" compact align="left" />
@@ -925,8 +941,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Probabilidad */}
           <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0 w-36">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Probabilidad</p>
-              <span className="text-[10px] font-bold text-text-primary">{probability}%</span>
+              <p className="text-xs font-semibold text-text-secondary">Probabilidad</p>
+              <span className="text-xs font-bold text-text-primary">{probability}%</span>
             </div>
             <input
               type="range" min={0} max={100} step={5} value={probability}
@@ -938,7 +954,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Origen */}
           {deal.source && (
             <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Origen</p>
+              <p className="text-xs font-semibold text-text-secondary">Origen</p>
               <span className="text-sm text-text-primary">{SOURCE_LABELS[deal.source] || deal.source}</span>
             </div>
           )}
@@ -946,12 +962,12 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Motivo pérdida */}
           {deal.stage?.isLost && (
             <div className="flex flex-col justify-center gap-0.5 px-5 py-3 shrink-0 w-48">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-wide">Motivo pérdida</p>
+              <p className="text-xs font-semibold text-text-secondary">Motivo pérdida</p>
               <input
                 value={lostReason}
                 onChange={(e) => setLostReason(e.target.value)}
                 placeholder="¿Por qué se perdió?"
-                className="text-sm text-text-primary bg-transparent border-0 outline-none placeholder:text-gray-300 w-full"
+                className="min-h-11 lg:min-h-10 text-sm text-text-primary bg-transparent border-0 outline-none placeholder:text-text-secondary w-full"
               />
             </div>
           )}
@@ -961,7 +977,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             <button
               onClick={saveInfo}
               disabled={savingNotes}
-              className="px-3 py-1.5 text-xs font-semibold bg-action-primary text-action-primary-foreground rounded-lg hover:bg-black disabled:opacity-50 transition-colors whitespace-nowrap"
+              className="min-h-11 lg:min-h-10 px-3 py-1.5 text-xs font-semibold bg-action-primary text-action-primary-foreground rounded-lg hover:bg-brand-obsidian disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               {savingNotes ? "Guardando..." : "Guardar"}
             </button>
@@ -969,12 +985,12 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         </div>
 
         {/* Tab bar */}
-        <div className="flex items-center gap-0 px-6 border-t border-border-subtle">
+        <div className="flex items-center gap-0 px-6 border-t border-line">
           {TAB_ITEMS.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              className={`min-h-11 lg:min-h-10 flex items-center gap-1.5 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? "border-action-primary text-text-primary"
                   : "border-transparent text-text-secondary hover:text-text-primary"
@@ -982,8 +998,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             >
               {tab.label}
               {tab.count > 0 && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.key ? "bg-nav-active text-text-primary" : "bg-gray-100 text-text-secondary"
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.key ? "bg-nav-active text-text-primary" : "bg-surface-sidebar text-text-secondary"
                 }`}>
                   {tab.count}
                 </span>
@@ -994,7 +1010,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
       </div>
 
       {/* ── Body ── */}
-      <div className="flex gap-5 p-6 items-start max-w-6xl">
+      <div className="flex flex-col gap-5 p-4 sm:p-6 items-stretch max-w-6xl lg:flex-row lg:items-start">
 
         {/* ── LEFT: Tabbed content ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -1003,17 +1019,17 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {activeTab === "actividad" && (
             <>
               {/* Add activity */}
-              <div className="bg-white rounded-lg border border-border-subtle p-5">
+              <div className="bg-surface-elevated rounded-lg border border-line p-5">
                 <p className="text-sm font-bold text-text-primary mb-3">Registrar actividad</p>
                 <div className="flex gap-1.5 flex-wrap mb-3">
                   {ACTIVITY_TYPES.map((t) => (
                     <button
                       key={t.value}
                       onClick={() => setActivityType(t.value)}
-                      className={`flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all ${
+                      className={`min-h-11 lg:min-h-10 flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-all ${
                         activityType === t.value
-                          ? "bg-nav-active text-text-primary border-border-subtle"
-                          : "text-text-secondary border-border-subtle hover:bg-nav-hover hover:text-text-primary"
+                          ? "bg-nav-active text-text-primary border-line"
+                          : "text-text-secondary border-line hover:bg-nav-hover hover:text-text-primary"
                       }`}
                     >
                       <HugeiconsIcon icon={t.icon} size={12} />
@@ -1028,13 +1044,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     onChange={(e) => setActivityDesc(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) addActivity(); }}
                     placeholder="Describe la actividad... (Ctrl+Enter para agregar)"
-                    className={`${inputCls} resize-none flex-1`}
+                    className={`min-h-11 lg:min-h-10 ${inputCls} resize-none flex-1`}
                     rows={2}
                   />
                   <button
                     onClick={addActivity}
                     disabled={savingActivity || !activityDesc.trim()}
-                    className="px-4 py-2 bg-action-primary text-action-primary-foreground rounded-lg text-sm font-semibold hover:bg-black disabled:opacity-40 shrink-0 self-end transition-colors"
+                    className="min-h-11 lg:min-h-10 px-4 py-2 bg-action-primary text-action-primary-foreground rounded-lg text-sm font-semibold hover:bg-brand-obsidian disabled:opacity-40 shrink-0 self-end transition-colors"
                   >
                     {savingActivity ? "..." : "Agregar"}
                   </button>
@@ -1042,20 +1058,20 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               </div>
 
               {/* Timeline */}
-              <div className="bg-white rounded-lg border border-border-subtle">
-                <div className="px-5 py-4 border-b border-border-subtle flex items-center gap-2">
+              <div className="bg-surface-elevated rounded-lg border border-line">
+                <div className="px-5 py-4 border-b border-line flex items-center gap-2">
                   <HugeiconsIcon icon={Message01Icon} size={15} color="#9ca3af" />
                   <p className="text-sm font-bold text-text-primary">Historial</p>
                 </div>
                 {deal.activities.length === 0 ? (
                   <div className="px-5 py-12 text-center">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <div className="w-10 h-10 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-3">
                       <HugeiconsIcon icon={Message01Icon} size={18} color="#9ca3af" />
                     </div>
                     <p className="text-sm text-text-secondary">Sin actividad registrada aún.</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-line">
                     {deal.activities.map((act: any) => {
                       const aType = ACTIVITY_TYPES.find((t) => t.value === act.type);
                       const colorCls = ACTIVITY_COLORS[act.type] || ACTIVITY_COLORS.OTRO;
@@ -1066,10 +1082,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">
+                              <span className="text-xs font-bold text-text-secondary">
                                 {aType?.label || act.type}
                               </span>
-                              <span className="text-[11px] text-text-secondary">
+                              <span className="text-xs text-text-secondary">
                                 {act.createdBy?.name || "Usuario"} · {timeAgo(act.createdAt)}
                               </span>
                             </div>
@@ -1077,7 +1093,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                           </div>
                           <button
                             onClick={() => setConfirmDeleteActivity(act.id)}
-                            className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/act:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            className="shrink-0 flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary opacity-0 group-hover/act:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           >
                             <HugeiconsIcon icon={Delete02Icon} size={14} />
                           </button>
@@ -1092,15 +1108,15 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
           {/* ── TAB: Propuestas ── */}
           {activeTab === "propuestas" && (
-            <div className="bg-white rounded-lg border border-border-subtle">
-              <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
+            <div className="bg-surface-elevated rounded-lg border border-line">
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <HugeiconsIcon icon={FileAttachmentIcon} size={15} color="#9ca3af" />
                   <p className="text-sm font-bold text-text-primary">Propuestas</p>
                 </div>
                 <button
                   onClick={() => setShowProposalModal(true)}
-                  className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                  className="min-h-11 lg:min-h-10 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                 >
                   <HugeiconsIcon icon={Add01Icon} size={13} />
                   Nueva propuesta
@@ -1108,7 +1124,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               </div>
               {deal.proposals.length === 0 ? (
                 <div className="px-5 py-12 text-center">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <div className="w-10 h-10 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-3">
                     <HugeiconsIcon icon={FileAttachmentIcon} size={18} color="#9ca3af" />
                   </div>
                   <p className="text-sm text-text-secondary mb-2">Sin propuestas aún.</p>
@@ -1120,7 +1136,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   </button>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-line">
                   {deal.proposals.map((p: any) => {
                     const { label, cls } = PROPOSAL_STATUS[p.status] || PROPOSAL_STATUS.BORRADOR;
                     return (
@@ -1128,33 +1144,33 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         <div className="flex items-start justify-between gap-2 mb-1.5">
                           <p className="text-sm font-semibold text-text-primary flex-1 leading-snug">{p.title}</p>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cls}`}>{label}</span>
                             <button
                               onClick={() => setConfirmDeleteProposal(p.id)}
-                              className="text-gray-300 opacity-0 group-hover/prop:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg p-0.5 transition-all"
+                              className="text-text-secondary opacity-0 group-hover/prop:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg p-0.5 transition-all"
                             >
                               <HugeiconsIcon icon={Delete02Icon} size={13} />
                             </button>
                           </div>
                         </div>
                         <p className="text-sm font-bold text-text-primary mb-1">{fmt(p.total, deal.currency)}</p>
-                        {p.createdAt && <p className="text-[10px] text-text-secondary mb-2.5">{fmtDate(p.createdAt)}</p>}
+                        {p.createdAt && <p className="text-xs text-text-secondary mb-2.5">{fmtDate(p.createdAt)}</p>}
                         <div className="flex gap-1.5 flex-wrap">
                           <DownloadProposalButton proposal={p} dealTitle={deal.title} />
                           {p.status === "BORRADOR" && (
                             <button
                               onClick={() => updateProposalStatus(p.id, "ENVIADA")}
-                              className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
+                              className="min-h-11 lg:min-h-10 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
                             >
                               Marcar enviada
                             </button>
                           )}
                           {p.status === "ENVIADA" && (
                             <>
-                              <button onClick={() => updateProposalStatus(p.id, "ACEPTADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
+                              <button onClick={() => updateProposalStatus(p.id, "ACEPTADA")} className="min-h-11 lg:min-h-10 text-xs font-semibold px-2.5 py-1 rounded-full border border-green-200 text-green-700 hover:bg-green-50 transition-colors">
                                 Aceptada
                               </button>
-                              <button onClick={() => updateProposalStatus(p.id, "RECHAZADA")} className="text-[10px] font-semibold px-2.5 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+                              <button onClick={() => updateProposalStatus(p.id, "RECHAZADA")} className="min-h-11 lg:min-h-10 text-xs font-semibold px-2.5 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors">
                                 Rechazada
                               </button>
                             </>
@@ -1170,15 +1186,15 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
           {/* ── TAB: Citas ── */}
           {activeTab === "citas" && (
-            <div className="bg-white rounded-lg border border-border-subtle">
-              <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between">
+            <div className="bg-surface-elevated rounded-lg border border-line">
+              <div className="px-5 py-4 border-b border-line flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <HugeiconsIcon icon={Calendar02Icon} size={15} color="#9ca3af" />
                   <p className="text-sm font-bold text-text-primary">Citas</p>
                 </div>
                 <button
                   onClick={startBooking}
-                  className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                  className="min-h-11 lg:min-h-10 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                 >
                   <HugeiconsIcon icon={Add01Icon} size={13} />
                   Agendar cita
@@ -1187,13 +1203,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
               {/* Booking flow */}
               {showBooking && (
-                <div className="p-5 border-b border-border-subtle">
+                <div className="p-5 border-b border-line">
                   {bookingStep === "type" && (
                     <div className="flex flex-col gap-2">
-                      <p className="text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Tipo de cita</p>
+                      <p className="text-xs font-bold text-text-secondary mb-1">Tipo de cita</p>
                       {loadingApptTypes ? (
                         <div className="flex justify-center py-4">
-                          <div className="w-5 h-5 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+                          <div className="w-5 h-5 border-2 border-line border-t-action-primary rounded-full animate-spin" />
                         </div>
                       ) : appointmentTypes.length === 0 ? (
                         <p className="text-xs text-text-secondary text-center py-3">No hay tipos de cita configurados. Créalos en Configuración → Calendario.</p>
@@ -1203,18 +1219,18 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                             <button
                               key={t.id}
                               onClick={() => selectApptType(t)}
-                              className="flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-sidebar border border-border-subtle hover:border-border-subtle transition-all"
+                              className="min-h-11 lg:min-h-10 flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg hover:bg-surface-sidebar border border-line hover:border-line transition-all"
                             >
                               <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color || "#3545D6" }} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs font-semibold text-text-primary truncate">{t.name}</p>
-                                <p className="text-[10px] text-text-secondary">{t.duration} min</p>
+                                <p className="text-xs text-text-secondary">{t.duration} min</p>
                               </div>
                             </button>
                           ))}
                         </div>
                       )}
-                      <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary mt-2 transition-colors">
+                      <button onClick={() => setShowBooking(false)} className="text-xs font-semibold text-text-secondary hover:text-text-primary mt-2 transition-colors">
                         Cancelar
                       </button>
                     </div>
@@ -1227,8 +1243,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       </div>
                       <DatePicker label="Fecha de la cita" value={selectedDate} onChange={(d) => selectDate(d)} placeholder="Seleccionar fecha" align="right" />
                       <div className="flex gap-2">
-                        <button onClick={() => setBookingStep("type")} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors">← Cambiar tipo</button>
-                        <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors ml-auto">Cancelar</button>
+                        <button onClick={() => setBookingStep("type")} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">← Cambiar tipo</button>
+                        <button onClick={() => setShowBooking(false)} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors ml-auto">Cancelar</button>
                       </div>
                     </div>
                   )}
@@ -1237,11 +1253,11 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selectedApptType?.color || "#3545D6" }} />
                         <p className="text-xs font-semibold text-text-primary">{selectedApptType?.name}</p>
-                        <span className="text-[10px] text-text-secondary">·</span>
+                        <span className="text-xs text-text-secondary">·</span>
                         <p className="text-xs text-text-secondary">{new Date(selectedDate + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "2-digit", month: "short" })}</p>
                       </div>
                       {loadingSlots ? (
-                        <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" /></div>
+                        <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-line border-t-action-primary rounded-full animate-spin" /></div>
                       ) : availableSlots.length === 0 ? (
                         <div className="text-center py-4">
                           <p className="text-xs text-text-secondary">No hay horarios disponibles para esta fecha.</p>
@@ -1250,15 +1266,15 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       ) : (
                         <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
                           {availableSlots.map((slot) => (
-                            <button key={slot} onClick={() => selectSlot(slot)} className="px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-border-subtle rounded-lg hover:bg-action-primary hover:text-action-primary-foreground hover:border-action-primary transition-all">
+                            <button key={slot} onClick={() => selectSlot(slot)} className="min-h-11 lg:min-h-10 px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-line rounded-lg hover:bg-action-primary hover:text-action-primary-foreground hover:border-action-primary transition-all">
                               {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             </button>
                           ))}
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <button onClick={() => setBookingStep("date")} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors">← Cambiar fecha</button>
-                        <button onClick={() => setShowBooking(false)} className="text-[10px] font-semibold text-text-secondary hover:text-text-primary transition-colors ml-auto">Cancelar</button>
+                        <button onClick={() => setBookingStep("date")} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors">← Cambiar fecha</button>
+                        <button onClick={() => setShowBooking(false)} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors ml-auto">Cancelar</button>
                       </div>
                     </div>
                   )}
@@ -1275,13 +1291,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                           {" · "}{selectedApptType?.duration} min
                         </p>
                       </div>
-                      <input value={bookingGuest.name} onChange={(e) => setBookingGuest((g) => ({ ...g, name: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Nombre del invitado *" />
-                      <input type="email" value={bookingGuest.email} onChange={(e) => setBookingGuest((g) => ({ ...g, email: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Email del invitado *" />
-                      <input value={bookingGuest.phone} onChange={(e) => setBookingGuest((g) => ({ ...g, phone: e.target.value }))} className={`${inputCls} text-xs`} placeholder="Teléfono (opcional)" />
-                      <textarea value={bookingGuest.notes} onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))} className={`${inputCls} text-xs resize-none`} rows={2} placeholder="Notas (opcional)" />
+                      <input value={bookingGuest.name} onChange={(e) => setBookingGuest((g) => ({ ...g, name: e.target.value }))} className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`} placeholder="Nombre del invitado *" />
+                      <input type="email" value={bookingGuest.email} onChange={(e) => setBookingGuest((g) => ({ ...g, email: e.target.value }))} className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`} placeholder="Email del invitado *" />
+                      <input value={bookingGuest.phone} onChange={(e) => setBookingGuest((g) => ({ ...g, phone: e.target.value }))} className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`} placeholder="Teléfono (opcional)" />
+                      <textarea value={bookingGuest.notes} onChange={(e) => setBookingGuest((g) => ({ ...g, notes: e.target.value }))} className={`min-h-11 lg:min-h-10 ${inputCls} text-xs resize-none`} rows={2} placeholder="Notas (opcional)" />
                       <div className="flex gap-2">
-                        <button onClick={() => setBookingStep("slots")} className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors">← Atrás</button>
-                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg disabled:opacity-40 transition-colors">
+                        <button onClick={() => setBookingStep("slots")} className="min-h-11 lg:min-h-10 flex-1 py-2 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors">← Atrás</button>
+                        <button onClick={confirmBooking} disabled={savingBooking || !bookingGuest.name || !bookingGuest.email} className="min-h-11 lg:min-h-10 flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg disabled:opacity-40 transition-colors">
                           {savingBooking ? "Reservando..." : "Confirmar cita"}
                         </button>
                       </div>
@@ -1292,7 +1308,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
               {dealAppointments.length === 0 && !showBooking ? (
                 <div className="px-5 py-12 text-center">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <div className="w-10 h-10 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-3">
                     <HugeiconsIcon icon={Calendar02Icon} size={18} color="#9ca3af" />
                   </div>
                   <p className="text-sm text-text-secondary mb-2">Sin citas agendadas.</p>
@@ -1301,7 +1317,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   </button>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-line">
                   {dealAppointments.map((appt: any) => {
                     const isCancelled = appt.status === "CANCELLED";
                     const isPast = new Date(appt.endTime) < new Date();
@@ -1313,8 +1329,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-[11px] font-bold text-text-primary">{appt.appointmentType?.name || "Cita"}</span>
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isCancelled ? "bg-red-50 text-red-500" : isPast ? "bg-gray-100 text-text-secondary" : "bg-emerald-50 text-emerald-700"}`}>
+                            <span className="text-xs font-bold text-text-primary">{appt.appointmentType?.name || "Cita"}</span>
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${isCancelled ? "bg-red-50 text-red-500" : isPast ? "bg-surface-sidebar text-text-secondary" : "bg-emerald-50 text-emerald-700"}`}>
                               {isCancelled ? "Cancelada" : isPast ? "Pasada" : "Confirmada"}
                             </span>
                           </div>
@@ -1323,10 +1339,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                             {" · "}{new Date(appt.startTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             {" — "}{new Date(appt.endTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                           </p>
-                          <p className="text-[10px] text-text-secondary mt-0.5 truncate">{appt.guestName} · {appt.guestEmail}</p>
+                          <p className="text-xs text-text-secondary mt-0.5 truncate">{appt.guestName} · {appt.guestEmail}</p>
                         </div>
                         {isUpcoming && (
-                          <button onClick={() => cancelAppointment(appt.id)} disabled={cancellingApptId === appt.id} className="shrink-0 p-1.5 text-gray-300 opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
+                          <button onClick={() => cancelAppointment(appt.id)} disabled={cancellingApptId === appt.id} className="shrink-0 flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
                             <HugeiconsIcon icon={Cancel01Icon} size={13} />
                           </button>
                         )}
@@ -1340,10 +1356,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         </div>
 
         {/* ── RIGHT: Details sidebar ── */}
-        <div className="w-72 shrink-0 flex flex-col gap-4">
+        <div className="w-full shrink-0 flex flex-col gap-4 lg:w-72">
 
           {/* Notes / AI summary card */}
-          <div className="bg-white rounded-lg border border-border-subtle p-5">
+          <div className="bg-surface-elevated rounded-lg border border-line p-5">
             <div className="flex items-center gap-2 mb-3">
               <HugeiconsIcon icon={NoteIcon} size={14} color="#9ca3af" />
               <p className="text-sm font-bold text-text-primary">Notas</p>
@@ -1353,21 +1369,21 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Agrega notas o un resumen sobre este deal..."
               rows={4}
-              className="w-full text-sm text-text-primary bg-surface-sidebar rounded-lg border border-border-subtle p-3 resize-none focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all"
+              className="min-h-11 lg:min-h-10 w-full text-sm text-text-primary bg-surface-sidebar rounded-lg border border-line p-3 resize-none focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all"
             />
           </div>
 
           {/* Booking link */}
           {deal.bookingToken && (
-            <div className="bg-white rounded-lg border border-border-subtle p-5">
+            <div className="bg-surface-elevated rounded-lg border border-line p-5">
               <div className="flex items-center gap-2 mb-3">
                 <HugeiconsIcon icon={Link01Icon} size={14} color="#9ca3af" />
                 <p className="text-sm font-bold text-text-primary">Link de agendamiento</p>
               </div>
-              <p className="text-[11px] text-text-secondary mb-3">Envía este link al lead para que agende su cita automáticamente.</p>
+              <p className="text-xs text-text-secondary mb-3">Envía este link al lead para que agende su cita automáticamente.</p>
               {appointmentTypes.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-[10px] font-bold uppercase text-text-secondary tracking-wide mb-2">Tipos de cita permitidos</p>
+                  <p className="text-xs font-bold text-text-secondary mb-2">Tipos de cita permitidos</p>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {appointmentTypes.map((t) => {
                       const isSelected = selectedLinkTypes.includes(t.id);
@@ -1375,7 +1391,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         <button
                           key={t.id}
                           onClick={() => isSelected ? setSelectedLinkTypes(selectedLinkTypes.filter(id => id !== t.id)) : setSelectedLinkTypes([...selectedLinkTypes, t.id])}
-                          className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${isSelected ? "bg-nav-active text-text-primary border-border-subtle" : "bg-white text-text-secondary border-border-subtle hover:border-border-subtle hover:bg-surface-sidebar"}`}
+                          className={`min-h-11 lg:min-h-10 text-xs px-2.5 py-1 rounded-full border transition-colors ${isSelected ? "bg-nav-active text-text-primary border-line" : "bg-surface-elevated text-text-secondary border-line hover:border-line hover:bg-surface-sidebar"}`}
                         >
                           {t.name}
                         </button>
@@ -1385,7 +1401,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   <button
                     onClick={saveLinkConfig}
                     disabled={savingLinkConfig || (deal.allowedBookingTypes === selectedLinkTypes.join(",") || (!deal.allowedBookingTypes && selectedLinkTypes.length === appointmentTypes.length))}
-                    className="w-full py-1.5 text-xs font-semibold bg-gray-100 text-text-primary rounded-lg hover:bg-nav-active disabled:opacity-50 transition-colors"
+                    className="min-h-11 lg:min-h-10 w-full py-1.5 text-xs font-semibold bg-surface-sidebar text-text-primary rounded-lg hover:bg-nav-active disabled:opacity-50 transition-colors"
                   >
                     {savingLinkConfig ? "Guardando..." : "Guardar configuración"}
                   </button>
@@ -1395,11 +1411,11 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 <input
                   readOnly
                   value={`${typeof window !== "undefined" ? window.location.origin : ""}/book/${deal.bookingToken}`}
-                  className="flex-1 text-xs bg-surface-sidebar border border-border-subtle rounded-lg px-3 py-2 text-text-secondary truncate focus:outline-none"
+                  className="min-h-11 lg:min-h-10 flex-1 text-xs bg-surface-sidebar border border-line rounded-lg px-3 py-2 text-text-secondary truncate focus:outline-none"
                 />
                 <button
                   onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/book/${deal.bookingToken}`); setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }}
-                  className={`px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-action-primary text-action-primary-foreground hover:bg-black"}`}
+                  className={`min-h-11 lg:min-h-10 px-3 py-2 text-xs font-semibold rounded-lg shrink-0 transition-all ${copiedLink ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-action-primary text-action-primary-foreground hover:bg-brand-obsidian"}`}
                 >
                   {copiedLink ? "✓ Copiado" : "Copiar"}
                 </button>
@@ -1410,7 +1426,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           {/* Delete deal (destructive, at bottom) */}
           <button
             onClick={() => setShowDeleteDeal(true)}
-            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-100 transition-colors"
+            className="min-h-11 lg:min-h-10 flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-100 transition-colors"
           >
             <HugeiconsIcon icon={Delete02Icon} size={13} />
             Eliminar deal
@@ -1421,10 +1437,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
       {/* ── Proposal Modal ── */}
       {showProposalModal && (
         <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-lg">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <div className="bg-surface-elevated rounded-lg w-full max-w-lg">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-line">
               <h2 className="text-base font-bold text-text-primary">Nueva propuesta</h2>
-              <button onClick={() => setShowProposalModal(false)} className="p-1.5 text-text-secondary hover:text-text-secondary hover:bg-nav-hover rounded-lg">
+              <button onClick={() => setShowProposalModal(false)} className="flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary hover:text-text-secondary hover:bg-nav-hover rounded-lg">
                 <HugeiconsIcon icon={Cancel01Icon} size={18} />
               </button>
             </div>
@@ -1456,14 +1472,14 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       <input
                         value={item.description}
                         onChange={(e) => { const it = [...proposalItems]; it[i].description = e.target.value; setProposalItems(it); }}
-                        className={`${inputCls} col-span-6`}
+                        className={`min-h-11 lg:min-h-10 ${inputCls} col-span-6`}
                         placeholder="Descripción"
                       />
                       <input
                         type="number"
                         value={item.quantity}
                         onChange={(e) => { const it = [...proposalItems]; it[i].quantity = parseInt(e.target.value) || 1; setProposalItems(it); }}
-                        className={`${inputCls} col-span-2`}
+                        className={`min-h-11 lg:min-h-10 ${inputCls} col-span-2`}
                         placeholder="Cant."
                         min={1}
                       />
@@ -1471,20 +1487,20 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         type="number"
                         value={item.unitPrice}
                         onChange={(e) => { const it = [...proposalItems]; it[i].unitPrice = parseFloat(e.target.value) || 0; setProposalItems(it); }}
-                        className={`${inputCls} col-span-3`}
+                        className={`min-h-11 lg:min-h-10 ${inputCls} col-span-3`}
                         placeholder="Precio"
                         min={0}
                       />
                       <button
                         onClick={() => setProposalItems(proposalItems.filter((_, j) => j !== i))}
-                        className="col-span-1 text-gray-300 hover:text-red-500 transition-colors flex justify-center"
+                        className="col-span-1 text-text-secondary hover:text-red-500 transition-colors flex justify-center"
                       >
                         <HugeiconsIcon icon={Cancel01Icon} size={14} />
                       </button>
                     </div>
                   ))}
                 </div>
-                <div className="text-right text-sm font-bold text-text-primary mt-3 pt-2 border-t border-border-subtle">
+                <div className="text-right text-sm font-bold text-text-primary mt-3 pt-2 border-t border-line">
                   Total: {fmt(proposalItems.reduce((s, i) => s + i.quantity * i.unitPrice, 0), currency)}
                 </div>
               </div>
@@ -1494,17 +1510,17 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 <textarea
                   value={proposalNotes}
                   onChange={(e) => setProposalNotes(e.target.value)}
-                  className={`${inputCls} resize-none`}
+                  className={`min-h-11 lg:min-h-10 ${inputCls} resize-none`}
                   rows={2}
                   placeholder="Condiciones, términos, vigencia..."
                 />
               </div>
             </div>
-            <div className="flex gap-3 px-6 py-4 border-t border-border-subtle">
-              <button onClick={() => setShowProposalModal(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">
+            <div className="flex gap-3 px-6 py-4 border-t border-line">
+              <button onClick={() => setShowProposalModal(false)} className="min-h-11 lg:min-h-10 flex-1 py-2.5 font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg text-sm transition-colors">
                 Cancelar
               </button>
-              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">
+              <button onClick={createProposal} disabled={savingProposal || !proposalTitle.trim()} className="min-h-11 lg:min-h-10 flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg text-sm disabled:opacity-50 transition-colors">
                 {savingProposal ? "Creando..." : "Crear propuesta"}
               </button>
             </div>

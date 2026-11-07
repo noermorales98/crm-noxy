@@ -203,3 +203,6 @@ next-env.d.ts
 .cursor/commands/specify.md
 .cursor/commands/tasks.md
 .cursor/commands/verify.md
+
+# Skill de diseño instalada con `npx skills add Leonxlnx/taste-skill`; se versiona solo skills-lock.json
+.claude/skills/design-taste-frontend/

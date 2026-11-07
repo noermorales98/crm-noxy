@@ -6,8 +6,17 @@ import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { User02Icon, Mail01Icon, LockIcon, ViewIcon, ViewOffIcon, ShieldUserIcon, Logout01Icon, CheckmarkCircle01Icon, Alert01Icon } from "@hugeicons/core-free-icons";
 import { input as inputClsBase } from "@/src/lib/crm-ui";
+import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader } from "@/src/components/ui";
 
 export default function ProfilePage() {
+  const { setConfig, resetState } = useHeader();
+  useEffect(() => {
+    resetState();
+    setConfig({ title: "Mi perfil", pageHeader: true });
+    return () => setConfig({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { data: session } = useSession();
   const { addToast } = useToast();
 
@@ -122,20 +131,17 @@ export default function ProfilePage() {
           <div className="max-w-3xl mx-auto">
 
             {/* Page Title */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold tracking-tight text-text-primary">Mi Perfil</h1>
-              <p className="text-text-secondary mt-1 text-sm">Administra tu información personal y seguridad de la cuenta.</p>
-            </div>
+            <PageHeader title="Mi perfil" subtitle="Administra tu información personal y seguridad de la cuenta." />
 
             {loadingProfile ? (
               <div className="flex items-center justify-center py-20">
-                <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-line border-t-action-primary rounded-full animate-spin" />
               </div>
             ) : (
               <div className="flex flex-col gap-6">
 
                 {/* Avatar Card */}
-                <div className="bg-white rounded-lg border border-border-subtle p-6 flex items-center gap-5">
+                <div className="bg-surface-elevated rounded-lg border border-line p-6 flex items-center gap-5">
                   <div className="w-16 h-16 rounded-full bg-action-primary flex items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-white">
                       {name?.charAt(0)?.toUpperCase() || email?.charAt(0)?.toUpperCase() || "U"}
@@ -150,7 +156,7 @@ export default function ProfilePage() {
                   </div>
                   <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
-                    className="flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors shrink-0"
+                    className="min-h-11 lg:min-h-10 flex items-center gap-2 text-sm font-medium text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors shrink-0"
                   >
                     <HugeiconsIcon icon={Logout01Icon} size={16} />
                     Cerrar sesión
@@ -158,7 +164,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Personal Info */}
-                <div className="bg-white rounded-lg border border-border-subtle p-6">
+                <div className="bg-surface-elevated rounded-lg border border-line p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
                       <HugeiconsIcon icon={User02Icon} size={18} color="#2563eb" />
@@ -203,7 +209,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingInfo}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-action-primary hover:bg-black text-action-primary-foreground text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        className="min-h-11 lg:min-h-10 flex items-center gap-2 px-5 py-2.5 bg-action-primary hover:bg-brand-obsidian text-action-primary-foreground text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         {savingInfo ? "Guardando..." : "Guardar cambios"}
                       </button>
@@ -212,7 +218,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Change Password */}
-                <div className="bg-white rounded-lg border border-border-subtle p-6">
+                <div className="bg-surface-elevated rounded-lg border border-line p-6">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center">
                       <HugeiconsIcon icon={LockIcon} size={18} color="#d97706" />
@@ -234,9 +240,9 @@ export default function ProfilePage() {
                           value={currentPassword}
                           onChange={e => setCurrentPassword(e.target.value)}
                           placeholder="Tu contraseña actual"
-                          className={inputCls + " pr-11"}
+                          className={inputCls + " pr-12"}
                         />
-                        <button type="button" onClick={() => setShowCurrent(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
+                        <button type="button" onClick={() => setShowCurrent(p => !p)} aria-label={showCurrent ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-control text-text-secondary hover:text-text-primary transition-colors">
                           {showCurrent ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
@@ -252,16 +258,16 @@ export default function ProfilePage() {
                           value={newPassword}
                           onChange={e => setNewPassword(e.target.value)}
                           placeholder="Mínimo 8 caracteres"
-                          className={inputCls + " pr-11"}
+                          className={inputCls + " pr-12"}
                         />
-                        <button type="button" onClick={() => setShowNew(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
+                        <button type="button" onClick={() => setShowNew(p => !p)} aria-label={showNew ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-control text-text-secondary hover:text-text-primary transition-colors">
                           {showNew ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
                       {/* Strength bar */}
                       {strength && (
                         <div className="flex items-center gap-3 mt-1">
-                          <div className="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <div className="flex-1 bg-surface-sidebar rounded-full h-1.5 overflow-hidden">
                             <div className={`h-full rounded-full transition-all duration-500 ${strength.color} ${strength.width}`} />
                           </div>
                           <span className="text-xs font-bold text-text-secondary shrink-0">{strength.label}</span>
@@ -279,9 +285,9 @@ export default function ProfilePage() {
                           value={confirmPassword}
                           onChange={e => setConfirmPassword(e.target.value)}
                           placeholder="Repite la nueva contraseña"
-                          className={inputCls + " pr-11"}
+                          className={inputCls + " pr-12"}
                         />
-                        <button type="button" onClick={() => setShowConfirm(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors">
+                        <button type="button" onClick={() => setShowConfirm(p => !p)} aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-control text-text-secondary hover:text-text-primary transition-colors">
                           {showConfirm ? <HugeiconsIcon icon={ViewOffIcon} size={18} /> : <HugeiconsIcon icon={ViewIcon} size={18} />}
                         </button>
                       </div>
@@ -301,7 +307,7 @@ export default function ProfilePage() {
                       <button
                         type="submit"
                         disabled={savingPassword}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                        className="min-h-11 lg:min-h-10 flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                       >
                         <HugeiconsIcon icon={ShieldUserIcon} size={16} />
                         {savingPassword ? "Actualizando..." : "Cambiar contraseña"}

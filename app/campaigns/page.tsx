@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Mail01Icon, SentIcon, Clock01Icon, CheckmarkCircle01Icon, Cancel01Icon, Refresh01Icon, Delete01Icon, ViewIcon, CodeIcon } from "@hugeicons/core-free-icons";
+import { Add01Icon, SentIcon, Clock01Icon, CheckmarkCircle01Icon, Cancel01Icon, Refresh01Icon, Delete01Icon, ViewIcon, CodeIcon, Briefcase01Icon, Note01Icon, RepeatIcon, Building04Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
+import { DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog, type DataColumn } from "@/src/components/ui";
+
+const primaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
+const secondaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar disabled:opacity-50 lg:min-h-10";
+const iconAction =
+  "crm-press flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-sidebar hover:text-text-primary lg:size-9";
+const shortDateTime = (iso: string) => new Date(iso).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
 type Campaign = {
   id: string;
@@ -51,6 +60,7 @@ export default function CampaignsPage() {
   const { setConfig, resetState, sortField, sortOrder, activeFilters } = useHeader();
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loadError, setLoadError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [subject, setSubject] = useState("");
@@ -64,6 +74,11 @@ export default function CampaignsPage() {
   const [forms, setForms] = useState<any[]>([]);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewCampaign, setPreviewCampaign] = useState<Campaign | null>(null);
+  const previewDialogRef = useRef<HTMLDivElement>(null);
+  const createDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(previewDialogRef, Boolean(previewCampaign), () => setPreviewCampaign(null));
+  // resetForm se declara más abajo; el cierre solo se ejecuta después del render.
+  useDialog(createDialogRef, isModalOpen, () => { setIsModalOpen(false); resetForm(); });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -95,7 +110,7 @@ export default function CampaignsPage() {
           ],
         },
       ],
-      addButton: { label: "Nueva campaña", onClick: () => setIsModalOpen(true) },
+      pageHeader: true,
     });
     return () => setConfig({});
   }, [isLoading, campaigns.length]);
@@ -114,9 +129,15 @@ export default function CampaignsPage() {
   const fetchCampaigns = async () => {
     try {
       const res = await fetch("/api/campaigns");
-      if (res.ok) setCampaigns(await res.json());
-    } catch (error) { console.error("Failed to fetch campaigns"); }
-    finally { setIsLoading(false); }
+      if (res.ok) {
+        setCampaigns(await res.json());
+        setLoadError(false);
+      } else setLoadError(true);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const displayed = useMemo(() => {
@@ -191,7 +212,7 @@ export default function CampaignsPage() {
           })),
         }),
       });
-      if (!res.ok) { const data = await res.json(); throw new Error(data.error || "Failed to create draft"); }
+      if (!res.ok) { const data = await res.json(); throw new Error(data.error || "No se pudo crear el borrador"); }
       resetForm(); setIsModalOpen(false);
       fetchCampaigns();
     } catch (err: any) { setErrorMsg(err.message); }
@@ -207,7 +228,7 @@ export default function CampaignsPage() {
     if (!ok) return;
     try {
       const res = await fetch("/api/campaigns/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campaignId }) });
-      if (!res.ok) { const data = await res.json(); addToast(data.error || "Failed to schedule campaign", "error"); return; }
+      if (!res.ok) { const data = await res.json(); addToast(data.error || "No se pudo programar la campaña", "error"); return; }
       const result = await res.json();
       addToast(
         `Se enviaron ${result.successful ?? 0}. Fallaron ${result.failed ?? 0}. Quedan ${result.pending ?? 0} en cola.`,
@@ -240,110 +261,153 @@ export default function CampaignsPage() {
     finally { setIsProcessingQueue(false); }
   };
 
+  const sentCount = (c: Campaign) => c.logsByStatus?.SENT ?? c._count.logs;
+
+  // Funciones de render (no componentes): así React no remonta las filas en cada render.
+  const statusBadge = (camp: Campaign) => (
+    <span className="flex flex-col items-start gap-1">
+      {camp.status === "DRAFT" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-surface-sidebar px-2.5 text-xs font-semibold text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={12} /> Borrador</span>}
+      {camp.status === "SENDING" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-nav-hover px-2.5 text-xs font-semibold text-action-primary"><HugeiconsIcon icon={SentIcon} size={12} /> Enviando</span>}
+      {camp.status === "COMPLETED" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-success-soft px-2.5 text-xs font-semibold text-success"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} /> Completada</span>}
+      {camp.status === "SENDING" && (
+        <span className="text-xs text-text-secondary">
+          {camp.logsByStatus?.PENDING ?? 0} pendientes · {camp.logsByStatus?.SENT ?? 0} enviados · {camp.logsByStatus?.FAILED ?? 0} fallidos
+        </span>
+      )}
+    </span>
+  );
+
+  const target = (camp: Campaign) => (
+    <span className="flex flex-col gap-0.5 text-xs">
+      <span className="text-sm font-semibold text-text-primary">{camp.company?.name || "Sin empresa"}</span>
+      {camp.project ? (
+        <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Briefcase01Icon} size={12} /> {camp.project.name}</span>
+      ) : camp.targetForm ? (
+        <span className="flex items-center gap-1 font-medium text-purple-700"><HugeiconsIcon icon={Note01Icon} size={12} /> {camp.targetForm.name}</span>
+      ) : (
+        <span className="flex items-center gap-1 text-text-secondary"><HugeiconsIcon icon={Building04Icon} size={12} /> Toda la empresa</span>
+      )}
+      {camp.steps && camp.steps.length > 0 && (
+        <span className="flex items-center gap-1 font-medium text-text-secondary"><HugeiconsIcon icon={RepeatIcon} size={12} /> {camp.steps.length + 1} mensajes</span>
+      )}
+      {camp.status === "DRAFT" && camp.scheduledAt && new Date(camp.scheduledAt).getTime() > Date.now() && (
+        <span className="flex items-center gap-1 font-medium text-amber-800"><HugeiconsIcon icon={Clock01Icon} size={12} /> Inicia: {shortDateTime(camp.scheduledAt)}</span>
+      )}
+      {camp.status === "SENDING" && camp.nextScheduledAt && (
+        <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Clock01Icon} size={12} /> Próximo envío: {shortDateTime(camp.nextScheduledAt)}</span>
+      )}
+    </span>
+  );
+
+  const actions = (camp: Campaign) => (
+    <span className="flex items-center justify-end gap-1">
+      {camp.status === "DRAFT" ? (
+        <button type="button" onClick={() => handleSendCampaign(camp.id)} className={primaryAction}>Enviar</button>
+      ) : (
+        <span className="rounded-full bg-surface-sidebar px-2.5 py-0.5 text-xs font-semibold text-text-secondary">Bloqueado</span>
+      )}
+      <button type="button" onClick={() => setPreviewCampaign(camp)} className={iconAction} aria-label={`Previsualizar ${camp.subject}`} title="Previsualizar">
+        <HugeiconsIcon icon={ViewIcon} size={16} />
+      </button>
+      <button type="button" onClick={() => handleDelete(camp)} className={`${iconAction} hover:bg-danger-soft hover:text-danger`} aria-label={`Eliminar ${camp.subject}`} title="Eliminar">
+        <HugeiconsIcon icon={Delete01Icon} size={16} />
+      </button>
+    </span>
+  );
+
+  const columns: DataColumn<Campaign>[] = [
+    { key: "subject", header: "Asunto", render: (c) => <span className="block max-w-[260px] truncate font-semibold text-text-primary">{c.subject}</span> },
+    { key: "target", header: "Empresa / destino", render: (c) => target(c) },
+    { key: "status", header: "Estado", render: (c) => statusBadge(c) },
+    { key: "sent", header: "Enviados", align: "right", render: (c) => <span className="text-text-secondary">{sentCount(c) > 0 ? sentCount(c).toLocaleString("es-MX") : "0"}</span> },
+    { key: "created", header: "Creado", render: (c) => <span className="text-text-secondary">{new Date(c.createdAt).toLocaleDateString("es-MX")}</span> },
+    { key: "actions", header: "Acciones", align: "right", render: (c) => actions(c) },
+  ];
+
   return (
     <>
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-sm text-text-secondary">Crea y gestiona campañas de correo para tus contactos.</p>
-            </div>
-            <button onClick={handleProcessQueue} disabled={isProcessingQueue} className="flex items-center gap-2 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-secondary px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50">
-              <HugeiconsIcon icon={Refresh01Icon} size={15} className={isProcessingQueue ? "animate-spin" : ""} />
-              {isProcessingQueue ? "Procesando..." : "Procesar cola"}
-            </button>
-          </div>
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <Enter index={0}>
+          <PageHeader
+            title="Email Marketing"
+            subtitle="Crea y gestiona campañas de correo para tus contactos."
+            actions={
+              <>
+                <button type="button" onClick={handleProcessQueue} disabled={isProcessingQueue} className={secondaryAction}>
+                  <HugeiconsIcon icon={Refresh01Icon} size={16} className={isProcessingQueue ? "motion-safe:animate-spin" : ""} />
+                  {isProcessingQueue ? "Procesando..." : "Procesar cola"}
+                </button>
+                <button type="button" onClick={() => setIsModalOpen(true)} className={primaryAction}>
+                  <HugeiconsIcon icon={Add01Icon} size={16} />
+                  Nueva campaña
+                </button>
+              </>
+            }
+          />
+        </Enter>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin"></div></div>
-          ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <HugeiconsIcon icon={Mail01Icon} size={48} color="#d1d5db" className="mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-text-primary mb-1">{activeFilters.status ? "No se encontraron campañas." : "No campaigns yet"}</h3>
-              {!activeFilters.status && <p className="text-text-secondary text-sm mb-4">Start by creating your first email newsletter draft.</p>}
-            </div>
-          ) : (
-            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border-subtle bg-surface-sidebar/60">
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Asunto</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Empresa / Destino</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Estado</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Enviados</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Creado</th>
-                    <th className="px-6 py-3.5 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {displayed.map((camp) => (
-                    <tr key={camp.id} className="hover:bg-surface-sidebar/50 transition-colors group">
-                      <td className="px-6 py-4 font-semibold text-text-primary max-w-[220px] truncate">{camp.subject}</td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-semibold text-text-primary">{camp.company?.name || "—"}</div>
-                        {camp.project ? <div className="text-xs text-action-primary font-medium mt-0.5">💼 {camp.project.name}</div>
-                          : camp.targetForm ? <div className="text-[11px] text-purple-600 font-medium mt-0.5">📝 {camp.targetForm.name}</div>
-                          : <div className="text-[11px] text-text-secondary mt-0.5">Toda la empresa</div>}
-                        {camp.steps && camp.steps.length > 0 && (
-                          <div className="text-[11px] text-text-secondary font-medium mt-0.5">🔁 {camp.steps.length + 1} mensajes</div>
-                        )}
-                        {camp.status === "DRAFT" && camp.scheduledAt && new Date(camp.scheduledAt).getTime() > Date.now() && (
-                          <div className="text-[11px] text-amber-600 font-medium mt-0.5">
-                            🕐 Inicia: {new Date(camp.scheduledAt).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        )}
-                        {camp.status === "SENDING" && camp.nextScheduledAt && (
-                          <div className="text-[11px] text-action-primary font-medium mt-0.5">
-                            🕐 Próximo envío: {new Date(camp.nextScheduledAt).toLocaleString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col items-start gap-1">
-                          {camp.status === "DRAFT" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-gray-100 text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={11} /> Borrador</span>}
-                          {camp.status === "SENDING" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-nav-hover text-action-primary"><HugeiconsIcon icon={SentIcon} size={11} /> Enviando</span>}
-                          {camp.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-700"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> Completada</span>}
-                          {camp.status === "SENDING" && (
-                            <span className="text-[11px] text-text-secondary font-medium">
-                              {camp.logsByStatus?.PENDING ?? 0} pendientes · {camp.logsByStatus?.SENT ?? 0} enviados · {camp.logsByStatus?.FAILED ?? 0} fallidos
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-text-secondary font-medium">{(camp.logsByStatus?.SENT ?? camp._count.logs) > 0 ? (camp.logsByStatus?.SENT ?? camp._count.logs).toLocaleString() : "—"}</td>
-                      <td className="px-6 py-4 text-sm text-text-secondary">{new Date(camp.createdAt).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {camp.status === "DRAFT" ? (
-                            <button onClick={() => handleSendCampaign(camp.id)} className="text-action-primary-foreground bg-action-primary hover:bg-action-secondary px-3 py-1.5 rounded-control text-xs font-semibold transition-colors">Enviar</button>
-                          ) : (
-                            <span className="text-text-secondary text-[11px] font-semibold bg-gray-100 px-2 py-1 rounded-lg">Bloqueado</span>
-                          )}
-                          <button onClick={() => setPreviewCampaign(camp)} className="p-1.5 text-text-secondary hover:text-action-primary hover:bg-nav-hover rounded-control transition-colors" title="Previsualizar"><HugeiconsIcon icon={ViewIcon} size={15} /></button>
-                          <button onClick={() => handleDelete(camp)} className="p-1.5 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><HugeiconsIcon icon={Delete01Icon} size={15} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </main>
+        <Enter index={1}>
+          <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            {isLoading ? (
+              <Skeleton shape="rows" count={4} label="Cargando campañas" />
+            ) : loadError && campaigns.length === 0 ? (
+              <ErrorState title="No se pudieron cargar las campañas" onRetry={() => { setIsLoading(true); fetchCampaigns(); }} />
+            ) : (
+              <DataTable
+                label="Campañas"
+                columns={columns}
+                rows={displayed}
+                getKey={(c) => c.id}
+                mobileRow={(c) => (
+                  <div className="flex w-full min-w-0 flex-col gap-2 py-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="min-w-0 truncate font-semibold text-text-primary">{c.subject}</span>
+                      <span className="shrink-0 text-xs text-text-secondary">{new Date(c.createdAt).toLocaleDateString("es-MX")}</span>
+                    </div>
+                    {target(c)}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      {statusBadge(c)}
+                      {actions(c)}
+                    </div>
+                  </div>
+                )}
+                empty={
+                  activeFilters.status ? (
+                    <EmptyState title="No se encontraron campañas" body="Prueba con otro filtro de estado." />
+                  ) : (
+                    <EmptyState
+                      title="Todavía no hay campañas"
+                      body="Empieza creando el borrador de tu primer correo."
+                      action={
+                        <button type="button" onClick={() => setIsModalOpen(true)} className={primaryAction}>
+                          <HugeiconsIcon icon={Add01Icon} size={16} />
+                          Nueva campaña
+                        </button>
+                      }
+                    />
+                  )
+                }
+              />
+            )}
+          </section>
+        </Enter>
+      </main>
 
       {/* PREVIEW MODAL */}
       {previewCampaign && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-border-subtle flex items-start justify-between shrink-0">
+          <div ref={previewDialogRef} role="dialog" aria-modal="true" aria-labelledby="campaign-preview-title" className="bg-surface-elevated rounded-surface w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-5 border-b border-line flex items-start justify-between shrink-0">
               <div className="flex flex-col gap-1">
-                <h3 className="text-base font-bold text-text-primary flex items-center gap-2"><HugeiconsIcon icon={ViewIcon} size={16} color="#9ca3af" />Previsualización del correo</h3>
+                <h3 id="campaign-preview-title" className="text-base font-semibold text-text-primary flex items-center gap-2"><HugeiconsIcon icon={ViewIcon} size={16} className="text-text-secondary" />Previsualización del correo</h3>
                 <p className="text-sm text-text-secondary"><span className="font-medium text-text-primary">Asunto:</span> {previewCampaign.subject}</p>
-                <p className="text-xs text-text-secondary">{previewCampaign.company?.name}{previewCampaign.project ? ` · 💼 ${previewCampaign.project.name}` : previewCampaign.targetForm ? ` · 📝 ${previewCampaign.targetForm.name}` : " · 🏢 Toda la empresa"}</p>
+                <p className="text-xs text-text-secondary">{previewCampaign.company?.name}{previewCampaign.project ? ` · Proyecto: ${previewCampaign.project.name}` : previewCampaign.targetForm ? ` · Formulario: ${previewCampaign.targetForm.name}` : " · Toda la empresa"}</p>
               </div>
-              <button onClick={() => setPreviewCampaign(null)} className="text-text-secondary hover:text-text-secondary p-1 shrink-0"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
+              <button type="button" onClick={() => setPreviewCampaign(null)} aria-label="Cerrar" className={iconAction}><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
             </div>
             <div className="flex-1 overflow-hidden p-4">
-              <div className="w-full h-full rounded-lg border border-border-subtle overflow-hidden bg-white" style={{ minHeight: "420px" }}>
+              {/* Blanco literal a propósito: el HTML del correo asume fondo blanco. */}
+              <div className="w-full h-full rounded-lg border border-line overflow-hidden bg-[#ffffff]" style={{ minHeight: "420px" }}>
                 {previewCampaign.body?.trim() ? (
                   <iframe srcDoc={previewCampaign.body} sandbox="allow-same-origin" className="w-full border-0" style={{ height: "420px" }} title="Previsualización del correo" />
                 ) : (
@@ -351,8 +415,8 @@ export default function CampaignsPage() {
                 )}
               </div>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end shrink-0 bg-surface-sidebar/50">
-              <button onClick={() => setPreviewCampaign(null)} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cerrar</button>
+            <div className="p-4 border-t border-line flex justify-end shrink-0 bg-surface-sidebar/50">
+              <button type="button" onClick={() => setPreviewCampaign(null)} className={secondaryAction}>Cerrar</button>
             </div>
           </div>
         </div>
@@ -361,45 +425,45 @@ export default function CampaignsPage() {
       {/* CREATE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-border-subtle flex items-center justify-between shrink-0">
-              <h3 className="text-lg font-bold text-text-primary">Crear campaña de correo</h3>
-              <button onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-text-secondary hover:text-text-secondary p-1"><HugeiconsIcon icon={Cancel01Icon} size={24} /></button>
+          <div ref={createDialogRef} role="dialog" aria-modal="true" aria-labelledby="campaign-create-title" className="bg-surface-elevated rounded-surface w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-6 border-b border-line flex items-center justify-between shrink-0">
+              <h3 id="campaign-create-title" className="text-lg font-semibold text-text-primary">Crear campaña de correo</h3>
+              <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} aria-label="Cerrar" className={iconAction}><HugeiconsIcon icon={Cancel01Icon} size={20} /></button>
             </div>
             <div className="p-6 overflow-y-auto">
               <form id="createCampaignForm" onSubmit={handleCreateDraft} className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-text-primary">Empresa (Identidad del remitente)</label>
-                  <select required value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm">
+                  <label htmlFor="cmp-field-1" className="text-sm font-semibold text-text-primary">Empresa (Identidad del remitente)</label>
+                  <select id="cmp-field-1" required value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="w-full min-h-11 px-4 py-2.5 rounded-control border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm">
                     <option value="" disabled>Seleccionar empresa</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  <p className="text-xs text-text-secondary">The campaign will map to this company's external settings (SMTP).</p>
+                  <p className="text-xs text-text-secondary">La campaña usará la configuración de correo (SMTP) de esta empresa.</p>
                 </div>
                 {companyId && (
-                  <div className="flex flex-col gap-2 p-3 border border-border-subtle rounded-lg bg-surface-sidebar/50">
+                  <div className="flex flex-col gap-2 p-3 border border-line rounded-lg bg-surface-sidebar/50">
                     <label className="text-sm font-semibold text-text-primary">Destinatarios:</label>
                     <div className="flex flex-col gap-3">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="targetType" checked={targetType === "ALL"} onChange={() => setTargetType("ALL")} className="w-4 h-4 text-text-primary border-border-subtle focus:ring-gray-900" />
-                        <span className="text-sm font-medium text-text-primary">🏢 Toda la Empresa</span>
+                      <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
+                        <input type="radio" name="targetType" checked={targetType === "ALL"} onChange={() => setTargetType("ALL")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <span className="text-sm font-medium text-text-primary">Toda la empresa</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="targetType" checked={targetType === "PROJECT"} onChange={() => setTargetType("PROJECT")} className="w-4 h-4 text-text-primary border-border-subtle focus:ring-gray-900" />
-                        <span className="text-sm font-medium text-text-primary">💼 Un Proyecto Específico</span>
+                      <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
+                        <input type="radio" name="targetType" checked={targetType === "PROJECT"} onChange={() => setTargetType("PROJECT")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <span className="text-sm font-medium text-text-primary">Un proyecto específico</span>
                       </label>
                       {targetType === "PROJECT" && (
-                        <select required value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2 ml-6 rounded-lg border border-border-subtle bg-white text-sm">
+                        <select required value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full min-h-11 px-3 py-2 ml-6 rounded-control border border-line bg-surface-elevated text-sm">
                           <option value="" disabled>Seleccionar Proyecto</option>
                           {projects.filter(p => p.organizationId === companies.find((c: any) => c.id === companyId)?.organizationId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                       )}
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="targetType" checked={targetType === "FORM"} onChange={() => setTargetType("FORM")} className="w-4 h-4 text-text-primary border-border-subtle focus:ring-gray-900" />
-                        <span className="text-sm font-medium text-text-primary">📝 Un Formulario Específico</span>
+                      <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
+                        <input type="radio" name="targetType" checked={targetType === "FORM"} onChange={() => setTargetType("FORM")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <span className="text-sm font-medium text-text-primary">Un formulario específico</span>
                       </label>
                       {targetType === "FORM" && (
-                        <select required value={targetFormId} onChange={(e) => setTargetFormId(e.target.value)} className="w-full px-3 py-2 ml-6 rounded-lg border border-border-subtle bg-white text-sm">
+                        <select required value={targetFormId} onChange={(e) => setTargetFormId(e.target.value)} className="w-full min-h-11 px-3 py-2 ml-6 rounded-control border border-line bg-surface-elevated text-sm">
                           <option value="" disabled>Seleccionar Formulario</option>
                           {forms.filter((f: any) => f.companyId === companyId).map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
                         </select>
@@ -408,29 +472,29 @@ export default function CampaignsPage() {
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-text-primary">Programar inicio (opcional)</label>
-                  <input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm" />
+                  <label htmlFor="cmp-field-2" className="text-sm font-semibold text-text-primary">Programar inicio (opcional)</label>
+                  <input id="cmp-field-2" type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} className="w-full min-h-11 px-4 py-2.5 rounded-control border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm" />
                   <p className="text-xs text-text-secondary">Vacío = se envía al procesar la cola.</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold text-text-primary">Asunto</label>
-                    <span className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Mensaje 1 — al inicio</span>
+                    <span className="text-xs font-semibold text-text-secondary">Mensaje 1: al inicio</span>
                   </div>
-                  <input type="text" required placeholder="e.g. Noticias emocionantes de nuestro equipo!" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-4 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm" />
+                  <input type="text" required placeholder="Ej. ¡Noticias de nuestro equipo!" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full min-h-11 px-4 py-2.5 rounded-control border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold text-text-primary">Cuerpo del correo (HTML soportado)</label>
-                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
-                      <button type="button" onClick={() => setIsPreviewMode(false)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${!isPreviewMode ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"}`}><HugeiconsIcon icon={CodeIcon} size={13} />Código</button>
-                      <button type="button" onClick={() => setIsPreviewMode(true)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${isPreviewMode ? "bg-white text-text-primary" : "text-text-secondary hover:text-text-primary"}`}><HugeiconsIcon icon={ViewIcon} size={13} />Previsualizar</button>
+                    <div className="flex items-center gap-1 bg-surface-sidebar p-1 rounded-lg">
+                      <button type="button" onClick={() => setIsPreviewMode(false)} className={`flex min-h-11 items-center gap-1.5 px-3 rounded-control text-sm font-medium transition-colors lg:min-h-8 ${!isPreviewMode ? "bg-surface-elevated text-text-primary" : "text-text-secondary hover:text-text-primary"}`}><HugeiconsIcon icon={CodeIcon} size={13} />Código</button>
+                      <button type="button" onClick={() => setIsPreviewMode(true)} className={`flex min-h-11 items-center gap-1.5 px-3 rounded-control text-sm font-medium transition-colors lg:min-h-8 ${isPreviewMode ? "bg-surface-elevated text-text-primary" : "text-text-secondary hover:text-text-primary"}`}><HugeiconsIcon icon={ViewIcon} size={13} />Previsualizar</button>
                     </div>
                   </div>
                   {!isPreviewMode ? (
-                    <textarea required placeholder="<p>Hola! Queríamos contactarte...</p>" rows={10} value={htmlBody} onChange={(e) => setHtmlBody(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-border-subtle bg-surface-sidebar focus:bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm resize-y font-mono" />
+                    <textarea required placeholder="<p>Hola! Queríamos contactarte...</p>" rows={10} value={htmlBody} onChange={(e) => setHtmlBody(e.target.value)} className="w-full px-4 py-3 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm resize-y font-mono" />
                   ) : (
-                    <div className="w-full rounded-lg border border-border-subtle overflow-hidden bg-white" style={{ minHeight: "260px" }}>
+                    <div className="w-full rounded-lg border border-line overflow-hidden bg-[#ffffff]" style={{ minHeight: "260px" }}>
                       {htmlBody.trim() ? (
                         <iframe srcDoc={htmlBody} sandbox="allow-same-origin" className="w-full border-0" style={{ minHeight: "260px", height: "260px" }} title="Previsualización del correo" />
                       ) : (
@@ -440,7 +504,7 @@ export default function CampaignsPage() {
                   )}
                 </div>
                 {/* ── Secuencia de mensajes (seguimientos automáticos) ── */}
-                <div className="flex flex-col gap-3 border-t border-border-subtle pt-4">
+                <div className="flex flex-col gap-3 border-t border-line pt-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="text-sm font-semibold text-text-primary">Secuencia de mensajes</label>
@@ -452,33 +516,34 @@ export default function CampaignsPage() {
                       type="button"
                       onClick={addStep}
                       disabled={steps.length >= 10}
-                      className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-action-primary bg-nav-hover hover:opacity-80 transition-opacity disabled:opacity-40"
+                      className="shrink-0 min-h-11 px-3 rounded-control text-sm font-semibold text-action-primary bg-nav-hover hover:bg-nav-active transition-colors disabled:opacity-40 lg:min-h-8"
                     >
                       + Agregar seguimiento
                     </button>
                   </div>
                   {steps.map((step, i) => (
-                    <div key={i} className="flex flex-col gap-2.5 p-3.5 border border-border-subtle rounded-lg bg-surface-sidebar/40">
+                    <div key={i} className="flex flex-col gap-2.5 p-3.5 border border-line rounded-lg bg-surface-sidebar/40">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-semibold text-text-primary">
-                          Mensaje {i + 2} — {step.delayDays || "0"} {parseInt(step.delayDays, 10) === 1 ? "día" : "días"} después
+                          Mensaje {i + 2}: {step.delayDays || "0"} {parseInt(step.delayDays, 10) === 1 ? "día" : "días"} después
                         </p>
                         <button
                           type="button"
                           onClick={() => removeStep(i)}
-                          className="p-1 text-text-secondary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-8"
                           title="Quitar mensaje"
+                          aria-label={`Quitar mensaje ${i + 2}`}
                         >
                           <HugeiconsIcon icon={Delete01Icon} size={14} />
                         </button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-medium text-text-secondary shrink-0">Días después del anterior</label>
-                        <input
+                        <label htmlFor="cmp-field-3" className="text-xs font-medium text-text-secondary shrink-0">Días después del anterior</label>
+                        <input id="cmp-field-3"
                           type="number" min="0" max="365" step="1"
                           value={step.delayDays}
                           onChange={(e) => updateStep(i, { delayDays: e.target.value })}
-                          className="w-24 px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                          className="w-24 min-h-11 px-3 py-2 rounded-control border border-line bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                         />
                       </div>
                       <input
@@ -486,14 +551,14 @@ export default function CampaignsPage() {
                         placeholder="Asunto del seguimiento"
                         value={step.subject}
                         onChange={(e) => updateStep(i, { subject: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm"
+                        className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
                       />
                       <textarea
                         placeholder="<p>Hola de nuevo…</p>"
                         rows={4}
                         value={step.body}
                         onChange={(e) => updateStep(i, { body: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-border-subtle bg-white focus:outline-none focus:ring-1 focus:ring-border-subtle transition-all text-sm resize-y font-mono"
+                        className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm resize-y font-mono"
                       />
                     </div>
                   ))}
@@ -501,9 +566,9 @@ export default function CampaignsPage() {
                 {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
               </form>
             </div>
-            <div className="p-6 border-t border-border-subtle flex justify-end gap-3 shrink-0 bg-surface-sidebar/50">
-              <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover transition-colors">Cancelar</button>
-              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className="px-5 py-2.5 rounded-lg text-sm font-medium text-action-primary-foreground bg-action-primary hover:opacity-90 transition-colors disabled:opacity-50">{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
+            <div className="p-6 border-t border-line flex justify-end gap-3 shrink-0 bg-surface-sidebar/50">
+              <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className={secondaryAction}>Cancelar</button>
+              <button type="submit" form="createCampaignForm" disabled={isSubmitting} className={primaryAction}>{isSubmitting ? "Guardando..." : "Guardar borrador"}</button>
             </div>
           </div>
         </div>

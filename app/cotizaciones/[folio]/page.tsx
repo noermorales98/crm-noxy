@@ -4,13 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
+import { EmptyState, PageHeader, Skeleton } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  SentIcon, PencilEdit01Icon, Delete01Icon, Link01Icon, DollarCircleIcon,
-  CheckmarkCircle01Icon, ArrowLeft01Icon, Invoice01Icon,
-} from "@hugeicons/core-free-icons";
+import { SentIcon, PencilEdit01Icon, Delete01Icon, Link01Icon, DollarCircleIcon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import QuotePdfButton from "@/src/components/quotes/QuotePdfButton";
 import { QuoteStatusBadge, formatQuoteMoney } from "@/src/components/quotes/shared";
 
@@ -70,7 +68,7 @@ function QuoteDetailContent() {
   }, []);
 
   useEffect(() => {
-    setConfig({ title: quote ? `Cotización ${quote.folio}` : "Cotización" });
+    setConfig({ title: quote ? `Cotización ${quote.folio}` : "Cotización", backHref: "/cotizaciones", pageHeader: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quote?.folio]);
 
@@ -174,9 +172,10 @@ function QuoteDetailContent() {
 
   if (loading) {
     return (
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
+        <PageHeader title="Cotización" subtitle="Cargando cotización…" />
+        <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+          <Skeleton shape="rows" count={4} label="Cargando cotización" />
         </div>
       </main>
     );
@@ -184,13 +183,18 @@ function QuoteDetailContent() {
 
   if (notFound || !quote) {
     return (
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
-        <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-          <HugeiconsIcon icon={Invoice01Icon} size={28} color="#9ca3af" className="mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-text-primary mb-1">Cotización no encontrada</h3>
-          <Link href="/cotizaciones" className="text-sm text-action-primary hover:underline">
-            Volver al listado
-          </Link>
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
+        <PageHeader title="Cotización" />
+        <div className="rounded-surface border border-line bg-surface-elevated">
+          <EmptyState
+            title="Cotización no encontrada"
+            body="Puede que se haya eliminado o que el folio no exista."
+            action={
+              <Link href="/cotizaciones" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline">
+                Volver al listado
+              </Link>
+            }
+          />
         </div>
       </main>
     );
@@ -219,28 +223,25 @@ function QuoteDetailContent() {
   };
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
       <div className="max-w-5xl mx-auto">
-        <Link
-          href="/cotizaciones"
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary mb-4 transition-colors"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
-          Cotizaciones
-        </Link>
-
-        {/* ── Encabezado + acciones ─────────────────────────────────────── */}
-        <div className="bg-white border border-border-subtle rounded-lg p-6 mb-4">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-xl font-bold text-text-primary">{quote.folio}</h1>
-                <QuoteStatusBadge status={quote.status} />
-              </div>
-              <p className="text-sm text-text-secondary">
+        <PageHeader
+          title={quote.folio}
+          subtitle={
+            <span className="mt-1 flex flex-wrap items-center gap-2">
+              <QuoteStatusBadge status={quote.status} />
+              <span>
                 {quote.clientName}
                 {quote.clientCompany ? ` · ${quote.clientCompany}` : ""}
-              </p>
+              </span>
+            </span>
+          }
+        />
+
+        {/* ── Resumen + acciones ─────────────────────────────────────── */}
+        <div className="bg-surface-elevated border border-line rounded-surface p-5 sm:p-6 mb-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
               {senderName && (
                 <p className="text-xs text-text-secondary mt-0.5">
                   Remitente: <span className="font-medium text-text-primary">{senderName}</span>
@@ -263,11 +264,11 @@ function QuoteDetailContent() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 mt-5 pt-4 border-t border-border-subtle">
+          <div className="flex flex-wrap items-center gap-1.5 mt-5 pt-4 border-t border-line">
             {canEdit && (
               <Link
                 href={`/cotizaciones/nueva?edit=${quote.id}`}
-                className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
+                className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
               >
                 <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
                 Editar
@@ -277,7 +278,7 @@ function QuoteDetailContent() {
               <button
                 onClick={handleSend}
                 disabled={actionLoading === "send"}
-                className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
+                className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
               >
                 <HugeiconsIcon icon={SentIcon} size={15} />
                 {actionLoading === "send" ? "Enviando…" : quote.status === "BORRADOR" ? "Enviar al cliente" : "Reenviar"}
@@ -286,7 +287,7 @@ function QuoteDetailContent() {
             <QuotePdfButton quote={quote} sender={pdfSender} />
             <button
               onClick={handleCopyLink}
-              className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
+              className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors"
             >
               <HugeiconsIcon icon={Link01Icon} size={15} />
               Copiar link público
@@ -297,7 +298,7 @@ function QuoteDetailContent() {
                   <button
                     onClick={handleStripe}
                     disabled={actionLoading === "stripe"}
-                    className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
+                    className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
                   >
                     <HugeiconsIcon icon={DollarCircleIcon} size={15} />
                     {actionLoading === "stripe" ? "Generando…" : "Generar links Stripe"}
@@ -309,7 +310,7 @@ function QuoteDetailContent() {
                 href={quote.stripePaymentLinkUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-violet-700 rounded-lg hover:bg-violet-50 transition-colors"
+                className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-violet-700 rounded-lg hover:bg-violet-50 transition-colors"
               >
                 <HugeiconsIcon icon={DollarCircleIcon} size={15} color="#7c3aed" />
                 Link de Stripe
@@ -319,7 +320,7 @@ function QuoteDetailContent() {
                 <button
                   onClick={handleStripe}
                   disabled={actionLoading === "stripe"}
-                  className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
+                  className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
                 >
                   <HugeiconsIcon icon={DollarCircleIcon} size={15} />
                   {actionLoading === "stripe" ? "Generando…" : "Generar link Stripe"}
@@ -330,7 +331,7 @@ function QuoteDetailContent() {
               <button
                 onClick={handleMarkPaid}
                 disabled={actionLoading === "pago"}
-                className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-green-700 rounded-control hover:bg-green-800 transition-colors disabled:opacity-50 lg:min-h-9"
               >
                 <HugeiconsIcon icon={CheckmarkCircle01Icon} size={15} color="white" />
                 Registrar pago
@@ -339,7 +340,7 @@ function QuoteDetailContent() {
             <button
               onClick={handleDelete}
               disabled={actionLoading === "delete"}
-              className="ml-auto flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="crm-press ml-auto flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium text-danger rounded-control hover:bg-danger-soft transition-colors disabled:opacity-50 lg:min-h-9"
             >
               <HugeiconsIcon icon={Delete01Icon} size={15} color="#ef4444" />
               Eliminar
@@ -349,8 +350,8 @@ function QuoteDetailContent() {
 
         {/* ── Cobro en parcialidades ────────────────────────────────────── */}
         {quote.splitPayment && splitInfo && (
-          <div className="bg-white border border-border-subtle rounded-lg p-6 mb-4">
-            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-4">
+          <div className="bg-surface-elevated border border-line rounded-lg p-6 mb-4">
+            <p className="text-xs font-semibold text-text-secondary mb-4">
               Cobro en dos pagos
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -370,7 +371,7 @@ function QuoteDetailContent() {
               ]).map((part) => (
                 <div
                   key={part.label}
-                  className="border border-border-subtle rounded-lg p-4 flex flex-col gap-2"
+                  className="border border-line rounded-lg p-4 flex flex-col gap-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-semibold text-text-primary">{part.label}</p>
@@ -394,14 +395,14 @@ function QuoteDetailContent() {
                         href={part.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1.5 text-sm font-medium text-violet-700 hover:underline"
+                        className="flex min-h-11 items-center gap-1.5 text-sm font-medium text-violet-700 hover:underline lg:min-h-0"
                       >
                         <HugeiconsIcon icon={DollarCircleIcon} size={14} color="#7c3aed" />
                         Abrir link de pago
                       </a>
                       <button
                         onClick={() => handleCopyPaymentLink(part.url!, part.label)}
-                        className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
+                        className="flex min-h-11 items-center gap-1.5 px-2 text-sm text-text-secondary hover:text-text-primary transition-colors lg:min-h-0"
                       >
                         <HugeiconsIcon icon={Link01Icon} size={13} />
                         Copiar
@@ -421,18 +422,18 @@ function QuoteDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 items-start">
           {/* ── Ítems y condiciones ─────────────────────────────────────── */}
           <div className="flex flex-col gap-4">
-            <div className="crm-table-scroll bg-white border border-border-subtle rounded-lg">
+            <div className="crm-table-scroll bg-surface-elevated border border-line rounded-lg">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-border-subtle bg-surface-sidebar/60">
-                    <th className="px-5 py-3 text-[10px] font-semibold text-text-secondary uppercase tracking-widest">Descripción</th>
-                    <th className="px-5 py-3 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-center">Cant.</th>
-                    <th className="px-5 py-3 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">P. unit.</th>
-                    <th className="px-5 py-3 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">Desc.</th>
-                    <th className="px-5 py-3 text-[10px] font-semibold text-text-secondary uppercase tracking-widest text-right">Total</th>
+                  <tr className="border-b border-line bg-surface-sidebar/60">
+                    <th className="px-5 py-3 text-xs font-semibold text-text-secondary">Descripción</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-text-secondary text-center">Cant.</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-text-secondary text-right">P. unit.</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-text-secondary text-right">Desc.</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-text-secondary text-right">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-line">
                   {quote.items.map((it: any) => (
                     <tr key={it.id}>
                       <td className="px-5 py-3.5 text-text-primary">{it.description}</td>
@@ -444,7 +445,7 @@ function QuoteDetailContent() {
                   ))}
                 </tbody>
               </table>
-              <div className="px-5 py-4 border-t border-border-subtle flex flex-col items-end gap-1 text-sm">
+              <div className="px-5 py-4 border-t border-line flex flex-col items-end gap-1 text-sm">
                 <p className="text-text-secondary">Subtotal: <span className="font-medium text-text-primary">{formatQuoteMoney(quote.subtotal, quote.currency)}</span></p>
                 <p className="text-text-secondary">Impuestos ({quote.taxRate}%): <span className="font-medium text-text-primary">{formatQuoteMoney(quote.taxAmount, quote.currency)}</span></p>
                 <p className="text-base font-bold text-text-primary pt-1">Total: {formatQuoteMoney(quote.total, quote.currency)}</p>
@@ -452,16 +453,16 @@ function QuoteDetailContent() {
             </div>
 
             {(quote.notes || quote.terms) && (
-              <div className="bg-white border border-border-subtle rounded-lg p-5 flex flex-col gap-4">
+              <div className="bg-surface-elevated border border-line rounded-lg p-5 flex flex-col gap-4">
                 {quote.notes && (
                   <div>
-                    <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-1.5">Notas</p>
+                    <p className="text-xs font-semibold text-text-secondary mb-1.5">Notas</p>
                     <p className="text-sm text-text-primary whitespace-pre-wrap">{quote.notes}</p>
                   </div>
                 )}
                 {quote.terms && (
                   <div>
-                    <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-1.5">Términos y condiciones</p>
+                    <p className="text-xs font-semibold text-text-secondary mb-1.5">Términos y condiciones</p>
                     <p className="text-sm text-text-primary whitespace-pre-wrap">{quote.terms}</p>
                   </div>
                 )}
@@ -469,8 +470,8 @@ function QuoteDetailContent() {
             )}
 
             {/* Datos del cliente */}
-            <div className="bg-white border border-border-subtle rounded-lg p-5">
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">Cliente</p>
+            <div className="bg-surface-elevated border border-line rounded-lg p-5">
+              <p className="text-xs font-semibold text-text-secondary mb-2">Cliente</p>
               <p className="text-sm font-semibold text-text-primary">{quote.clientName}</p>
               {quote.clientCompany && <p className="text-sm text-text-secondary">{quote.clientCompany}</p>}
               {quote.clientEmail && <p className="text-sm text-text-secondary">{quote.clientEmail}</p>}
@@ -485,8 +486,8 @@ function QuoteDetailContent() {
           </div>
 
           {/* ── Historial ───────────────────────────────────────────────── */}
-          <div className="bg-white border border-border-subtle rounded-lg p-5">
-            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-4">
+          <div className="bg-surface-elevated border border-line rounded-lg p-5">
+            <p className="text-xs font-semibold text-text-secondary mb-4">
               Historial
             </p>
             {quote.events.length === 0 ? (
@@ -498,10 +499,10 @@ function QuoteDetailContent() {
                     <div className="flex flex-col items-center">
                       <span
                         className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${
-                          ev.actor === "cliente" ? "bg-blue-500" : "bg-gray-300"
+                          ev.actor === "cliente" ? "bg-blue-500" : "bg-nav-active"
                         }`}
                       />
-                      {i < quote.events.length - 1 && <span className="flex-1 w-px bg-gray-100" />}
+                      {i < quote.events.length - 1 && <span className="flex-1 w-px bg-surface-sidebar" />}
                     </div>
                     <div className="pb-5 min-w-0">
                       <p className="text-xs font-semibold text-text-primary">
@@ -510,7 +511,7 @@ function QuoteDetailContent() {
                       {ev.description && (
                         <p className="text-xs text-text-secondary mt-0.5 break-words">{ev.description}</p>
                       )}
-                      <p className="text-[10px] text-gray-300 mt-1">
+                      <p className="text-xs text-text-secondary mt-1">
                         {new Date(ev.createdAt).toLocaleString("es-MX", {
                           day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
                         })}

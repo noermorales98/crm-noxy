@@ -10,11 +10,6 @@ export type KbEditorHandle = {
   replaceSelection: (text: string) => void;
 };
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
-  List, ListOrdered, ListChecks, Quote, Code, FileCode2,
-  Link2, Image, Table, Minus, Hash,
-} from "lucide-react";
 import KbRelationsInline, { type KbRelation } from "@/src/components/kb/KbRelationsInline";
 import KbEditorNavbar, { type KbBreadcrumb } from "@/src/components/kb/KbEditorNavbar";
 import KbIconPicker from "@/src/components/kb/KbIconPicker";
@@ -45,6 +40,7 @@ import {
 } from "@/src/lib/kb-draft";
 import { useDocUndoRedo, type DocSnapshot } from "@/src/lib/use-doc-undo-redo";
 import { extractLeadingMarkdownTitle } from "@/src/lib/kb-markdown-title";
+import { CheckListIcon, CodeIcon, HashtagIcon, Heading01Icon, Heading02Icon, Heading03Icon, Image01Icon, LeftToRightListBulletIcon, LeftToRightListNumberIcon, Link01Icon, MinusSignIcon, QuoteDownIcon, SourceCodeIcon, Table01Icon, TextBoldIcon, TextItalicIcon, TextStrikethroughIcon } from "@hugeicons/core-free-icons";
 
 function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) => void; onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -58,10 +54,10 @@ function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) 
   const filtered = searchHugeIcons(q, 48, 0);
 
   return (
-    <div ref={ref} className="crm-floating-menu absolute top-full left-0 mt-1 z-50 bg-surface-elevated rounded-lg border border-border-subtle p-3 w-60">
+    <div ref={ref} className="crm-floating-menu absolute top-full left-0 mt-1 z-50 bg-surface-elevated rounded-lg border border-line p-3 w-60">
       <p className="text-xs text-text-secondary mb-2 font-medium">Insertar ícono HugeIcon</p>
       <input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar icono..." className="crm-input mb-2 text-xs py-1.5" />
-      <p className="text-[10px] text-text-secondary mb-1.5">Sintaxis: <code className="bg-surface-sidebar px-1 rounded">&#96;icon:Nombre&#96;</code></p>
+      <p className="text-xs text-text-secondary mb-1.5">Sintaxis: <code className="bg-surface-sidebar px-1 rounded">&#96;icon:Nombre&#96;</code></p>
       <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto">
         {filtered.map((name) => {
           const ic = getHugeIconComponent(name);
@@ -69,8 +65,8 @@ function MarkdownIconPicker({ onInsert, onClose }: { onInsert: (syntax: string) 
           return (
             <button key={name} onClick={() => { onInsert(`\`icon:${name}\``); onClose(); }}
               title={name} className="w-9 h-9 flex flex-col items-center justify-center rounded-lg hover:bg-nav-hover transition-colors gap-0.5">
-              <HugeiconsIcon icon={ic as never} size={15} color="#374151" />
-              <span className="text-[8px] text-text-secondary leading-none truncate w-full text-center px-0.5">{name.replace(/\d+$/, "")}</span>
+              <HugeiconsIcon icon={ic as never} size={15} />
+              <span className="text-xs text-text-secondary leading-none truncate w-full text-center px-0.5">{name.replace(/\d+$/, "")}</span>
             </button>
           );
         })}
@@ -846,7 +842,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
         <>
         <div className="pt-8 pb-0" style={contentPad}>
         <div className="relative inline-block mb-3">
-          <button onClick={() => setShowIconPicker(v => !v)} className="hover:opacity-80 transition-opacity" title="Cambiar icono y colores">
+          <button onClick={() => setShowIconPicker(v => !v)} className="flex size-11 items-center justify-center rounded-control hover:opacity-80 transition-opacity" title="Cambiar icono y colores" aria-label="Cambiar icono y colores">
             <PageIcon
               emoji={emoji}
               iconColor={iconColor}
@@ -873,6 +869,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Sin título"
+          aria-label="Título de la página"
           className="w-full text-4xl font-semibold tracking-tight bg-transparent border-none outline-none placeholder:opacity-40 leading-tight mb-3"
           style={{ color: pageText ?? undefined }}
           onKeyDown={e => {
@@ -899,26 +896,26 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
           {mode !== "preview" && (
             <div className="py-1.5 border-b" style={{ ...contentPad, borderColor: pageBorder ?? undefined }}>
               <div className="flex items-center gap-0.5 flex-wrap">
-                {toolBtn(<Heading1 size={13} />, "H1", () => fmt(undefined, "# "))}
-                {toolBtn(<Heading2 size={13} />, "H2", () => fmt(undefined, "## "))}
-                {toolBtn(<Heading3 size={13} />, "H3", () => fmt(undefined, "### "))}
+                {toolBtn(<HugeiconsIcon icon={Heading01Icon} size={13} />, "H1", () => fmt(undefined, "# "))}
+                {toolBtn(<HugeiconsIcon icon={Heading02Icon} size={13} />, "H2", () => fmt(undefined, "## "))}
+                {toolBtn(<HugeiconsIcon icon={Heading03Icon} size={13} />, "H3", () => fmt(undefined, "### "))}
                 <div className="w-px h-4 bg-nav-active mx-1" />
-                {toolBtn(<Bold size={13} />, "Negrita Ctrl+B", () => fmt({ before: "**" }))}
-                {toolBtn(<Italic size={13} />, "Cursiva Ctrl+I", () => fmt({ before: "*" }))}
-                {toolBtn(<Strikethrough size={13} />, "Tachado", () => fmt({ before: "~~" }))}
+                {toolBtn(<HugeiconsIcon icon={TextBoldIcon} size={13} />, "Negrita Ctrl+B", () => fmt({ before: "**" }))}
+                {toolBtn(<HugeiconsIcon icon={TextItalicIcon} size={13} />, "Cursiva Ctrl+I", () => fmt({ before: "*" }))}
+                {toolBtn(<HugeiconsIcon icon={TextStrikethroughIcon} size={13} />, "Tachado", () => fmt({ before: "~~" }))}
                 <div className="w-px h-4 bg-nav-active mx-1" />
-                {toolBtn(<Code size={13} />, "Código inline", () => fmt({ before: "`" }))}
-                {toolBtn(<FileCode2 size={13} />, "Bloque código", () => fmt(undefined, undefined, "```\n\n```"))}
-                {toolBtn(<Quote size={13} />, "Cita", () => fmt(undefined, "> "))}
+                {toolBtn(<HugeiconsIcon icon={CodeIcon} size={13} />, "Código inline", () => fmt({ before: "`" }))}
+                {toolBtn(<HugeiconsIcon icon={SourceCodeIcon} size={13} />, "Bloque código", () => fmt(undefined, undefined, "```\n\n```"))}
+                {toolBtn(<HugeiconsIcon icon={QuoteDownIcon} size={13} />, "Cita", () => fmt(undefined, "> "))}
                 <div className="w-px h-4 bg-nav-active mx-1" />
-                {toolBtn(<List size={13} />, "Lista", () => fmt(undefined, "- "))}
-                {toolBtn(<ListOrdered size={13} />, "Lista numerada", () => fmt(undefined, "1. "))}
-                {toolBtn(<ListChecks size={13} />, "Lista de tareas", () => fmt(undefined, "- [ ] "))}
+                {toolBtn(<HugeiconsIcon icon={LeftToRightListBulletIcon} size={13} />, "Lista", () => fmt(undefined, "- "))}
+                {toolBtn(<HugeiconsIcon icon={LeftToRightListNumberIcon} size={13} />, "Lista numerada", () => fmt(undefined, "1. "))}
+                {toolBtn(<HugeiconsIcon icon={CheckListIcon} size={13} />, "Lista de tareas", () => fmt(undefined, "- [ ] "))}
                 <div className="w-px h-4 bg-nav-active mx-1" />
-                {toolBtn(<Link2 size={13} />, "Enlace Ctrl+K", () => fmt({ before: "[", after: "](url)" }))}
-                {toolBtn(<Image size={13} />, "Imagen", () => fmt({ before: "![alt](", after: ")" }))}
-                {toolBtn(<Table size={13} />, "Tabla", () => fmt(undefined, undefined, "| Col 1 | Col 2 | Col 3 |\n|-------|-------|-------|\n| A     | B     | C     |"))}
-                {toolBtn(<Minus size={13} />, "Separador", () => fmt(undefined, undefined, "---"))}
+                {toolBtn(<HugeiconsIcon icon={Link01Icon} size={13} />, "Enlace Ctrl+K", () => fmt({ before: "[", after: "](url)" }))}
+                {toolBtn(<HugeiconsIcon icon={Image01Icon} size={13} />, "Imagen", () => fmt({ before: "![alt](", after: ")" }))}
+                {toolBtn(<HugeiconsIcon icon={Table01Icon} size={13} />, "Tabla", () => fmt(undefined, undefined, "| Col 1 | Col 2 | Col 3 |\n|-------|-------|-------|\n| A     | B     | C     |"))}
+                {toolBtn(<HugeiconsIcon icon={MinusSignIcon} size={13} />, "Separador", () => fmt(undefined, undefined, "---"))}
                 <div className="w-px h-4 bg-nav-active mx-1" />
                 {/* Icon insert button */}
                 <div className="relative">
@@ -928,7 +925,7 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
                     onClick={() => setShowMdIconPicker(v => !v)}
                     className="w-7 h-7 flex items-center justify-center rounded-lg text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
                   >
-                    <Hash size={13} />
+                    <HugeiconsIcon icon={HashtagIcon} size={13} />
                   </button>
                   {showMdIconPicker && (
                     <MarkdownIconPicker

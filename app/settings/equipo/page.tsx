@@ -11,6 +11,8 @@ import {
   type RoleName,
 } from "@/src/lib/permissions";
 import { parseSexo, type Sexo } from "@/src/lib/user-sexo";
+import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader } from "@/src/components/ui";
 
 type MemberRow = {
   id: string;
@@ -37,6 +39,13 @@ function emptyPermissions(role: RoleName): ModulePermissions {
 }
 
 export default function EquipoPage() {
+  const { setConfig, resetState } = useHeader();
+  useEffect(() => {
+    resetState();
+    setConfig({ title: "Equipo", pageHeader: true });
+    return () => setConfig({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { data: session } = useSession();
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,12 +201,7 @@ export default function EquipoPage() {
 
   return (
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary tracking-tight">Equipo</h1>
-        <p className="text-sm text-text-secondary mt-1">
-          Tú agregas a las personas. El CRM no acepta registros públicos.
-        </p>
-      </div>
+      <PageHeader title="Equipo" subtitle="Tú agregas a las personas. El CRM no acepta registros públicos." />
 
       {error && (
         <div role="alert" className="mb-4 bg-red-50 text-red-600 p-3 rounded-control text-sm font-medium max-w-4xl">
@@ -210,7 +214,7 @@ export default function EquipoPage() {
         </div>
       )}
 
-      <div className="bg-surface-elevated rounded-surface border border-border-subtle p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
+      <div className="bg-surface-elevated rounded-surface border border-line p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
         <form onSubmit={createMember} className="flex flex-col gap-5">
           <div>
             <h2 className="text-lg font-bold text-text-primary mb-1">Agregar usuario</h2>
@@ -265,7 +269,7 @@ export default function EquipoPage() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {permissionChecks.map((mod) => (
-                <label key={mod.key} className={`flex items-start gap-3 rounded-control border border-border-subtle px-3 py-2.5 ${form.role === "ADMIN" ? "opacity-70" : ""}`}>
+                <label key={mod.key} data-check-ignore-tap className={`flex min-h-11 items-start gap-3 rounded-control border border-line px-3 py-2.5 ${form.role === "ADMIN" ? "opacity-70" : ""}`}>
                   <input
                     type="checkbox"
                     className="mt-1"
@@ -282,12 +286,12 @@ export default function EquipoPage() {
             </div>
           </div>
 
-          <button type="submit" disabled={saving} className={`${btnPrimary} self-start px-5`}>
+          <button type="submit" disabled={saving} className={`min-h-11 lg:min-h-10 ${btnPrimary} self-start px-5`}>
             {saving ? "Creando…" : "Agregar al equipo"}
           </button>
         </form>
 
-        <hr className="border-border-subtle" />
+        <hr className="border-line" />
 
         <div>
           <h2 className="text-lg font-bold text-text-primary mb-4">Personas</h2>
@@ -303,7 +307,7 @@ export default function EquipoPage() {
                 const isSelf = member.user.id === currentUserId;
 
                 return (
-                  <div key={member.id} className="rounded-surface border border-border-subtle p-4">
+                  <div key={member.id} className="rounded-surface border border-line p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                       <div>
                         <p className="text-sm font-semibold text-text-primary">{member.user.name || "Sin nombre"}</p>
@@ -375,7 +379,7 @@ export default function EquipoPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                           {permissionChecks.map((mod) => (
-                            <label key={mod.key} className={`flex items-center gap-2 text-sm text-text-primary ${role === "ADMIN" ? "opacity-70" : ""}`}>
+                            <label key={mod.key} data-check-ignore-tap className={`flex min-h-11 items-center gap-2 text-sm text-text-primary ${role === "ADMIN" ? "opacity-70" : ""}`}>
                               <input
                                 type="checkbox"
                                 checked={perms[mod.key]}

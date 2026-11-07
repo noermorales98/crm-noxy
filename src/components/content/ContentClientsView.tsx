@@ -69,7 +69,7 @@ function ClientModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
       <div className="absolute inset-0 bg-brand-obsidian/35" />
       <div
-        className="relative w-full sm:max-w-lg rounded-t-surface sm:rounded-surface border border-border-subtle bg-white p-6 max-h-[92vh] overflow-y-auto"
+        className="relative w-full sm:max-w-lg rounded-t-surface sm:rounded-surface border border-line bg-surface-elevated p-6 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold text-text-primary mb-4">
@@ -96,7 +96,7 @@ function ClientModal({
                   className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
                     kind === opt.v
                       ? "border-action-primary bg-nav-active text-action-primary font-semibold"
-                      : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"
+                      : "border-line text-text-secondary hover:bg-surface-sidebar"
                   }`}
                 >
                   {opt.label}
@@ -126,7 +126,7 @@ function ClientModal({
               })}
             </div>
             {!initial && !color && (
-              <p className="text-[11px] text-text-secondary mt-1">Si no eliges uno, se asigna el siguiente de la paleta.</p>
+              <p className="text-xs text-text-secondary mt-1">Si no eliges uno, se asigna el siguiente de la paleta.</p>
             )}
           </div>
 
@@ -151,7 +151,7 @@ function ClientModal({
               onChange={(e) => setContext(e.target.value)}
               placeholder={"Ej. Marca personal de una autora mexicana de 50+ años. Publica reflexiones sobre volver a confiar, el amor propio y la esperanza. Audiencia: mujeres 35-60 en Facebook. Tono cálido, cercano, sin tecnicismos. Producto principal: libro \"Volver a Creer\"."}
             />
-            <p className="text-[11px] text-text-secondary mt-1">
+            <p className="text-xs text-text-secondary mt-1">
               La IA usará esta información para proponerte ideas y calendarios de contenido a la medida.
             </p>
           </div>
@@ -214,7 +214,7 @@ export default function ContentClientsView() {
         <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/contenido/general"
-            className="min-h-11 flex items-center gap-2 border border-border-subtle bg-white text-text-primary px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-surface-sidebar transition-colors duration-200 motion-reduce:transition-none"
+            className="min-h-11 flex items-center gap-2 border border-line bg-surface-elevated text-text-primary px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-surface-sidebar transition-colors duration-200 motion-reduce:transition-none"
           >
             <HugeiconsIcon icon={Calendar01Icon} size={15} />
             <span className="hidden sm:inline">Calendario general</span>
@@ -238,7 +238,7 @@ export default function ContentClientsView() {
           ))}
         </div>
       ) : clients.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-border-subtle rounded-surface">
+        <div className="text-center py-16 border border-dashed border-line rounded-surface">
           <div className="w-14 h-14 rounded-surface bg-nav-active flex items-center justify-center mx-auto mb-4">
             <HugeiconsIcon icon={MegaphoneIcon} size={24} color="#3545D6" />
           </div>
@@ -259,7 +259,7 @@ export default function ContentClientsView() {
           {clients.map((c) => (
             <div
               key={c.id}
-              className="group relative bg-white border border-border-subtle rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col"
+              className="group relative bg-surface-elevated border border-line rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col"
             >
               <div className="flex items-start gap-3 mb-3">
                 <span
@@ -324,7 +324,7 @@ export default function ContentClientsView() {
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6" onClick={() => setDeleting(null)}>
           <div className="absolute inset-0 bg-brand-obsidian/35" />
-          <div className="relative bg-white rounded-surface border border-border-subtle p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-surface-elevated rounded-surface border border-line p-6 w-full max-w-xs" onClick={(e) => e.stopPropagation()}>
             <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar &quot;{deleting.name}&quot;?</p>
             <p className="text-xs text-text-secondary mb-5">
               Se eliminarán también su calendario, sus piezas, sus eventos en Google Calendar y sus números de WhatsApp. El enlace público dejará de funcionar.

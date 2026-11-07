@@ -320,7 +320,7 @@ const FILTER_OPTIONS: { id: PublishListFilter; label: string; dot: string | null
 const filterChipClass = (active: boolean) =>
   `inline-flex min-h-11 items-center gap-1.5 rounded-full border-0 px-3 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-[#3545D6]/35 sm:min-h-8 ${
     active
-      ? "bg-white font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]"
+      ? "bg-surface-elevated font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]"
       : "bg-transparent font-medium text-[#6B7184] hover:text-[#0B0B18]"
   }`;
 
@@ -346,7 +346,7 @@ export function CalendarFilterBar({
       <div className="mb-2 shrink-0 sm:hidden">
         <button
           type="button"
-          className="min-h-11 rounded-full bg-white px-4 text-[13px] font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]"
+          className="min-h-11 rounded-full bg-surface-elevated px-4 text-[13px] font-semibold text-[#0B0B18] shadow-[0_1px_3px_rgba(11,11,24,0.12)]"
           aria-expanded={open}
           onClick={() => setOpen(true)}
         >
@@ -747,7 +747,10 @@ export function ContentItemModal({
   onSavePublishStatus,
   advanced,
   showAdvanced = true,
+  crm = false,
 }: {
+  /** Uso dentro del CRM (no en la vista pública): activa los ajustes de tamaño de globals.css. */
+  crm?: boolean;
   item: ContentItemData;
   onClose: () => void;
   actions?: React.ReactNode;
@@ -800,7 +803,7 @@ export function ContentItemModal({
   ) : null;
 
   return (
-    <div className="ncc-overlay" onClick={onClose}>
+    <div className={`ncc-overlay${crm ? " ncc-crm" : ""}`} onClick={onClose}>
       <div className="ncc-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ncc-modal-head">
           {(onEdit || onDelete) && (

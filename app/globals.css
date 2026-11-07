@@ -28,12 +28,24 @@
   --color-action-secondary: #5363EE;
   --color-focus: #3545D6;
   --color-highlight: #C8FE37;
-  --radius-control: 12px;
-  --radius-surface: 20px;
+  /* Estado (semánticos: ningún tema personal los redefine). */
+  --color-danger: #B42318;
+  --color-danger-soft: #FDECEA;
+  --color-success: #067647;
+  --color-success-soft: #E7F6EE;
+  --radius-control: 10px;
+  --radius-surface: 12px;
   --radius-ui: 12px;
   --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-2xl: 20px;
+  --radius-xl: 16px;
+  --radius-2xl: 16px;
+}
+
+/* Línea del lenguaje «marco claro»: el mismo color que border-subtle (y sigue al tema personal),
+   con otro nombre para que las reglas heredadas de [data-crm-theme] (bordes transparentes, fondo
+   Lavanda en enlaces y botones, radio forzado) no se apliquen a las piezas nuevas. */
+@theme inline {
+  --color-line: var(--color-border-subtle);
 }
 
 :root {
@@ -61,11 +73,21 @@
   --action-secondary: #5363EE;
   --focus: #3545D6;
   --highlight: #C8FE37;
-  --radius-control: 12px;
-  --radius-surface: 20px;
+  /* Tinta del destino activo del marco (navActiveInk del tema; Índigo por defecto). */
+  --nav-active-ink: #3545D6;
+  --danger: #B42318;
+  --danger-soft: #FDECEA;
+  --success: #067647;
+  --success-soft: #E7F6EE;
+  --radius-control: 10px;
+  --radius-surface: 12px;
   --radius-ui: 12px;
   --duration-state: 180ms;
   --ease-state: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Movimiento expresivo (DESIGN.md · Motion): entrada escalonada < 500 ms en total (índices 0-5). */
+  --duration-enter: 280ms;
+  --stagger: 40ms;
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -87,32 +109,6 @@ body {
 }
 
 @layer components {
-  /* Liquid Glass — chrome only (nav / toolbars / floating controls) */
-  .crm-glass {
-    background-color: rgb(255 255 255 / 0.72);
-    border: 1px solid rgb(11 11 24 / 0.06);
-    box-shadow: none;
-    -webkit-backdrop-filter: blur(32px) saturate(1.35);
-    backdrop-filter: blur(32px) saturate(1.35);
-  }
-
-  /* Floating mobile tab pill — white glass over transparent chrome */
-  .crm-glass-pill {
-    background-color: rgb(255 255 255 / 0.78);
-    border: 1px solid rgb(255 255 255 / 0.55);
-    box-shadow: 0 8px 32px rgba(11, 11, 24, 0.12);
-    -webkit-backdrop-filter: blur(36px) saturate(1.45);
-    backdrop-filter: blur(36px) saturate(1.45);
-  }
-
-  .crm-glass-clear {
-    background-color: rgb(255 255 255 / 0.45);
-    border: 1px solid rgb(11 11 24 / 0.06);
-    box-shadow: none;
-    -webkit-backdrop-filter: blur(28px) saturate(1.3);
-    backdrop-filter: blur(28px) saturate(1.3);
-  }
-
   .crm-safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }
@@ -144,19 +140,11 @@ body {
   }
 
   @media (max-width: 1023px) {
-    .crm-header-chrome {
-      background-color: rgb(255 255 255 / 0.72);
-      border-bottom: 1px solid rgb(11 11 24 / 0.06);
-      -webkit-backdrop-filter: blur(32px) saturate(1.35);
-      backdrop-filter: blur(32px) saturate(1.35);
-    }
-
-    /* Solid chrome for docs + AI — avoids frosted blur artifacts on those surfaces */
+    /* Chrome móvil sólido (marco claro): sin vidrio. */
+    .crm-header-chrome,
     .crm-header-chrome-solid {
-      background-color: var(--surface-app, #F5F6FB);
-      border-bottom: 1px solid rgb(11 11 24 / 0.06);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
+      background-color: var(--surface-sidebar, #EBEDFA);
+      border-bottom: 1px solid var(--border-subtle, #DCDFE6);
     }
   }
 
@@ -167,10 +155,8 @@ body {
 
     .crm-header-chrome,
     .crm-header-chrome-solid {
-      background-color: var(--surface-app);
+      background-color: var(--surface-sidebar);
       border-bottom: none;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
     }
   }
 
@@ -230,7 +216,7 @@ body {
 
 .crm-dropdown,
 .crm-floating-menu {
-  box-shadow: 0 10px 28px rgba(11, 11, 24, 0.12), 0 2px 6px rgba(11, 11, 24, 0.06);
+  box-shadow: 0 8px 8px rgba(11, 11, 24, 0.10);
 }
 
 /* Private CRM surfaces keep their geometry while neutral outlines lose their color. */
@@ -277,6 +263,47 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #6B7184;
+}
+
+/* Movimiento expresivo: solo transform/opacity y solo sin preferencia de movimiento reducido.
+   .crm-enter anima una vez al montar (índice en --i); .crm-lift y .crm-press dan respuesta física. */
+@keyframes crm-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    /* backwards: invisible durante el retraso y, al terminar, el elemento vuelve a sus propios
+       estilos (no deja transform:none fijado, que anularía el hover/press). */
+    .crm-enter {
+      animation: crm-enter var(--duration-enter) var(--ease-enter) backwards;
+      animation-delay: calc(min(var(--i, 0), 5) * var(--stagger));
+    }
+
+    /* Una sola lista de propiedades para lift y press: combinarlas no pierde transiciones.
+       En @layer components, las utilidades de Tailwind (capa posterior) pueden sobrescribirlas. */
+    .crm-lift,
+    .crm-press {
+      transition-property: transform, border-color, background-color, color;
+      transition-duration: var(--duration-state);
+      transition-timing-function: var(--ease-state);
+    }
+
+    .crm-lift:hover {
+      transform: translateY(-1px);
+    }
+
+    .crm-press:active {
+      transform: translateY(1px);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -636,4 +663,68 @@ body {
   border-color: color-mix(in srgb, var(--comment-accent, #f59e0b) 65%, #d1d5db) !important;
   background: color-mix(in srgb, var(--comment-accent, #f59e0b) 8%, white) !important;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--comment-accent, #f59e0b) 20%, transparent);
+}
+
+/* Calendario de contenido dentro del shell privado: suelo de 12 px.
+   Las reglas `.ncc-*` viven en ContentCalendar.tsx y las comparte la vista pública /calendario,
+   que no cambia; `[data-crm-sheet]` solo existe en el shell privado. */
+[data-crm-sheet] .ncc-weekdays div,
+[data-crm-sheet] .ncc-daynum,
+[data-crm-sheet] .ncc-hoy-word,
+[data-crm-sheet] .ncc-event-time,
+[data-crm-sheet] .ncc-event-title,
+[data-crm-sheet] .ncc-status-capsule,
+[data-crm-sheet] .ncc-add-day,
+[data-crm-sheet] .ncc-note-when,
+[data-crm-sheet] .ncc-kind-badge,
+[data-crm-sheet] .ncc-block h3,
+[data-crm-sheet] .ncc-fill .ncc-daynum,
+[data-crm-sheet] .ncc-fill .ncc-event-title {
+  font-size: 12px;
+}
+[data-crm-sheet] .ncc-fill .ncc-daynum {
+  width: 20px;
+  height: 20px;
+}
+[data-crm-sheet] .ncc-weekdays div,
+[data-crm-sheet] .ncc-kind-badge,
+[data-crm-sheet] .ncc-block h3 {
+  text-transform: none;
+  letter-spacing: 0;
+}
+@media (max-width: 1023px) {
+  [data-crm-sheet] .ncc-close-btn,
+  [data-crm-sheet] .ncc-more-btn,
+  [data-crm-sheet] .ncc-note-more {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Modal de detalle del calendario dentro del CRM (se pinta en un portal, fuera de [data-crm-sheet]):
+   la vista pública no pasa `crm` y no cambia. */
+.ncc-crm h3 {
+  font-size: 12px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+.ncc-crm .ncc-kind-badge {
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+@media (max-width: 1023px) {
+  .ncc-crm .ncc-close-btn,
+  .ncc-crm .ncc-more-btn,
+  .ncc-crm .ncc-note-more {
+    width: 44px;
+    height: 44px;
+  }
+  .ncc-crm button {
+    min-height: 44px;
+  }
+  .ncc-crm .ncc-modal input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
 }

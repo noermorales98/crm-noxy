@@ -16,7 +16,7 @@ export default function SocialRow({
     SOCIAL_PLATFORMS[SOCIAL_PLATFORMS.length - 1];
 
   return (
-    <div className="group/social flex items-center gap-3 bg-white border border-border-subtle rounded-lg px-4 py-3 hover:border-border-subtle transition-colors">
+    <div className="group/social flex items-center gap-3 bg-surface-elevated border border-line rounded-lg px-4 py-3 hover:border-line transition-colors">
       <div className={`shrink-0 ${platform.color}`}>
         <HugeiconsIcon icon={platform.icon} size={18} />
       </div>
@@ -26,16 +26,18 @@ export default function SocialRow({
           href={entry.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-blue-500 hover:underline truncate block"
+          className="block truncate text-sm leading-[44px] text-blue-600 hover:underline lg:leading-normal"
         >
           {entry.url}
         </a>
       </div>
       <button
+        type="button"
         onClick={() => onDelete(entry.id)}
-        className="opacity-0 group-hover/social:opacity-100 p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+        aria-label="Eliminar enlace"
+        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-all hover:bg-danger-soft hover:text-danger lg:size-8 lg:opacity-0 lg:group-hover/social:opacity-100 lg:focus-visible:opacity-100"
       >
-        <HugeiconsIcon icon={Delete02Icon} size={13} />
+        <HugeiconsIcon icon={Delete02Icon} size={16} />
       </button>
     </div>
   );

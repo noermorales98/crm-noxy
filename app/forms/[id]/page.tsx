@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, SaveIcon, Add01Icon, HandGripIcon, Delete01Icon, Settings02Icon, Layout01Icon, Copy01Icon, LinkSquare02Icon, CheckmarkCircle01Icon, GitBranchIcon, LinkSquare01Icon, PencilEdit01Icon, ToggleOffIcon, ToggleOnIcon, UserMultipleIcon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon, SaveIcon, Add01Icon, HandGripIcon, Delete01Icon, Settings02Icon, Layout01Icon, Copy01Icon, LinkSquare02Icon, CheckmarkCircle01Icon, GitBranchIcon, LinkSquare01Icon, PencilEdit01Icon, ToggleOffIcon, ToggleOnIcon, UserMultipleIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
+import { useHeader } from "@/src/context/HeaderContext";
+import { useDialog } from "@/src/components/ui";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 import FormWhatsAppRecipients from "@/src/components/FormWhatsAppRecipients";
@@ -45,20 +47,20 @@ function ColorSetting({
   const pickerValue = hexRe.test(value) ? (value.length === 4 ? `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}` : value) : fallback;
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">{label}</label>
+      <label className="text-xs font-bold text-text-secondary">{label}</label>
       <div className="flex items-center gap-2">
         <input
           type="color"
           value={pickerValue}
           onChange={e => onChange(e.target.value)}
-          className="w-10 h-10 rounded-lg border border-border-subtle bg-surface-sidebar cursor-pointer p-1"
+          className="size-11 shrink-0 rounded-control border border-line bg-surface-sidebar cursor-pointer p-1"
         />
         <input
           type="text"
           value={value}
           onChange={e => onChange(e.target.value.trim())}
           placeholder={fallback}
-          className={`w-28 px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm font-mono focus:outline-none focus:ring-1 focus:ring-border-subtle ${value && !hexRe.test(value) ? "border-red-300 text-red-600" : ""}`}
+          className={`w-28 min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm font-mono focus:outline-none focus:ring-1 focus:ring-focus/40 ${value && !hexRe.test(value) ? "border-red-300 text-red-600" : ""}`}
         />
         {value && (
           <button
@@ -111,7 +113,7 @@ function FieldPreview({ field }: { field: any }) {
         <div className="flex flex-col gap-1">
           {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
             <label key={i} className="flex min-h-8 items-center gap-2 text-xs text-text-secondary pointer-events-none">
-              <div className="w-5 h-5 rounded-full border-2 border-border-subtle shrink-0" />
+              <div className="w-5 h-5 rounded-full border-2 border-line shrink-0" />
               {opt}
             </label>
           ))}
@@ -121,7 +123,7 @@ function FieldPreview({ field }: { field: any }) {
         <div className="flex flex-col gap-1">
           {(opts.length ? opts : ["Opción 1"]).map((opt: string, i: number) => (
             <label key={i} className="flex min-h-8 items-center gap-2 text-xs text-text-secondary pointer-events-none">
-              <div className="w-5 h-5 rounded-control border-2 border-border-subtle shrink-0" />
+              <div className="w-5 h-5 rounded-control border-2 border-line shrink-0" />
               {opt}
             </label>
           ))}
@@ -133,6 +135,7 @@ function FieldPreview({ field }: { field: any }) {
 
 export default function FormBuilderPage() {
   const { addToast } = useToast();
+  const { setConfig, resetState } = useHeader();
   const { id } = useParams() as { id: string };
   const router = useRouter();
 
@@ -142,6 +145,17 @@ export default function FormBuilderPage() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    resetState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // La barra superior muestra el nombre y vuelve a la lista; el h1 vive en la barra del constructor.
+  useEffect(() => {
+    setConfig({ title: name || "Formulario", backHref: "/forms", pageHeader: true });
+    return () => setConfig({});
+  }, [name, setConfig]);
   const [isActive, setIsActive] = useState(true);
   const [successAction, setSuccessAction] = useState("MESSAGE");
   const [successMessage, setSuccessMessage] = useState("Thank you for your submission!");
@@ -160,6 +174,8 @@ export default function FormBuilderPage() {
   const [variants, setVariants] = useState<any[]>([]);
   const [isLoadingVariants, setIsLoadingVariants] = useState(false);
   const [isVariantModalOpen, setIsVariantModalOpen] = useState(false);
+  const variantDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(variantDialogRef, isVariantModalOpen, () => setIsVariantModalOpen(false));
   const [editingVariant, setEditingVariant] = useState<any>(null);
   const [variantName, setVariantName] = useState("");
   const [variantDescription, setVariantDescription] = useState("");
@@ -350,16 +366,13 @@ export default function FormBuilderPage() {
     <>
       <main className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background font-sans">
           {/* Top Bar */}
-          <div className="border-b border-border-subtle bg-white px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
-            <Link href="/forms" aria-label="Volver a formularios" className="p-1.5 text-text-secondary hover:bg-nav-hover rounded-control">
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
-            </Link>
-
-            <div className="hidden xl:block flex-1 min-w-0">
+          <div className="border-b border-line bg-surface-elevated px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3 sm:gap-4 shrink-0">
+            {/* En móvil la barra superior ya muestra el nombre: aquí queda solo para lectores de pantalla. */}
+            <div className="sr-only min-w-0 flex-1 lg:not-sr-only">
               <div className="flex items-center gap-2">
                 <h1 className="text-sm font-bold text-text-primary truncate">{name || "Sin título"}</h1>
-                <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`} />
+                <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${isActive ? "bg-green-50 text-green-700" : "bg-surface-sidebar text-text-secondary"}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-text-secondary"}`} />
                   {isActive ? "Activo" : "Borrador"}
                 </span>
               </div>
@@ -370,31 +383,31 @@ export default function FormBuilderPage() {
             <div className="order-3 flex w-full overflow-x-auto bg-surface-sidebar p-1 rounded-control shrink-0 xl:order-none xl:w-auto">
               <button
                 onClick={() => setActiveTab("BUILDER")}
-                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "BUILDER" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "BUILDER" ? "bg-surface-elevated text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={Layout01Icon} size={14} />
                 Constructor
               </button>
               <button
                 onClick={() => setActiveTab("SETTINGS")}
-                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "SETTINGS" ? "bg-surface-elevated text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={Settings02Icon} size={14} />
                 Configuración
               </button>
               <button
                 onClick={() => setActiveTab("VARIANTS")}
-                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "VARIANTS" ? "bg-surface-elevated text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={GitBranchIcon} size={14} />
                 Variantes
                 {variants.length > 0 && (
-                  <span className="bg-nav-active text-text-primary rounded-full px-1.5 py-0 text-[10px] font-bold">{variants.length}</span>
+                  <span className="bg-nav-active text-text-primary rounded-full px-1.5 py-0 text-xs font-bold">{variants.length}</span>
                 )}
               </button>
               <button
                 onClick={() => setActiveTab("API")}
-                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "API" ? "bg-white text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
+                className={`flex min-h-11 items-center gap-1.5 px-3 py-1.5 rounded-control text-xs font-semibold ${activeTab === "API" ? "bg-surface-elevated text-text-primary" : "text-text-secondary-strong hover:text-text-primary"}`}
               >
                 <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
                 API
@@ -405,7 +418,7 @@ export default function FormBuilderPage() {
             <div className="ml-auto flex items-center gap-2 shrink-0">
               <button
                 onClick={handleCopyLink}
-                className={`hidden sm:flex min-h-10 items-center gap-1.5 px-3 py-2 rounded-control text-xs font-semibold border ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"}`}
+                className={`hidden sm:flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-control text-sm font-semibold border lg:min-h-10 ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-line bg-surface-elevated text-text-secondary hover:bg-surface-sidebar"}`}
               >
                 {copied ? <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} /> : <HugeiconsIcon icon={Copy01Icon} size={14} />}
                 {copied ? "¡Copiado!" : "Copiar link"}
@@ -413,7 +426,7 @@ export default function FormBuilderPage() {
               <Link
                 href={`/form/${id}`}
                 target="_blank"
-                className="hidden sm:flex min-h-10 items-center gap-1.5 px-3 py-2 rounded-control text-xs font-semibold border border-border-subtle bg-white text-text-secondary hover:bg-surface-sidebar"
+                className="hidden sm:flex min-h-10 items-center gap-1.5 px-3 py-2 rounded-control text-xs font-semibold border border-line bg-surface-elevated text-text-secondary hover:bg-surface-sidebar"
               >
                 <HugeiconsIcon icon={LinkSquare02Icon} size={14} />
                 Ver
@@ -421,7 +434,7 @@ export default function FormBuilderPage() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex min-h-10 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-action-primary-foreground px-4 py-2 rounded-control text-xs font-semibold disabled:opacity-50"
+                className="crm-press flex min-h-11 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-action-primary-foreground px-4 py-2 rounded-control text-sm font-semibold disabled:opacity-50 lg:min-h-10"
               >
                 <HugeiconsIcon icon={SaveIcon} size={14} />
                 {isSaving ? "Guardando..." : "Guardar"}
@@ -436,7 +449,7 @@ export default function FormBuilderPage() {
             {activeTab === "BUILDER" && (
               <div className="flex min-h-full flex-col xl:h-full xl:min-h-0 xl:flex-row">
                 {/* Left: Field List */}
-                <div className="flex-none overflow-visible p-4 sm:p-6 xl:flex-1 xl:overflow-y-auto xl:border-r border-border-subtle">
+                <div className="flex-none overflow-visible p-4 sm:p-6 xl:flex-1 xl:overflow-y-auto xl:border-r border-line">
                   <div className="max-w-xl mx-auto flex flex-col gap-3">
                     <div className="flex items-center justify-between mb-1">
                       <h2 className="text-sm font-bold text-text-primary">Campos del formulario</h2>
@@ -456,15 +469,15 @@ export default function FormBuilderPage() {
                                     className={`bg-surface-elevated rounded-lg ${snapshot.isDragging ? "ring-2 ring-black/5" : ""}`}
                                   >
                                     {/* Field Header */}
-                                    <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border-subtle bg-surface-sidebar rounded-t-xl">
-                                      <div {...provided.dragHandleProps} aria-label={`Reordenar campo ${index + 1}`} title={`Reordenar campo ${index + 1}`} className="text-brand-silver hover:text-text-secondary cursor-grab">
+                                    <div className="flex items-center gap-3 px-4 py-2.5 border-b border-line bg-surface-sidebar rounded-t-xl">
+                                      <div {...provided.dragHandleProps} aria-label={`Reordenar campo ${index + 1}`} title={`Reordenar campo ${index + 1}`} className="-my-2 flex size-11 shrink-0 cursor-grab items-center justify-center rounded-control text-text-secondary hover:bg-surface-elevated hover:text-text-primary lg:size-8">
                                         <HugeiconsIcon icon={HandGripIcon} size={16} />
                                       </div>
                                       <span className="text-xs font-semibold text-text-secondary-strong">Campo {index + 1}</span>
                                       <span className="text-xs text-text-secondary bg-surface-app px-2 py-0.5 rounded-full font-medium">
                                         {FIELD_TYPES.find(t => t.value === field.type)?.label || field.type}
                                       </span>
-                                      <button onClick={() => removeField(index)} aria-label={`Eliminar campo ${index + 1}`} className="ml-auto text-brand-silver hover:text-red-500 p-1">
+                                      <button onClick={() => removeField(index)} aria-label={`Eliminar campo ${index + 1}`} className="-my-2 ml-auto flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-8">
                                         <HugeiconsIcon icon={Delete01Icon} size={14} />
                                       </button>
                                     </div>
@@ -533,16 +546,17 @@ export default function FormBuilderPage() {
                                         </div>
                                       )}
 
-                                      <div className="col-span-2 flex items-center gap-2">
+                                      {/* La etiqueta entera es el área de toque (44 px); la casilla va dentro. */}
+                                      <label htmlFor={`req-${field.id}`} data-check-ignore-tap className="col-span-2 flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary lg:min-h-8">
                                         <input
                                           type="checkbox"
                                           id={`req-${field.id}`}
                                           checked={field.isRequired}
                                           onChange={e => updateField(index, "isRequired", e.target.checked)}
-                                          className="w-3.5 h-3.5 rounded border-border-subtle"
+                                          className="size-4 rounded border-line"
                                         />
-                                        <label htmlFor={`req-${field.id}`} className="text-xs text-text-secondary font-medium">Campo obligatorio</label>
-                                      </div>
+                                        Campo obligatorio
+                                      </label>
                                     </div>
                                   </div>
                                 )}
@@ -556,7 +570,7 @@ export default function FormBuilderPage() {
 
                     <button
                       onClick={addField}
-                      className="w-full py-4 border-2 border-dashed border-border-subtle hover:bg-nav-hover hover:bg-surface-sidebar rounded-lg flex items-center justify-center gap-2 text-text-secondary hover:text-text-primary text-sm font-semibold"
+                      className="w-full py-4 border-2 border-dashed border-line hover:bg-nav-hover hover:bg-surface-sidebar rounded-lg flex items-center justify-center gap-2 text-text-secondary hover:text-text-primary text-sm font-semibold"
                     >
                       <HugeiconsIcon icon={Add01Icon} size={16} />
                       Agregar campo
@@ -582,7 +596,7 @@ export default function FormBuilderPage() {
                     </div>
 
                     {fields.length === 0 ? (
-                      <p className="text-xs text-gray-300 text-center py-6">Sin campos</p>
+                      <p className="text-xs text-text-secondary text-center py-6">Sin campos</p>
                     ) : (
                       <div className="flex flex-col gap-4">
                         {fields.map((field, i) => (
@@ -591,7 +605,7 @@ export default function FormBuilderPage() {
                       </div>
                     )}
 
-                    <div className="pt-2 border-t border-border-subtle">
+                    <div className="pt-2 border-t border-line">
                       <div className="noxy-form-button w-full text-xs pointer-events-none">
                         Enviar
                       </div>
@@ -616,7 +630,7 @@ export default function FormBuilderPage() {
                     </div>
                     <button
                       onClick={openNewVariantModal}
-                      className="shrink-0 flex items-center gap-1.5 bg-action-primary hover:opacity-90 text-action-primary-foreground px-3 py-2 rounded-lg text-xs font-semibold"
+                      className="crm-press shrink-0 flex min-h-11 items-center gap-1.5 bg-action-primary hover:bg-action-secondary text-action-primary-foreground px-3 py-2 rounded-control text-sm font-semibold lg:min-h-9"
                     >
                       <HugeiconsIcon icon={Add01Icon} size={14} />
                       Nueva variante
@@ -626,17 +640,17 @@ export default function FormBuilderPage() {
                   {/* How it works */}
                   <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 text-xs text-amber-800">
                     <p className="font-bold mb-1">¿Cómo funciona?</p>
-                    <p>Crea una variante por cada oferta, precio o fuente de tráfico. Comparte el link único de cada variante. Cuando un lead se registre, verás exactamente en qué variante se registró — ideal para saber si un lead viene del plan de $8,000 MXN o del de $15,000 MXN.</p>
+                    <p>Crea una variante por cada oferta, precio o fuente de tráfico. Comparte el link único de cada variante. Cuando un lead se registre, verás exactamente en qué variante se registró. Así sabes si un lead viene del plan de $8,000 MXN o del de $15,000 MXN.</p>
                   </div>
 
                   {/* Variants List */}
                   {isLoadingVariants ? (
                     <div className="flex justify-center py-8">
-                      <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-line border-t-action-primary rounded-full animate-spin" role="status" aria-label="Cargando variantes" />
                     </div>
                   ) : variants.length === 0 ? (
-                    <div className="bg-white border border-dashed border-border-subtle rounded-lg p-10 text-center">
-                      <HugeiconsIcon icon={GitBranchIcon} size={28} color="#d1d5db" className="mx-auto mb-3" />
+                    <div className="bg-surface-elevated border border-dashed border-line rounded-lg p-10 text-center">
+                      <HugeiconsIcon icon={GitBranchIcon} size={28} className="mx-auto mb-3 text-text-secondary" />
                       <p className="text-sm font-semibold text-text-secondary">Sin variantes</p>
                       <p className="text-xs text-text-secondary mt-1">Crea tu primera variante para segmentar tus leads por oferta o fuente.</p>
                     </div>
@@ -646,16 +660,16 @@ export default function FormBuilderPage() {
                         const variantUrl = `${publicUrl}?v=${variant.id}`;
                         const isCopied = copiedVariantId === variant.id;
                         return (
-                          <div key={variant.id} className="bg-white rounded-lg border border-border-subtle overflow-hidden">
+                          <div key={variant.id} className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
                             <div className="p-4 flex items-start gap-3">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-sm font-bold text-text-primary">{variant.name}</span>
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${variant.isActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-text-secondary"}`}>
+                                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${variant.isActive ? "bg-green-50 text-green-700" : "bg-surface-sidebar text-text-secondary"}`}>
                                     {variant.isActive ? "Activa" : "Inactiva"}
                                   </span>
-                                  <span className="text-[10px] text-text-secondary bg-surface-sidebar px-2 py-0.5 rounded-full border border-border-subtle">
-                                    <HugeiconsIcon icon={UserMultipleIcon} size={9} className="inline mr-1" />
+                                  <span className="text-xs text-text-secondary bg-surface-sidebar px-2 py-0.5 rounded-full border border-line">
+                                    <HugeiconsIcon icon={UserMultipleIcon} size={12} className="inline mr-1" />
                                     {variant._count?.contacts ?? 0} leads
                                   </span>
                                 </div>
@@ -663,12 +677,12 @@ export default function FormBuilderPage() {
                                   <p className="text-xs text-text-secondary mt-0.5">{variant.description}</p>
                                 )}
                                 <div className="flex items-center gap-1.5 mt-2">
-                                  <code className="text-[10px] text-text-secondary font-mono bg-surface-sidebar border border-border-subtle px-2 py-1 rounded-lg truncate max-w-xs">
+                                  <code className="text-xs text-text-secondary font-mono bg-surface-sidebar border border-line px-2 py-1 rounded-lg truncate max-w-xs">
                                     {variantUrl}
                                   </code>
                                   <button
                                     onClick={() => copyVariantLink(variant.id)}
-                                    className={`shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-semibold ${isCopied ? "border-green-200 bg-green-50 text-green-700" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
+                                    className={`shrink-0 flex min-h-11 items-center gap-1 px-3 rounded-control border text-sm font-semibold lg:min-h-8 ${isCopied ? "border-green-200 bg-green-50 text-green-700" : "border-line text-text-secondary hover:bg-surface-sidebar"}`}
                                   >
                                     {isCopied ? <HugeiconsIcon icon={CheckmarkCircle01Icon} size={11} /> : <HugeiconsIcon icon={Copy01Icon} size={11} />}
                                     {isCopied ? "¡Copiado!" : "Copiar"}
@@ -677,7 +691,7 @@ export default function FormBuilderPage() {
                                     href={variantUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border border-border-subtle text-[10px] font-semibold text-text-secondary hover:bg-surface-sidebar"
+                                    className="shrink-0 flex min-h-11 items-center gap-1 px-3 rounded-control border border-line text-sm font-semibold text-text-secondary hover:bg-surface-sidebar lg:min-h-8"
                                   >
                                     <HugeiconsIcon icon={LinkSquare02Icon} size={11} />
                                     Ver
@@ -687,22 +701,26 @@ export default function FormBuilderPage() {
                               <div className="flex items-center gap-1 shrink-0">
                                 <button
                                   onClick={() => handleToggleVariant(variant)}
-                                  className="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface-sidebar"
+                                  className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-8"
                                   title={variant.isActive ? "Desactivar" : "Activar"}
+                                  aria-label={`${variant.isActive ? "Desactivar" : "Activar"} ${variant.name}`}
+                                  aria-pressed={variant.isActive}
                                 >
                                   {variant.isActive ? <HugeiconsIcon icon={ToggleOnIcon} size={18} color="#16a34a" /> : <HugeiconsIcon icon={ToggleOffIcon} size={18} />}
                                 </button>
                                 <button
                                   onClick={() => openEditVariantModal(variant)}
-                                  className="p-1.5 text-text-secondary hover:text-text-primary rounded-lg hover:bg-surface-sidebar"
+                                  className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-8"
                                   title="Editar"
+                                  aria-label={`Editar ${variant.name}`}
                                 >
                                   <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteVariant(variant)}
-                                  className="p-1.5 text-text-secondary hover:text-red-600 rounded-lg hover:bg-red-50"
+                                  className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-8"
                                   title="Eliminar"
+                                  aria-label={`Eliminar ${variant.name}`}
                                 >
                                   <HugeiconsIcon icon={Delete01Icon} size={14} />
                                 </button>
@@ -730,47 +748,48 @@ export default function FormBuilderPage() {
                 <div className="max-w-2xl mx-auto flex flex-col gap-6">
 
                   {/* General */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
                       <h2 className="text-sm font-bold text-text-primary">General</h2>
                     </div>
                     <div className="p-6 flex flex-col gap-4">
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Nombre del formulario</label>
+                        <label className="text-xs font-bold text-text-secondary">Nombre del formulario</label>
                         <input
                           type="text"
                           value={name}
                           onChange={e => setName(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                          className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                         />
                       </div>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Descripción interna</label>
+                        <label className="text-xs font-bold text-text-secondary">Descripción interna</label>
                         <textarea
                           value={description}
                           onChange={e => setDescription(e.target.value)}
                           rows={3}
-                          className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm resize-none focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                          className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm resize-none focus:outline-none focus:ring-1 focus:ring-focus/40"
                         />
                       </div>
-                      <div className="flex items-center justify-between py-3 px-4 bg-surface-sidebar rounded-lg border border-border-subtle">
+                      <div className="flex items-center justify-between py-3 px-4 bg-surface-sidebar rounded-lg border border-line">
                         <div>
                           <p className="text-sm font-semibold text-text-primary">Formulario activo</p>
                           <p className="text-xs text-text-secondary">Permite recibir envíos públicos</p>
                         </div>
                         <button
                           onClick={() => setIsActive(v => !v)}
-                          className={`relative w-10 h-6 rounded-full shrink-0 ${isActive ? "bg-action-primary" : "bg-nav-active"}`}
+                          data-check-ignore-tap
+                          className={`relative w-10 h-6 rounded-full shrink-0 after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] ${isActive ? "bg-action-primary" : "bg-nav-active"}`}
                         >
-                          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full ${isActive ? "left-5" : "left-1"}`} />
+                          <span className={`absolute top-1 w-4 h-4 bg-surface-elevated rounded-full ${isActive ? "left-5" : "left-1"}`} />
                         </button>
                       </div>
                     </div>
                   </section>
 
                   {/* Apariencia */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line flex items-center justify-between">
                       <div>
                         <h2 className="text-sm font-bold text-text-primary">Apariencia</h2>
                         <p className="text-xs text-text-secondary mt-0.5">Personaliza los colores de la página pública del formulario</p>
@@ -800,7 +819,7 @@ export default function FormBuilderPage() {
                         fallback={DEFAULT_BACKGROUND_COLOR}
                         onChange={setBackgroundColor}
                       />
-                      <div className="flex items-center justify-between py-3 px-4 bg-surface-sidebar rounded-lg border border-border-subtle">
+                      <div className="flex items-center justify-between py-3 px-4 bg-surface-sidebar rounded-lg border border-line">
                         <div>
                           <p className="text-sm font-semibold text-text-primary">Leyenda “Desarrollado por Noxy”</p>
                           <p className="text-xs text-text-secondary">Aparece al pie de la página pública del formulario</p>
@@ -808,18 +827,19 @@ export default function FormBuilderPage() {
                         <button
                           type="button"
                           onClick={() => setShowNoxyBrand(v => !v)}
-                          className={`relative w-10 h-6 rounded-full shrink-0 ${showNoxyBrand ? "bg-action-primary" : "bg-nav-active"}`}
+                          data-check-ignore-tap
+                          className={`relative w-10 h-6 rounded-full shrink-0 after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] ${showNoxyBrand ? "bg-action-primary" : "bg-nav-active"}`}
                           aria-pressed={showNoxyBrand}
                         >
-                          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full ${showNoxyBrand ? "left-5" : "left-1"}`} />
+                          <span className={`absolute top-1 w-4 h-4 bg-surface-elevated rounded-full ${showNoxyBrand ? "left-5" : "left-1"}`} />
                         </button>
                       </div>
                     </div>
                   </section>
 
                   {/* On Submit */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
                       <h2 className="text-sm font-bold text-text-primary">Al enviar el formulario</h2>
                     </div>
                     <div className="p-6 flex flex-col gap-4">
@@ -831,7 +851,7 @@ export default function FormBuilderPage() {
                           <button
                             key={opt.value}
                             onClick={() => setSuccessAction(opt.value)}
-                            className={`flex-1 py-2.5 rounded-lg border text-xs font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-action-primary-foreground" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
+                            className={`flex-1 min-h-11 py-2.5 rounded-control border text-sm font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-action-primary-foreground" : "border-line text-text-secondary hover:bg-surface-sidebar"}`}
                           >
                             {opt.label}
                           </button>
@@ -839,24 +859,24 @@ export default function FormBuilderPage() {
                       </div>
                       {successAction === "MESSAGE" && (
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Mensaje de éxito</label>
+                          <label className="text-xs font-bold text-text-secondary">Mensaje de éxito</label>
                           <textarea
                             value={successMessage}
                             onChange={e => setSuccessMessage(e.target.value)}
                             rows={2}
-                            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm resize-none focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm resize-none focus:outline-none focus:ring-1 focus:ring-focus/40"
                           />
                         </div>
                       )}
                       {successAction === "REDIRECT" && (
                         <div className="flex flex-col gap-1.5">
-                          <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">URL de redirección</label>
+                          <label className="text-xs font-bold text-text-secondary">URL de redirección</label>
                           <input
                             type="url"
                             placeholder="https://..."
                             value={redirectUrl}
                             onChange={e => setRedirectUrl(e.target.value)}
-                            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                           />
                         </div>
                       )}
@@ -864,8 +884,8 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* Email de bienvenida */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
                       <h2 className="text-sm font-bold text-text-primary">Email de bienvenida</h2>
                       <p className="text-xs text-text-secondary mt-0.5">Envía un email automáticamente a nuevos leads</p>
                     </div>
@@ -873,7 +893,7 @@ export default function FormBuilderPage() {
                       <select
                         value={welcomeEmailId}
                         onChange={e => setWelcomeEmailId(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                        className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                       >
                         <option value="">No enviar email de bienvenida</option>
                         {campaigns.map(c => (
@@ -885,8 +905,8 @@ export default function FormBuilderPage() {
                   </section>
 
                   {/* Calendario */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
                       <h2 className="text-sm font-bold text-text-primary">Integración con Calendario</h2>
                       <p className="text-xs text-text-secondary mt-0.5">Muestra un selector de citas en el formulario público</p>
                     </div>
@@ -894,7 +914,7 @@ export default function FormBuilderPage() {
                       <select
                         value={appointmentTypeId}
                         onChange={e => setAppointmentTypeId(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-border-subtle"
+                        className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-sm focus:outline-none focus:ring-1 focus:ring-focus/40"
                       >
                         <option value="">Sin integración de calendario</option>
                         {appointmentTypes.map(at => (
@@ -907,38 +927,38 @@ export default function FormBuilderPage() {
                   <FormWhatsAppRecipients formId={id} />
 
                   {/* Share */}
-                  <section className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-                    <div className="px-6 py-4 border-b border-border-subtle">
+                  <section className="bg-surface-elevated rounded-lg border border-line overflow-hidden">
+                    <div className="px-6 py-4 border-b border-line">
                       <h2 className="text-sm font-bold text-text-primary">Compartir formulario</h2>
                     </div>
                     <div className="p-6 flex flex-col gap-3">
                       <div>
-                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Link público</label>
+                        <label className="text-xs font-bold text-text-secondary">Link público</label>
                         <div className="flex gap-2 mt-1.5">
-                          <input readOnly value={publicUrl} className="flex-1 px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-xs text-text-secondary font-mono focus:outline-none" />
+                          <input readOnly value={publicUrl} className="flex-1 min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-xs text-text-secondary font-mono focus:outline-none" />
                           <button
                             onClick={handleCopyLink}
-                            className={`px-3 py-2.5 rounded-lg border text-xs font-semibold shrink-0 ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-border-subtle text-text-secondary hover:bg-surface-sidebar"}`}
+                            className={`min-h-11 px-3 py-2.5 rounded-control border text-sm font-semibold shrink-0 lg:min-h-10 ${copied ? "border-green-200 bg-green-50 text-green-700" : "border-line text-text-secondary hover:bg-surface-sidebar"}`}
                           >
                             {copied ? "¡Copiado!" : "Copiar"}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Código iframe</label>
+                        <label className="text-xs font-bold text-text-secondary">Código iframe</label>
                         <div className="mt-1.5 relative">
                           <textarea
                             readOnly
                             rows={3}
                             value={`<iframe src="${publicUrl}" width="100%" height="600" frameborder="0" style="border:none;border-radius:16px;"></iframe>`}
-                            className="w-full px-3 py-2.5 rounded-lg border border-border-subtle bg-surface-sidebar text-xs text-text-secondary font-mono resize-none focus:outline-none"
+                            className="w-full min-h-11 px-3 py-2.5 rounded-control border border-line bg-surface-sidebar text-xs text-text-secondary font-mono resize-none focus:outline-none"
                           />
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(`<iframe src="${publicUrl}" width="100%" height="600" frameborder="0" style="border:none;border-radius:16px;"></iframe>`);
                               addToast("Iframe copiado", "success");
                             }}
-                            className="absolute top-2 right-2 px-2 py-1 bg-white border border-border-subtle rounded-lg text-[10px] font-semibold text-text-secondary hover:bg-surface-sidebar"
+                            className="absolute top-2 right-2 min-h-11 px-3 bg-surface-elevated border border-line rounded-control text-sm font-semibold text-text-secondary hover:bg-surface-sidebar lg:min-h-8"
                           >
                             Copiar
                           </button>
@@ -957,14 +977,14 @@ export default function FormBuilderPage() {
       {/* Variant Create/Edit Modal */}
       {isVariantModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-surface border border-border-subtle w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-border-subtle flex items-center justify-between">
+          <div ref={variantDialogRef} role="dialog" aria-modal="true" aria-labelledby="variant-modal-title" className="bg-surface-elevated rounded-surface border border-line w-full max-w-md overflow-hidden flex flex-col shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="p-5 border-b border-line flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-base font-bold text-text-primary">{editingVariant ? "Editar variante" : "Nueva variante"}</h3>
+                <h3 id="variant-modal-title" className="text-base font-bold text-text-primary">{editingVariant ? "Editar variante" : "Nueva variante"}</h3>
                 <p className="text-xs text-text-secondary mt-0.5">El link de esta variante tendrá un parámetro único que identifica el origen del lead.</p>
               </div>
-              <button onClick={() => setIsVariantModalOpen(false)} className="text-text-secondary hover:text-text-secondary p-1">
-                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <button type="button" onClick={() => setIsVariantModalOpen(false)} aria-label="Cerrar" className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-8">
+                <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
             <div className="p-6 flex flex-col gap-4">
@@ -972,7 +992,6 @@ export default function FormBuilderPage() {
                 <label className="noxy-form-label">Nombre de la variante <span className="text-red-400">*</span></label>
                 <input
                   type="text"
-                  autoFocus
                   value={variantName}
                   onChange={e => setVariantName(e.target.value)}
                   placeholder="Ej: Paquete Básico $8,000 MXN"
@@ -990,14 +1009,14 @@ export default function FormBuilderPage() {
                 />
               </div>
             </div>
-            <div className="p-4 border-t border-border-subtle flex justify-end gap-3 bg-surface-sidebar/50">
-              <button onClick={() => setIsVariantModalOpen(false)} className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary hover:bg-nav-hover">
+            <div className="p-4 border-t border-line flex justify-end gap-3 bg-surface-sidebar/50">
+              <button type="button" onClick={() => setIsVariantModalOpen(false)} className="min-h-11 px-4 rounded-control text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10">
                 Cancelar
               </button>
               <button
                 onClick={handleSaveVariant}
                 disabled={isSavingVariant || !variantName.trim()}
-                className="noxy-form-button px-4 text-sm"
+                className="noxy-form-button px-4 text-sm lg:min-h-10"
               >
                 {isSavingVariant ? "Guardando..." : editingVariant ? "Guardar cambios" : "Crear variante"}
               </button>

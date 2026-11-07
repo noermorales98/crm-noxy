@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Plus, FolderPlus, Globe, Lock, Download } from "lucide-react";
 import PageIcon from "@/src/components/kb/PageIcon";
 import KbIconPicker from "@/src/components/kb/KbIconPicker";
 import KbFolderPdfExportModal from "@/src/components/kb/KbFolderPdfExportModal";
@@ -11,6 +10,8 @@ import { KbCreateMenu, KbItemMenu } from "@/src/components/kb/KbMobileMenus";
 import type { KbFolderStats } from "@/src/lib/kb-folder-stats";
 import type { KbIconSelection } from "@/src/lib/kb-icons";
 import { useOptionalKbContext } from "@/src/context/KbContext";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon, ArrowRight01Icon, Download01Icon, FolderAddIcon, Globe02Icon, LockIcon } from "@hugeicons/core-free-icons";
 
 export interface KbTreeNodeDto {
   id: string;
@@ -107,7 +108,7 @@ function BarChart({ published, draft }: { published: number; draft: number }) {
         <div className="bg-[#448361] transition-all" style={{ width: `${pubPct}%` }} />
         <div className="bg-[#D9730D] flex-1" />
       </div>
-      <div className="flex justify-between text-[11px] text-text-secondary">
+      <div className="flex justify-between text-xs text-text-secondary">
         <span>{published} publicadas</span>
         <span>{draft} borradores</span>
       </div>
@@ -130,7 +131,7 @@ function TreeBranch({ node, depth = 0 }: { node: KbTreeNodeDto; depth?: number }
           onClick={() => hasKids && setOpen((v) => !v)}
           className={`w-4 h-4 flex items-center justify-center shrink-0 ${!hasKids ? "invisible" : ""}`}
         >
-          <ChevronRight size={12} className={`transition-transform ${open ? "rotate-90" : ""}`} />
+          <HugeiconsIcon icon={ArrowRight01Icon} size={12} className={`transition-transform ${open ? "rotate-90" : ""}`} />
         </button>
         <Link href={`/kb/${node.id}`} className="flex items-center gap-2 flex-1 min-w-0 py-0.5">
           <PageIcon
@@ -144,9 +145,9 @@ function TreeBranch({ node, depth = 0 }: { node: KbTreeNodeDto; depth?: number }
           <span className="text-sm truncate text-text-primary">{node.title || "Sin título"}</span>
           {!node.isFolder && (
             node.isPublished ? (
-              <Globe size={11} className="text-green-600 shrink-0" />
+              <HugeiconsIcon icon={Globe02Icon} size={11} className="text-green-600 shrink-0" />
             ) : (
-              <Lock size={11} className="text-text-secondary shrink-0" />
+              <HugeiconsIcon icon={LockIcon} size={11} className="text-text-secondary shrink-0" />
             )
           )}
         </Link>
@@ -212,11 +213,11 @@ export default function KbFolderView({
     <div className="py-6 space-y-8" style={{ paddingLeft: "max(40px, calc((100% - 740px) / 2))", paddingRight: "max(40px, calc((100% - 740px) / 2))" }}>
       <div className="flex items-center gap-2 lg:hidden">
         <p className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
-          <Link href="/kb" className="hover:underline">Inicio Docs</Link>
+          <Link href="/kb" className="inline-flex min-h-11 items-center hover:underline">Inicio Docs</Link>
           {ancestors.map((ancestor) => (
             <span key={ancestor.id}>
               <span className="font-normal text-text-secondary"> / </span>
-              <Link href={`/kb/${ancestor.id}`} className="hover:underline">{ancestor.title || "Sin título"}</Link>
+              <Link href={`/kb/${ancestor.id}`} className="inline-flex min-h-11 items-center hover:underline">{ancestor.title || "Sin título"}</Link>
             </span>
           ))}
           <span className="font-normal text-text-secondary"> / </span>
@@ -226,13 +227,14 @@ export default function KbFolderView({
       </div>
 
       {/* Header */}
-      <div className="flex items-start gap-4">
+      <div className="flex flex-wrap items-start gap-4">
         <div className="relative shrink-0">
           <button
             type="button"
             onClick={() => setShowPicker((v) => !v)}
-            className="hover:opacity-80 transition-opacity"
+            className="flex size-11 items-center justify-center rounded-control hover:opacity-80 transition-opacity"
             title="Cambiar icono y colores"
+            aria-label="Cambiar icono y colores"
           >
             <PageIcon emoji={emoji} iconColor={iconColor} iconBg={iconBg} isFolder size={28} block />
           </button>
@@ -252,20 +254,21 @@ export default function KbFolderView({
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder="Nombre de carpeta"
-            className="w-full text-3xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-gray-200 leading-tight"
+            aria-label="Nombre de la carpeta"
+            className="min-h-11 w-full text-3xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-secondary leading-tight"
           />
           <p className="mt-1 hidden text-sm text-text-secondary lg:block">
             {folderStats.directPages} páginas directas · {folderStats.directFolders} subcarpetas
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex w-full shrink-0 gap-2 lg:w-auto">
           {folderStats.totalPages > 0 && (
             <button
               type="button"
               onClick={() => setPdfModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-sidebar text-text-primary text-sm font-medium hover:bg-nav-hover"
+              className="flex min-h-11 items-center gap-1.5 px-3 rounded-control bg-surface-sidebar text-text-primary text-sm font-medium hover:bg-nav-hover lg:min-h-10"
             >
-              <Download size={14} /> Exportar PDF
+              <HugeiconsIcon icon={Download01Icon} size={14} /> Exportar PDF
             </button>
           )}
           <button
@@ -274,7 +277,7 @@ export default function KbFolderView({
             onClick={() => createChild(false)}
             className="hidden items-center gap-1.5 rounded-lg bg-action-primary px-3 py-2 text-sm font-medium text-action-primary-foreground hover:opacity-90 disabled:opacity-50 lg:flex"
           >
-            <Plus size={14} /> Página
+            <HugeiconsIcon icon={Add01Icon} size={14} /> Página
           </button>
           <button
             type="button"
@@ -282,7 +285,7 @@ export default function KbFolderView({
             onClick={() => createChild(true)}
             className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar px-3 py-2 text-sm font-medium text-text-primary hover:bg-nav-hover disabled:opacity-50 lg:flex"
           >
-            <FolderPlus size={14} /> Carpeta
+            <HugeiconsIcon icon={FolderAddIcon} size={14} /> Carpeta
           </button>
         </div>
       </div>
@@ -300,22 +303,22 @@ export default function KbFolderView({
       {/* Charts */}
       <div className="hidden gap-4 sm:grid-cols-2 lg:grid">
         <div className="bg-surface-elevated rounded-lg p-5">
-          <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Estado de páginas</p>
+          <p className="text-xs font-medium text-text-secondary mb-3">Estado de páginas</p>
           <BarChart published={folderStats.publishedPages} draft={folderStats.draftPages} />
         </div>
         <div className="bg-surface-elevated rounded-lg p-5">
-          <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Contenido directo</p>
+          <p className="text-xs font-medium text-text-secondary mb-3">Contenido directo</p>
           <DonutChart pages={folderStats.directPages} folders={folderStats.directFolders} />
         </div>
       </div>
 
       {/* Direct children list */}
       <div>
-        <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Contenido en esta carpeta</p>
+        <p className="text-xs font-medium text-text-secondary mb-3">Contenido en esta carpeta</p>
         {children.length === 0 ? (
           <p className="text-sm text-text-secondary italic py-4">Esta carpeta está vacía. Crea una página o subcarpeta.</p>
         ) : (
-          <div className="divide-y divide-border-subtle rounded-lg bg-surface-elevated">
+          <div className="divide-y divide-line rounded-lg bg-surface-elevated">
             {children.map((c) => (
               <div key={c.id} className="flex items-center gap-1 pr-2">
                 <Link
@@ -325,12 +328,12 @@ export default function KbFolderView({
                   <PageIcon emoji={c.emoji} iconColor={c.iconColor} iconBg={c.iconBg} isFolder={c.isFolder} size={16} block />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-text-primary">{c.title || "Sin título"}</p>
-                    <p className="hidden text-[11px] text-text-secondary lg:block">
+                    <p className="hidden text-xs text-text-secondary lg:block">
                       {c.isFolder ? "Carpeta" : c.isPublished ? "Publicada" : "Borrador"}
                       {c._count?.children ? ` · ${c._count.children} hijos` : ""}
                     </p>
                   </div>
-                  <ChevronRight size={14} className="hidden shrink-0 text-text-secondary lg:block" />
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="hidden shrink-0 text-text-secondary lg:block" />
                 </Link>
                 <div className="lg:hidden">
                   <KbItemMenu
@@ -350,7 +353,7 @@ export default function KbFolderView({
       {/* Tree */}
       {tree.length > 0 && (
         <div className="hidden lg:block">
-          <p className="text-xs font-medium text-text-secondary uppercase tracking-wider mb-3">Vista de árbol</p>
+          <p className="text-xs font-medium text-text-secondary mb-3">Vista de árbol</p>
           <div className="bg-surface-elevated rounded-lg p-3">
             {tree.map((node) => (
               <TreeBranch key={node.id} node={node} />

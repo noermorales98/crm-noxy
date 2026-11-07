@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { usePathname } from "next/navigation";
-import { Pin, PinOff, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
 import Sidebar from "@/src/components/Sidebar";
 import {
   INITIAL_ASSISTANT_SIDEBAR_STATE,
@@ -33,8 +34,9 @@ const MOBILE_PANEL_BASE_CLASSES =
 const MOBILE_OPEN_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
 const MOBILE_CLOSED_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} -translate-x-[calc(100%+32px)] opacity-0 pointer-events-none`;
 
-const GLASS_CONTROL_CLASSES =
-  "crm-glass-clear text-action-primary transition-colors duration-200 hover:bg-white/60 motion-reduce:transition-none";
+// Controles del panel sobre el marco claro: sólidos, sin vidrio.
+const FRAME_CONTROL_CLASSES =
+  "border border-line bg-surface-sidebar text-text-primary transition-colors duration-200 hover:bg-surface-elevated motion-reduce:transition-none";
 
 const HOVER_HOST_OPEN_WIDTH = "w-[17.5rem]";
 
@@ -48,6 +50,8 @@ export default function AssistantSidebarShell() {
   const hoverHostRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef(false);
   const openedByMobileButtonRef = useRef(false);
+  // Control externo que abrió el panel móvil («Más» o el botón de menú): recupera el foco al cerrar.
+  const mobileReturnFocusRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   const mobileChrome = useOptionalMobileChrome();
@@ -92,6 +96,7 @@ export default function AssistantSidebarShell() {
 
   const openFromMobileButton = useCallback(() => {
     openedByMobileButtonRef.current = true;
+    mobileReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     dispatch({ type: "mobileOpen" });
   }, []);
 
@@ -106,6 +111,17 @@ export default function AssistantSidebarShell() {
       openedByMobileButtonRef.current = false;
       hideButtonRef.current?.focus();
       return;
+    }
+
+    if (!isVisible && mobileReturnFocusRef.current) {
+      const target = mobileReturnFocusRef.current;
+      mobileReturnFocusRef.current = null;
+      if (target.isConnected) {
+        restoreFocusRef.current = false;
+        target.focus();
+        return;
+      }
+      // Quien abrió el panel ya no existe (p. ej. la barra móvil en /assistant): foco de respaldo.
     }
 
     if (!isVisible && restoreFocusRef.current) {
@@ -171,9 +187,9 @@ export default function AssistantSidebarShell() {
           aria-label="Fijar barra lateral"
           aria-pressed={false}
           onClick={() => dispatch({ type: "pin" })}
-          className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+          className={`flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
         >
-          <Pin size={16} strokeWidth={1.8} aria-hidden="true" />
+          <HugeiconsIcon icon={PinIcon} size={16} aria-hidden="true" />
         </button>
       )}
       <button
@@ -183,9 +199,9 @@ export default function AssistantSidebarShell() {
         aria-expanded={isVisible}
         aria-controls="assistant-sidebar"
         onClick={hideSidebar}
-        className={`flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+        className={`flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
       >
-        <X size={17} strokeWidth={1.8} aria-hidden="true" />
+        <HugeiconsIcon icon={Cancel01Icon} size={17} aria-hidden="true" />
       </button>
     </div>
   );
@@ -236,9 +252,9 @@ export default function AssistantSidebarShell() {
           aria-controls="assistant-sidebar"
           aria-pressed={true}
           onClick={hideSidebar}
-          className={`absolute right-2 top-3 z-10 flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+          className={`absolute right-2 top-3 z-10 flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
         >
-          <PinOff size={16} strokeWidth={1.8} aria-hidden="true" />
+          <HugeiconsIcon icon={PinOffIcon} size={16} aria-hidden="true" />
         </button>
         <Sidebar variant="pinned" onNavigate={closeForNavigation} />
       </div>
@@ -254,9 +270,9 @@ export default function AssistantSidebarShell() {
           aria-label="Fijar barra lateral"
           title="Fijar barra lateral"
           onClick={() => dispatch({ type: "pin" })}
-          className={`fixed left-4 top-5 z-[75] flex size-11 items-center justify-center rounded-control ${GLASS_CONTROL_CLASSES}`}
+          className={`fixed left-4 top-5 z-[75] flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
         >
-          <Pin size={18} strokeWidth={1.8} aria-hidden="true" />
+          <HugeiconsIcon icon={PinIcon} size={18} aria-hidden="true" />
         </button>
       )}
 

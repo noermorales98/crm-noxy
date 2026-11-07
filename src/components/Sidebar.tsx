@@ -33,6 +33,8 @@ import {
   Delete01Icon,
   LockPasswordIcon,
   MegaphoneIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { useNotifications, type AppNotification, type NotificationType } from "@/src/context/NotificationContext";
 import { useGlobalSearch } from "@/src/context/SearchContext";
@@ -41,31 +43,38 @@ import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
 import VaultNav from "@/src/components/vault/VaultNav";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
-import { ChevronDown, ChevronRight, Check } from "lucide-react";
 import { play } from "cuelume";
 import {
   canManageTeam,
   hasPermission,
-  SECTION_PERMISSION,
   type ModulePermissions,
   type RoleName,
 } from "@/src/lib/permissions";
 import { userAvatarSrc } from "@/src/lib/user-sexo";
+import {
+  AREA_SECTIONS,
+  NAV_ITEM_ACTIVE,
+  activeFlatEntry,
+  activeNavHref,
+  contextualSectionFor,
+  contextualSectionLabel,
+  sidebarView,
+  visibleAreaItems,
+  visibleNavGroups,
+  type AreaSection,
+  type ContextualSection,
+  type NavItem,
+} from "@/src/lib/crm-navigation";
 
-type SidebarTab = "home" | "mail" | "kb" | "assistant" | "vault" | "content";
+// ─── Noxy product design tokens (marco claro) ──────────────────────────────────
 
-// ─── Noxy product design tokens ────────────────────────────────────────────────
-
-const ICON_COLOR = "#0B0B18";
-const SIDEBAR_W = "w-64";
 const ICON_SIZE = 16;
 
-const itemBase = "flex min-h-10 items-center gap-2.5 px-3 py-2 rounded-control text-sm transition-colors duration-200 motion-reduce:transition-none";
-const itemActive = "bg-nav-active text-text-primary font-medium";
-const itemHover = "hover:bg-nav-hover";
-const itemIdle = "text-text-primary";
+const itemBase =
+  "relative flex min-h-11 items-center gap-2.5 rounded-control px-3 py-2 text-sm transition-colors duration-200 motion-reduce:transition-none lg:min-h-10";
+const itemIdle = "text-text-primary hover:bg-surface-elevated/60";
 
-const sectionLabelClass = "px-3 pt-6 pb-2 text-xs font-semibold text-text-secondary-strong";
+const sectionLabelClass = "px-3 pb-1.5 pt-5 text-xs font-semibold text-text-secondary";
 
 interface SidebarProps {
   variant?: "docked" | "floating" | "pinned";
@@ -95,153 +104,29 @@ function timeAgo(date: string): string {
 }
 
 function navItemClass(isActive: boolean, extra = "") {
-  return `${itemBase} ${isActive ? itemActive : `${itemIdle} ${itemHover}`} ${extra}`.trim();
+  return `${itemBase} ${isActive ? NAV_ITEM_ACTIVE : itemIdle} ${extra}`.trim();
 }
 
-const SECTIONS: {
-  id: SidebarTab;
-  label: string;
-  href: string;
-  icon: typeof Home01Icon;
-  accent: string;
-  accentBg: string;
-}[] = [
-  { id: "home", label: "Inicio", href: "/", icon: Home01Icon, accent: "#3545D6", accentBg: "#EBEDFA" },
-  { id: "mail", label: "Correo", href: "/emails", icon: InboxIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
-  { id: "kb", label: "Docs", href: "/kb", icon: Book01Icon, accent: "#3545D6", accentBg: "#DDE3FE" },
-  { id: "assistant", label: "Asistente", href: "/assistant", icon: AiChatIcon, accent: "#3545D6", accentBg: "#EBEDFA" },
-  { id: "vault", label: "Bóveda", href: "/boveda", icon: LockPasswordIcon, accent: "#0B0B18", accentBg: "#C8FE37" },
-  { id: "content", label: "Gestión de contenido", href: "/contenido/general", icon: MegaphoneIcon, accent: "#5363EE", accentBg: "#EBEDFA" },
-];
-
-// ─── Section switcher (unified dropdown) ───────────────────────────────────────
-
-function SectionLogoMark({
-  icon,
-  accent,
-  accentBg,
-  size = 20,
-}: {
-  icon: typeof Home01Icon;
-  accent: string;
-  accentBg: string;
-  size?: number;
-}) {
-  return (
-    <span
-      className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
-      style={{ backgroundColor: accentBg }}
-    >
-      <HugeiconsIcon icon={icon} size={size} color={accent} />
-    </span>
-  );
-}
-
-function SectionSwitcher({
-  activeTab,
-  onChange,
-  unreadCount,
-  onNavigate,
-  sections,
-}: {
-  activeTab: SidebarTab;
-  onChange: (tab: SidebarTab) => void;
-  unreadCount: number;
-  onNavigate?: () => void;
-  sections: typeof SECTIONS;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const current = sections.find((s) => s.id === activeTab) ?? sections[0] ?? SECTIONS[0];
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", handleClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, []);
-
-  const selectSection = (section: (typeof SECTIONS)[number]) => {
-    onChange(section.id);
-    onNavigate?.();
-    router.push(section.href);
-    setOpen(false);
-  };
-
-  return (
-    <div ref={ref} className="relative px-3 pt-5 pb-3 shrink-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors hover:bg-nav-hover group"
-        aria-expanded={open}
-        aria-haspopup="listbox"
-      >
-        <SectionLogoMark icon={current.icon} accent={current.accent} accentBg={current.accentBg} />
-        <span className="flex-1 min-w-0 text-left">
-          <span className="block text-[15px] font-semibold text-text-primary leading-tight truncate tracking-tight">
-            {current.label}
-          </span>
-        </span>
-        <ChevronDown
-          size={14}
-          className={`shrink-0 text-text-secondary transition-transform ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {open && (
-        <div
-          className="crm-floating-menu absolute left-3 right-3 top-full mt-1 z-50 bg-surface-elevated rounded-lg py-1.5 overflow-hidden border border-border-subtle"
-          role="listbox"
-        >
-          {sections.map((section) => {
-            const isActive = section.id === activeTab;
-            return (
-              <button
-                key={section.id}
-                type="button"
-                role="option"
-                aria-selected={isActive}
-                onClick={() => selectSection(section)}
-                className={`w-full flex items-center gap-3 px-2.5 py-2.5 text-sm transition-colors ${
-                  isActive ? "bg-nav-active" : "hover:bg-nav-hover"
-                }`}
-              >
-                <SectionLogoMark icon={section.icon} accent={section.accent} accentBg={section.accentBg} size={18} />
-                <span className="flex-1 min-w-0 text-left">
-                  <span className="block text-sm font-semibold text-text-primary leading-tight">{section.label}</span>
-                  <span className="block text-[10px] text-text-secondary mt-0.5">
-                    {section.id === "home" && "Dashboard y proyectos"}
-                    {section.id === "mail" && "Bandeja y campañas"}
-                    {section.id === "kb" && "Documentación interna"}
-                    {section.id === "assistant" && "Asistente de IA"}
-                    {section.id === "vault" && "Contraseñas de clientes"}
-                    {section.id === "content" && "Calendarios por marca"}
-                  </span>
-                </span>
-                {section.id === "mail" && unreadCount > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-text-primary shrink-0">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-                {isActive && <Check size={14} className="shrink-0 text-text-primary" strokeWidth={2.5} />}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+/** Icono de cada destino de la lista plana (el modelo de navegación no conoce React). */
+const NAV_ICONS: Record<string, typeof Home01Icon> = {
+  "/": Home01Icon,
+  "/companies": Building04Icon,
+  "/contacts": UserMultipleIcon,
+  "/tasks": Task01Icon,
+  "/projects": FolderKanbanIcon,
+  "/pipeline": BarChartIcon,
+  "/pipeline/clientes": UserMultipleIcon,
+  "/forms": BrowserIcon,
+  "/cotizaciones": Invoice01Icon,
+  "/appointment-types": Calendar01Icon,
+  "/availability": Clock01Icon,
+  "/appointments": CalendarCheckIn01Icon,
+  "/emails": InboxIcon,
+  "/kb": Book01Icon,
+  "/assistant": AiChatIcon,
+  "/boveda": LockPasswordIcon,
+  "/contenido/general": MegaphoneIcon,
+};
 
 // ─── Delete confirmation modal ─────────────────────────────────────────────────
 
@@ -253,7 +138,7 @@ function DeleteModal({ name, onConfirm, onCancel }: {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center" onClick={onCancel}>
       <div className="absolute inset-0 bg-brand-obsidian/35" />
-      <div className="relative w-72 mx-4 rounded-surface border border-border-subtle bg-white p-6" onClick={e => e.stopPropagation()}>
+      <div className="relative w-72 mx-4 rounded-surface border border-line bg-white p-6" onClick={e => e.stopPropagation()}>
         <p className="text-sm font-semibold text-text-primary mb-1">¿Eliminar página?</p>
         <p className="text-xs text-text-secondary mb-1 truncate font-medium">&quot;{name}&quot;</p>
         <p className="text-xs text-text-secondary mb-5">Las subpáginas se conservarán pero perderán su padre.</p>
@@ -276,117 +161,113 @@ function NavItem({ icon, label, href, badge, exact = false, onNavigate }: { icon
   const pathname = usePathname();
   const isActive = exact ? pathname === href : pathname === href || (href !== "/" && pathname.startsWith(href));
   return (
-    <Link href={href} onClick={onNavigate} className={`${navItemClass(isActive)} justify-between`}>
+    <Link
+      href={href}
+      onClick={onNavigate}
+      aria-current={isActive ? "page" : undefined}
+      className={`${navItemClass(isActive)} justify-between`}
+    >
       <div className="flex items-center gap-2.5 min-w-0">
-        <HugeiconsIcon icon={icon} size={ICON_SIZE} color={ICON_COLOR} />
+        <HugeiconsIcon icon={icon} size={ICON_SIZE} />
         <span className="truncate">{label}</span>
       </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        {badge != null && badge > 0 && (
-          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-text-primary">
-            {badge > 99 ? "99+" : badge}
-          </span>
-        )}
-        {isActive && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
-      </div>
+      {badge != null && badge > 0 && (
+        <span className="shrink-0 rounded-full bg-surface-elevated px-1.5 py-0.5 text-xs font-semibold tabular-nums text-text-primary">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
     </Link>
   );
 }
 
-// ─── Expandable nav group (parent toggles a submenu of child links) ───────────
+/** Espacios que abren submenú con «Volver» (el Asistente tiene su propio chrome). */
+const SUBMENU_SPACES = new Set<string>(["mail", "kb", "vault", "content"]);
 
-function NavGroup({
-  icon,
-  label,
-  items,
-  onNavigate,
+// ─── Lista plana (marco claro) ─────────────────────────────────────────────────
+
+function FlatNav({
+  groups,
+  unreadEmailCount,
+  onChoose,
 }: {
-  icon: any;
-  label: string;
-  items: { href: string; label: string }[];
-  onNavigate?: () => void;
+  groups: ReturnType<typeof visibleNavGroups>;
+  unreadEmailCount: number;
+  onChoose: () => void;
 }) {
-  const pathname = usePathname();
-  // Pick the most specific (longest) matching href, since sibling routes can share a prefix
-  // (e.g. "/pipeline" and "/pipeline/clientes" would otherwise both match "/pipeline/clientes").
-  const activeHref = items
-    .filter((c) => pathname === c.href || pathname.startsWith(c.href + "/"))
-    .reduce<string | null>((best, c) => (best === null || c.href.length > best.length ? c.href : best), null);
-  const isChildActive = activeHref !== null;
-  const [expanded, setExpanded] = useState(isChildActive);
-
+  const pathname = usePathname() ?? "/";
+  const activeHref = activeFlatEntry(pathname, groups);
   return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setExpanded((e) => !e)}
-        className={`${navItemClass(isChildActive && !expanded)} w-full justify-between`}
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          <HugeiconsIcon icon={icon} size={ICON_SIZE} color={ICON_COLOR} />
-          <span className="truncate">{label}</span>
+    <nav aria-label="Destinos" className="px-3 pb-4">
+      {groups.map((group, index) => (
+        <div key={group.label}>
+          {index > 0 && <p className={sectionLabelClass}>{group.label}</p>}
+          <div className="flex flex-col gap-0.5">
+            {group.items.map((item) => {
+              const isActive = item.href === activeHref;
+              const isAreaEntry = item.kind === "area";
+              // Áreas y espacios con submenú (spec ronda 2): Contactos, Ventas, Agenda, Correo, Docs, Bóveda, Contenido.
+              const opensSubmenu = isAreaEntry || SUBMENU_SPACES.has(contextualSectionFor(item.href) ?? "");
+              const badge = !isAreaEntry && item.badge === "unread-mail" ? unreadEmailCount : undefined;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onChoose}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`${navItemClass(isActive)} justify-between`}
+                >
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <HugeiconsIcon icon={NAV_ICONS[item.href] ?? Home01Icon} size={ICON_SIZE} />
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                  {badge != null && badge > 0 && (
+                    <span className="shrink-0 rounded-full bg-surface-elevated px-1.5 py-0.5 text-xs font-semibold tabular-nums text-text-primary">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  )}
+                  {/* El área abre su submenú: el chevron lo anuncia. */}
+                  {opensSubmenu && (
+                    <>
+                      <span className="sr-only">, abre submenú</span>
+                      <HugeiconsIcon icon={ArrowRight01Icon} size={14} className="shrink-0 text-text-secondary" aria-hidden="true" />
+                    </>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </div>
-        <ChevronRight
-          size={13}
-          className={`text-text-secondary shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
-        />
-      </button>
-      {expanded && (
-        <div className="flex flex-col gap-1 mt-1 pl-4 border-l border-border-subtle ml-4">
-          {items.map((child) => {
-            const isActive = child.href === activeHref;
-            return (
-              <Link key={child.href} href={child.href} onClick={onNavigate} className={`${navItemClass(isActive)} justify-between`}>
-                <span className="truncate">{child.label}</span>
-                {isActive && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
-              </Link>
-            );
-          })}
-        </div>
-      )}
-    </div>
+      ))}
+    </nav>
   );
 }
 
-// ─── Section label ─────────────────────────────────────────────────────────────
+// ─── Submenú de un área (Contactos, Ventas, Agenda) ───────────────────────────
 
-function SectionLabel({ label }: { label: string }) {
-  return <p className={sectionLabelClass}>{label}</p>;
-}
-
-// ─── Tab 1: Inicio ─────────────────────────────────────────────────────────────
-
-function HomeNav({ onNavigate }: { onNavigate?: () => void }) {
+function AreaNav({ items, onChoose }: { items: NavItem[]; onChoose: () => void }) {
+  const pathname = usePathname() ?? "/";
+  const activeHref = activeNavHref(
+    pathname,
+    items.map((item) => item.href),
+  );
   return (
-    <div className="py-1 pb-4">
-      <div className="px-3 flex flex-col gap-1">
-        <NavItem href="/" icon={Home01Icon} label="Inicio" onNavigate={onNavigate} />
-        <NavItem href="/companies" icon={Building04Icon} label="Empresas" onNavigate={onNavigate} />
-        <NavItem href="/contacts" icon={UserMultipleIcon} label="Contactos" onNavigate={onNavigate} />
-        <NavItem href="/tasks" icon={Task01Icon} label="Tareas" onNavigate={onNavigate} />
-        <NavGroup
-          icon={BarChartIcon}
-          label="Ventas"
-          onNavigate={onNavigate}
-          items={[
-            { href: "/pipeline", label: "Pipeline de ventas" },
-            { href: "/pipeline/clientes", label: "Clientes" },
-          ]}
-        />
-        <NavItem href="/forms" icon={BrowserIcon} label="Formularios" onNavigate={onNavigate} />
-        <NavItem href="/cotizaciones" icon={Invoice01Icon} label="Cotizaciones" onNavigate={onNavigate} />
-        <NavItem href="/projects" icon={FolderKanbanIcon} label="Proyectos" onNavigate={onNavigate} />
-      </div>
-
-      <div className="px-0">
-        <SectionLabel label="Calendario" />
-        <div className="px-3 flex flex-col gap-1">
-          <NavItem href="/appointment-types" icon={Calendar01Icon} label="Tipos de Cita" onNavigate={onNavigate} />
-          <NavItem href="/availability" icon={Clock01Icon} label="Disponibilidad" onNavigate={onNavigate} />
-          <NavItem href="/appointments" icon={CalendarCheckIn01Icon} label="Citas Agendadas" onNavigate={onNavigate} />
-        </div>
-      </div>
-    </div>
+    <nav aria-label="Destinos del área" className="flex flex-col gap-0.5 px-3 pb-4 pt-1">
+      {items.map((item) => {
+        const isActive = item.href === activeHref;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onChoose}
+            aria-current={isActive ? "page" : undefined}
+            className={navItemClass(isActive)}
+          >
+            <HugeiconsIcon icon={NAV_ICONS[item.href] ?? Home01Icon} size={ICON_SIZE} />
+            <span className="truncate">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -437,12 +318,12 @@ function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?
       <div className="px-3 pt-1 pb-2 shrink-0">
         {emailCtx?.onCompose ? (
           <button onClick={emailCtx.onCompose} className={composeBtnClass}>
-            <HugeiconsIcon icon={PencilEdit01Icon} size={ICON_SIZE} color="white" />
+            <HugeiconsIcon icon={PencilEdit01Icon} size={ICON_SIZE} />
             Redactar
           </button>
         ) : (
           <Link href="/emails" onClick={onNavigate} className={composeBtnClass}>
-            <HugeiconsIcon icon={PencilEdit01Icon} size={ICON_SIZE} color="white" />
+            <HugeiconsIcon icon={PencilEdit01Icon} size={ICON_SIZE} />
             Redactar
           </Link>
         )}
@@ -455,14 +336,13 @@ function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?
           const inner = (
             <>
               <div className="flex items-center gap-2.5">
-                <HugeiconsIcon icon={f.icon} size={ICON_SIZE} color={ICON_COLOR} />
+                <HugeiconsIcon icon={f.icon} size={ICON_SIZE} />
                 <span>{f.label}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 {f.key === "inbox" && unreadCount > 0 && (
                   <span className="text-xs bg-nav-hover text-text-primary px-1.5 py-0.5 rounded-full font-bold">{unreadCount}</span>
                 )}
-                {isActive && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
               </div>
             </>
           );
@@ -480,14 +360,13 @@ function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?
         {isOnEmail && emailCtx ? (
           <button onClick={() => { emailCtx.setSelectedCompanyId(null); onNavigate?.(); }} className={navItemClass(selectedCompanyId === null, "w-full text-left justify-between")}>
             <div className="flex items-center gap-2.5">
-              <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} color={ICON_COLOR} />
+              <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} />
               <span className="truncate">Todas</span>
             </div>
-            {selectedCompanyId === null && <Check size={13} className="text-text-secondary" strokeWidth={2.5} />}
           </button>
         ) : (
           <Link href="/emails" onClick={onNavigate} className={navItemClass(false)}>
-            <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} color={ICON_COLOR} />
+            <HugeiconsIcon icon={Building04Icon} size={ICON_SIZE} />
             <span className="truncate">Todas</span>
           </Link>
         )}
@@ -500,16 +379,15 @@ function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?
                 <div className="flex items-center gap-2.5 flex-1 min-w-0">
                   <div className="shrink-0">
                     {company.imapHost
-                      ? <HugeiconsIcon icon={InboxIcon} size={14} color="#22c55e" />
-                      : <HugeiconsIcon icon={SentIcon} size={14} color="#f59e0b" />
+                      ? <HugeiconsIcon icon={InboxIcon} size={14} className="text-success" />
+                      : <HugeiconsIcon icon={SentIcon} size={14} className="text-text-secondary" />
                     }
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="truncate block">{company.name}</span>
-                    {!company.imapHost && <span className="text-[10px] text-amber-600 font-medium">Sin IMAP</span>}
+                    {!company.imapHost && <span className="text-xs text-amber-600 font-medium">Sin IMAP</span>}
                   </div>
                 </div>
-                {isSelected && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
               </>
             );
             return (
@@ -525,7 +403,7 @@ function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNavigate?
                     className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-text-primary hover:bg-nav-active transition-opacity duration-200 rounded-md motion-reduce:transition-none"
                     title="Configurar SMTP / IMAP"
                   >
-                    <HugeiconsIcon icon={Settings01Icon} size={14} color={ICON_COLOR} />
+                    <HugeiconsIcon icon={Settings01Icon} size={14} />
                   </button>
                 )}
               </div>
@@ -573,7 +451,7 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
-          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
+          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} />
           Nuevo cliente / marca
         </Link>
       </div>
@@ -592,14 +470,13 @@ function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
               <Link key={c.id} href={`/contenido/${c.id}`} onClick={onNavigate} className={navItemClass(isActive, "justify-between")}>
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span
-                    className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
+                    className="shrink-0 w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold text-white"
                     style={{ backgroundColor: c.color || "#3545D6" }}
                   >
                     {c.name.charAt(0).toUpperCase()}
                   </span>
                   <span className="truncate">{c.name}</span>
                 </div>
-                {isActive && <Check size={13} className="text-text-secondary shrink-0" strokeWidth={2.5} />}
               </Link>
             );
           })}
@@ -653,7 +530,7 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
           prefetch
           className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
         >
-          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
+          <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} />
           Nueva conversación
         </Link>
         <button
@@ -661,9 +538,9 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
           onClick={onSearchOpen}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors"
         >
-          <HugeiconsIcon icon={Search01Icon} size={ICON_SIZE} color="#9ca3af" />
+          <HugeiconsIcon icon={Search01Icon} size={ICON_SIZE} className="text-text-secondary" />
           <span className="flex-1 text-left">Buscar…</span>
-          <kbd className="text-[10px] font-mono bg-surface-sidebar border border-border-subtle px-1.5 py-0.5 rounded">⌘K</kbd>
+          <kbd className="text-xs font-mono bg-surface-sidebar border border-line px-1.5 py-0.5 rounded">⌘K</kbd>
         </button>
       </div>
 
@@ -701,7 +578,7 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
               <span role="status" className="sr-only">Actualizando historial de conversaciones</span>
             )}
             {conversationStatus === "error" && hasConversationSnapshot && (
-              <p role="status" className="px-1 pb-1.5 text-[11px] text-text-secondary">
+              <p role="status" className="px-1 pb-1.5 text-xs text-text-secondary">
                 No se pudo actualizar el historial. Se muestran los datos anteriores.
               </p>
             )}
@@ -715,20 +592,20 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
                         href={`/assistant/${conv.id}`}
                         className={`${navItemClass(isActive)} pr-8 w-full`}
                       >
-                        <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} color={ICON_COLOR} className="shrink-0" />
+                        <HugeiconsIcon icon={AiChatIcon} size={ICON_SIZE} className="shrink-0" />
                         <span className="truncate text-sm">{conv.title}</span>
                       </Link>
                       {deletingId === conv.id ? (
                         <div className="absolute inset-0 flex items-center justify-end gap-1 pr-1 bg-surface-elevated rounded-lg">
                           <button
                             onClick={() => setDeletingId(null)}
-                            className="text-[10px] px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
+                            className="text-xs px-2 py-1 rounded hover:bg-nav-hover text-text-secondary transition-colors"
                           >
                             Cancelar
                           </button>
                           <button
                             onClick={() => deleteConv(conv.id)}
-                            className="text-[10px] px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
+                            className="text-xs px-2 py-1 rounded bg-red-100 hover:bg-red-200 text-red-700 font-medium transition-colors"
                           >
                             Eliminar
                           </button>
@@ -739,9 +616,7 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
                           className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 hover:bg-nav-active rounded-md transition-all"
                           title="Eliminar conversación"
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text-secondary">
-                            <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" />
-                          </svg>
+                          <HugeiconsIcon icon={Delete01Icon} size={14} className="text-text-secondary" />
                         </button>
                       )}
                     </div>
@@ -759,7 +634,7 @@ function AssistantNav({ onSearchOpen }: AssistantNavProps) {
 // ─── Main Sidebar ──────────────────────────────────────────────────────────────
 
 export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const { data: session } = useSession();
   const { notifications, unreadCount: notifUnread, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
   const { openSearch } = useGlobalSearch();
@@ -772,9 +647,20 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
   const unreadEmailCount = notifications.filter(n => n.type === "NEW_EMAIL" && !n.isRead).length;
   const role = session?.role as RoleName | undefined;
   const permissions = session?.permissions as ModulePermissions | undefined;
-  const allowedSections = SECTIONS.filter((section) =>
-    hasPermission(role, permissions, SECTION_PERMISSION[section.id]),
-  );
+  const navGroups = visibleNavGroups(role, permissions);
+  // «Volver» guarda la ruta en la que se pulsó; elegir cualquier destino lo anula.
+  const [dismissedPath, setDismissedPath] = useState<string | null>(null);
+  const view = sidebarView(pathname, dismissedPath);
+  const viewSection: ContextualSection | null = view.mode === "contextual" ? view.section : null;
+  // Un área sin destinos visibles para esta persona no abre un panel vacío: se queda la lista plana.
+  const contextual: ContextualSection | null =
+    viewSection && (AREA_SECTIONS as readonly string[]).includes(viewSection) && visibleAreaItems(viewSection as AreaSection, role, permissions).length === 0
+      ? null
+      : viewSection;
+  const chooseDestination = () => {
+    setDismissedPath(null);
+    onNavigate?.();
+  };
   const canSeeSettings = hasPermission(role, permissions, "settings");
   const showTeam = canManageTeam(role);
 
@@ -787,21 +673,6 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
     onNavigate?.();
     void signOut();
   };
-
-  const getTabForPath = (p: string): SidebarTab => {
-    if (p.startsWith("/kb")) return "kb";
-    if (p.startsWith("/emails") || p.startsWith("/campaigns")) return "mail";
-    if (p.startsWith("/assistant")) return "assistant";
-    if (p.startsWith("/boveda")) return "vault";
-    if (p.startsWith("/contenido")) return "content";
-    return "home";
-  };
-
-  const [activeTab, setActiveTab] = useState<SidebarTab>(() => getTabForPath(pathname));
-
-  useEffect(() => {
-    setActiveTab(getTabForPath(pathname));
-  }, [pathname]);
 
   // Close bottom dropdowns on outside click
   useEffect(() => {
@@ -847,61 +718,84 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
     };
   }, []);
 
-  const isAssistant = activeTab === "assistant";
+  const onAssistantRoute = pathname === "/assistant" || pathname.startsWith("/assistant/");
   const shellClass =
     variant === "floating"
-      ? "crm-glass flex h-full w-full flex-col overflow-hidden rounded-surface"
+      ? "flex h-full w-full flex-col overflow-hidden rounded-surface border border-line bg-surface-sidebar"
       : variant === "pinned"
-        ? "crm-glass flex h-full w-full flex-col overflow-hidden border-r"
-        : `${SIDEBAR_W} flex h-screen flex-shrink-0 flex-col overflow-hidden bg-surface-sidebar`;
+        ? "flex h-full w-full flex-col overflow-hidden border-r border-line bg-surface-sidebar"
+        : "flex h-full w-64 shrink-0 flex-col overflow-hidden bg-surface-sidebar";
+  const sectionPanel = (section: ContextualSection, layout = "flex h-full flex-col") =>
+    contextual === section ? layout : "hidden";
 
   return (
     <>
       <aside ref={asideRef} aria-label="Barra lateral principal" className={shellClass}>
-        <SectionSwitcher
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          unreadCount={unreadEmailCount}
-          onNavigate={onNavigate}
-          sections={allowedSections}
-        />
+        <div className="flex h-14 shrink-0 items-center gap-2.5 px-5">
+          {/* Isotipo oficial (public/Isotipo_Azul.svg), sin cuadro de fondo. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/Isotipo_Azul.svg" alt="" width={20} height={15} className="h-[15px] w-5 shrink-0" />
+          <span className="truncate text-[15px] font-semibold tracking-[-0.01em] text-text-primary">Noxy</span>
+        </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0 relative">
-          {hasPermission(role, permissions, "crm") && (
-            <div className={activeTab === "home" ? "block" : "hidden"}>
-              <HomeNav onNavigate={onNavigate} />
-            </div>
-          )}
+        {contextual && (
+          <div className="shrink-0 px-3 pb-1">
+            <button
+              type="button"
+              data-nav-back
+              onClick={() => setDismissedPath(pathname)}
+              className="flex min-h-11 w-full items-center gap-2 rounded-control px-3 text-sm font-medium text-text-secondary hover:bg-surface-elevated/60 hover:text-text-primary lg:min-h-10"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={ICON_SIZE} />
+              Volver
+            </button>
+            <p className="px-3 pb-1 pt-2 text-base font-semibold text-text-primary">{contextualSectionLabel(contextual)}</p>
+          </div>
+        )}
+
+        <div className="relative min-h-0 flex-1 overflow-y-auto">
+          <div className={contextual ? "hidden" : "block"}>
+            <FlatNav groups={navGroups} unreadEmailCount={unreadEmailCount} onChoose={chooseDestination} />
+          </div>
+          {AREA_SECTIONS.map((section: AreaSection) => {
+            const items = visibleAreaItems(section, role, permissions);
+            if (items.length === 0) return null;
+            return (
+              <div key={section} className={sectionPanel(section)}>
+                <AreaNav items={items} onChoose={chooseDestination} />
+              </div>
+            );
+          })}
           {hasPermission(role, permissions, "mail") && (
-            <div className={activeTab === "mail" ? "flex flex-col h-full" : "hidden"}>
+            <div className={sectionPanel("mail")}>
               <MailNav unreadCount={unreadEmailCount} onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "kb") && (
-            <div className={activeTab === "kb" ? "flex flex-col h-full" : "hidden"}>
+            <div className={sectionPanel("kb")}>
               <KbNav onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "vault") && (
-            <div className={activeTab === "vault" ? "flex flex-col h-full" : "hidden"}>
+            <div className={sectionPanel("vault")}>
               <VaultNav onNavigate={onNavigate} />
             </div>
           )}
           {hasPermission(role, permissions, "assistant") && (
-            <div className={activeTab === "assistant" ? "flex flex-col h-full" : "hidden"}>
+            <div className={sectionPanel("assistant")}>
               <AssistantNav onSearchOpen={openSearch} />
             </div>
           )}
           {hasPermission(role, permissions, "content") && (
-            <div className={activeTab === "content" ? "flex h-full min-h-0 flex-col overflow-hidden" : "hidden"}>
+            <div className={sectionPanel("content", "flex h-full min-h-0 flex-col overflow-hidden")}>
               <ContentNav onNavigate={onNavigate} />
             </div>
           )}
         </div>
 
         {/* ── Bottom bar (only on assistant tab) ─────────────────────────────── */}
-        {isAssistant && (
-          <div className="shrink-0 border-t border-border-subtle px-3 py-3 flex items-center gap-1">
+        {onAssistantRoute && (
+          <div className="shrink-0 border-t border-line px-3 py-3 flex items-center gap-1">
             {/* Notification bell */}
             <div className="relative" ref={notifRef}>
               <button
@@ -911,15 +805,15 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
               >
                 <HugeiconsIcon icon={Notification01Icon} size={16} />
                 {notifUnread > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center leading-none">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none">
                     {notifUnread > 99 ? "99+" : notifUnread}
                   </span>
                 )}
               </button>
 
               {sidebarNotifOpen && (
-                <div className="crm-floating-menu absolute bottom-full left-0 mb-2 w-72 bg-surface-elevated rounded-lg overflow-hidden z-50 border border-border-subtle">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
+                <div className="crm-floating-menu absolute bottom-full left-0 mb-2 w-72 bg-surface-elevated rounded-lg overflow-hidden z-50 border border-line">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-line">
                     <p className="text-sm font-bold text-text-primary">Notificaciones</p>
                     <div className="flex items-center gap-2">
                       {notifUnread > 0 && (
@@ -936,10 +830,10 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                       )}
                     </div>
                   </div>
-                  <div className="max-h-72 overflow-y-auto divide-y divide-border-subtle">
+                  <div className="max-h-72 overflow-y-auto divide-y divide-line">
                     {notifications.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-8 text-text-secondary">
-                        <HugeiconsIcon icon={Notification01Icon} size={22} color="#d1d5db" />
+                        <HugeiconsIcon icon={Notification01Icon} size={22} className="text-text-secondary" />
                         <p className="text-xs mt-2">Sin notificaciones</p>
                       </div>
                     ) : (
@@ -957,8 +851,8 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`text-xs leading-tight ${!n.isRead ? "font-semibold text-text-primary" : "text-text-primary"}`}>{n.title}</p>
-                              {n.body && <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-2">{n.body}</p>}
-                              <p className="text-[10px] text-gray-300 mt-1">{timeAgo(n.createdAt)}</p>
+                              {n.body && <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">{n.body}</p>}
+                              <p className="text-xs text-gray-300 mt-1">{timeAgo(n.createdAt)}</p>
                             </div>
                             {!n.isRead && <span className="w-1.5 h-1.5 bg-action-primary rounded-full shrink-0 mt-1.5" />}
                           </button>
@@ -981,8 +875,8 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
               </button>
 
               {sidebarUserOpen && (
-                <div className="crm-floating-menu absolute bottom-full right-0 z-[80] mb-2 w-52 rounded-lg border border-border-subtle bg-surface-elevated py-1">
-                  <div className="px-4 py-3 border-b border-border-subtle">
+                <div className="crm-floating-menu absolute bottom-full right-0 z-[80] mb-2 w-52 rounded-lg border border-line bg-surface-elevated py-1">
+                  <div className="px-4 py-3 border-b border-line">
                     <p className="text-sm font-semibold text-text-primary truncate">{session?.user?.name || "Usuario"}</p>
                     <p className="text-xs text-text-secondary truncate">{session?.user?.email || ""}</p>
                   </div>
@@ -991,7 +885,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                     onClick={closeUserMenuForNavigation}
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                   >
-                    <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
+                    <HugeiconsIcon icon={UserMultipleIcon} size={14} className="text-text-secondary" />
                     Mi perfil
                   </Link>
                   {showTeam && (
@@ -1000,7 +894,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                       onClick={closeUserMenuForNavigation}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                     >
-                      <HugeiconsIcon icon={UserMultipleIcon} size={14} color="#9ca3af" />
+                      <HugeiconsIcon icon={UserMultipleIcon} size={14} className="text-text-secondary" />
                       Equipo
                     </Link>
                   )}
@@ -1011,7 +905,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                         onClick={closeUserMenuForNavigation}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                       >
-                        <HugeiconsIcon icon={Settings01Icon} size={14} color="#9ca3af" />
+                        <HugeiconsIcon icon={Settings01Icon} size={14} className="text-text-secondary" />
                         Configuración
                       </Link>
                       <Link
@@ -1019,7 +913,7 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                         onClick={closeUserMenuForNavigation}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                       >
-                        <HugeiconsIcon icon={Notification01Icon} size={14} color="#9ca3af" />
+                        <HugeiconsIcon icon={Notification01Icon} size={14} className="text-text-secondary" />
                         Resumen WhatsApp
                       </Link>
                       <Link
@@ -1027,17 +921,17 @@ export default function Sidebar({ variant = "docked", onNavigate }: SidebarProps
                         onClick={closeUserMenuForNavigation}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary hover:bg-surface-sidebar transition-colors"
                       >
-                        <HugeiconsIcon icon={AiChatIcon} size={14} color="#9ca3af" />
+                        <HugeiconsIcon icon={AiChatIcon} size={14} className="text-text-secondary" />
                         Modelos de IA
                       </Link>
                     </>
                   )}
-                  <div className="border-t border-border-subtle mt-1 pt-1">
+                  <div className="border-t border-line mt-1 pt-1">
                     <button
                       onClick={handleSignOut}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
                     >
-                      <HugeiconsIcon icon={Logout01Icon} size={14} color="#ef4444" />
+                      <HugeiconsIcon icon={Logout01Icon} size={14} className="text-danger" />
                       Cerrar sesión
                     </button>
                   </div>

@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { Block } from "@/src/components/ui";
 
 interface WidgetCardProps {
   title: string;
@@ -8,17 +6,11 @@ interface WidgetCardProps {
   children: React.ReactNode;
 }
 
+/** Widget de lista del dashboard: un Block con su enlace «Ver todo». */
 export function WidgetCard({ title, href, children }: WidgetCardProps) {
   return (
-    <div className="bg-surface-elevated rounded-surface overflow-hidden h-full flex flex-col">
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border-subtle shrink-0">
-        <p className="text-sm font-semibold text-text-primary">{title}</p>
-        <Link href={href} className="flex items-center gap-1 text-xs text-text-secondary hover:text-text-primary transition-colors">
-          Ver todo
-          <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
-        </Link>
-      </div>
-      <div className="flex-1 min-h-0">{children}</div>
-    </div>
+    <Block title={title} action={{ label: "Ver todo", href }} className="flex h-full flex-col overflow-hidden">
+      <div className="min-h-0 flex-1">{children}</div>
+    </Block>
   );
 }

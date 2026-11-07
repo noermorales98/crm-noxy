@@ -1,15 +1,30 @@
 "use client";
 
-import { Suspense, useState, useEffect, useMemo } from "react";
+import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Tick01Icon, Clock01Icon, Delete01Icon, FolderKanbanIcon, Cancel01Icon, Task01Icon } from "@hugeicons/core-free-icons";
+import { Tick01Icon, Delete01Icon, FolderKanbanIcon, Cancel01Icon, Building04Icon, BrowserIcon, Calendar01Icon, UserIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import DatePicker from "@/src/components/DatePicker";
+import { Chip, DataList, EmptyState, Enter, ErrorState, FilterBar, PageHeader, Segmented, Skeleton, useDialog } from "@/src/components/ui";
+
+type TaskRow = {
+  id: string;
+  title: string;
+  description?: string | null;
+  isCompleted: boolean;
+  dueDate?: string | null;
+  createdAt: string;
+  project?: { id: string; name: string } | null;
+  company?: { name: string } | null;
+  form?: { name: string } | null;
+  appointment?: { startTime: string } | null;
+  contact?: { firstName: string; lastName?: string | null } | null;
+};
 
 function TasksContent() {
   const searchParams = useSearchParams();
@@ -17,6 +32,7 @@ function TasksContent() {
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -32,6 +48,9 @@ function TasksContent() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState, sortField, sortOrder } = useHeader();
+
+  const taskDialogRef = useRef<HTMLDivElement>(null);
+  useDialog(taskDialogRef, isModalOpen, () => setIsModalOpen(false));
 
   useEffect(() => {
     resetState();
@@ -55,10 +74,12 @@ function TasksContent() {
   };
 
   const fetchTasks = async () => {
+    setLoadError(false);
     try {
       const res = await fetch("/api/tasks");
       if (res.ok) setTasks(await res.json());
-    } catch { console.error("Error loading tasks"); }
+      else setLoadError(true);
+    } catch { console.error("Error loading tasks"); setLoadError(true); }
     finally { setLoading(false); }
   };
 
@@ -74,7 +95,7 @@ function TasksContent() {
         { label: "Fecha de creación", value: "createdAt" },
         { label: "Proyecto", value: "project" },
       ],
-      addButton: { label: "Nueva tarea", onClick: () => setIsModalOpen(true) },
+      pageHeader: true,
     });
     return () => setConfig({});
   }, [loading, pendingTasks.length]);
@@ -139,125 +160,161 @@ function TasksContent() {
 
   return (
     <>
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <Enter index={0}>
+          <PageHeader
+            title="Tareas"
+            subtitle={loading ? "Cargando tareas…" : `${pendingTasks.length} pendientes · ${completedTasks.length} completadas`}
+            actions={
+              <>
+                <Link
+                  href="/projects"
+                  className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10"
+                >
+                  <HugeiconsIcon icon={FolderKanbanIcon} size={16} />
+                  Proyectos
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="crm-press inline-flex min-h-11 items-center justify-center rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary lg:min-h-10"
+                >
+                  Nueva tarea
+                </button>
+              </>
+            }
+          />
+        </Enter>
 
-          {/* Page header */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <p className="text-sm text-text-secondary">Organiza y da seguimiento a tus actividades pendientes.</p>
-              {filterProjectId && (
-                <div className="flex items-center gap-2 mt-1.5">
-                  <span className="text-xs font-semibold text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full">
-                    Proyecto: {(dropdownData.projects.find((p: any) => p.id === filterProjectId) as any)?.name ?? "…"}
-                  </span>
-                  <Link href="/tasks" className="text-xs text-text-secondary hover:text-text-primary underline">Quitar filtro</Link>
+        <Enter index={1}>
+          <FilterBar
+            segments={
+              <Segmented
+                label="Estado de las tareas"
+                value={activeTab}
+                onChange={(v) => setActiveTab(v as "pending" | "completed")}
+                options={[
+                  { value: "pending", label: `Pendientes · ${pendingTasks.length}` },
+                  { value: "completed", label: `Completadas · ${completedTasks.length}` },
+                ]}
+              />
+            }
+            actions={
+              filterProjectId ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Chip>{`Proyecto: ${(dropdownData.projects.find((p: { id: string }) => p.id === filterProjectId) as { name?: string } | undefined)?.name ?? "seleccionado"}`}</Chip>
+                  <Link href="/tasks" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline lg:min-h-8">
+                    Quitar filtro
+                  </Link>
                 </div>
-              )}
-            </div>
-            <Link
-              href="/projects"
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-border-subtle hover:bg-surface-sidebar text-text-secondary text-sm font-semibold rounded-lg transition-colors"
-            >
-              <HugeiconsIcon icon={FolderKanbanIcon} size={15} />
-              Proyectos
-            </Link>
-          </div>
+              ) : undefined
+            }
+          />
+        </Enter>
 
-          {/* Tabs */}
-          <div className="flex items-center border-b border-border-subtle mb-6 gap-1">
-            {[
-              { key: "pending", label: "Pendientes", count: pendingTasks.length },
-              { key: "completed", label: "Completadas", count: completedTasks.length },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as "pending" | "completed")}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-secondary"}`}
-              >
-                {tab.label}
-                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>
-              </button>
-            ))}
-          </div>
-
+        <Enter index={2}>
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+            <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+              <Skeleton shape="rows" count={6} label="Cargando tareas" />
             </div>
-          ) : displayed.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border border-border-subtle">
-              <div className="w-16 h-16 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-4">
-                <HugeiconsIcon icon={activeTab === "pending" ? Clock01Icon : Tick01Icon} size={28} color="#9ca3af" />
-              </div>
-              <h3 className="text-base font-semibold text-text-primary mb-1">
-                {activeTab === "pending" ? "Sin tareas pendientes" : "Sin tareas completadas"}
-              </h3>
-              <p className="text-sm text-text-secondary">
-                {activeTab === "pending" ? "¡Todo al día! Crea una nueva tarea." : "Completa algunas tareas para verlas aquí."}
-              </p>
+          ) : loadError && tasks.length === 0 ? (
+            <div className="rounded-surface border border-line bg-surface-elevated">
+              <ErrorState title="No se pudieron cargar las tareas" onRetry={() => { setLoading(true); fetchTasks(); }} />
             </div>
           ) : (
-            <div className="bg-white rounded-lg border border-border-subtle overflow-hidden">
-              <ul className="divide-y divide-gray-50">
-                {displayed.map((task) => (
-                  <li key={task.id} className="px-5 py-4 flex items-start gap-4 hover:bg-surface-sidebar/50 transition-colors group">
-                    <button
-                      onClick={() => toggleTask(task.id, task.isCompleted)}
-                      className={`mt-0.5 shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.isCompleted ? "bg-green-500 border-green-500 text-white" : "border-border-subtle bg-white hover:bg-nav-hover"}`}
-                    >
-                      {task.isCompleted && <HugeiconsIcon icon={Tick01Icon} size={12} />}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`text-sm font-semibold ${task.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}>{task.title}</span>
-                        {task.project && (
-                          <span className="text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full bg-violet-50 text-violet-600">
-                            {task.project.name}
+            <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+              <DataList
+                label={activeTab === "pending" ? "Tareas pendientes" : "Tareas completadas"}
+                rows={displayed as TaskRow[]}
+                getKey={(task) => task.id}
+                empty={
+                  activeTab === "pending" ? (
+                    <EmptyState title="Sin tareas pendientes" body="Todo al día. Crea una nueva tarea cuando la necesites." />
+                  ) : (
+                    <EmptyState title="Sin tareas completadas" body="Completa algunas tareas para verlas aquí." />
+                  )
+                }
+                renderRow={(task) => {
+                  const overdue = !!task.dueDate && !task.isCompleted && new Date(task.dueDate) < new Date();
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => toggleTask(task.id, task.isCompleted)}
+                        aria-label={task.isCompleted ? `Marcar «${task.title}» como pendiente` : `Completar «${task.title}»`}
+                        className="crm-press -ml-2 flex size-11 shrink-0 items-center justify-center self-start rounded-full"
+                      >
+                        <span
+                          className={`flex size-6 items-center justify-center rounded-full border-2 ${
+                            task.isCompleted ? "border-success bg-success text-white" : "border-line bg-surface-elevated hover:border-action-primary"
+                          }`}
+                        >
+                          {task.isCompleted && <HugeiconsIcon icon={Tick01Icon} size={12} />}
+                        </span>
+                      </button>
+                      <div className="min-w-0 flex-1 py-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`min-w-0 font-semibold ${task.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}
+                          >
+                            {task.title}
                           </span>
+                          {task.project && <Chip>{task.project.name}</Chip>}
+                          {task.dueDate && !task.isCompleted && (
+                            <Chip tone={overdue ? "late" : "neutral"}>
+                              {`${overdue ? "Vencida · " : ""}${new Date(task.dueDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
+                            </Chip>
+                          )}
+                        </div>
+                        {task.description && (
+                          <p className={`mt-1 text-sm ${task.isCompleted ? "text-text-secondary line-through" : "text-text-secondary"}`}>{task.description}</p>
                         )}
-                        {task.dueDate && !task.isCompleted && (
-                          <span className={`text-[10px] font-bold uppercase tracking-wide py-0.5 px-2 rounded-full ${new Date(task.dueDate) < new Date() ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
-                            📅 {new Date(task.dueDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
-                          </span>
+                        {(task.company || task.form || task.appointment || task.contact) && (
+                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary">
+                            {task.company && (
+                              <span className="inline-flex items-center gap-1"><HugeiconsIcon icon={Building04Icon} size={14} />{task.company.name}</span>
+                            )}
+                            {task.form && (
+                              <span className="inline-flex items-center gap-1"><HugeiconsIcon icon={BrowserIcon} size={14} />{task.form.name}</span>
+                            )}
+                            {task.appointment && (
+                              <span className="inline-flex items-center gap-1"><HugeiconsIcon icon={Calendar01Icon} size={14} />{new Date(task.appointment.startTime).toLocaleDateString("es-MX")}</span>
+                            )}
+                            {task.contact && (
+                              <span className="inline-flex items-center gap-1"><HugeiconsIcon icon={UserIcon} size={14} />{task.contact.firstName} {task.contact.lastName}</span>
+                            )}
+                          </div>
                         )}
                       </div>
-                      {task.description && (
-                        <p className={`text-xs leading-relaxed ${task.isCompleted ? "text-gray-300 line-through" : "text-text-secondary"}`}>{task.description}</p>
-                      )}
-                      {(task.company || task.form || task.appointment || task.contact) && (
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {task.company && <span className="text-[11px] bg-gray-100 text-text-secondary px-2 py-0.5 rounded-full font-medium">🏢 {task.company.name}</span>}
-                          {task.form && <span className="text-[11px] bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full font-medium">📝 {task.form.name}</span>}
-                          {task.appointment && <span className="text-xs bg-nav-hover text-action-primary px-2 py-0.5 rounded-full font-medium">📅 {new Date(task.appointment.startTime).toLocaleDateString()}</span>}
-                          {task.contact && <span className="text-[11px] text-text-secondary px-2 py-0.5 rounded-full">👤 {task.contact.firstName} {task.contact.lastName}</span>}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[11px] font-medium text-text-secondary hidden group-hover:block">{new Date(task.createdAt).toLocaleDateString()}</span>
-                      <button onClick={() => handleDelete(task)} className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                        <HugeiconsIcon icon={Delete01Icon} size={15} />
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                      <div className="flex shrink-0 items-center gap-2 self-start">
+                        <span className="hidden text-xs tabular-nums text-text-secondary lg:inline">{new Date(task.createdAt).toLocaleDateString("es-MX")}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(task)}
+                          aria-label={`Eliminar «${task.title}»`}
+                          className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-9"
+                        >
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
+                        </button>
+                      </div>
+                    </>
+                  );
+                }}
+              />
+            </section>
           )}
-        </main>
+        </Enter>
+      </main>
 
       {/* New Task Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
+          <div ref={taskDialogRef} role="dialog" aria-modal="true" aria-labelledby="task-modal-title" className="w-full max-w-md overflow-hidden rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-line">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-                  <HugeiconsIcon icon={Task01Icon} size={16} color="#d97706" />
-                </div>
-                <h3 className="text-base font-bold text-text-primary">Nueva tarea</h3>
+                <h3 id="task-modal-title" className="text-base font-semibold text-text-primary">Nueva tarea</h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg transition-colors">
+              <button type="button" onClick={() => setIsModalOpen(false)} aria-label="Cerrar" className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-9">
                 <HugeiconsIcon icon={Cancel01Icon} size={20} />
               </button>
             </div>
@@ -274,7 +331,7 @@ function TasksContent() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-text-primary">Proyecto</label>
                   <select value={projectId} onChange={e => setProjectId(e.target.value)} className={inputCls}>
-                    <option value="">— Sin proyecto —</option>
+                    <option value="">Sin proyecto</option>
                     {dropdownData.projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
@@ -284,14 +341,14 @@ function TasksContent() {
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-text-primary">Empresa</label>
                   <select value={companyId} onChange={e => setCompanyId(e.target.value)} className={inputCls}>
-                    <option value="">— Ninguna —</option>
+                    <option value="">Ninguna</option>
                     {dropdownData.companies.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-text-primary">Formulario</label>
                   <select value={formId} onChange={e => setFormId(e.target.value)} className={inputCls}>
-                    <option value="">— Ninguno —</option>
+                    <option value="">Ninguno</option>
                     {dropdownData.forms.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
                 </div>
@@ -299,13 +356,13 @@ function TasksContent() {
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-semibold text-text-primary">Cita vinculada</label>
                 <select value={appointmentId} onChange={e => setAppointmentId(e.target.value)} className={inputCls}>
-                  <option value="">— Ninguna —</option>
+                  <option value="">Ninguna</option>
                   {dropdownData.appointments.map((a: any) => <option key={a.id} value={a.id}>{new Date(a.startTime).toLocaleString()} · {a.guestName}</option>)}
                 </select>
               </div>
-              <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
+              <div className="flex gap-3 pt-2 border-t border-line mt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="inline-flex min-h-11 items-center justify-center lg:min-h-10 flex-1 py-2.5 font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg text-sm transition-colors">Cancelar</button>
+                <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center lg:min-h-10 flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-action-secondary rounded-lg text-sm disabled:opacity-50 transition-colors">{saving ? "Guardando..." : "Crear tarea"}</button>
               </div>
             </form>
           </div>
@@ -317,7 +374,7 @@ function TasksContent() {
 
 export default function TasksPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center h-screen bg-surface-app"><div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="px-4 py-5 sm:px-6 sm:py-6"><div className="overflow-hidden rounded-surface border border-line bg-surface-elevated"><Skeleton shape="rows" count={6} label="Cargando tareas" /></div></div>}>
       <TasksContent />
     </Suspense>
   );

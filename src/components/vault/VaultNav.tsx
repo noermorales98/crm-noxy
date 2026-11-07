@@ -95,11 +95,11 @@ export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
           </button>
           <button
             onClick={() => setShowImportModal(true)}
-            className="w-full flex items-center justify-center gap-2 border border-border-subtle text-text-primary py-2 px-3 rounded-lg text-sm font-medium hover:bg-nav-hover transition-colors"
+            className="w-full flex items-center justify-center gap-2 border border-line text-text-primary py-2 px-3 rounded-lg text-sm font-medium hover:bg-nav-hover transition-colors"
           >
             Agregar existente
           </button>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-sidebar border border-border-subtle focus-within:ring-1 focus-within:ring-border-subtle">
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-sidebar border border-line focus-within:ring-1 focus-within:ring-line">
             <HugeiconsIcon icon={Search01Icon} size={ICON_SIZE} color="#9ca3af" />
             <input
               type="text"
@@ -133,7 +133,7 @@ export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
                         <span className="truncate">{client.name}</span>
                       </span>
                       {count > 0 && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-text-secondary shrink-0">
+                        <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-nav-hover text-text-secondary shrink-0">
                           {count}
                         </span>
                       )}

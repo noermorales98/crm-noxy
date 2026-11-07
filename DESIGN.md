@@ -97,7 +97,7 @@ components:
 
 La interfaz funciona como un centro de operaciones luminoso y preciso: la información domina, los controles se reconocen sin aprendizaje y la identidad Noxy aparece en los lugares que orientan una decisión. La composición es restringida, plana por defecto y densa cuando el trabajo lo exige, con ritmo suficiente para escanear sin fatiga.
 
-El sistema rechaza explícitamente los clones de Notion, las plantillas SaaS genéricas, el glassmorphism, las tarjetas repetidas y el movimiento decorativo. La personalidad surge de Open Sauce Two, la relación entre Jazmín, Lavanda y Obsidiana, y el uso escaso de Índigo, Azul Recuerdo y Lima.
+El sistema rechaza explícitamente los clones de Notion, las plantillas SaaS genéricas, el glassmorphism, las tarjetas repetidas y el movimiento sin propósito. El movimiento existe para orientar (entradas escalonadas breves) y para responder (hover y pulsación), nunca como adorno. La personalidad surge de Open Sauce Two, la relación entre Jazmín, Lavanda y Obsidiana, y el uso escaso de Índigo, Azul Recuerdo y Lima.
 
 **Key Characteristics:**
 
@@ -106,6 +106,18 @@ El sistema rechaza explícitamente los clones de Notion, las plantillas SaaS gen
 - Acentos saturados limitados a acciones y selección.
 - Bordes y capas tonales antes que sombras.
 - Respuesta inmediata, accesible y predecible.
+
+## Marco claro
+
+El shell autenticado es un **marco en «L»**: la navegación lateral y la barra superior comparten el fondo `surface-sidebar` del tema activo (Lavanda en Noxy Índigo) y encuadran una **hoja de contenido** `surface-app` con la esquina superior izquierda redondeada a 12px y un borde `border-subtle` en sus lados superior e izquierdo. El marco es claro en todos los temas; la hoja es lo que separa la navegación del trabajo.
+
+- **Navegación:** lista plana, sin selector de secciones, con los destinos agrupados en *Principal*, *Ventas*, *Calendario* y *Espacios*. En Correo, Docs, Gestión de contenido y Asistente, la sidebar muestra el submenú de esa sección bajo un control «Volver».
+- **Destino activo:** pastilla `surface-elevated`, texto e icono con peso 600 y una barra de 3px a la izquierda. Su tinta es `action-primary` cuando alcanza 4.5:1 sobre la pastilla; si no (Azul Recuerdo, Lima), es `text-primary`. Siempre dos señales, nunca solo color.
+- **Móvil:** barra superior y barra inferior sólidas en `surface-sidebar`, sin vidrio. La barra inferior ofrece Inicio, Contactos, Pipeline, Tareas y «Más»; «Más» abre la navegación completa en un panel.
+- **Cabecera de página:** título (Headline), una línea de contexto con las cifras clave y como máximo una acción primaria Índigo.
+- **Cifras clave:** una franja dividida, no tarjetas sueltas; cifras con `tabular-nums`.
+- **Lista y tablero:** filas de al menos 56px con un divisor entre filas; en menos de 1024px las tablas pasan a filas apiladas. Las columnas del tablero son Lavanda con tarjetas blancas planas.
+- **Lima** se reserva para lo urgente o nuevo (chips «Nuevo hoy», «Atender hoy») con texto Obsidiana; nunca como indicador sobre el marco claro (1.02:1 sobre Lavanda).
 
 ## Colors
 
@@ -163,6 +175,15 @@ Cada tema redefine únicamente roles semánticos de superficie, navegación, tex
 
 **The Twelve-Pixel Floor.** Ningún texto funcional baja de 12px. Si una etiqueta necesita ser más pequeña para caber, debe reescribirse o redistribuirse.
 
+## Motion
+
+El movimiento comunica jerarquía, respuesta y cambio de estado. Solo anima `transform` y `opacity`, y solo cuando `prefers-reduced-motion` no pide lo contrario.
+
+- **Entradas escalonadas:** al montar una pantalla, sus bloques entran con `opacity` y un desplazamiento de 8px, con 40ms entre bloques y 280ms de duración; la secuencia completa dura menos de 500ms. No se repiten al filtrar, paginar ni reordenar.
+- **Hover:** las tarjetas enlazadas suben 1px. **Pulsación:** los botones bajan 1px.
+- **Tablero:** las tarjetas se animan hasta su sitio al arrastrarlas; la tarjeta en arrastre usa la sombra de overlay.
+- **Formulario público** (`/form/:id`): sin ningún movimiento, bajo cualquier preferencia.
+
 ## Elevation
 
 La profundidad se expresa mediante capas tonales, separación y bordes. Las superficies permanecen planas en reposo; dropdowns, modales y overlays pueden usar una sombra estructural corta sin combinarla con un borde decorativo.
@@ -205,7 +226,7 @@ Los componentes son familiares, sobrios y consistentes; cada estado responde con
 
 ### Navigation
 
-- El estado activo usa Lavanda, texto Índigo y peso 600. Hover es una tinta suave de Azul Recuerdo. En móvil, el objetivo táctil mínimo es 44px y la jerarquía no cambia.
+- La estructura y el estado activo se describen en **Marco claro**. Hover sobre el marco es una tinta blanca suave. En móvil, el objetivo táctil mínimo es 44px y la jerarquía no cambia.
 
 ### Public Form
 
@@ -219,6 +240,7 @@ Los componentes son familiares, sobrios y consistentes; cada estado responde con
 - **Do** mantener texto secundario con contraste WCAG AA y usar el gris accesible sobre Lavanda.
 - **Do** separar contenido con espacio, alineación y divisores antes de crear otra tarjeta.
 - **Do** implementar default, hover, focus, active, disabled, loading y error en cada control.
+- **Do** usar entradas escalonadas breves al montar una pantalla y respuesta de hover y pulsación, siempre dentro de `prefers-reduced-motion: no-preference`.
 - **Do** respetar `prefers-reduced-motion` en todo el CRM y eliminar movimiento completamente en `/form/:id`.
 
 ### Don't:
@@ -226,6 +248,13 @@ Los componentes son familiares, sobrios y consistentes; cada estado responde con
 - **Don't** crear clones de Notion ni plantillas SaaS genéricas con gradientes decorativos o glassmorphism.
 - **Don't** anidar tarjetas, repetir grids de tarjetas idénticas ni combinar borde con sombra amplia.
 - **Don't** usar redondeos superiores a 16px en tarjetas o campos.
+- **Don't** volver a usar `backdrop-filter`, vidrio ni marcos oscuros en el shell.
 - **Don't** usar etiquetas funcionales menores de 12px ni abusar de mayúsculas con tracking amplio.
-- **Don't** añadir movimiento decorativo, rebotes o secuencias de entrada al cargar.
+- **Don't** añadir rebotes, bucles infinitos, parallax ni animaciones que no orienten o respondan; nada anima propiedades de layout.
 - **Don't** reemplazar colores semánticos, de integraciones, visualizaciones o configurados por usuarios con la paleta de marca.
+
+## Registro de enmiendas
+
+| Fecha | Cambio | Por qué |
+|---|---|---|
+| 2026-11-05 | Lenguaje del shell **marco claro**: marco en «L» con `surface-sidebar`, hoja de contenido, navegación plana con submenús contextuales, barra inferior con «Más», tinta del destino activo por tema. Nueva sección Motion con entradas escalonadas, hover y pulsación; se retira la prohibición de secuencias de entrada. Radios de la implementación alineados a 10/12px y ninguno por encima de 16px. | Rediseño aprobado por el dueño (spec `rediseno-obsidiana-estructural`): la interfaz se veía genérica, poco moderna y con jerarquía débil. |

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Copy, Link2, RefreshCw, Share2, X } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Copy01Icon, Link01Icon, RefreshIcon, Share08Icon } from "@hugeicons/core-free-icons";
 import type { KbShareRole } from "@prisma/client";
 import {
   DEFAULT_SHARE_ICON_BG,
@@ -133,28 +133,28 @@ export default function KbSharePanel({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+        className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-control text-sm font-medium transition-colors lg:min-h-0 lg:min-w-0 lg:text-xs ${
           share?.isEnabled
             ? "bg-blue-50 text-blue-700"
             : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
         }`}
         title="Compartir"
       >
-        <Share2 size={12} />
+        <HugeiconsIcon icon={Share08Icon} size={12} />
         <span className="hidden sm:inline">Compartir</span>
         {pendingSuggestions > 0 && (
-          <span className="ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center">
+          <span className="ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center">
             {pendingSuggestions}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-border-subtle bg-surface-elevated p-4">
+        <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-80 overflow-y-auto rounded-lg border border-line bg-surface-elevated p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-text-primary">Compartir públicamente</h3>
             <button type="button" onClick={() => setOpen(false)} className="text-text-secondary hover:text-text-primary">
-              <X size={14} />
+              <HugeiconsIcon icon={Cancel01Icon} size={14} />
             </button>
           </div>
 
@@ -169,7 +169,7 @@ export default function KbSharePanel({
                   type="button"
                   disabled={loading}
                   onClick={() => enableShare(opt.value)}
-                  className="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-nav-hover transition-colors disabled:opacity-50"
+                  className="w-full text-left p-3 rounded-lg border border-line hover:bg-nav-hover transition-colors disabled:opacity-50"
                 >
                   <p className="text-sm font-medium">{opt.label}</p>
                   <p className="text-xs text-text-secondary">{opt.desc}</p>
@@ -229,7 +229,7 @@ export default function KbSharePanel({
                       type="button"
                       disabled={loading}
                       onClick={() => saveFavicon(null, DEFAULT_SHARE_ICON_BG)}
-                      className="text-[11px] text-text-secondary hover:text-text-primary disabled:opacity-50"
+                      className="text-xs text-text-secondary hover:text-text-primary disabled:opacity-50"
                     >
                       Usar el del CRM
                     </button>
@@ -247,7 +247,7 @@ export default function KbSharePanel({
                         color={iconStrokeForBackground(previewBg)}
                       />
                     ) : (
-                      <span className="text-[10px] font-medium text-white/80">CRM</span>
+                      <span className="text-xs font-medium text-white/80">CRM</span>
                     )}
                   </span>
                   <label className="flex items-center gap-2 text-xs text-text-secondary">
@@ -257,7 +257,7 @@ export default function KbSharePanel({
                       value={previewBg}
                       disabled={loading || !shareIcon}
                       onChange={(event) => saveFavicon(shareIcon, event.target.value)}
-                      className="h-8 w-10 cursor-pointer rounded border border-border-subtle bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="h-8 w-10 cursor-pointer rounded border border-line bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="Color de fondo del favicon"
                     />
                   </label>
@@ -296,7 +296,7 @@ export default function KbSharePanel({
                     className="p-2 rounded-lg bg-surface-sidebar hover:bg-nav-hover shrink-0"
                     title="Copiar"
                   >
-                    {copied ? <Link2 size={14} className="text-green-600" /> : <Copy size={14} />}
+                    {copied ? <HugeiconsIcon icon={Link01Icon} size={14} className="text-green-600" /> : <HugeiconsIcon icon={Copy01Icon} size={14} />}
                   </button>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export default function KbSharePanel({
                   onClick={() => updateShare({ regenerateToken: true })}
                   className="flex-1 flex items-center justify-center gap-1 py-2 text-xs rounded-lg bg-surface-sidebar hover:bg-nav-hover disabled:opacity-50"
                 >
-                  <RefreshCw size={12} />
+                  <HugeiconsIcon icon={RefreshIcon} size={12} />
                   Regenerar
                 </button>
                 <button

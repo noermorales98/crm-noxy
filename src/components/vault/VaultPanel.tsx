@@ -111,19 +111,19 @@ export default function VaultPanel({
       <div className="p-6 flex flex-col gap-6">
         {loadingVault ? (
           <div className="flex justify-center py-8">
-            <div className="w-6 h-6 border-2 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-line border-t-action-primary rounded-full animate-spin" />
           </div>
         ) : (
           <>
             {/* Redes sociales */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                <p className="text-xs font-bold text-text-secondary">
                   Redes sociales
                 </p>
                 <button
                   onClick={() => setShowAddSocial((s) => !s)}
-                  className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors lg:min-h-8"
                 >
                   <HugeiconsIcon icon={Add01Icon} size={13} />
                   Agregar
@@ -131,7 +131,7 @@ export default function VaultPanel({
               </div>
 
               {showAddSocial && (
-                <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
+                <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-line">
                   <select
                     value={newSocial.platform}
                     onChange={(e) => setNewSocial((s) => ({ ...s, platform: e.target.value }))}
@@ -152,14 +152,14 @@ export default function VaultPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowAddSocial(false)}
-                      className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                      className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={addSocial}
                       disabled={!newSocial.url}
-                      className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-40"
+                      className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg transition-colors disabled:opacity-40"
                     >
                       Guardar
                     </button>
@@ -183,12 +183,12 @@ export default function VaultPanel({
             {/* Contraseñas */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-text-secondary uppercase tracking-wide">
+                <p className="text-xs font-bold text-text-secondary">
                   Bóveda de contraseñas
                 </p>
                 <button
                   onClick={() => setShowAddCredential((s) => !s)}
-                  className="flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors lg:min-h-8"
                 >
                   <HugeiconsIcon icon={Add01Icon} size={13} />
                   Agregar
@@ -196,7 +196,7 @@ export default function VaultPanel({
               </div>
 
               {showAddCredential && (
-                <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-border-subtle">
+                <div className="bg-surface-sidebar rounded-lg p-4 flex flex-col gap-3 mb-3 border border-line">
                   <input
                     value={newCred.label}
                     onChange={(e) => setNewCred((c) => ({ ...c, label: e.target.value }))}
@@ -242,14 +242,14 @@ export default function VaultPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowAddCredential(false)}
-                      className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg transition-colors"
+                      className="flex-1 py-2 text-xs font-semibold text-text-secondary bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={addCredential}
                       disabled={!newCred.label}
-                      className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg transition-colors disabled:opacity-40"
+                      className="flex-1 py-2 text-xs font-semibold text-action-primary-foreground bg-action-primary hover:bg-brand-obsidian rounded-lg transition-colors disabled:opacity-40"
                     >
                       Guardar
                     </button>
@@ -259,13 +259,13 @@ export default function VaultPanel({
 
               {credentials.length === 0 && !showAddCredential ? (
                 <div className="text-center py-6">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <div className="w-10 h-10 bg-surface-sidebar rounded-lg flex items-center justify-center mx-auto mb-3">
                     <HugeiconsIcon icon={LockPasswordIcon} size={18} color="#9ca3af" />
                   </div>
                   <p className="text-sm text-text-secondary">Sin contraseñas guardadas.</p>
                   <button
                     onClick={() => setShowAddCredential(true)}
-                    className="mt-2 text-xs font-semibold text-text-secondary hover:text-text-primary underline underline-offset-2 transition-colors"
+                    className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary hover:text-text-primary underline underline-offset-2 transition-colors lg:min-h-8"
                   >
                     Guardar primera contraseña
                   </button>

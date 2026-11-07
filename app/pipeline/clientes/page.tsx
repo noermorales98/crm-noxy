@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useHeader } from "@/src/context/HeaderContext";
 import DatePicker from "@/src/components/DatePicker";
 import ClientDrawer from "@/src/components/ClientDrawer";
@@ -10,12 +10,17 @@ import {
   Cancel01Icon,
   CheckmarkCircle01Icon,
   DollarCircleIcon,
-  RefreshIcon,
   Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { fmtUSD, fmtMXN, fmtCurrency, StatCard, StatChip, type StatDef } from "@/src/components/pipeline/PipelineShared";
 import DeleteClientVaultDialog from "@/src/components/DeleteClientVaultDialog";
+import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
+
+const secondaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10";
+const primaryAction =
+  "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -39,6 +44,8 @@ function NewClientModal({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialog(dialogRef, true, onClose);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,33 +75,45 @@ function NewClientModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-brand-obsidian/35 flex items-center justify-center z-40 p-4">
-      <div className="bg-white rounded-lg w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border-subtle">
-          <h2 className="text-base font-bold text-text-primary">Nuevo cliente</h2>
-          <button onClick={onClose} className="p-1 text-text-secondary hover:text-text-secondary rounded-lg">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-brand-obsidian/35 p-4">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-client-title"
+        className="w-full max-w-md rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]"
+      >
+        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+          <h2 id="new-client-title" className="text-base font-semibold text-text-primary">Nuevo cliente</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-text-primary lg:size-9"
+          >
             <HugeiconsIcon icon={Cancel01Icon} size={20} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6">
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-2.5 rounded-lg border border-red-100">{error}</div>
+            <div role="alert" className="rounded-control bg-danger-soft px-4 py-2.5 text-sm text-danger">{error}</div>
           )}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-text-primary">Nombre del cliente *</label>
+            <label htmlFor="client-name" className="text-sm font-semibold text-text-primary">Nombre del cliente *</label>
             <input
+              id="client-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={inputCls}
               placeholder="Ej. Empresa Ejemplo S.A."
-              autoFocus
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-text-primary">Cuota mensual *</label>
+              <label htmlFor="client-fee" className="text-sm font-semibold text-text-primary">Cuota mensual *</label>
               <input
+                id="client-fee"
                 type="number"
                 value={monthlyFee}
                 onChange={(e) => setMonthlyFee(e.target.value)}
@@ -105,23 +124,19 @@ function NewClientModal({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-text-primary">Moneda</label>
-              <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputCls}>
-                <option value="USD">USD — Dólar</option>
-                <option value="MXN">MXN — Peso mexicano</option>
+              <label htmlFor="client-currency" className="text-sm font-semibold text-text-primary">Moneda</label>
+              <select id="client-currency" value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputCls}>
+                <option value="USD">USD (dólar)</option>
+                <option value="MXN">MXN (peso mexicano)</option>
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <DatePicker
-              label="Inicio de contrato *"
-              value={startDate}
-              onChange={setStartDate}
-              placeholder="Seleccionar"
-            />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DatePicker label="Inicio de contrato *" value={startDate} onChange={setStartDate} placeholder="Seleccionar" />
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-text-primary">Día de cobro</label>
+              <label htmlFor="client-billing-day" className="text-sm font-semibold text-text-primary">Día de cobro</label>
               <input
+                id="client-billing-day"
                 type="number"
                 value={billingDay}
                 onChange={(e) => setBillingDay(e.target.value)}
@@ -133,8 +148,9 @@ function NewClientModal({
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-semibold text-text-primary">Notas</label>
+            <label htmlFor="client-notes" className="text-sm font-semibold text-text-primary">Notas</label>
             <textarea
+              id="client-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className={`${inputCls} resize-none`}
@@ -142,19 +158,11 @@ function NewClientModal({
               placeholder="Servicio, condiciones, etc."
             />
           </div>
-          <div className="flex gap-3 pt-2 border-t border-border-subtle mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-2.5 font-semibold text-text-secondary bg-gray-100 hover:bg-nav-active rounded-lg text-sm transition-colors"
-            >
+          <div className="mt-2 flex gap-3 border-t border-line pt-4">
+            <button type="button" onClick={onClose} className={`${secondaryAction} flex-1`}>
               Cancelar
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 py-2.5 font-semibold text-action-primary-foreground bg-action-primary hover:bg-black rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving} className={`${primaryAction} flex-1`}>
               {saving ? "Guardando..." : "Crear cliente"}
             </button>
           </div>
@@ -164,17 +172,17 @@ function NewClientModal({
   );
 }
 
-// ─── Client Card ──────────────────────────────────────────────────────────────
+// ─── Client Row ───────────────────────────────────────────────────────────────
 
-function ClientCard({
+function ClientRow({
   client,
   onMarkPaid,
-  onClick,
+  onOpen,
   onDelete,
 }: {
   client: any;
   onMarkPaid: (clientId: string, paymentId: string) => void;
-  onClick: () => void;
+  onOpen: () => void;
   onDelete?: (clientId: string) => void;
 }) {
   const now = new Date();
@@ -197,88 +205,75 @@ function ClientCard({
   })();
 
   return (
-    <div
-      onClick={onClick}
-      className="group relative bg-white border border-border-subtle rounded-lg p-3.5 hover:border-border-subtle transition-all cursor-pointer"
-    >
-      {onDelete && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(client.id); }}
-          title="Eliminar cliente"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-text-secondary hover:text-red-600 hover:bg-red-50 transition-all z-[1]"
-        >
-          <HugeiconsIcon icon={Delete02Icon} size={14} />
-        </button>
-      )}
-
-      {/* Header */}
-      <div className="flex items-start justify-between mb-2 pr-6">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center text-xs font-bold shrink-0">
-              {client.name[0]?.toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-text-primary truncate">{client.name}</p>
-              {client.company && (
-                <p className="text-[11px] text-text-secondary truncate">{client.company.name}</p>
-              )}
-            </div>
-          </div>
-        </div>
-        <span
-          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border shrink-0 ml-1 ${
-            client.isActive
-              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-              : "bg-gray-100 text-text-secondary border-border-subtle"
-          }`}
-        >
-          {client.isActive ? "Activo" : "Pausado"}
+    <div className="flex w-full min-w-0 flex-col gap-3 py-2 sm:flex-row sm:items-center">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary"
+      >
+        {/* Avatar con el color de cliente de los datos. */}
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-control bg-violet-100 text-sm font-semibold text-violet-700">
+          {client.name[0]?.toUpperCase()}
         </span>
-      </div>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-semibold text-text-primary">{client.name}</span>
+            <Chip tone={client.isActive ? "done" : "neutral"}>{client.isActive ? "Activo" : "Pausado"}</Chip>
+          </span>
+          <span className="mt-0.5 block truncate text-xs text-text-secondary">
+            {client.company ? `${client.company.name} · ` : ""}
+            {client.currency} · Día {client.billingDay} ·{" "}
+            {monthsSinceStart > 0 ? `${monthsSinceStart} mes${monthsSinceStart !== 1 ? "es" : ""}` : "Nuevo"}
+          </span>
+        </span>
+        <span className="shrink-0 text-right">
+          <span className="block font-semibold tabular-nums text-text-primary">{fmtCurrency(client.monthlyFee, client.currency)}</span>
+          <span className="text-xs text-text-secondary">/mes</span>
+        </span>
+      </button>
 
-      {/* Fee */}
-      <p className="text-lg font-bold text-text-primary mb-0.5">
-        {fmtCurrency(client.monthlyFee, client.currency)}
-        <span className="text-xs font-normal text-text-secondary ml-1">/mes</span>
-      </p>
-      <p className="text-[11px] text-text-secondary mb-3">
-        {client.currency} · Día {client.billingDay} ·{" "}
-        {monthsSinceStart > 0 ? `${monthsSinceStart} mes${monthsSinceStart !== 1 ? "es" : ""}` : "Nuevo"}
-      </p>
-
-      {/* This month payment status */}
-      <div className="flex items-center justify-between pt-2.5 border-t border-border-subtle">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-wide text-text-secondary mb-0.5">
-            {MONTH_NAMES[currentMonth - 1]} {currentYear}
-          </p>
+      <div className="flex items-center justify-between gap-2 sm:justify-end">
+        <div className="min-w-0 sm:w-40">
+          <p className="text-xs font-semibold text-text-secondary">{MONTH_NAMES[currentMonth - 1]} {currentYear}</p>
           {isPaid ? (
-            <div className="flex items-center gap-1.5 text-emerald-600">
+            <p className="flex items-center gap-1.5 text-success">
               <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
               <span className="text-xs font-semibold">Pagado</span>
               {currentPayment?.receivedAt && (
                 <span className="text-xs text-text-secondary">
-                  · {new Date(currentPayment.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
+                  {new Date(currentPayment.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}
                 </span>
               )}
-            </div>
+            </p>
           ) : (
-            <div className="flex items-center gap-1.5 text-amber-500">
+            <p className="flex items-center gap-1.5 text-text-primary">
               <HugeiconsIcon icon={DollarCircleIcon} size={14} />
               <span className="text-xs font-semibold">Pendiente</span>
-            </div>
+            </p>
           )}
         </div>
-
-        {isPending && client.isActive && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onMarkPaid(client.id, currentPayment?.id); }}
-            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-action-primary text-action-primary-foreground hover:bg-black transition-colors"
-          >
-            Marcar pagado
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-1">
+          {isPending && client.isActive && (
+            <button
+              type="button"
+              onClick={() => onMarkPaid(client.id, currentPayment?.id)}
+              className={primaryAction}
+            >
+              Marcar pagado
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(client.id)}
+              aria-label={`Eliminar cliente ${client.name}`}
+              title="Eliminar cliente"
+              className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-10"
+            >
+              <HugeiconsIcon icon={Delete02Icon} size={16} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -290,6 +285,7 @@ export default function ClientesPage() {
   const { setConfig, resetState } = useHeader();
   const [clients, setClients] = useState<any[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [pendingDelete, setPendingDelete] = useState<any>(null);
@@ -328,10 +324,7 @@ export default function ClientesPage() {
     resetState();
     setConfig({
       title: "Clientes",
-      addButton: {
-        label: "Nuevo cliente",
-        onClick: () => setShowClientModal(true),
-      },
+      pageHeader: true,
     });
     return () => setConfig({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,11 +334,16 @@ export default function ClientesPage() {
 
   const fetchClients = useCallback(async () => {
     setLoadingClients(true);
+    setLoadError(false);
     try {
       const res = await fetch("/api/clients?scope=billing");
       if (res.ok) setClients(await res.json());
-    } catch { console.error("Error cargando clientes"); }
-    finally { setLoadingClients(false); }
+      else setLoadError(true);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoadingClients(false);
+    }
   }, []);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
@@ -473,14 +471,24 @@ export default function ClientesPage() {
 
   return (
     <>
-      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto bg-surface-app font-sans">
+      <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+        <Enter index={0}>
+          <PageHeader
+            title="Clientes"
+            subtitle={loadingClients && clients.length === 0 ? "Cargando clientes…" : `${activeClients.length} activos · ${pendingThisMonth} pendientes de pago este mes`}
+            actions={
+              <button type="button" onClick={() => setShowClientModal(true)} className={primaryAction}>
+                <HugeiconsIcon icon={Add01Icon} size={16} />
+                Nuevo cliente
+              </button>
+            }
+          />
+        </Enter>
 
-        {/* ── Page header ── */}
-        <div className="px-5 pt-3 pb-2 bg-white border-b border-border-subtle">
-
-          {/* Stats row */}
-          {visibleStats.length > 0 && (
-            <div className="flex gap-2.5 mb-2 overflow-x-auto pb-0.5">
+        {/* Resumen: cada cifra se puede ocultar; las ocultas quedan como chips para restaurarlas. */}
+        {visibleStats.length > 0 && (
+          <Enter index={1}>
+            <section aria-label="Resumen de clientes" className="mb-3 flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
               {visibleStats.map((s) => (
                 <StatCard
                   key={s.id}
@@ -493,64 +501,55 @@ export default function ClientesPage() {
                   onHide={() => hideStat(s.id)}
                 />
               ))}
-            </div>
-          )}
+            </section>
+          </Enter>
+        )}
 
-          {/* Minimized summary bar */}
-          {minimizedStats.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {minimizedStats.map((s) => (
-                <StatChip
-                  key={s.id}
-                  label={s.label}
-                  value={s.chipValue}
-                  onRestore={() => restoreStat(s.id)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {minimizedStats.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
+            {minimizedStats.map((s) => (
+              <StatChip key={s.id} label={s.label} value={s.chipValue} onRestore={() => restoreStat(s.id)} />
+            ))}
+          </div>
+        )}
 
-        {/* ── Content ── */}
-        <div className="px-5 py-3">
-          {loadingClients ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-7 h-7 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
-            </div>
-          ) : clients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center mx-auto mb-3 border border-border-subtle">
-                <HugeiconsIcon icon={RefreshIcon} size={22} color="#9ca3af" />
-              </div>
-              <h3 className="text-sm font-semibold text-text-primary mb-1">Sin clientes recurrentes</h3>
-              <p className="text-xs text-text-secondary mb-3 max-w-xs">
-                Agrega tus clientes establecidos que pagan mensualmente para llevar el control de sus pagos.
-              </p>
-              <button
-                onClick={() => setShowClientModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-action-primary text-action-primary-foreground text-sm font-semibold rounded-lg hover:bg-black transition-colors"
-              >
-                <HugeiconsIcon icon={Add01Icon} size={15} />
-                Agregar primer cliente
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
-              {clients.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  onMarkPaid={handleMarkPaid}
-                  onClick={() => setSelectedClient(client)}
-                  onDelete={requestDeleteClient}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <Enter index={2}>
+          <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            {loadingClients && clients.length === 0 ? (
+              <Skeleton shape="rows" count={4} label="Cargando clientes" />
+            ) : loadError && clients.length === 0 ? (
+              <ErrorState title="No se pudieron cargar los clientes" onRetry={fetchClients} />
+            ) : (
+              <DataList
+                label="Clientes recurrentes"
+                rows={clients}
+                getKey={(c) => c.id}
+                renderRow={(client) => (
+                  <ClientRow
+                    client={client}
+                    onMarkPaid={handleMarkPaid}
+                    onOpen={() => setSelectedClient(client)}
+                    onDelete={requestDeleteClient}
+                  />
+                )}
+                empty={
+                  <EmptyState
+                    title="Sin clientes recurrentes"
+                    body="Agrega tus clientes establecidos que pagan mensualmente para llevar el control de sus pagos."
+                    action={
+                      <button type="button" onClick={() => setShowClientModal(true)} className={primaryAction}>
+                        <HugeiconsIcon icon={Add01Icon} size={16} />
+                        Agregar primer cliente
+                      </button>
+                    }
+                  />
+                }
+              />
+            )}
+          </section>
+        </Enter>
       </main>
 
-      {/* Client modal */}
       {showClientModal && (
         <NewClientModal
           onSuccess={() => { setShowClientModal(false); fetchClients(); }}
@@ -569,7 +568,6 @@ export default function ClientesPage() {
         />
       )}
 
-      {/* Client drawer */}
       {selectedClient && (
         <ClientDrawer
           client={selectedClient}

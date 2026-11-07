@@ -57,7 +57,7 @@ export default function ContentMiniMonth() {
   };
 
   return (
-    <div className="shrink-0 border-t border-border-subtle px-3 py-3">
+    <div className="shrink-0 border-t border-line px-3 py-3">
       <div className="mb-2 flex items-center justify-between gap-1">
         <button
           type="button"
@@ -85,7 +85,7 @@ export default function ContentMiniMonth() {
       </div>
       <div className="grid grid-cols-7 text-center">
         {WEEKDAYS.map((day, index) => (
-          <div key={`${day}-${index}`} className="py-1 text-[11px] font-medium text-text-tertiary">
+          <div key={`${day}-${index}`} className="py-1 text-xs font-medium text-text-tertiary">
             {day}
           </div>
         ))}

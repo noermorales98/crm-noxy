@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
+import { PageHeader, Skeleton } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon, BankIcon, Building04Icon, Settings01Icon, DollarCircleIcon } from "@hugeicons/core-free-icons";
+import { BankIcon, Building04Icon, Settings01Icon, DollarCircleIcon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
 
 const EMPTY = {
@@ -32,7 +32,7 @@ function ConfiguracionContent() {
 
   useEffect(() => {
     resetState();
-    setConfig({ title: "Configuración de cotizaciones" });
+    setConfig({ title: "Configuración de cotizaciones", backHref: "/cotizaciones", pageHeader: true });
     return () => setConfig({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -128,24 +128,21 @@ function ConfiguracionContent() {
   );
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto p-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
       <div className="max-w-3xl mx-auto">
-        <Link
-          href="/cotizaciones"
-          className="inline-flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary mb-4 transition-colors"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
-          Cotizaciones
-        </Link>
+        <PageHeader
+          title="Configuración de cotizaciones"
+          subtitle="Datos del remitente, cuentas para transferencia, valores por defecto y cobro con Stripe."
+        />
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-border-subtle border-t-gray-900 rounded-full animate-spin" />
+          <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+            <Skeleton shape="rows" count={4} label="Cargando configuración" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Datos fiscales */}
-            <section className="bg-white border border-border-subtle rounded-lg p-6">
+            <section className="bg-surface-elevated border border-line rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
                 <HugeiconsIcon icon={Building04Icon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Empresa remitente</h2>
@@ -177,7 +174,7 @@ function ConfiguracionContent() {
                 {form.logoUrl && (
                   <div className="md:col-span-2 flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={form.logoUrl} alt="Logo" className="h-12 max-w-[180px] object-contain rounded border border-border-subtle bg-white p-1" />
+                    <img src={form.logoUrl} alt="Logo" className="h-12 max-w-[180px] object-contain rounded border border-line bg-surface-elevated p-1" />
                   </div>
                 )}
                 {field("Dirección", "address", { span: true })}
@@ -188,7 +185,7 @@ function ConfiguracionContent() {
             </section>
 
             {/* Datos bancarios */}
-            <section className="bg-white border border-border-subtle rounded-lg p-6">
+            <section className="bg-surface-elevated border border-line rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
                 <HugeiconsIcon icon={BankIcon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Datos bancarios para transferencia</h2>
@@ -206,7 +203,7 @@ function ConfiguracionContent() {
             </section>
 
             {/* Defaults */}
-            <section className="bg-white border border-border-subtle rounded-lg p-6">
+            <section className="bg-surface-elevated border border-line rounded-lg p-6">
               <div className="flex items-center gap-2 mb-4">
                 <HugeiconsIcon icon={Settings01Icon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Valores por defecto</h2>
@@ -232,7 +229,7 @@ function ConfiguracionContent() {
             </section>
 
             {/* Stripe */}
-            <section className="bg-white border border-border-subtle rounded-lg p-6">
+            <section className="bg-surface-elevated border border-line rounded-lg p-6">
               <div className="flex items-center gap-2 mb-1">
                 <HugeiconsIcon icon={DollarCircleIcon} size={16} color="#0B0B18" />
                 <h2 className="text-sm font-bold text-text-primary">Cobro con Stripe</h2>
@@ -268,7 +265,7 @@ function ConfiguracionContent() {
                         <button
                           type="button"
                           onClick={() => setClearStripeSecret(true)}
-                          className="shrink-0 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="shrink-0 min-h-11 px-3 text-sm font-medium text-danger hover:bg-danger-soft rounded-control transition-colors lg:min-h-9"
                         >
                           Quitar
                         </button>
@@ -300,7 +297,7 @@ function ConfiguracionContent() {
                         <button
                           type="button"
                           onClick={() => setClearStripeWebhook(true)}
-                          className="shrink-0 px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="shrink-0 min-h-11 px-3 text-sm font-medium text-danger hover:bg-danger-soft rounded-control transition-colors lg:min-h-9"
                         >
                           Quitar
                         </button>
@@ -309,7 +306,7 @@ function ConfiguracionContent() {
                   )}
                 </div>
               </div>
-              <p className="text-[11px] text-text-secondary mt-3">
+              <p className="text-xs text-text-secondary mt-3">
                 Sin clave secreta, el cobro con tarjeta se desactiva y las cotizaciones se pagan por transferencia.
                 Si estos campos están vacíos se usan las variables de entorno <code>STRIPE_SECRET_KEY</code> y{" "}
                 <code>STRIPE_WEBHOOK_SECRET</code> como respaldo.

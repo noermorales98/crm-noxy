@@ -29,9 +29,9 @@ export function WidgetPicker({ activeWidgetIds, activeTabIds, onAddWidget, onAdd
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
-      <div className="absolute inset-0 bg-black/10" onClick={onClose} />
-      <div className="relative w-full max-w-sm h-full bg-surface-elevated border-l border-border-subtle overflow-y-auto shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle sticky top-0 bg-surface-elevated z-10">
+      <div className="absolute inset-0 bg-brand-obsidian/10" onClick={onClose} />
+      <div className="relative w-full max-w-sm h-full bg-surface-elevated border-l border-line overflow-y-auto shadow-[0_8px_8px_rgba(11,11,24,0.10)] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-surface-elevated z-10">
           <p className="text-sm font-semibold text-text-primary">Agregar al dashboard</p>
           <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
             <HugeiconsIcon icon={Cancel01Icon} size={18} />
@@ -40,7 +40,7 @@ export function WidgetPicker({ activeWidgetIds, activeTabIds, onAddWidget, onAdd
 
         <div className="p-5 flex flex-col gap-6">
           <div>
-            <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">Pestañas de la tabla</p>
+            <p className="mb-2 text-xs font-semibold text-text-secondary">Pestañas de la tabla</p>
             {availableTabs.length === 0 ? (
               <p className="text-xs text-text-secondary">Ya agregaste todas las pestañas disponibles.</p>
             ) : (
@@ -54,7 +54,7 @@ export function WidgetPicker({ activeWidgetIds, activeTabIds, onAddWidget, onAdd
 
           {Object.entries(widgetGroups).map(([category, items]) => (
             <div key={category}>
-              <p className="text-[10px] font-semibold text-text-secondary uppercase tracking-widest mb-2">{category}</p>
+              <p className="mb-2 text-xs font-semibold text-text-secondary">{category}</p>
               <div className="flex flex-col gap-1.5">
                 {items.map((w) => (
                   <PickerRow key={w.id} icon={w.icon} label={w.label} onAdd={() => onAddWidget(w.id)} />
@@ -76,7 +76,7 @@ function PickerRow({ icon, label, onAdd }: { icon: any; label: string; onAdd: ()
   return (
     <button
       onClick={onAdd}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-border-subtle hover:bg-nav-hover transition-colors text-left"
+      className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-line hover:bg-nav-hover transition-colors text-left"
     >
       <HugeiconsIcon icon={icon} size={16} />
       <span className="flex-1 text-sm text-text-primary">{label}</span>

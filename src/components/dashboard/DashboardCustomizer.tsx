@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { WelcomeHeaderTitle } from "@/src/components/WelcomeHeaderTitle";
+import { useSession } from "next-auth/react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CheckmarkCircle01Icon, PencilEdit01Icon, Add01Icon } from "@hugeicons/core-free-icons";
+import { useHeader } from "@/src/context/HeaderContext";
+import { welcomeGreeting } from "@/src/lib/user-sexo";
+import { Enter, PageHeader } from "@/src/components/ui";
 import { DashboardGrid } from "@/src/components/dashboard/DashboardGrid";
 import { WidgetPicker } from "@/src/components/dashboard/WidgetPicker";
 import { DashboardTabsTable } from "@/src/components/DashboardWidgets";
@@ -23,6 +30,22 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
   const isFirstRender = useRef(true);
+  const { data: session } = useSession();
+  const { setConfig, resetState } = useHeader();
+  const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "";
+  const greeting = firstName ? `${welcomeGreeting(session?.user?.sexo)}, ${firstName}` : "Inicio";
+  // La fecha se calcula en el cliente (zona horaria de la persona) para no desajustar la hidratación.
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(format(new Date(), "EEEE d 'de' MMMM", { locale: es }));
+  }, []);
+
+  // La barra superior solo muestra el nombre en móvil: el h1 lo pone el PageHeader.
+  useEffect(() => {
+    resetState();
+    setConfig({ pageHeader: true, title: "Inicio" });
+    return () => setConfig({});
+  }, [resetState, setConfig]);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -72,28 +95,42 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
 
   return (
     <div className="flex flex-col gap-5">
-      <WelcomeHeaderTitle editMode={editMode} onToggleEditMode={handleToggleEditMode} />
-
+      <Enter index={0}>
+        <PageHeader
+          title={greeting}
+          subtitle={<span className="block min-h-[1.5em] first-letter:uppercase">{today}</span>}
+          actions={
+            <button
+              type="button"
+              onClick={handleToggleEditMode}
+              aria-pressed={editMode}
+              className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10"
+            >
+              <HugeiconsIcon icon={editMode ? CheckmarkCircle01Icon : PencilEdit01Icon} size={16} />
+              {editMode ? "Listo" : "Personalizar"}
+            </button>
+          }
+        />
+      </Enter>
       {editMode && (
-        <div className="flex items-center justify-end -mb-2">
-          <span className="text-xs text-text-secondary">
-            {saveStatus === "saving" && "Guardando…"}
-            {saveStatus === "saved" && "Guardado"}
-            {saveStatus === "error" && "Error al guardar, intenta de nuevo"}
-          </span>
-        </div>
+        <p role="status" aria-live="polite" className="-mt-3 text-right text-xs text-text-secondary">
+          {saveStatus === "saving" && "Guardando…"}
+          {saveStatus === "saved" && "Guardado"}
+          {saveStatus === "error" && "Error al guardar, intenta de nuevo"}
+        </p>
       )}
-
-      <DashboardGrid
-        widgetIds={widgets}
-        data={data}
-        editMode={editMode}
-        onReorder={setWidgets}
-        onRemove={handleRemoveWidget}
-      />
-
-      <DashboardTabsTable tabIds={tabs} data={data} editMode={editMode} onReorder={setTabs} onRemove={handleRemoveTab} />
-
+      <Enter index={1}>
+        <DashboardGrid
+          widgetIds={widgets}
+          data={data}
+          editMode={editMode}
+          onReorder={setWidgets}
+          onRemove={handleRemoveWidget}
+        />
+      </Enter>
+      <Enter index={2}>
+        <DashboardTabsTable tabIds={tabs} data={data} editMode={editMode} onReorder={setTabs} onRemove={handleRemoveTab} />
+      </Enter>
       {editMode && pickerOpen && (
         <WidgetPicker
           activeWidgetIds={widgets}
@@ -103,13 +140,14 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
           onClose={() => setPickerOpen(false)}
         />
       )}
-
       {editMode && !pickerOpen && (
         <button
+          type="button"
           onClick={() => setPickerOpen(true)}
-          className="fixed bottom-6 right-6 z-30 px-4 py-2.5 rounded-full bg-action-primary text-action-primary-foreground text-xs font-medium shadow-lg hover:opacity-90"
+          className="crm-press fixed bottom-24 right-4 z-30 inline-flex min-h-11 items-center gap-2 rounded-full bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground shadow-[0_8px_8px_rgba(11,11,24,0.10)] hover:bg-action-secondary lg:bottom-6 lg:right-6"
         >
-          + Agregar widgets o pestañas
+          <HugeiconsIcon icon={Add01Icon} size={16} />
+          Agregar widgets o pestañas
         </button>
       )}
     </div>
