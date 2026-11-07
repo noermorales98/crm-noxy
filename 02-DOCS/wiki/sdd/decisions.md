@@ -119,3 +119,15 @@ Context   — `crm-surface-style.test.ts` exigía en el compositor de `/emails` 
 Options    — (a) conservar el blur para que pase la prueba; (b) sustituir la prueba por el contrato aprobado.
 Decision   — (b). La prueba exige ahora fondo sólido `bg-brand-obsidian/45`, ausencia de `backdrop-blur` junto al compositor y panel `bg-surface-elevated rounded-surface overflow-hidden`. No se debilita: cambia lo que protege porque cambió la regla.
 Why        — La spec prohíbe el cristal en el shell y sus pantallas; mantener la prueba antigua obligaría a incumplir la spec aprobada.
+
+## 2026-11-07 — Sin barra superior: los controles pasan a PageHeader y a una fila de la hoja  (feature: rediseno-obsidiana-estructural, tasks: T028, T030)
+Context   — Ronda 3: la persona pidió quitar el navbar superior. Orden, filtros, botón principal, acciones y «volver» salían de `Header.tsx` leyendo `HeaderContext`; 30 pantallas dependen de esa configuración.
+Options    — (a) reescribir cada pantalla para pintar sus propios controles; (b) extraer los controles a `PageControls` y pintarlos desde `PageHeader` (pantallas de lista), más una fila `PageBar` dentro de la hoja para las pantallas sin PageHeader (editores, calendarios, detalle).
+Decision   — (b). `Header.tsx` se elimina; `useOptionalHeader` evita lanzar fuera del proveedor. `PageBar` no es una barra global: ocupa la parte alta del contenido, cede el paso a PageHeader (`pageHeader: true`) y conserva el único h1. Búsqueda (⌘K) y campana pasan a la cabecera de la sidebar; en móvil se alcanzan dentro del cajón («Más»).
+Why        — Mantiene sin tocar la API de `HeaderContext` y las 30 pantallas; ninguna pierde orden, filtros, volver ni botón principal. Costo conocido: Correo y los calendarios conservan una fila fina de título sobre su contenido.
+
+## 2026-11-07 — Pruebas de contrato de la sidebar sustituidas por las del modelo de modos  (feature: rediseno-obsidiana-estructural, tasks: T028, T029)
+Context   — `redesign-shell-contract.test.ts`, `assistant-sidebar-navigation-contract.test.ts` y `crm-navigation.test.ts` modelaban el árbol con ramas (`data-tree-parent`, `inert`, `SIDEBAR_OPEN_STORAGE_KEY`, `branchForPath`, `sidebarView`…), que la ronda 3 aprobada retira.
+Options    — (a) conservar el árbol para no tocar las pruebas; (b) sustituirlas por el contrato aprobado y podar el código muerto.
+Decision   — (b). Las pruebas nuevas exigen tablist de 3 modos, lista plana, búsqueda y campana en la cabecera, segunda columna con estado guardado y ausencia de ramas; las del asistente leen `context-navs.tsx`. Se podaron `sidebarView`, `branchFor*`, `parseOpenBranches`, `initialOpenBranches`, `toggleBranch`, `SIDEBAR_OPEN_STORAGE_KEY` y `NAV_PARENT_ACTIVE`. No se debilita ninguna aserción vigente: cambia lo que protege porque cambió la regla.
+Why        — Mantener las pruebas antiguas obligaría a incumplir la spec de la ronda 3.
