@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: main
-status: in-progress
+status: done
 ---
 
 # Shell SaaS: sidebar con subsecciones, cuenta y asistente fijado
@@ -29,17 +29,20 @@ Fuera de alcance: el contenido de las páginas.
 
 ## Checklist
 
-- [ ] Modelo de navegación probado (`node --test`): ramas, persistencia, atajo y Historial.
-- [ ] Asistente fijado por defecto y persistente (test de estado + revisión en navegador).
-- [ ] AccountMenu: menú con rol, Perfil, Equipo (admin), Ajustes, Modelos de IA, Tema y Cerrar sesión; Esc y clic fuera lo cierran.
-- [ ] Árbol: `aria-expanded`, guía de sangría, activo `nav-active`, contador de no leídos.
-- [ ] Riel de 64px con ⌘B y tooltips, persistente.
-- [ ] `npm test`, `tsc`, `eslint` y `next build` en verde.
+- [x] Modelo de navegación probado: ramas, persistencia, atajo y Historial (`node --test src/lib/crm-navigation.test.ts`, 17/17).
+- [x] Asistente fijado por defecto y persistente, sin desfijarse al navegar (`assistant-new-sidebar-state.test.ts` y el contrato `closeForNavigation`).
+- [x] AccountMenu con rol, Perfil, Equipo (admin), Ajustes, Modelos de IA, Tema y Cerrar sesión; Esc y clic fuera lo cierran (contrato `assistant-sidebar-navigation-contract.test.ts`).
+- [x] Árbol con `aria-expanded`, `inert` en ramas cerradas, guía de sangría, activo `nav-active` sin barra y contador de no leídos (`redesign-shell-contract.test.ts`).
+- [x] Riel de 64px con ⌘B, tooltips y flyouts, persistente.
+- [x] `npm test` (177 pasan; 4 fallan igual que en HEAD y son ajenos), `tsc` sin errores fuera de los tests (los de tests ya existían), `eslint` limpio en los archivos tocados, `next build` correcto.
 
 ## Evidence
 
-(pendiente)
+- `npm test`: 177 pass, 4 fail. Los 4 (favicon, color primario y dos de formularios públicos) fallan igual en HEAD limpio, comprobado en un worktree temporal.
+- Los tests de contrato se actualizaron a propósito: se retiran «Volver» y la barra de 3px, la cuenta pasa a AccountMenu, la barra fijada mide w-60 y Ventas pasa a 18 destinos (con Historial de tratos).
+- `npx next build`: correcto.
+- La revisión en navegador queda pendiente para la vista previa de TasteCode: sin una sesión iniciada no se llega al shell.
 
 ## Next
 
-Implementar la sidebar en árbol y verificar.
+Revisar en el navegador a 1440, 1024 y 390px con una sesión real: ramas, ⌘B, menú de cuenta, fijar y soltar en /assistant/new, y movimiento reducido.
