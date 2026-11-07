@@ -177,3 +177,55 @@ las skills del repo (`nextjs`, `design`).
 - risk: tier 1 — 1 revisor (sonnet, contexto limpio)
 - review: ronda 1: 5 reportados (2 should-fix, 2 nits, 1 pregunta) → L111–L114 arreglados; L115 aparcado (review-after)
 - controls: tests ✅ · tsc 19 = baseline ✅ · eslint 22/9/0 ≤ baseline 22/9/1 ✅ · navegador 375/1440 en las 3 páginas ✅ (un h1, sin desbordes, toques ≥ 44 px) · arrastre con teclado sobre datos simulados y PATCH interceptado: cancelar 0 llamadas, mover 1 a 1440, Intro durante el arrastre no navega ✅ · traceability AC3/AC7/AC8 ✅
+
+## T015 — 2026-11-06
+- status: complete
+- red: `crm-navigation.test.ts` (ronda 2) fallaba en 10 casos por aserción (tras stubs de exportación)
+- green: 13/13; `redesign-shell-contract` y `assistant-sidebar-navigation-contract` siguen verdes (26/26 en total)
+- files: src/lib/crm-navigation.ts, src/lib/crm-navigation.test.ts, src/components/Sidebar.tsx
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 3 reportados (1 pregunta, 2 nits), VERDICT pass → los 3 arreglados
+- controls: tsc 19 ✅ · eslint Sidebar 3 ≤ 5 ✅ · navegador 1440 (lista plana, submenú Agenda, Volver) y 375 (cajón «Más» con submenú Contactos, toques 44 px) ✅ · traceability AC1/AC4 + ronda 2 ✅
+
+## T016 — 2026-11-06
+- status: complete
+- red: `redesign-screens-contract.test.ts` amplía `SCREENS` con las pantallas de la ronda 2 y el campo `level` («pass» no exige DataList/Board); 26 casos nuevos fallan por aserción, los 25 de la ronda 1 siguen verdes
+- files: src/lib/redesign-screens-contract.test.ts
+- risk: tier 1 — solo test; lo revisa cada tarea de pantalla que lo pone en verde
+
+## T017 — 2026-11-06
+- status: complete
+- red: casos `forms` y `forms-builder` del contrato (T016)
+- green: ambos verdes
+- files: app/forms/page.tsx, app/forms/[id]/page.tsx, src/components/FormWhatsAppRecipients.tsx, src/components/FormApiConfig.tsx; check.js (recortes: excluye campos de texto y controles marcados; toques: excluye `sr-only`)
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 5 reportados (3 should-fix, 2 nits) → 4 arreglados; 1 intencionado (recarga fallida con datos ya cargados: no es regresión)
+- controls: tsc 19 ✅ · eslint lista 0 < 5, constructor 14 = 14 ✅ · navegador lista 375/1440 ✅, constructor 4 pestañas a 375 ✅ (Variantes con una variante simulada; modal con foco dentro y Escape) · estados lista: carga, error+reintentar, vacío ✅ (fetch interceptado)
+- decision: el constructor es chrome de editor: `pageHeader: true` + `backHref`, su h1 en la barra del constructor (`sr-only lg:not-sr-only`); `forms-builder` no exige PageHeader en el contrato
+
+## T018 — 2026-11-06
+- status: complete
+- red: casos `quotes` del contrato (T016)
+- green: 3/3
+- files: app/cotizaciones/{page,configuracion/page,nueva/page,[folio]/page}.tsx, src/components/quotes/{QuoteForm,shared,QuoteAiAssist,QuotePdfButton}.tsx, src/components/DatePicker.tsx, src/lib/crm-ui.ts (+ `selectInline` en app/pipeline/page.tsx y historial)
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 5 reportados (1 should-fix, 3 nits, 1 pregunta) → 4 arreglados; 1 intencionado (enlace desde el folio en escritorio)
+- controls: tsc 19 ✅ · eslint ≤ baseline en todos ✅ · navegador 375/1440 en lista, configuración, nueva y detalle ✅ · estados lista: carga, error+reintentar, vacío ✅ (fetch interceptado)
+
+## T019 — 2026-11-06
+- status: complete
+- red: casos `agenda` del contrato (T016)
+- green: 3/3
+- files: app/appointment-types/page.tsx, app/availability/page.tsx
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 7 reportados (4 should-fix, 2 nits, 1 pregunta) → 6 arreglados; 1 intencionado (los separadores «── México ──» de zonas horarias son decoración de la lista, no separadores de texto; contenido previo)
+- controls: tsc 19 ✅ · eslint 9 ≤ 10 y 7 = 7 ✅ · navegador 375/1440 ✅; 4 modales con foco dentro, Escape y toques 44 px ✅ · estados: horarios (carga/error/vacío) y tablas de extendidos y excepciones (carga, error+reintentar) ✅ (fetch interceptado, sin escrituras)
+
+## T020 — 2026-11-06
+- status: complete
+- red: casos `mail` del contrato (T016)
+- green: verdes; el caso común «pages with a PageHeader» se acota: una pantalla «pass» sin PageHeader conserva el h1 de la barra superior (sigue prohibido `addButton`)
+- files: app/emails/page.tsx, src/lib/redesign-screens-contract.test.ts
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 3 nits, VERDICT pass → 2 arreglados (blanco literal tras el HTML del correo, grises de spinners y placeholder); 1 intencionado (el contrato solo ve el PageHeader del propio archivo; ningún archivo lo delega)
+- controls: tsc 19 ✅ · eslint 0 errores ✅ · navegador 375 lista y lectura (todas las peticiones no-GET interceptadas, ninguna salió) ✅, 1440 lista y redactar (cerrado con Cancelar, sin enviar) ✅ · sin cristal ✅

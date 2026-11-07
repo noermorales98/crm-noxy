@@ -34,12 +34,15 @@
     });
   const underTap = mobile
     ? taps
-        .filter(({ h, w, el }) => Math.min(h, w) < 44 && !el.closest("[data-check-ignore-tap]"))
+        // Un control visualmente oculto (sr-only) usa su etiqueta como área de toque.
+        .filter(({ h, w, el }) => Math.min(h, w) < 44 && !el.closest("[data-check-ignore-tap]") && !el.classList.contains("sr-only"))
         .map(({ el, h, w }) => `${el.tagName.toLowerCase()}(${w}x${h}): ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 24)}`)
     : [];
   const minTap = taps.length ? Math.min(...taps.map(({ h, w }) => Math.min(h, w))) : null;
   // Contenido recortado: un control cuya etiqueta no cabe (revisión de T006).
   const clipped = taps
+    // Un campo de texto desplaza su valor de forma nativa; un control marcado amplía su área con un pseudo-elemento.
+    .filter(({ el }) => !/^(INPUT|TEXTAREA)$/.test(el.tagName) && !el.hasAttribute("data-check-ignore-tap"))
     .filter(({ el }) => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== "auto")
     .map(({ el }) => `${el.tagName.toLowerCase()}(${el.clientWidth}<${el.scrollWidth}): ${(el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 24)}`);
   const result = { path: location.pathname, scope: shellOnly ? "shell" : "page", vw, docW, small, glass, minTap, underTap, clipped };

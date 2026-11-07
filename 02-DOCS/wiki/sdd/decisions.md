@@ -95,3 +95,15 @@ Context   — El tablero, los clientes recurrentes y el historial tenían texto 
 Options    — (a) restilar sin cambiar estructura; (b) componer con Board/BoardColumn/BoardCard, DataList y DataTable.
 Decision   — (b). `BoardColumn` gana dos props opcionales: `accent` (color de etapa guardado por el usuario) y `footer` («Agregar deal» fuera de la zona de soltar). `Board` lleva `scroll-px` para que el snap respete el margen a 375 px. Las tarjetas de clientes pasan a filas con «Marcar pagado» y borrar siempre visibles. 🎉/❌ pasan a chips «Ganado»/«Perdido». «Necesita atención» usa Lima (urgente). El historial usa `backHref` de la barra superior en vez de su flecha propia. Se añaden estados de error con reintentar. Intro abre el deal salvo durante un arrastre con teclado. `DataTable` reordena sus clases para que el contrato de UI vuelva a casar (`hidden lg:block`).
 Why        — DESIGN.md manda conservar los colores de datos (fuentes, etapas, avatares) y reservar Lima para lo urgente. La pieza común evita tres variantes de tablero y de tabla.
+
+## 2026-11-06 — Navegación por áreas y tests de navegación sustituidos  (feature: rediseno-obsidiana-estructural, task: T015)
+Context   — La ronda 2 aprobada cambia el primer nivel de la sidebar: de 17 destinos en 4 grupos a 11 entradas en 3 grupos, con áreas que abren submenú.
+Options    — (a) mantener `NAV_GROUPS` plano y añadir agrupación solo en la vista; (b) modelar las áreas en `crm-navigation.ts` (`NavArea`, `AREA_ITEMS`, `NAV_DESTINATIONS`).
+Decision   — (b). Los tests de `crm-navigation.test.ts` que fijaban la estructura de la ronda 1 se **sustituyen** (no se debilitan): se conservan las garantías (17 destinos, permisos, contador de correo, «/» exacto, «Volver», barra móvil) y se añaden las de áreas. El chevrón › y el texto «, abre submenú» para lector de pantalla van en áreas y en Correo, Docs, Bóveda y Contenido; no en Asistente (chrome propio). Un área sin destinos visibles no abre un panel vacío. La marca es el isotipo oficial a 20×15 px con `alt=""` junto a «Noxy».
+Why        — El modelo puro se prueba ejecutándolo y la sidebar solo lo pinta; así el resaltado y los permisos no dependen de React.
+
+## 2026-11-06 — Piezas compartidas a 44 px y `selectInline`  (feature: rediseno-obsidiana-estructural, tasks: T018)
+Context   — Las pantallas de la ronda 2 repetían botones `btnPrimary`/`btnGhost` (40 px) y el disparador de `DatePicker` (40 px), y `${inputCls} w-auto` no ganaba a `w-full`.
+Options    — (a) corregir cada pantalla; (b) corregir la pieza compartida.
+Decision   — (b). `btnPrimary`/`btnGhost` pasan a `min-h-11 lg:min-h-10` (también llega a `/login`, que solo crece en móvil); el `DatePicker` normal pasa a `min-h-11 lg:min-h-10` con anillo `focus` (la variante `compact` no cambia de alto); `selectInline` = `input` con `w-auto`. La fila de escritorio de cotizaciones enlaza desde el folio (antes `onClick` en la fila, no accesible por teclado); la fila móvil entera es enlace.
+Why        — Un solo cambio arregla todas las pantallas que usan la pieza y no altera superficies públicas más allá de la altura táctil.

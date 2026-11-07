@@ -269,3 +269,4 @@ maqueta.
     el dueño quiere esos editores reestructurados, es otra ronda.
   Estado → `draft` hasta que el dueño apruebe la ronda 2.
 
+- 2026-11-06 — Ronda 2 aprobada por el dueño («Apruebo, empieza T015»). Estado → `clarified`.
