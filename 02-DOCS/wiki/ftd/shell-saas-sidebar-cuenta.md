@@ -42,6 +42,7 @@ Fuera de alcance: el contenido de las páginas.
 - Los tests de contrato se actualizaron a propósito: se retiran «Volver» y la barra de 3px, la cuenta pasa a AccountMenu, la barra fijada mide w-60 y Ventas pasa a 18 destinos (con Historial de tratos).
 - `npx next build`: correcto.
 - La revisión en navegador queda pendiente para la vista previa de TasteCode: sin una sesión iniciada no se llega al shell.
+- 2026-11-07: la vista previa con `npm run dev` falló porque ya había otro `next dev` corriendo en la carpeta (Next 16 bloquea `.next/dev/lock`). Se rehízo `next build` y se comprobó `npm run start -- --hostname 127.0.0.1 --port 3124`: arranca junto al dev server (✓ Ready), `/login` responde 200 y `/assistant/new` redirige a `/login` (307) sin sesión.
 
 ## Next
 
