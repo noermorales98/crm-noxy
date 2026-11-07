@@ -229,3 +229,60 @@ las skills del repo (`nextjs`, `design`).
 - risk: tier 1 — 1 revisor (sonnet)
 - review: ronda 1: 3 nits, VERDICT pass → 2 arreglados (blanco literal tras el HTML del correo, grises de spinners y placeholder); 1 intencionado (el contrato solo ve el PageHeader del propio archivo; ningún archivo lo delega)
 - controls: tsc 19 ✅ · eslint 0 errores ✅ · navegador 375 lista y lectura (todas las peticiones no-GET interceptadas, ninguna salió) ✅, 1440 lista y redactar (cerrado con Cancelar, sin enviar) ✅ · sin cristal ✅
+
+## T021 — 2026-11-06
+- status: complete
+- red: casos `campaigns` del contrato (T016)
+- green: 3/3
+- files: app/campaigns/page.tsx
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 6 reportados (3 should-fix, 3 nits) → 6 arreglados (las filas pasaron de componentes internos a funciones de render para no remontarse, botón de quitar mensaje de 44 px con nombre, sin guiones largos, blanco literal tras el HTML del correo, copy en español, etiquetas asociadas)
+- controls: tsc 19 ✅ · eslint 9 ≤ 10 ✅ · navegador 375/1440 ✅; modales con foco dentro, Escape, y el foco vuelve al botón «Previsualizar» ✅ · estados: carga, error+reintentar, vacío ✅ (fetch interceptado, sin escrituras)
+
+## T022 — 2026-11-06
+- status: complete
+- red: casos `kb` y `kb-editor` del contrato (T016)
+- green: verdes (5/5)
+- files: app/kb/page.tsx, app/kb/[id]/page.tsx, src/components/kb/{KbEditor,KbEditorNavbar,KbFolderView,KbMobileMenus,KbRelationsInline,KbSharePanel}.tsx
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 3 reportados (1 should-fix, 2 nits) → 3 arreglados (los controles de la barra del editor mantienen 44 px hasta 1024 px; separador de breadcrumb con flecha derecha; estado vacío móvil distingue páginas huérfanas)
+- controls: tsc 19 ✅ · eslint ≤ baseline ✅ · navegador 375/768/1440 ✅ (lista, carpeta, documento; toda petición no-GET interceptada; solo salió el guardado automático del título, devuelto con 200) · estados lista: carga, error+reintentar, vacío ✅
+- decisión: los documentos y carpetas no tienen h1 visible (el título es un campo editable con `aria-label`)
+
+## T023 — 2026-11-06
+- status: complete
+- red: casos `vault` y `content` del contrato (T016)
+- green: verdes
+- files: app/boveda/*, src/components/vault/*, app/contenido/*, src/components/content/{GeneralCalendarView,ContentCalendarView,ContentCalendar,ContentClientsView,ContentMiniMonth}.tsx, app/globals.css (overrides del calendario: `[data-crm-sheet] .ncc-*` y `.ncc-crm` para el modal)
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 4 reportados (2 should-fix, 1 nit, 1 pregunta) → 3 arreglados; 1 intencionado (la excepción del contrato para pantallas pass se documenta en el plan)
+- superficie pública intacta: PublicCalendarView.tsx y /calendario sin cambios; `ContentItemModal` gana la propiedad `crm` (solo las vistas privadas la pasan) y los overrides cuelgan de `[data-crm-sheet]` o de `.ncc-crm`
+- controls: tsc 19 ✅ · eslint ≤ baseline ✅ · navegador 375/1440 ✅ (bóveda medida con entradas ficticias, sin leer datos reales; calendario general y de cliente; modal de detalle con cierre de 44 px) · escrituras interceptadas, ninguna salió
+
+## T024 — 2026-11-06
+- status: complete
+- red: casos `settings` del contrato (T016)
+- green: 2/2
+- files: app/settings/{page,ai-models/page,digest/page,equipo/page}.tsx, app/profile/page.tsx, src/components/settings/ThemeSelector.tsx (la vista previa del tema pasa a aria-hidden), app/assistant/[id]/_components/ModelSelector.tsx (propiedad opcional `touch`, sin efecto en el asistente), check.js (ignora texto decorativo aria-hidden)
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 5 reportados (1 should-fix, 4 nits) → 4 arreglados (enlace de vuelta del resumen con `backHref`, copy en español, colores a tokens, nombres accesibles); 1 intencionado (los enlaces en línea dentro de un párrafo quedan exentos del tamaño de toque)
+- controls: tsc 19 ✅ · eslint = baseline ✅ · navegador 375/1440 ✅ en las cinco páginas, un h1 cada una, escrituras interceptadas
+- script: scratchpad/tap44.py (lleva a 44 px los controles de una pasada) y langpass.py
+
+## T025 — 2026-11-06
+- status: complete
+- red: casos `details` del contrato (T016)
+- green: verdes (el contrato completo: 51/51)
+- files: src/components/DealDetailClient.tsx, app/pipeline/[id]/page.tsx, app/projects/[id]/page.tsx, app/projects/[id]/info/page.tsx, src/components/DatePicker.tsx
+- risk: tier 1 — 1 revisor (sonnet)
+- review: ronda 1: 5 reportados (1 should-fix, 4 nits) → 3 arreglados (la barra de acciones del deal envuelve a otra línea; el botón de volver lleva nombre; clases duplicadas del script); 2 intencionados (sin h1 mientras se edita el título, que ya muestra un campo; chips de 40 px junto a insignias de 24 px)
+- cambio de layout justificado: el cuerpo del deal (`w-72 shrink-0`) no se apilaba y a 375 px una textarea medía 26 px; ahora se apila por debajo de `lg`
+- controls: tsc 19 ✅ · eslint = baseline ✅ · navegador 375/1440 ✅ sobre un deal archivado (escrituras interceptadas); NO se midió el caso de un contacto con teléfono y correo (sin datos a mano)
+
+## T026 — 2026-11-06 (cierre, sin commit todavía)
+- status: pendiente solo la confirmación del dueño para el commit único
+- controls: `npm test` 170/174 (solo los 4 fallos conocidos: favicon, color del texto del botón principal, 2 de movimiento en formularios públicos) ✅ · tsc 19 = línea base ✅ · eslint app+src 552 errores, ningún archivo por encima de su línea base ✅ · `npm run build` exit 0, 104 páginas ✅
+- navegador: barrido de 27 rutas a 375 y 1440 px, todas pasan salvo `/contenido/general` (sin h1 por diseño: su título es la navegación de mes) ✅
+- superficies públicas: ninguna ruta de `app/form`, `book`, `schedule`, `docs`, `cotizar`, `calendario`, `proyecto` ni `login` cambió; `PublicCalendarView.tsx` intacta. Efecto indirecto declarado: `btnPrimary`/`btnGhost` de `src/lib/crm-ui.ts` (los usa `/login`) miden 44 px por debajo de `lg`
+- NO verificado: movimiento reducido en navegador (el pane no emula `prefers-reduced-motion`; lo cubre el contrato `redesign-contract.test.ts`); el caso de un deal con contacto con teléfono y correo a 375 px; una captura de pantallas fuera de alcance
+- pendiente fuera de alcance: dejar `react-reviewer` (config de herramientas no reconocida) como seguimiento

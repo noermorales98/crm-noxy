@@ -19,6 +19,8 @@
     (el) => inScope(el) && visible(el) && [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()),
   );
   const small = textEls
+    // Una miniatura decorativa (aria-hidden), p. ej. la vista previa de un tema, no es texto de la interfaz.
+    .filter((el) => !el.closest("[aria-hidden='true']"))
     .filter((el) => parseFloat(getComputedStyle(el).fontSize) < 12)
     .map((el) => `${el.tagName.toLowerCase()}: ${el.textContent.trim().slice(0, 30)}`);
   const glass = [...document.querySelectorAll("body *")].some((el) => {

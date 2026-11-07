@@ -397,3 +397,5 @@ Fuera: asistente (chrome propio) y todas las superficies públicas (`/form`, `/c
 
 **Review Workload Forecast (ronda 2).** Unas 17 000 líneas tocadas en ~45 archivos; todo tier 1;
 un revisor por tarea. Entrega: se une a la ronda 1 en el mismo commit único (no hay commit aún).
+
+**Desviación registrada (T020/T023).** En una pantalla «pass» sin `PageHeader` (editores, calendarios, correo) no se exige `pageHeader: true` ni se prohíbe `addButton`: la barra superior conserva su h1 y su acción principal. El contrato lo codifica en `redesign-screens-contract.test.ts` y la decisión está en `decisions.md` («Regla de acción principal en pantallas pass»).

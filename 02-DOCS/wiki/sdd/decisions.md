@@ -107,3 +107,15 @@ Context   — Las pantallas de la ronda 2 repetían botones `btnPrimary`/`btnGho
 Options    — (a) corregir cada pantalla; (b) corregir la pieza compartida.
 Decision   — (b). `btnPrimary`/`btnGhost` pasan a `min-h-11 lg:min-h-10` (también llega a `/login`, que solo crece en móvil); el `DatePicker` normal pasa a `min-h-11 lg:min-h-10` con anillo `focus` (la variante `compact` no cambia de alto); `selectInline` = `input` con `w-auto`. La fila de escritorio de cotizaciones enlaza desde el folio (antes `onClick` en la fila, no accesible por teclado); la fila móvil entera es enlace.
 Why        — Un solo cambio arregla todas las pantallas que usan la pieza y no altera superficies públicas más allá de la altura táctil.
+
+## 2026-11-06 — Regla de acción principal en pantallas «pass»  (feature: rediseno-obsidiana-estructural, tasks: T020, T023)
+Context   — El contrato común prohibía `addButton` en los archivos «pass» sin PageHeader, pero el calendario de contenido tiene su acción principal («Agregar pieza») en la barra superior, junto a la navegación de mes.
+Options    — (a) mover esa acción a un PageHeader que el editor no tiene; (b) limitar la regla «la acción vive en PageHeader» a las páginas que tienen PageHeader.
+Decision   — (b). En una pantalla «pass» sin PageHeader no se exige `pageHeader: true` ni se prohíbe `addButton`: la barra superior conserva su h1 y su acción. Los editores y calendarios son chrome de trabajo, no páginas de lista.
+Why        — La regla original (plan §3) liga la acción primaria a PageHeader; extenderla a pantallas sin PageHeader no estaba en la spec y obligaba a rediseñar el calendario.
+
+## 2026-11-06 — Prueba del compositor de correo sustituida  (feature: rediseno-obsidiana-estructural, task: T020)
+Context   — `crm-surface-style.test.ts` exigía en el compositor de `/emails` un fondo `bg-brand-obsidian/55` con `backdrop-blur-[2px]` y un panel `bg-white`. La ronda 1 del rediseño aprobó «sin cristal» y superficies por token.
+Options    — (a) conservar el blur para que pase la prueba; (b) sustituir la prueba por el contrato aprobado.
+Decision   — (b). La prueba exige ahora fondo sólido `bg-brand-obsidian/45`, ausencia de `backdrop-blur` junto al compositor y panel `bg-surface-elevated rounded-surface overflow-hidden`. No se debilita: cambia lo que protege porque cambió la regla.
+Why        — La spec prohíbe el cristal en el shell y sus pantallas; mantener la prueba antigua obligaría a incumplir la spec aprobada.
