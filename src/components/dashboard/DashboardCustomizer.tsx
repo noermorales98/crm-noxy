@@ -108,10 +108,11 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3 lg:gap-5">
       <Enter index={0}>
         <PageHeader
           title={greeting?.headline ?? "Inicio"}
+          denseOnMobile
           leading={
             // eslint-disable-next-line @next/next/no-img-element
             <img

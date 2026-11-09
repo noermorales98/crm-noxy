@@ -61,7 +61,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
+    <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:gap-5 overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
       {dbDegraded && <DbUnavailableNotice stale={stale} compact />}
       <DashboardCustomizer initialWidgets={widgetIds} initialTabs={tabIds} data={data} />
     </main>

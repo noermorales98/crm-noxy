@@ -48,10 +48,11 @@ export default async function ContenidoResumenPage() {
   } as const;
 
   return (
-    <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
+    <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-3 overflow-x-hidden lg:gap-5 overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
       <Enter index={0}>
         <PageHeader
           title="Contenido"
+          denseOnMobile
           leading={
             <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-nav-active text-[var(--nav-active-ink)] sm:size-14">
               <HugeiconsIcon icon={Megaphone01Icon} size={24} />
@@ -67,7 +68,7 @@ export default async function ContenidoResumenPage() {
       </Enter>
 
       <Enter index={1}>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 xl:grid-cols-6">
           <KpiWidget icon={Calendar03Icon} {...tone.indigo} value={String(counts.today)} label="Para hoy" href="/contenido/general" />
           <KpiWidget icon={Alert02Icon} {...tone.red} value={String(counts.overdue)} label="Atrasadas" href="/contenido/general" highlight={counts.overdue > 0} />
           <KpiWidget icon={Upload01Icon} {...tone.green} value={String(counts.toUpload)} label="Listas para subir" href="/contenido/general" />

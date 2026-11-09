@@ -12,6 +12,8 @@ type PageHeaderProps = {
   actions?: ReactNode;
   /** Elemento a la izquierda del título (p. ej. el avatar del Inicio). */
   leading?: ReactNode;
+  /** Sin separación inferior en móvil (los dos dashboards); desde `sm` es igual que siempre. */
+  denseOnMobile?: boolean;
 };
 
 /** Cuerpo del encabezado: lleva también volver, insignia y controles que la pantalla declara en HeaderContext. */
@@ -24,7 +26,7 @@ function Controls({ actions }: { actions?: ReactNode }) {
   );
 }
 
-export function PageHeader({ title, subtitle, actions, leading }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actions, leading, denseOnMobile = false }: PageHeaderProps) {
   const header = useOptionalHeader();
   const badge = header?.config.titleBadge;
   const hasBadge = badge || badge === 0;
@@ -32,7 +34,7 @@ export function PageHeader({ title, subtitle, actions, leading }: PageHeaderProp
     header?.config.sortOptions?.length || header?.config.filterGroups?.length || header?.config.addButton || header?.config.actions?.length,
   );
   return (
-    <header className="flex flex-wrap items-end gap-x-6 gap-y-3 pb-5">
+    <header className={`flex flex-wrap items-end gap-x-6 sm:gap-y-3 sm:pb-5 ${denseOnMobile ? "gap-y-0 pb-0" : "gap-y-2 pb-3"}`}>
       <div className="flex min-w-0 flex-1 items-center gap-3">
         {header?.config.backHref && <BackLink />}
         {leading}
