@@ -120,8 +120,8 @@ const SCREENS: Record<string, Screen> = {
     level: "pass",
   },
   settings: {
-    pages: ["app/settings/page.tsx", "app/settings/ai-models/page.tsx", "app/settings/digest/page.tsx", "app/settings/equipo/page.tsx", "app/profile/page.tsx"],
-    files: ["app/settings/page.tsx", "app/settings/ai-models/page.tsx", "app/settings/digest/page.tsx", "app/settings/equipo/page.tsx", "app/profile/page.tsx"],
+    pages: ["app/settings/page.tsx", "app/settings/notificaciones/page.tsx", "app/settings/integraciones/page.tsx", "app/settings/apariencia/page.tsx", "app/settings/ai-models/page.tsx", "app/settings/digest/page.tsx", "app/settings/equipo/page.tsx", "app/profile/page.tsx"],
+    files: ["app/settings/page.tsx", "app/settings/notificaciones/page.tsx", "app/settings/integraciones/page.tsx", "app/settings/apariencia/page.tsx", "app/settings/ai-models/page.tsx", "app/settings/digest/page.tsx", "app/settings/equipo/page.tsx", "app/profile/page.tsx"],
     level: "pass",
   },
   details: {
@@ -182,14 +182,14 @@ for (const [name, screen] of Object.entries(SCREENS)) {
   });
 }
 
-test("pages with a PageHeader stop the top bar from rendering a second h1 and keep their primary action", () => {
+test("pages with a PageHeader stop the page bar from rendering a second h1 and keep their primary action", () => {
   assert.match(source("src/context/HeaderContext.tsx"), /pageHeader\?\s*:\s*boolean/, "HeaderConfig.pageHeader flag");
-  const header = source("src/components/Header.tsx");
-  assert.match(header, /<h1\b/, "the top bar still has an h1 for pages without PageHeader");
+  const header = source("src/components/PageBar.tsx");
+  assert.match(header, /<h1\b/, "the page bar still has an h1 for pages without PageHeader");
   // La condición que decide entre h1 y texto lleva `pageHeader` (directo o desestructurado) en la misma expresión JSX.
   assert.match(
     header,
-    /\{\s*!\s*(?:config\.)?pageHeader\s*&&[\s\S]{0,400}?<h1\b|(?:config\.)?pageHeader\s*\?[\s\S]{0,400}?:\s*\(?\s*<h1\b/,
+    /if\s*\(\s*(?:config\.)?pageHeader\s*\)\s*return null;[\s\S]*?<h1\b|\{\s*!\s*(?:config\.)?pageHeader\s*&&[\s\S]{0,400}?<h1\b|(?:config\.)?pageHeader\s*\?[\s\S]{0,400}?:\s*\(?\s*<h1\b/,
     "the h1 is rendered only when pageHeader is not set",
   );
   for (const [name, screen] of Object.entries(SCREENS)) {

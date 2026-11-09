@@ -270,3 +270,23 @@ maqueta.
   Estado → `draft` hasta que el dueño apruebe la ronda 2.
 
 - 2026-11-06 — Ronda 2 aprobada por el dueño («Apruebo, empieza T015»). Estado → `clarified`.
+- 2026-11-07 — **Ronda 3, pedida por el dueño** tras ver el shell con ramas en línea: «no debe existir un navbar
+  arriba, quítalo», «el sidebar se muestra como un menú desplegable… se ve saturado y apretado cuando aparecen los
+  nuevos menús… puede estar dividido en secciones como Claude con chat y cowork». Decisiones del dueño (opciones
+  recomendadas elegidas en las tres preguntas):
+  - **Sidebar por modos tipo Claude:** un selector de 3 modos arriba (Trabajo, Ventas, Espacios). Cada modo muestra
+    solo su lista plana y corta, sin ramas desplegables. Trabajo = Inicio, Tareas, Proyectos, Contactos, Empresas y,
+    en un grupo «Agenda», Citas agendadas, Tipos de cita y Disponibilidad. Ventas = Pipeline de ventas, Clientes,
+    Historial de tratos, Cotizaciones, Formularios. Espacios = Correo, Docs, Asistente, Bóveda, Gestión de contenido.
+    Mismas rutas, etiquetas y permisos; un modo sin destinos visibles no aparece. Ajustes y la cuenta quedan fijos al pie.
+  - **Listas internas en una segunda columna:** Correo, Docs, Bóveda y Contenido muestran su lista (carpetas, árbol,
+    clientes, mini calendario) en un panel de 240 px entre el sidebar y la página, plegable y con su estado guardado. El
+    sidebar principal no cambia ni se aprieta. En móvil, la lista va dentro del cajón, debajo de la lista del modo.
+  - **Sin barra superior:** se elimina `Header` del shell. La búsqueda (⌘K) y las notificaciones pasan a la cabecera del
+    sidebar (en móvil, al cajón de «Más»). El orden, los filtros, la insignia, el botón de volver, el botón principal y
+    las acciones pasan a la cabecera de cada página (`PageHeader`), o a la barra propia de la pantalla en editores sin
+    `PageHeader`.
+  - *Suposición tomada:* el Asistente conserva su chrome propio (sidebar flotante o fijada con sus conversaciones
+    debajo de la lista, sin segunda columna). *Base:* la spec ya lo excluye del rediseño y su barra tiene un control de
+    fijar propio. *Riesgo:* si el dueño quiere la segunda columna también ahí, es otra tarea.
+  Estado → `clarified` (el dueño eligió las opciones y pidió continuar).

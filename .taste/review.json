@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "verdict": "repair",
+  "summary": "The third capture shows the same pre-repair /login page as before: the generic sign-in glyph, the subline 'Inicia sesión en tu CRM', and a submit button the DOM audit measures at 406x40. The current source and the 10:58 production build already show the Noxy isotype, 'Inicia sesión en Noxy CRM' and a 44px button. The preview is still served by the `next start` process launched before that rebuild, and stopping it was not permitted in the repair session. The refined shell (sidebar tree, account control, pinned assistant) is behind authentication, so it is still not visible. None of the seven app-screen questions can be answered for it. TasteCode DOM audit found 1 blocking accessibility group.",
+  "findings": [
+    {
+      "id": "stale_preview_build",
+      "severity": "blocking",
+      "area": "Preview server, 1440x1000 and 390x844",
+      "evidenceType": "visual_inspection",
+      "confidence": "high",
+      "evidence": "The login card is identical to the pre-repair version: the LoginIcon glyph, 'Inicia sesión en tu CRM' and a 40px button. The build that contains the fixes (10:58:20) is not the one being served. The preview's `npm run start --hostname 127.0.0.1 --port 3000` (next-server PID 52961) started at 10:55:06 and was never restarted.",
+      "repair": "Restart the preview's `next start` process, or start the preview on a free port, so it loads the current .next build, then recapture. Leave the user's own `next dev` (PID 51728) alone."
+    },
+    {
+      "id": "login_card_missing_product_mark",
+      "severity": "minor",
+      "area": "1440x1000 and 390x844, login card header",
+      "evidenceType": "visual_inspection",
+      "confidence": "high",
+      "evidence": "The served card still shows the generic arrow glyph and 'Inicia sesión en tu CRM'. The Noxy isotype and the name 'Noxy CRM' do not appear.",
+      "repair": "Serve the current build, which renders /Isotipo_Azul.svg with 'Inicia sesión en Noxy CRM', and verify the result in the recapture."
+    },
+    {
+      "id": "shell_not_reachable_in_preview",
+      "severity": "blocking",
+      "area": "1440x1000 and 390x844, whole screen",
+      "evidenceType": "visual_inspection",
+      "confidence": "high",
+      "evidence": "/assistant/new redirects anonymous visitors to /login, so the sidebar tree, the AccountMenu trigger, the pinned assistant history and the 64px rail never appear. That leaves every shell question unverifiable: the biggest block, the edges, colour on data, the badges and the phone fold.",
+      "repair": "Capture with an authenticated test session, for example a seeded test user signed in once in the capture browser profile, and point the preview at /assistant/new. Do not add an unauthenticated fixture route or a middleware bypass."
+    },
+    {
+      "id": "interactive_target_size",
+      "severity": "blocking",
+      "area": "Interaction targets",
+      "evidenceType": "automated",
+      "confidence": "high",
+      "evidence": "1 visible interactive target below 44x44 CSS px. 1440px button (Iniciar sesión): 406x40",
+      "repair": "Make every visible interactive target at every reviewed viewport at least 44x44 CSS px."
+    }
+  ]
+}

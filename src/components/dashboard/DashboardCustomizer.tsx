@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CheckmarkCircle01Icon, PencilEdit01Icon, Add01Icon } from "@hugeicons/core-free-icons";
 import { useHeader } from "@/src/context/HeaderContext";
-import { welcomeGreeting } from "@/src/lib/user-sexo";
+import { userAvatarSrc } from "@/src/lib/user-sexo";
+import { greetingFor, summarizeWork } from "@/src/lib/dashboard-greeting";
 import { Enter, PageHeader } from "@/src/components/ui";
 import { DashboardGrid } from "@/src/components/dashboard/DashboardGrid";
 import { WidgetPicker } from "@/src/components/dashboard/WidgetPicker";
@@ -32,13 +31,28 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
   const isFirstRender = useRef(true);
   const { data: session } = useSession();
   const { setConfig, resetState } = useHeader();
-  const firstName = session?.user?.name?.trim().split(/\s+/)[0] || "";
-  const greeting = firstName ? `${welcomeGreeting(session?.user?.sexo)}, ${firstName}` : "Inicio";
-  // La fecha se calcula en el cliente (zona horaria de la persona) para no desajustar la hidratación.
-  const [today, setToday] = useState("");
+  const name = session?.user?.name ?? "";
+  const sexo = session?.user?.sexo ?? null;
+  // El saludo depende de la hora de la persona: se calcula tras montar para no desajustar la hidratación.
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
-    setToday(format(new Date(), "EEEE d 'de' MMMM", { locale: es }));
+    setNow(new Date());
   }, []);
+  const greeting = now
+    ? greetingFor({
+        now,
+        name,
+        sexo,
+        ...summarizeWork({
+          now,
+          tasks: (data.pendingTasks ?? []).map((task) => ({ dueDate: task.dueDate, isCompleted: task.isCompleted })),
+          appointments: (data.upcomingAppointments ?? []).map((appointment) => ({
+            startTime: appointment.startTime,
+            title: appointment.appointmentType.name,
+          })),
+        }),
+      })
+    : null;
 
   // La barra superior solo muestra el nombre en móvil: el h1 lo pone el PageHeader.
   useEffect(() => {
@@ -97,8 +111,23 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
     <div className="flex flex-col gap-5">
       <Enter index={0}>
         <PageHeader
-          title={greeting}
-          subtitle={<span className="block min-h-[1.5em] first-letter:uppercase">{today}</span>}
+          title={greeting?.headline ?? "Inicio"}
+          leading={
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={userAvatarSrc(sexo)}
+              alt=""
+              width={56}
+              height={56}
+              className="size-12 shrink-0 rounded-full border border-line bg-surface-elevated object-cover sm:size-14"
+            />
+          }
+          subtitle={
+            <span className="block min-h-[2.75em]">
+              <span className="block text-xs font-medium text-text-secondary">{greeting?.kicker ?? ""}</span>
+              <span className="block text-sm text-text-primary">{greeting?.status ?? ""}</span>
+            </span>
+          }
           actions={
             <button
               type="button"

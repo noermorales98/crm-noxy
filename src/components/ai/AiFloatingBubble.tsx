@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Square } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AiChatIcon,
+  AiMagicIcon,
   ArrowUpRight01Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
@@ -189,11 +189,11 @@ export function AiFloatingBubble() {
     <>
       {/* Panel — desktop / tablet only */}
       {isOpen && (
-        <div className="fixed bottom-[88px] right-4 z-50 hidden h-[min(520px,calc(100vh-7rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-surface border border-border-subtle bg-white shadow-md sm:right-6 sm:w-[380px] lg:flex">
+        <div className="fixed bottom-[88px] right-4 z-50 hidden h-[min(520px,calc(100vh-7rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-surface border border-line bg-surface-elevated shadow-md sm:right-6 sm:w-[380px] lg:flex">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
             <div className="flex items-center">
-              <HugeiconsIcon icon={AiChatIcon} size={16} color="#0B0B18" />
+              <HugeiconsIcon icon={AiMagicIcon} size={16} />
               <span className="ml-2 text-sm font-semibold text-text-primary">
                 Asistente IA
               </span>
@@ -232,7 +232,7 @@ export function AiFloatingBubble() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 min-h-0">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-3">
-                <HugeiconsIcon icon={AiChatIcon} size={28} color="#0B0B18" />
+                <HugeiconsIcon icon={AiMagicIcon} size={28} />
                 <p className="text-sm font-semibold text-text-primary">
                   ¿En qué puedo ayudarte?
                 </p>
@@ -271,9 +271,10 @@ export function AiFloatingBubble() {
         onClick={toggle}
         aria-label={isOpen ? "Cerrar asistente IA" : "Abrir asistente IA"}
         aria-expanded={isOpen}
-        className="fixed bottom-6 right-6 z-50 hidden h-[52px] w-[52px] items-center justify-center rounded-full bg-action-primary text-action-primary-foreground shadow-md transition-colors duration-200 hover:bg-action-secondary motion-reduce:transition-none lg:flex"
+        title={isOpen ? "Cerrar asistente" : "Asistente IA"}
+        className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-brand-obsidian bg-brand-obsidian text-white shadow-md outline-none transition-colors duration-200 hover:bg-brand-obsidian/85 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
       >
-        <HugeiconsIcon icon={AiChatIcon} size={22} color="white" />
+        <HugeiconsIcon icon={isOpen ? Cancel01Icon : AiMagicIcon} size={22} aria-hidden="true" />
       </button>
     </>
   );

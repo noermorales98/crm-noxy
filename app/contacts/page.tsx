@@ -5,28 +5,10 @@ import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { useAi } from "@/src/hooks/useAi";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, PencilEdit01Icon, Cancel01Icon, UserMultipleIcon, GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
+import { Delete01Icon, PencilEdit01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { ContactAvatar } from "@/src/components/ui/EntityIcon";
 import { Chip, DataTable, EmptyState, Enter, ErrorState, FilterBar, PageHeader, Segmented, Skeleton, useDialog } from "@/src/components/ui";
-
-const avatarColors = [
-  "bg-blue-100 text-blue-700",
-  "bg-purple-100 text-purple-700",
-  "bg-green-100 text-green-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
-  "bg-cyan-100 text-cyan-700",
-  "bg-indigo-100 text-indigo-700",
-];
-
-function Avatar({ name }: { name: string }) {
-  const color = avatarColors[name.charCodeAt(0) % avatarColors.length];
-  return (
-    <div className={`flex size-9 shrink-0 items-center justify-center rounded-control text-sm font-semibold ${color}`}>
-      {name.charAt(0).toUpperCase()}
-    </div>
-  );
-}
 
 type ContactRow = {
   id: string;
@@ -184,7 +166,7 @@ function ContactsContent() {
 
   const person = (c: ContactRow) => (
     <div className="flex min-w-0 items-center gap-3">
-      <Avatar name={c.firstName} />
+      <ContactAvatar />
       <span className="truncate font-semibold text-text-primary" title={`${c.firstName} ${c.lastName || ""}`}>
         {c.firstName} {c.lastName}
       </span>
@@ -205,7 +187,7 @@ function ContactsContent() {
 
   const mobileRowFor = (showCompany: boolean) => (c: ContactRow) => (
     <>
-      <Avatar name={c.firstName} />
+      <ContactAvatar />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-text-primary">{c.firstName} {c.lastName}</p>
         <p className="truncate text-xs text-text-secondary">

@@ -29,7 +29,7 @@ export async function GET(req: Request) {
     forms,
     projects,
   ] = await Promise.all([
-    Promise.resolve(matchCrmSearchPages(q, LIMIT)),
+    Promise.resolve(matchCrmSearchPages(q, 8)),
     prisma.contact.findMany({
       where: {
         organizationId: orgId,

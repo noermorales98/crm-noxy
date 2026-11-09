@@ -286,3 +286,20 @@ las skills del repo (`nextjs`, `design`).
 - superficies públicas: ninguna ruta de `app/form`, `book`, `schedule`, `docs`, `cotizar`, `calendario`, `proyecto` ni `login` cambió; `PublicCalendarView.tsx` intacta. Efecto indirecto declarado: `btnPrimary`/`btnGhost` de `src/lib/crm-ui.ts` (los usa `/login`) miden 44 px por debajo de `lg`
 - NO verificado: movimiento reducido en navegador (el pane no emula `prefers-reduced-motion`; lo cubre el contrato `redesign-contract.test.ts`); el caso de un deal con contacto con teléfono y correo a 375 px; una captura de pantallas fuera de alcance
 - pendiente fuera de alcance: dejar `react-reviewer` (config de herramientas no reconocida) como seguimiento
+
+## T027 — 2026-11-07
+- status: complete
+- red→green: `crm-navigation-modes.test.ts` (8 pruebas: forma de los modos, 18 destinos en un solo modo, permisos, modeForPath/resolveMode/parseMode, contextPanelFor, claves de almacenamiento) ✅
+- files: src/lib/crm-navigation.ts, src/lib/crm-navigation-modes.test.ts
+- risk: tier 0/1 (modelo puro, aditivo) — cubierto por la revisión del paquete T028–T030
+
+## T028–T030 — 2026-11-07 (sin commit todavía)
+- status: complete; revisión de contexto limpio (sonnet) sobre el paquete completo, ver entrada de revisión
+- red→green: contratos del shell reescritos (modos, cabecera con búsqueda y campana, segunda columna, sin barra superior) en rojo antes de cada cambio
+- files: src/components/{Sidebar,sidebar-parts,context-navs,ContextPanel,NotificationsMenu,PageBar,PageControls,DashboardShell}.tsx, src/components/ui/PageHeader.tsx, src/context/HeaderContext.tsx (useOptionalHeader), src/lib/crm-navigation(.test).ts, redesign-shell/redesign-screens/crm-surface-style/assistant-sidebar contracts; eliminado src/components/Header.tsx
+- controls: `npm test` 190/194 (solo los 4 fallos conocidos) ✅ · tsc 21 = línea base ✅ · eslint: Sidebar 2 (línea base 5), ContextPanel 1, HeaderContext igual que HEAD ✅
+
+## Revisión T028–T030 — 2026-11-07
+- review: ronda 1, 7 reportados → 6 arreglados (menú de notificaciones fijo y a lo ancho en móvil; Buscar cierra el cajón; se restaura «Eliminar notificación»; sin doble inset superior en /assistant móvil; flechas ↑↓ en el riel; destino activo para campañas y clientes de contenido) · 1 intencionado (F7: sin h1 en /contenido, su título es la navegación de mes, ya registrado)
+- controls tras arreglos: npm test 190/194 (4 conocidos) ✅ · tsc 20 ≤ 21 ✅
+- build: ver registro del scratchpad; navegador: shell autenticado NO verificado (el pane no tiene sesión)

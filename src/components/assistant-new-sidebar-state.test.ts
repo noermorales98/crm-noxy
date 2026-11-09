@@ -20,8 +20,14 @@ test("floating sidebar is available on supported assistant routes", () => {
   assert.equal(isAssistantRoute("/contacts"), false);
 });
 
+test("assistant sidebar starts pinned, so it is visible on /assistant/new", () => {
+  assert.deepEqual(INITIAL_ASSISTANT_SIDEBAR_STATE, { mode: "pinned", peek: false });
+  assert.equal(isAssistantSidebarVisible(INITIAL_ASSISTANT_SIDEBAR_STATE), true);
+  assert.deepEqual(assistantNewSidebarReducer(INITIAL_ASSISTANT_SIDEBAR_STATE, { type: "navigate" }), INITIAL_ASSISTANT_SIDEBAR_STATE, "navigating keeps it pinned");
+});
+
 test("assistant sidebar supports pin, unpin, and peek actions", () => {
-  assert.deepEqual(assistantNewSidebarReducer(INITIAL_ASSISTANT_SIDEBAR_STATE, { type: "peekOpen" }), {
+  assert.deepEqual(assistantNewSidebarReducer({ mode: "auto", peek: false }, { type: "peekOpen" }), {
     mode: "auto",
     peek: true,
   });
@@ -61,10 +67,10 @@ test("assistant sidebar visibility follows pin or peek", () => {
   assert.equal(isAssistantSidebarVisible({ mode: "pinned", peek: false }), true);
 });
 
-test("assistant sidebar session storage restores and persists mode", () => {
+test("assistant sidebar mode persists in localStorage and defaults to pinned", () => {
   const memory = new Map<string, string>();
-  const previousStorage = globalThis.sessionStorage;
-  Object.defineProperty(globalThis, "sessionStorage", {
+  const previousStorage = globalThis.localStorage;
+  Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
     value: {
       getItem: (key: string) => memory.get(key) ?? null,
@@ -78,14 +84,14 @@ test("assistant sidebar session storage restores and persists mode", () => {
   });
 
   try {
-    assert.equal(readAssistantSidebarStoredMode(), "auto");
+    assert.equal(readAssistantSidebarStoredMode(), "pinned", "no stored preference: pinned");
     writeAssistantSidebarStoredMode("pinned");
     assert.equal(memory.get(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY), "pinned");
     assert.equal(readAssistantSidebarStoredMode(), "pinned");
     writeAssistantSidebarStoredMode("auto");
     assert.equal(readAssistantSidebarStoredMode(), "auto");
   } finally {
-    Object.defineProperty(globalThis, "sessionStorage", {
+    Object.defineProperty(globalThis, "localStorage", {
       configurable: true,
       value: previousStorage,
     });

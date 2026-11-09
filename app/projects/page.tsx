@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, FolderIcon, ArrowRight01Icon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, FolderIcon, ZapIcon, AnalyticsUpIcon, GitBranchIcon, Megaphone01Icon } from "@hugeicons/core-free-icons";
 import DeleteProjectButton from "@/src/components/DeleteProjectButton";
 import { useHeader } from "@/src/context/HeaderContext";
-import { DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton } from "@/src/components/ui";
+import { DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton } from "@/src/components/ui";
 
 type ProjectRow = {
   id: string;
@@ -88,42 +88,47 @@ export default function ProjectsPage() {
     });
   }, [projects, sortField, sortOrder]);
 
-  const renderProject = (project: ProjectRow) => {
-    const total = assetsOf(project);
-    return (
-      <div className="flex w-full min-w-0 items-center gap-2">
-        <Link
-          href={`/projects/${project.id}`}
-          className="group flex min-h-14 min-w-0 flex-1 items-center gap-4 rounded-control py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary"
-        >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-control bg-surface-sidebar text-text-primary">
-            <HugeiconsIcon icon={PROJECT_ICONS[project.icon || ""] ?? FolderIcon} size={20} />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate font-semibold text-text-primary group-hover:underline">{project.name}</span>
-            <span className="mt-0.5 block truncate text-sm text-text-secondary">{project.description || "Sin descripción."}</span>
-            {(project.clientCompany || project.client || project.contact) && (
-              <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                {/* Colores de categoría de la asociación (empresa, cliente, contacto): se conservan. */}
-                {project.clientCompany && <span className="rounded-full bg-nav-hover px-2 py-0.5 text-xs font-semibold text-action-primary">{project.clientCompany.name}</span>}
-                {project.client && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">{project.client.name}</span>}
-                {project.contact && <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-semibold text-cyan-700">{project.contact.firstName} {project.contact.lastName || ""}</span>}
-              </span>
-            )}
-          </span>
-          <span className="shrink-0 text-xs tabular-nums text-text-secondary sm:text-sm">
-            {total} {total === 1 ? "asset" : "assets"}
-          </span>
-          <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="shrink-0 text-text-secondary" />
-        </Link>
-        <DeleteProjectButton
-          projectId={project.id}
-          projectName={project.name}
-          onDeleted={() => setProjects((prev) => prev.filter((p) => p.id !== project.id))}
-        />
-      </div>
-    );
-  };
+  const assoc = (p: ProjectRow) =>
+    p.clientCompany?.name || p.client?.name || (p.contact ? `${p.contact.firstName} ${p.contact.lastName || ""}`.trim() : "");
+  const projectCell = (project: ProjectRow) => (
+    <Link
+      href={`/projects/${project.id}`}
+      className="group flex min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    >
+      <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-nav-active text-[var(--nav-active-ink)]">
+        <HugeiconsIcon icon={PROJECT_ICONS[project.icon || ""] ?? FolderIcon} size={18} />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate font-medium text-text-primary group-hover:underline">{project.name}</span>
+        <span className="block max-w-md truncate text-xs text-text-secondary">{project.description || "Sin descripción."}</span>
+      </span>
+    </Link>
+  );
+  const removeButton = (project: ProjectRow) => (
+    <DeleteProjectButton
+      projectId={project.id}
+      projectName={project.name}
+      onDeleted={() => setProjects((prev) => prev.filter((p) => p.id !== project.id))}
+    />
+  );
+  const columns = [
+    { key: "name", header: "Proyecto", render: projectCell },
+    { key: "assoc", header: "Asociado a", render: (p: ProjectRow) => <span className="text-text-secondary">{assoc(p) || "—"}</span> },
+    { key: "assets", header: "Assets", align: "right" as const, render: (p: ProjectRow) => assetsOf(p) },
+    {
+      key: "created",
+      header: "Creado",
+      render: (p: ProjectRow) => <span className="text-text-secondary">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</span>,
+    },
+    { key: "actions", header: "Acciones", align: "right" as const, render: removeButton },
+  ];
+  const mobileRow = (project: ProjectRow) => (
+    <div className="flex w-full min-w-0 items-center gap-2">
+      <div className="min-w-0 flex-1">{projectCell(project)}</div>
+      <span className="shrink-0 text-xs tabular-nums text-text-secondary">{assetsOf(project)}</span>
+      {removeButton(project)}
+    </div>
+  );
 
   return (
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
@@ -150,11 +155,12 @@ export default function ProjectsPage() {
           </div>
         ) : (
           <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
-            <DataList
+            <DataTable
               label="Proyectos"
+              columns={columns}
               rows={displayed}
               getKey={(p) => p.id}
-              renderRow={renderProject}
+              mobileRow={mobileRow}
               empty={
                 <EmptyState
                   title="Todavía no hay proyectos"

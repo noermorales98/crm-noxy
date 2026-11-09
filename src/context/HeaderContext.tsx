@@ -110,3 +110,8 @@ export function useHeader() {
   if (!ctx) throw new Error("useHeader must be used within HeaderProvider");
   return ctx;
 }
+
+/** Como useHeader, pero devuelve null fuera del proveedor (PageHeader también se usa en pantallas aisladas). */
+export function useOptionalHeader() {
+  return useContext(HeaderContext);
+}

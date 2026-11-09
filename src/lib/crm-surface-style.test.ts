@@ -82,8 +82,8 @@ test("floating menus use the structural overlay elevation without changing popup
   assert.match(crmUi, /modalPanel[\s\S]*?shadow-\[0_8px_8px_rgba\(11,11,24,0\.10\)\]/);
 
   for (const path of [
-    "src/components/Header.tsx",
-    "src/components/Sidebar.tsx",
+    "src/components/PageControls.tsx",
+    "src/components/NotificationsMenu.tsx",
     "src/components/kb/KbSharePanel.tsx",
     "app/assistant/[id]/_components/ModelSelector.tsx",
   ]) {

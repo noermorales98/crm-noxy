@@ -33,6 +33,10 @@
   --color-danger-soft: #FDECEA;
   --color-success: #067647;
   --color-success-soft: #E7F6EE;
+  /* Borde de controles (búsqueda, botón secundario) y aviso: un paso más fuerte que border-subtle. */
+  --color-control: #C9CEDC;
+  --color-warning: #92400E;
+  --color-warning-soft: #FFFBEB;
   --radius-control: 10px;
   --radius-surface: 12px;
   --radius-ui: 12px;
@@ -278,6 +282,17 @@ body {
   }
 }
 
+@keyframes crm-menu-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @layer components {
   @media (prefers-reduced-motion: no-preference) {
     /* backwards: invisible durante el retraso y, al terminar, el elemento vuelve a sus propios
@@ -292,6 +307,26 @@ body {
     .crm-lift,
     .crm-press {
       transition-property: transform, border-color, background-color, color;
+      transition-duration: var(--duration-state);
+      transition-timing-function: var(--ease-state);
+    }
+
+    /* Menús flotantes del shell (cuenta, notificaciones, flyouts del riel): opacidad y escala 0.97,
+       anclados a su disparador (transform-origin lo fija cada menú). Feedback, no entrada. */
+    .crm-menu-enter {
+      animation: crm-menu-enter var(--duration-state) var(--ease-state);
+    }
+
+    /* Rama de la sidebar: altura por grid-template-rows (0fr ↔ 1fr), interrumpible. */
+    .crm-branch {
+      transition-property: grid-template-rows, opacity;
+      transition-duration: var(--duration-state);
+      transition-timing-function: var(--ease-state);
+    }
+
+    /* Ancho de la sidebar al contraer a riel o fijar/soltar. */
+    .crm-sidebar-width {
+      transition-property: width;
       transition-duration: var(--duration-state);
       transition-timing-function: var(--ease-state);
     }

@@ -7,6 +7,8 @@ import { CrmThemeProvider } from "@/src/context/CrmThemeContext";
 const PUBLIC_PREFIXES = ["/login", "/book/", "/form/", "/schedule/", "/docs/", "/cotizar/", "/calendario/", "/proyecto/"];
 
 function isPublicRoute(pathname: string): boolean {
+  // Isolated local sample data; this route never reads authenticated CRM data.
+  if (pathname === "/design-preview") return true;
   if (pathname === "/login") return true;
   return PUBLIC_PREFIXES.some((prefix) => prefix.endsWith("/") && pathname.startsWith(prefix));
 }

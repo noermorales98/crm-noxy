@@ -15,7 +15,8 @@ import {
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { fmtUSD, fmtMXN, fmtCurrency, StatCard, StatChip, type StatDef } from "@/src/components/pipeline/PipelineShared";
 import DeleteClientVaultDialog from "@/src/components/DeleteClientVaultDialog";
-import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
+import { ContactAvatar } from "@/src/components/ui/EntityIcon";
+import { Chip, DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
 
 const secondaryAction =
   "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10";
@@ -211,10 +212,7 @@ function ClientRow({
         onClick={onOpen}
         className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary"
       >
-        {/* Avatar con el color de cliente de los datos. */}
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-control bg-violet-100 text-sm font-semibold text-violet-700">
-          {client.name[0]?.toUpperCase()}
-        </span>
+        <ContactAvatar />
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
             <span className="truncate font-semibold text-text-primary">{client.name}</span>
@@ -277,6 +275,115 @@ function ClientRow({
       </div>
     </div>
   );
+}
+
+type PaymentRecord = { id: string; month: number; year: number; status: string; receivedAt?: string | null };
+type ClientRecord = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  currency: string;
+  billingDay: number;
+  monthlyFee: number;
+  company?: { name: string } | null;
+  payments?: PaymentRecord[];
+};
+
+// Estado de cobro del mes en curso, compartido por las columnas de la tabla.
+function paymentState(client: ClientRecord) {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const payment = client.payments?.find((p: PaymentRecord) => p.month === month && p.year === year);
+  return {
+    payment,
+    isPaid: payment?.status === "RECIBIDO",
+    isPending: !payment || payment.status === "PENDIENTE",
+    label: `${MONTH_NAMES[month - 1]} ${year}`,
+  };
+}
+
+function clientColumns(handlers: { onMarkPaid: (clientId: string, paymentId: string) => void; onOpen: (client: ClientRecord) => void; onDelete?: (clientId: string) => void }) {
+  return [
+    {
+      key: "client",
+      header: "Cliente",
+      render: (client: ClientRecord) => (
+        <button
+          type="button"
+          onClick={() => handlers.onOpen(client)}
+          className="flex min-w-0 items-center gap-3 rounded-control text-left outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          <ContactAvatar />
+          <span className="min-w-0">
+            <span className="flex items-center gap-2">
+              <span className="truncate font-medium text-text-primary">{client.name}</span>
+              <Chip tone={client.isActive ? "done" : "neutral"}>{client.isActive ? "Activo" : "Pausado"}</Chip>
+            </span>
+            <span className="block truncate text-xs text-text-secondary">
+              {client.currency} · Día {client.billingDay}
+            </span>
+          </span>
+        </button>
+      ),
+    },
+    { key: "company", header: "Empresa", render: (client: ClientRecord) => <span className="text-text-secondary">{client.company?.name || "—"}</span> },
+    {
+      key: "fee",
+      header: "Cuota mensual",
+      align: "right" as const,
+      render: (client: ClientRecord) => <span className="font-medium text-text-primary">{fmtCurrency(client.monthlyFee, client.currency)}</span>,
+    },
+    {
+      key: "payment",
+      header: "Pago del mes",
+      render: (client: ClientRecord) => {
+        const { payment, isPaid, label } = paymentState(client);
+        return isPaid ? (
+          <span className="flex items-center gap-1.5 text-success">
+            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+            <span className="text-xs font-semibold">Pagado</span>
+            {payment?.receivedAt && (
+              <span className="text-xs text-text-secondary">{new Date(payment.receivedAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}</span>
+            )}
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 text-text-secondary">
+            <HugeiconsIcon icon={DollarCircleIcon} size={14} />
+            <span className="text-xs">Pendiente · {label}</span>
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Acciones",
+      align: "right" as const,
+      render: (client: ClientRecord) => {
+        const { payment, isPending } = paymentState(client);
+        return (
+          <span className="flex items-center justify-end gap-1">
+            {isPending && client.isActive && (
+              <button type="button" onClick={() => handlers.onMarkPaid(client.id, payment?.id as string)} className={primaryAction}>
+                Marcar pagado
+              </button>
+            )}
+            {handlers.onDelete && (
+              <button
+                type="button"
+                onClick={() => handlers.onDelete?.(client.id)}
+                aria-label={`Eliminar cliente ${client.name}`}
+                title="Eliminar cliente"
+                className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-9"
+              >
+                <HugeiconsIcon icon={Delete02Icon} size={16} />
+              </button>
+            )}
+          </span>
+        );
+      },
+    },
+  ];
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -520,11 +627,12 @@ export default function ClientesPage() {
             ) : loadError && clients.length === 0 ? (
               <ErrorState title="No se pudieron cargar los clientes" onRetry={fetchClients} />
             ) : (
-              <DataList
+              <DataTable
                 label="Clientes recurrentes"
-                rows={clients}
-                getKey={(c) => c.id}
-                renderRow={(client) => (
+                columns={clientColumns({ onMarkPaid: handleMarkPaid, onOpen: setSelectedClient, onDelete: requestDeleteClient })}
+                rows={clients as ClientRecord[]}
+                getKey={(c: ClientRecord) => c.id}
+                mobileRow={(client: ClientRecord) => (
                   <ClientRow
                     client={client}
                     onMarkPaid={handleMarkPaid}

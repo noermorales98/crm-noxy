@@ -1,5 +1,6 @@
 "use client";
 
+import EmailFrame from "@/src/components/EmailFrame";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -1001,7 +1002,7 @@ function EmailsPageInner() {
               </div>
 
               {/* Email body */}
-              <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto p-6">
+              <div className="crm-mobile-bottom-clearance flex flex-1 flex-col overflow-y-auto p-6">
                 {selectedEmail.attachments.length > 0 && (
                   <div className="mb-4 flex flex-wrap gap-2">
                     {selectedEmail.attachments.map((att) => (
@@ -1021,15 +1022,9 @@ function EmailsPageInner() {
                 )}
 
                 {/* Blanco literal a propósito: el HTML del correo asume fondo blanco. */}
-                <div className="bg-[#ffffff] rounded-lg border border-line overflow-hidden">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-line bg-[#ffffff]">
                   {selectedEmail.bodyHtml ? (
-                    <iframe
-                      srcDoc={withExternalLinks(selectedEmail.bodyHtml)}
-                      sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-                      className="w-full border-0"
-                      style={{ minHeight: "500px", height: "600px" }}
-                      title="Email body"
-                    />
+                    <EmailFrame html={withExternalLinks(selectedEmail.bodyHtml)} title="Email body" />
                   ) : selectedEmail.bodyText ? (
                     <pre className="p-6 text-sm text-text-primary whitespace-pre-wrap font-sans leading-relaxed">
                       {selectedEmail.bodyText}

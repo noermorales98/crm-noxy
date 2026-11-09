@@ -21,7 +21,7 @@ export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlig
         highlight ? "border-danger/30 hover:border-danger/60" : "border-line hover:border-text-secondary/40"
       }`}
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-control" style={{ backgroundColor: iconBg }}>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: iconBg }}>
         <HugeiconsIcon icon={icon} size={18} color={iconColor} />
       </span>
       <span className="w-full min-w-0">

@@ -399,3 +399,20 @@ Fuera: asistente (chrome propio) y todas las superficies públicas (`/form`, `/c
 un revisor por tarea. Entrega: se une a la ronda 1 en el mismo commit único (no hay commit aún).
 
 **Desviación registrada (T020/T023).** En una pantalla «pass» sin `PageHeader` (editores, calendarios, correo) no se exige `pageHeader: true` ni se prohíbe `addButton`: la barra superior conserva su h1 y su acción principal. El contrato lo codifica en `redesign-screens-contract.test.ts` y la decisión está en `decisions.md` («Regla de acción principal en pantallas pass»).
+
+## Ronda 3 (2026-11-07)
+<!-- añadida tras la enmienda «Ronda 3» del spec; IDs estables, continúan desde T026 -->
+
+**Contratos nuevos.**
+- `crm-navigation.ts` (aditivo: `NAV_GROUPS`, `AREA_ITEMS`, `SETTINGS_ITEMS` siguen exportados porque los usa el workspace editorial): `NavMode = "work" | "sales" | "spaces"`; `NAV_MODES: readonly { key: NavMode; label: string; groups: NavGroup[] }[]`; `visibleModes(role, permissions)`; `modeGroups(mode, role, permissions)`; `modeForPath(pathname): NavMode | null`; `resolveMode(pathname, stored): NavMode`; `parseMode(raw)`; `MODE_STORAGE_KEY = "noxy.sidebar.mode"`; `contextPanelFor(pathname): "mail" | "kb" | "vault" | "content" | null`; `CONTEXT_PANEL_STORAGE_KEY = "noxy.sidebar.context"`.
+- `NotificationsBell` (nuevo, extraído de `Header`) y `PageControls` (nuevo: orden, filtros, botón principal y acciones leídos de `HeaderContext`).
+- `PageHeader` pasa a cliente: pinta «volver» (`config.backHref`), la insignia (`config.titleBadge`) y `PageControls` además de sus `actions`. Fuera de `HeaderProvider` no pinta nada extra.
+- `ContextPanel` (nuevo) en `DashboardShell`, entre el sidebar y la hoja.
+
+| ID | [P] | Task | Done-check | Depends-on | Trace | Risk |
+| --- | --- | --- | --- | --- | --- | --- |
+| T027 |  | Navigation modes model | `crm-navigation.test.ts` con modos verde (18 destinos alcanzables, permisos, `modeForPath`, `resolveMode`) | T026 | AC1, AC4 | 1 |
+| T028 |  | Sidebar: header, mode switch, flat list, footer, rail | `redesign-shell-contract` y contratos de asistente verdes; `CHECK` del shell a 1440 y 375 | T027 | AC1, AC4 | 1 |
+| T029 |  | Context panel as a second column | contrato; `CHECK` en /emails, /kb, /boveda, /contenido a 1440 y 375 | T028 | AC1, AC4 | 1 |
+| T030 |  | Remove the top bar and move its controls into pages | contratos de pantallas verdes; `CHECK` en todas las rutas a 1440 y 375; ninguna pantalla pierde orden, filtros, volver o su botón principal | T028 | AC3, AC7, AC8 | 1 |
+| T031 |  | Closing gate round 3 | igual que T026 | T027–T030 | todos | 1 |

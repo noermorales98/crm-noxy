@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { LoginIcon } from "@hugeicons/core-free-icons";
 import { btnPrimary, card, input } from "@/src/lib/crm-ui";
 
 export default function LoginPage() {
@@ -48,11 +46,13 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-app p-4">
       <div className={`${card} w-full max-w-md`}>
-        <div className="flex justify-center mb-6 text-text-primary">
-          <HugeiconsIcon icon={LoginIcon} size={40} />
+        <div className="mb-6 flex justify-center">
+          {/* Isotipo oficial (public/Isotipo_Azul.svg): la primera pantalla nombra el producto. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/Isotipo_Azul.svg" alt="Noxy CRM" width={43} height={32} className="h-8 w-auto" />
         </div>
         <h1 className="text-2xl font-bold text-center text-text-primary mb-2">Bienvenido</h1>
-        <p className="text-sm text-text-secondary text-center mb-8">Inicia sesión en tu CRM</p>
+        <p className="text-sm text-text-secondary text-center mb-8">Inicia sesión en Noxy CRM</p>
 
         {error && (
           <div role="alert" className="bg-red-50 text-red-600 p-3 rounded-control text-sm mb-4 font-medium">

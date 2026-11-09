@@ -1,0 +1,49 @@
+{
+  "originalRequest": "continua",
+  "subject": "Continuación del diseño de Noxy CRM privado, siguiendo el rediseño documentado de marco claro.",
+  "pageType": "dashboard",
+  "scope": "Interfaz autenticada existente: navegación compartida, dashboard y pantallas operativas incluidas en el rediseño documentado. Conservar las superficies públicas y el asistente con su diseño independiente.",
+  "primaryGoal": "Dar continuidad al lenguaje visual Noxy y mejorar la jerarquía y legibilidad de las tareas operativas en escritorio y móvil.",
+  "audience": "Equipo de Noxy Digital que gestiona contactos, empresas, ventas, proyectos, tareas, citas y contenido.",
+  "offer": "Espacio de trabajo existente que reúne las operaciones del equipo y permite mantener preferencias personales de tema.",
+  "primaryAction": "Acceder a la pantalla operativa correspondiente y ejecutar su acción principal existente.",
+  "creativeControl": "Limitado por la identidad y las referencias aprobadas existentes. Resolver detalles de jerarquía, consistencia y adaptación sin sustituir la dirección visual.",
+  "requiredContent": [
+    "Navegación compartida: destinos actuales agrupados en Principal, Ventas, Calendario y Espacios; submenús contextuales existentes y acceso a cuenta.",
+    "Inicio: widgets y cifras del dashboard existente, con su personalización actual.",
+    "Relaciones y ventas: empresas, contactos, clientes y pipeline, con listas, tableros, filtros y detalles existentes.",
+    "Trabajo: proyectos, información de proyecto y tareas, conservando sus campos y acciones actuales.",
+    "Calendario: tipos de cita, disponibilidad y citas agendadas con sus controles existentes.",
+    "Captación: formularios y cotizaciones, incluyendo listas y detalles internos.",
+    "Comunicación: correo y campañas con sus vistas y acciones existentes.",
+    "Conocimiento y contenido: Docs, Bóveda y Gestión de contenido, conservando árboles, calendarios, listas y editores actuales.",
+    "Preferencias: ajustes, equipo, modelos de IA, resumen y perfil con sus controles actuales.",
+    "Estados de interfaz: carga, vacío, error y reintento coherentes con cada pantalla."
+  ],
+  "constraints": [
+    "Continuar el diseño existente sin añadir funcionalidades, datos, contadores o afirmaciones comerciales.",
+    "Mantener rutas, permisos, etiquetas y campos existentes.",
+    "Preservar los diez temas personales y las preferencias guardadas.",
+    "Excluir del rediseño las rutas públicas, login y el diseño independiente del asistente.",
+    "Interfaz visible en español, texto funcional mínimo de 12 px, foco visible y contraste WCAG 2.2 AA.",
+    "Adaptación a 375 px sin desplazamiento horizontal de página y controles táctiles de 44 px.",
+    "Incluir transiciones útiles en navegación, filtros, pestañas, paneles y reordenación donde existan; respetar movimiento reducido.",
+    "Evitar vidrio, gradientes decorativos, tarjetas anidadas, sombras amplias y radios superiores a 16 px.",
+    "Usar las referencias aprobadas del proyecto para las composiciones de escritorio y móvil."
+  ],
+  "brandInputs": [
+    "Fuente: app/globals.css y src/lib/crm-themes.ts. Tipografía Open Sauce Two; Índigo #3545D6, Discord #5363EE, Azul Recuerdo #7F96F9, Lima #C8FE37, Obsidiana #0B0B18, Jazmín #F5F6FB y Lavanda #EBEDFA.",
+    "Fuente: 02-DOCS/wiki/sdd/specs/rediseno-obsidiana-estructural.md. Marco claro en L, hoja de contenido redondeada, cabeceras jerarquizadas y listas y tableros densos; isotipo oficial en el lateral.",
+    "Referencia existente: 02-DOCS/wiki/sdd/specs/assets/rediseno-obsidiana-estructural/maqueta.html, con vistas de dashboard, lista y tablero adaptables a móvil."
+  ],
+  "assumptions": [
+    "«continua» se interpreta como retomar el rediseño del CRM documentado en el proyecto, al no especificarse otra página.",
+    "La documentación de progreso registra la implementación como avanzada y pendiente de cierre; este brief orienta la continuidad visual sin asumir que haga falta reconstruirla.",
+    "Se conserva el marco claro aprobado frente a la propuesta inicial oscura.",
+    "No se requieren secciones comerciales ni un mínimo de ocho secciones porque se trata de una interfaz operativa."
+  ],
+  "unresolved": [
+    "No se indica una pantalla concreta como siguiente prioridad; se toma la coherencia del conjunto privado como alcance."
+  ],
+  "explicitAnswers": []
+}

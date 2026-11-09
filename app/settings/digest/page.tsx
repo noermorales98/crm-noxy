@@ -179,7 +179,7 @@ export default function DigestSettingsPage() {
   const timeValue = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
       <PageHeader
         title="Resumen por WhatsApp"
         subtitle="Recibe un resumen generado por IA con pipelines, ventas pendientes, ingresos, cobros próximos y eventos de Google Calendar."

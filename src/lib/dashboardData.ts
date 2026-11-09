@@ -97,7 +97,7 @@ export interface DashboardData {
   vaultClientsCount?: number;
   latestContacts?: Contact[];
   upcomingAppointments?: (Appointment & { appointmentType: AppointmentType })[];
-  pendingTasks?: Task[];
+  pendingTasks?: (Task & { assignedTo?: { name: string | null } })[];
   dealsByStage?: DealsByStageEntry[];
   latestCampaigns?: EmailCampaign[];
   recentProjects?: Project[];
@@ -304,6 +304,7 @@ export const DATA_FETCHERS: {
   pendingTasks: async (organizationId) => ({
     pendingTasks: await prisma.task.findMany({
       where: { organizationId, isCompleted: false },
+      include: { assignedTo: { select: { name: true } } },
       orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
       take: 5,
     }),

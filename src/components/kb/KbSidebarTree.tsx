@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
-import { ChevronRight, ChevronDown, Plus, Trash2, GripVertical } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Book01Icon, FolderAddIcon } from "@hugeicons/core-free-icons";
+import { FolderAddIcon } from "@hugeicons/core-free-icons";
 import PageIcon from "@/src/components/kb/PageIcon";
 import { useKbContext, type KbNode } from "@/src/context/KbContext";
 import { fromDroppableId, toDroppableId } from "@/src/lib/kb-tree-dnd";
@@ -157,7 +157,7 @@ function KbTreeNode({
     }
   };
 
-  const rowPad = 8 + depth * 14;
+  const rowPad = 4 + depth * 12;
 
   return (
     <>
@@ -178,7 +178,8 @@ function KbTreeNode({
           >
             <div
               ref={rowRef}
-              className={`group flex items-center gap-0.5 rounded-lg transition-colors cursor-pointer relative ${
+              {...provided.dragHandleProps}
+              className={`group flex items-center gap-1 rounded-lg transition-colors cursor-pointer relative ${
                 snapshot.isDragging
                   ? "bg-white shadow-md ring-1 ring-border-subtle"
                   : isActive
@@ -188,24 +189,13 @@ function KbTreeNode({
               style={{
                 paddingLeft: `${rowPad}px`,
                 paddingRight: "6px",
-                paddingTop: "6px",
-                paddingBottom: "6px",
+                paddingTop: "4px",
+                paddingBottom: "4px",
               }}
             >
-              <div
-                {...provided.dragHandleProps}
-                className={`w-4 h-4 flex items-center justify-center shrink-0 rounded text-text-secondary cursor-grab active:cursor-grabbing ${
-                  isDragging || snapshot.isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                }`}
-                title="Arrastrar"
-                onClick={(e) => e.preventDefault()}
-              >
-                <GripVertical size={12} />
-              </div>
-
               <button
                 onClick={handleToggle}
-                className={`w-4 h-4 flex items-center justify-center shrink-0 rounded text-text-primary ${
+                className={`w-4 h-4 min-h-0! min-w-0! flex items-center justify-center shrink-0 rounded text-text-primary ${
                   !hasChildren ? "opacity-0 pointer-events-none" : ""
                 }`}
               >
@@ -225,16 +215,14 @@ function KbTreeNode({
               </Link>
 
               <div
-                className={`flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ${
-                  isActive ? "opacity-100" : ""
-                }`}
+                className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded-control bg-surface-sidebar pl-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
               >
                 <button
                   onClick={(e) => {
                     e.preventDefault();
                     createChild(false);
                   }}
-                  className="w-5 h-5 flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-nav-hover"
+                  className="w-5 h-5 min-h-0! min-w-0! flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-nav-hover"
                   title="Nueva página"
                 >
                   <Plus size={11} />
@@ -245,7 +233,7 @@ function KbTreeNode({
                       e.preventDefault();
                       createChild(true);
                     }}
-                    className="w-5 h-5 flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-nav-hover"
+                    className="w-5 h-5 min-h-0! min-w-0! flex items-center justify-center rounded text-text-secondary hover:text-text-primary hover:bg-nav-hover"
                     title="Nueva carpeta"
                   >
                     <HugeiconsIcon icon={FolderAddIcon} size={11} color="currentColor" />
@@ -256,7 +244,7 @@ function KbTreeNode({
                     e.preventDefault();
                     setDeleteConfirm(true);
                   }}
-                  className="w-5 h-5 flex items-center justify-center rounded text-text-secondary hover:text-red-600 hover:bg-red-50"
+                  className="w-5 h-5 min-h-0! min-w-0! flex items-center justify-center rounded text-text-secondary hover:text-red-600 hover:bg-red-50"
                   title="Eliminar"
                 >
                   <Trash2 size={11} />
@@ -347,6 +335,37 @@ function KbDroppableList({
   );
 }
 
+/** Botones «Nueva página» y «Nueva carpeta»: van en la misma línea que el elemento Docs del sidebar. */
+export function KbRootActions({ onNavigate }: { onNavigate?: () => void }) {
+  const router = useRouter();
+  const kb = useKbContext();
+  const create = async (isFolder: boolean) => {
+    const res = await fetch("/api/kb", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: isFolder ? "Nueva carpeta" : "Sin título", isFolder }),
+    });
+    if (res.ok) {
+      const page = await res.json();
+      await kb.syncTree({ type: "create", parentId: null });
+      if (!isFolder) {
+        onNavigate?.();
+        router.push(`/kb/${page.id}`);
+      }
+    }
+  };
+  return (
+    <div className="flex items-center">
+      <button type="button" onClick={() => create(false)} title="Nueva página" aria-label="Nueva página" className="flex size-11 items-center justify-center rounded-full text-text-secondary-strong outline-none hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus lg:size-8">
+        <Plus size={14} />
+      </button>
+      <button type="button" onClick={() => create(true)} title="Nueva carpeta" aria-label="Nueva carpeta" className="flex size-11 items-center justify-center rounded-full text-text-secondary-strong outline-none hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus lg:size-8">
+        <HugeiconsIcon icon={FolderAddIcon} size={14} color={ICON_COLOR} />
+      </button>
+    </div>
+  );
+}
+
 export default function KbSidebarTree({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const kb = useKbContext();
@@ -401,35 +420,8 @@ export default function KbSidebarTree({ onNavigate }: { onNavigate?: () => void 
   );
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-2 shrink-0">
-        <Link
-          href="/kb"
-          onClick={onNavigate}
-          className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-primary transition-colors"
-        >
-          <HugeiconsIcon icon={Book01Icon} size={ICON_SIZE} color={ICON_COLOR} />
-          <span className="truncate italic">Inicio Docs</span>
-        </Link>
-        <div className="flex items-center gap-0.5 shrink-0">
-          <button
-            onClick={() => createRoot(false)}
-            className="w-7 h-7 flex items-center justify-center rounded-control text-text-primary hover:bg-nav-hover"
-            title="Nueva página"
-          >
-            <Plus size={14} />
-          </button>
-          <button
-            onClick={() => createRoot(true)}
-            className="w-7 h-7 flex items-center justify-center rounded-control text-text-primary hover:bg-nav-hover"
-            title="Nueva carpeta"
-          >
-            <HugeiconsIcon icon={FolderAddIcon} size={14} color={ICON_COLOR} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto py-1 px-2">
+    <div className="flex flex-col">
+      <div className="max-h-[60dvh] overflow-y-auto py-1">
         {kb.rootLoading && kb.rootPages.length === 0 ? (
           <div className="flex flex-col gap-1.5 px-2 pt-2">
             {[1, 2, 3].map((i) => (

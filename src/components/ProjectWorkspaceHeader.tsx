@@ -45,7 +45,7 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount,
     { href: `${base}/actividad`, label: "Actividad" },
   ];
 
-  const chip = "inline-flex min-h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-semibold";
+  const chip = "inline-flex min-h-7 items-center gap-1.5 rounded-full border border-line px-2.5 text-xs font-medium text-text-secondary-strong";
   const hasAssociations = project.clientCompany || project.client || project.contact || project.emailAccountCompany || project.clientId;
 
   return (
@@ -55,28 +55,28 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount,
           title={project.name}
           subtitle={
             hasAssociations ? (
-              // Colores de categoría de cada asociación (empresa, cliente, contacto, cuenta de correo): se conservan.
+              // Asociaciones del proyecto: chips de un solo tono, con su icono.
               <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
                 {project.clientCompany && (
-                  <span className={`${chip} bg-nav-hover text-action-primary`}>
+                  <span className={`${chip}`}>
                     <HugeiconsIcon icon={Building04Icon} size={12} />
                     {project.clientCompany.name}
                   </span>
                 )}
                 {project.client && (
-                  <span className={`${chip} bg-emerald-50 text-emerald-700`}>
+                  <span className={`${chip}`}>
                     <HugeiconsIcon icon={Money02Icon} size={12} />
                     {project.client.name}
                   </span>
                 )}
                 {project.contact && (
-                  <span className={`${chip} bg-cyan-50 text-cyan-700`}>
+                  <span className={`${chip}`}>
                     <HugeiconsIcon icon={UserMultipleIcon} size={12} />
                     {project.contact.firstName} {project.contact.lastName || ""}
                   </span>
                 )}
                 {project.emailAccountCompany && (
-                  <span className={`${chip} bg-orange-50 text-orange-700`}>
+                  <span className={`${chip}`}>
                     <HugeiconsIcon icon={Mail01Icon} size={12} />
                     {project.emailAccountCompany.name}
                   </span>
@@ -96,7 +96,7 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount,
           actions={<ProjectSharePanel projectId={project.id} />}
         />
 
-        <nav aria-label="Secciones del proyecto" className="-mx-1 flex items-center gap-1 overflow-x-auto">
+        <nav aria-label="Secciones del proyecto" className="flex flex-wrap items-center gap-1 pb-4">
           {tabs.map((tab) => {
             const isActive = tab.exact ? pathname === tab.href : pathname === tab.href || pathname?.startsWith(tab.href + "/");
             return (
@@ -104,13 +104,15 @@ export default function ProjectWorkspaceHeader({ project, tasksCount, docsCount,
                 key={tab.href}
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`-mb-px flex min-h-11 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 text-sm font-semibold transition-colors ${
-                  isActive ? "border-[var(--nav-active-ink)] text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"
+                className={`flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9 ${
+                  isActive
+                    ? "border-line bg-nav-active font-semibold text-[var(--nav-active-ink)]"
+                    : "border-transparent font-medium text-text-secondary-strong hover:bg-nav-hover hover:text-text-primary"
                 }`}
               >
                 {tab.label}
                 {"count" in tab && tab.count! > 0 && (
-                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums ${isActive ? "bg-action-primary text-action-primary-foreground" : "bg-surface-sidebar text-text-secondary"}`}>
+                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums ${isActive ? "bg-surface-elevated text-[var(--nav-active-ink)]" : "border border-line text-text-secondary"}`}>
                     {tab.count! > 99 ? "99+" : tab.count}
                   </span>
                 )}

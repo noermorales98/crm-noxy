@@ -100,10 +100,10 @@
 }
 
 .suggestion {
-  border: none;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.03);
-  padding: 16px 18px;
+  border: 1px solid var(--color-border-subtle, #E3E5EF);
+  border-radius: 12px;
+  background: transparent;
+  padding: 14px 16px;
   color: #1D1D1F;
   cursor: pointer;
   font: inherit;
@@ -111,12 +111,12 @@
   font-weight: 400;
   line-height: 1.4;
   text-align: left;
-  transition: background 200ms ease, transform 150ms ease;
+  transition: border-color 150ms ease;
 }
 
+/* Minimalista: sin elevación, sin escala ni cambio de fondo al pasar el cursor. */
 .suggestion:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.06);
-  transform: scale(1.01);
+  border-color: var(--color-control, #C9CEDC);
 }
 
 .suggestion:disabled {
@@ -289,7 +289,6 @@
 }
 
 .metaButton:hover {
-  background: rgba(0, 0, 0, 0.05);
   color: #1D1D1F;
 }
 
@@ -378,7 +377,7 @@
   place-items: center;
   border: 0;
   cursor: pointer;
-  transition: background-color 200ms ease, color 150ms ease, transform 120ms ease;
+  transition: color 150ms ease;
 }
 
 .stopButton {
@@ -391,15 +390,8 @@
 
 .stopButton:hover {
   background: #000000;
-  transform: scale(1.05);
 }
 
-.stopButton:active,
-.suggestion:active,
-.metaButton:active,
-.iconButton:active {
-  transform: scale(0.95);
-}
 
 .iconButton {
   min-width: 28px;
@@ -411,7 +403,6 @@
 }
 
 .iconButton:hover {
-  background: rgba(0, 0, 0, 0.05);
   color: #1D1D1F;
 }
 

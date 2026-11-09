@@ -101,6 +101,8 @@ export function isPublicApiPath(pathname: string): boolean {
 }
 
 export function isPublicPagePath(pathname: string): boolean {
+  // Public demonstration contains only bundled sample records, never tenant data.
+  if (pathname === "/design-preview" || pathname === "/Isotipo_Azul.svg" || /^\/fonts\/open-sauce-two\/open-sauce-two-latin-(400|500|600)-normal\.woff2$/.test(pathname)) return true;
   if (pathname === "/login" || pathname === "/register") return true;
   return PUBLIC_PAGE_PREFIXES.some((prefix) => prefix.endsWith("/") && pathname.startsWith(prefix));
 }

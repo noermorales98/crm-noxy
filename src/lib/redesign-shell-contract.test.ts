@@ -63,7 +63,9 @@ function openingTagAt(src: string, start: number): string {
 const SHELL = [
   "src/components/DashboardShell.tsx",
   "src/components/Sidebar.tsx",
-  "src/components/Header.tsx",
+  "src/components/NotificationsMenu.tsx",
+  "src/components/PageBar.tsx",
+  "src/components/PageControls.tsx",
   "src/components/MobileBottomTabBar.tsx",
   "src/components/AssistantSidebarShell.tsx",
   "src/components/MobileSidebarToggle.tsx",
@@ -100,48 +102,111 @@ test("the shell is an L-frame: the themed root is the light frame and the conten
   assert.match(shell, /crmThemeCssVariables\(theme\)/, "themes still apply to the shell");
   const sheet = openingTag(shell, "data-crm-sheet");
   assert.ok(sheet, "content sheet is marked with data-crm-sheet");
-  for (const cls of ["bg-surface-app", "lg:rounded-tl-surface", "lg:border-l", "lg:border-t", "border-line"]) {
+  assert.doesNotMatch(sheet, /rounded-tl/, "the sheet meets the frame with a straight corner");
+  for (const cls of ["bg-surface-app", "lg:border-l", "lg:border-t", "border-line"]) {
     assert.match(sheet, new RegExp(`(?:^|[\\s"'\`])${cls.replace(/[[\]:.]/g, "\\$&")}(?=[\\s"'\`])`), `sheet has ${cls}`);
   }
 });
 
 const sidebar = code("src/components/Sidebar.tsx");
+const sidebarParts = code("src/components/sidebar-parts.tsx");
+const contextContent = code("src/components/ContextContent.tsx");
 
-test("the sidebar renders the shared navigation model, not a section switcher", () => {
+// Ronda 3 (2026-11-07): la sidebar es un selector de 3 modos con una lista plana, sin ramas que se
+// desplieguen. Las listas propias de Correo, Docs, Bóveda y Contenido van en una segunda columna.
+test("the sidebar renders the mode model: three tabs and a flat list, no tree branches", () => {
   assert.match(sidebar, /from ["']@\/src\/lib\/crm-navigation["']/, "uses the navigation model");
-  for (const fn of ["visibleNavGroups(", "sidebarView(", "activeNavHref("]) {
+  for (const fn of ["visibleModes(", "resolveMode(", "activeNavHref("]) {
     assert.ok(sidebar.includes(fn), `calls ${fn.slice(0, -1)}`);
   }
-  assert.doesNotMatch(sidebar, /role="listbox"|aria-haspopup="listbox"/, "no section dropdown");
-  assert.doesNotMatch(sidebar, /SectionSwitcher|const SECTIONS\b/, "switcher and its section list are gone");
+  assert.match(sidebar, /role="tablist"/, "the modes are a tablist");
+  assert.match(sidebar, /role="tab"/);
+  assert.match(sidebar, /aria-selected=\{/);
+  assert.match(sidebar, /\bMODE_STORAGE_KEY\b/, "the chosen mode is remembered");
+  assert.doesNotMatch(sidebar, /data-tree-parent|aria-expanded=\{open\}|inert=\{!open\}|SIDEBAR_OPEN_STORAGE_KEY|branchForPath|initialOpenBranches/, "no inline branches");
+  assert.doesNotMatch(sidebar, /role="listbox"|aria-haspopup="listbox"|SectionSwitcher/, "no dropdown switcher");
+  assert.doesNotMatch(sidebar, /data-nav-back|>\s*Volver\s*</, "no «Volver» panel");
+});
+
+test("the sidebar header carries search and notifications; there is no top bar to host them", () => {
+  assert.match(sidebar, /openSearch/, "⌘K search opens from the sidebar");
+  assert.match(sidebar, /<NotificationsMenu\b/, "the bell lives in the sidebar");
+  assert.match(sidebar, /<AccountMenu\b/, "the account stays at the bottom");
+  assert.match(sidebar, /SIDEBAR_COLLAPSED_STORAGE_KEY/, "the icon rail is remembered");
+  assert.match(sidebar, /isCollapseShortcut\(/, "⌘B folds the sidebar");
+});
+
+// Ronda 3: no hay barra superior global. Los controles de cada página (orden, filtros, botón principal,
+// acciones, volver) viven en su PageHeader; las páginas sin PageHeader los llevan en una fila de la hoja.
+test("there is no global top bar: controls live in PageHeader or in the sheet's own page bar", () => {
+  const shell = code("src/components/DashboardShell.tsx");
+  assert.doesNotMatch(shell, /<Header\b|components\/Header["']/, "the shell no longer renders a top Header");
+  assert.throws(() => raw("src/components/Header.tsx"), "Header.tsx is gone");
+  const sheet = openingTag(shell, "data-crm-sheet");
+  assert.match(sheet, /\bcrm-safe-top\b|\bmax-lg:pt-\[env\(safe-area-inset-top/, "no top bar: the sheet clears the mobile safe area");
+  assert.match(shell, /<PageBar\b/, "pages without PageHeader keep their title and controls in a row of the sheet");
+  const controls = code("src/components/PageControls.tsx");
+  for (const piece of ["sortOptions", "filterGroups", "addButton", "actions", "backHref"]) {
+    assert.match(`${controls}${code("src/components/PageBar.tsx")}`, new RegExp(piece), `controls cover ${piece}`);
+  }
+  assert.match(code("src/components/ui/PageHeader.tsx"), /<PageControls\b/, "PageHeader renders the page controls");
+  assert.match(code("src/components/PageBar.tsx"), /<h1\b/, "pages without PageHeader keep an h1");
+  assert.match(code("src/components/PageBar.tsx"), /pageHeader/, "the bar yields to PageHeader (one h1 per page)");
 });
 
 test("the unread-mail counter survives on the Correo destination", () => {
   assert.match(sidebar, /["']unread-mail["'][\s\S]{0,240}unreadEmailCount|unreadEmailCount[\s\S]{0,240}["']unread-mail["']/);
 });
 
-test("«Volver» is a button that brings the flat list back", () => {
-  const button = openingTag(sidebar, "data-nav-back");
-  assert.ok(button.startsWith("<button"), "«Volver» is a <button> marked data-nav-back");
-  assert.match(button, /\bonClick=\{/, "it has a click handler (behaviour: sidebarView in crm-navigation.test.ts)");
-  const pathVar = sidebar.match(/const\s+(\w+)\s*=\s*usePathname\(\)/)?.[1];
-  assert.ok(pathVar, "Sidebar reads the current route");
-  assert.match(sidebar, new RegExp(`\\bset\\w*\\(\\s*${pathVar}\\s*\\)`), "«Volver» records the route it was pressed on");
-  // Volver a pulsar un destino (p. ej. «Correo» estando en /emails) reabre su submenú.
-  assert.match(sidebar, /\bset\w*\(\s*null\s*\)/, "choosing a destination clears the «Volver» dismissal");
-  assert.match(sidebar, /data-nav-back[^]*?>\s*(?:<[^>]+>\s*)*Volver\s*</, "visible label «Volver»");
-  for (const nav of ["MailNav", "KbNav", "VaultNav", "AssistantNav", "ContentNav"]) {
-    assert.match(sidebar, new RegExp(`<${nav}\\b`), `${nav} still rendered`);
+test("the context lists (Correo, Docs, Boveda, Contenido) live inside the same sidebar: no second column", () => {
+  for (const nav of ["MailNav", "KbSidebarTree", "VaultNav", "ContentNav"]) {
+    assert.match(contextContent, new RegExp(`<${nav}\\b`), `${nav} rendered by the context list`);
   }
+  assert.match(sidebar, /contextPanelFor\(/, "which list shows comes from the model");
+  assert.match(sidebar, /<ContextContent\b/, "the sidebar renders the list under the mode list");
+  assert.match(sidebar, /<AssistantNav\b/, "the assistant keeps its own conversations list");
+  const shell = code("src/components/DashboardShell.tsx");
+  assert.doesNotMatch(shell, /ContextPanel/, "the shell has no second column");
+  assert.throws(() => raw("src/components/ContextPanel.tsx"), "ContextPanel.tsx is gone");
+});
+
+test("a context list opens right under the item that owns it, not at the end of the sidebar", () => {
+  assert.match(sidebar, /ownsSection\(item\.href\)/, "the list is tied to its owner item");
+  const ownerAt = sidebar.indexOf("ownsSection(item.href)");
+  const rowAt = sidebar.lastIndexOf("itemRow(item)", ownerAt);
+  assert.ok(rowAt > -1 && ownerAt - rowAt < 400, "rendered right after the owner's row, inside the group loop");
+  assert.doesNotMatch(sidebar, /<\/nav>[\s\S]{0,0}lowerSection/, "no trailing list after the groups");
+});
+
+test("the docked sidebar has a right border and Docs actions sit on the Docs row", () => {
+  assert.match(sidebar, /border-r border-line/, "right border on the docked sidebar");
+  assert.match(sidebar, /<KbRootActions\b/, "new page / new folder live on the Docs row");
+});
+
+test("Ajustes and Perfil have their own sidebar and the main one does not render there", () => {
+  assert.match(sidebar, /isSettingsRoute\(pathname\)\s*\?\s*<SettingsSidebar\b[\s\S]*?:\s*<MainSidebar\b/, "the entry component swaps sidebars");
+  const settings = code("src/components/SettingsSidebar.tsx");
+  assert.match(settings, /visibleSettingsItems\(/, "sections come from the model");
+  assert.match(settings, /Volver al CRM/, "a way back to the CRM");
+  assert.match(settings, /<AccountMenu\b/, "the account stays at the bottom");
+});
+
+test("the three modes are circular icon buttons with no visible text; Ajustes lives in the account menu", () => {
+  const tabs = sidebar.slice(sidebar.indexOf('role="tablist"'));
+  assert.match(tabs, /rounded-full/, "circular");
+  assert.match(tabs, /aria-label=\{mode\.label\}/, "named for assistive tech");
+  assert.doesNotMatch(sidebar, /<span className="truncate">\{mode\.label\}<\/span>/, "no visible mode text");
+  assert.doesNotMatch(sidebar, /aria-label="Ajustes"/, "no Ajustes row in the sidebar");
+  assert.match(raw("src/components/AccountMenu.tsx"), /href="\/settings"/, "Ajustes is in the account menu");
 });
 
 test("the active destination uses the theme ink from the model, with aria-current", () => {
   assert.match(raw("app/globals.css"), /--nav-active-ink:\s*#3545D6/i, ":root default ink (Noxy Índigo)");
-  assert.match(sidebar, /\bNAV_ITEM_ACTIVE\b/, "active class comes from the model (tested there)");
+  assert.match(sidebarParts, /\bNAV_ITEM_ACTIVE\b/, "active class comes from the model (tested there)");
   // La tinta llega al icono por currentColor: ningún icono de navegación lleva un color fijo.
-  assert.doesNotMatch(sidebar, /\bICON_COLOR\b/, "no hard-coded icon colour constant");
-  assert.doesNotMatch(sidebar, /<HugeiconsIcon\b[^>]*\bcolor=\{?["'#]/, "icons inherit currentColor");
-  assert.match(sidebar, /aria-current=\{[^}]*["']page["']/);
+  assert.doesNotMatch(`${sidebar}${sidebarParts}`, /\bICON_COLOR\b/, "no hard-coded icon colour constant");
+  assert.doesNotMatch(`${sidebar}${sidebarParts}`, /<HugeiconsIcon\b[^>]*\bcolor=\{?["'#]/, "icons inherit currentColor");
+  assert.match(`${sidebar}${sidebarParts}`, /aria-current=\{[^}]*["']page["']/);
 });
 
 test("the mobile tab bar: fixed tabs from the model, solid full-width bar, «Más» opens the panel", () => {

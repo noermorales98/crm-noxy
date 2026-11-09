@@ -3,7 +3,7 @@ import { cn } from "./cn";
 
 // DESIGN.md · Chips: Lavanda para neutral, Lima para énfasis (siempre con Obsidiana).
 const TONES = {
-  neutral: "bg-surface-sidebar text-text-primary",
+  neutral: "border border-line text-text-secondary-strong",
   hot: "bg-highlight text-text-primary",
   late: "bg-danger-soft text-danger",
   done: "bg-success-soft text-success",

@@ -1,0 +1,1661 @@
+{
+  "version": 1,
+  "page": {
+    "title": "Inicio",
+    "route": "/",
+    "description": "Centro operativo de Noxy CRM para Noxy Digital. Inicio completo y vistas independientes para las áreas existentes, conservando rutas, permisos y acciones."
+  },
+  "architecture": {
+    "contract": "Esta pantalla responde: ¿qué trabajo necesita atención hoy? Hallazgo inicial de muestra: «Una tarea vencida necesita atención». La acción asociada abre esa tarea directamente. Inventario: contactos con nombre, correo y fecha de alta; tareas con responsable, proyecto, vencimiento y estado; proyectos con nombre y archivo; citas con contacto, inicio y fin; oportunidades con contacto, etapa e importe en MXN. El equipo consulta Inicio durante su jornada en escritorio y móvil. El trabajo más frecuente asumido es abrir y completar la siguiente tarea pendiente. La identidad procede del isotipo oficial, Noxy CRM, la organización activa y los objetos existentes. Los módulos sin registros de muestra conservan su vista y su primera acción legítima.",
+    "mode": "operate_monitor",
+    "novelty": "low",
+    "grid": "A 1440px: sidebar 228px + hoja exterior 1204px + margen derecho 8px = 1440px. Hoja border-box: borde izquierdo 1px + padding izquierdo 24px + contenido 1154px + padding derecho 24px + borde derecho 1px = 1204px. Inicio: columna principal 746px + gutter 24px + rail 384px = 1154px. Dos subcolumnas iguales: 565px + 24px + 565px = 1154px. La franja de cuatro cifras ocupa 1154px con divisores internos, sin gutters entre celdas. Títulos, franja y filas comparten límites. Las vistas de ajustes usan 430px + 24px + 700px = 1154px, adaptando la proporción aproximada de la ficha al ancho disponible.",
+    "signatureRule": "Framed sheet: marco Lavanda continuo en L, sidebar de 228px y barra de 48px sin regla entre ambas; hoja blanca con borde de 1px, radio de 16px y margen derecho e inferior de 8px, sin sombras. Pestañas con subrayado de 2px. Conservar la selección de navegación de la marca. Franja operativa compartida con cifras existentes y marcador «Atender hoy» solo ante urgencia derivada de los datos.",
+    "rhythm": "Densidad media: filas base de 48px, filas de dos líneas de 64px cuando sea necesario, padding y gutters de 24px. Título 22px, sección 16px, cifra principal 28px, cuerpo 14px y metadatos 12px. Controles desktop de 32px y objetivos táctiles mínimos de 44px. Una sola familia y los tokens del sistema de marca."
+  },
+  "navigation": [
+    {
+      "label": "Inicio",
+      "target": "/"
+    },
+    {
+      "label": "Contactos",
+      "target": "/contacts"
+    },
+    {
+      "label": "Empresas",
+      "target": "/companies"
+    },
+    {
+      "label": "Tareas",
+      "target": "/tasks"
+    },
+    {
+      "label": "Proyectos",
+      "target": "/projects"
+    },
+    {
+      "label": "Pipeline de ventas",
+      "target": "/pipeline"
+    },
+    {
+      "label": "Clientes",
+      "target": "/pipeline/clientes"
+    },
+    {
+      "label": "Historial de tratos",
+      "target": "/pipeline/historial"
+    },
+    {
+      "label": "Cotizaciones",
+      "target": "/cotizaciones"
+    },
+    {
+      "label": "Formularios",
+      "target": "/forms"
+    },
+    {
+      "label": "Citas Agendadas",
+      "target": "/appointments"
+    },
+    {
+      "label": "Tipos de Cita",
+      "target": "/appointment-types"
+    },
+    {
+      "label": "Disponibilidad",
+      "target": "/availability"
+    },
+    {
+      "label": "Correo",
+      "target": "/emails"
+    },
+    {
+      "label": "Campañas",
+      "target": "/campaigns"
+    },
+    {
+      "label": "Docs",
+      "target": "/kb"
+    },
+    {
+      "label": "Asistente",
+      "target": "/assistant"
+    },
+    {
+      "label": "Bóveda",
+      "target": "/boveda"
+    },
+    {
+      "label": "Gestión de contenido",
+      "target": "/contenido/general"
+    },
+    {
+      "label": "Ajustes",
+      "target": "/settings"
+    },
+    {
+      "label": "Equipo",
+      "target": "/settings/equipo"
+    },
+    {
+      "label": "Modelos de IA",
+      "target": "/settings/ai-models"
+    },
+    {
+      "label": "Resumen diario",
+      "target": "/settings/digest"
+    },
+    {
+      "label": "Perfil",
+      "target": "/profile"
+    }
+  ],
+  "navigationDesign": {
+    "layoutCase": "app-shell",
+    "layout": "Árbol existente con ramas plegables. Principal contiene Inicio, Contactos con Empresas, Tareas y Proyectos. Áreas contiene Ventas y Agenda con sus destinos actuales. Espacios contiene Correo, Docs, Asistente, Bóveda y Gestión de contenido. Campañas permanece dentro de Correo. Isotipo, Noxy CRM y organización arriba; búsqueda existente sin duplicación; Ajustes y cuenta al pie. Barra superior para las funciones existentes. Las rutas de detalle se alcanzan desde sus registros, no se añaden al primer nivel.",
+    "behavior": [
+      "Usar rutas reales y el modelo de permisos existente; una rama solo aparece si tiene destinos autorizados.",
+      "Recordar ramas abiertas y abrir la rama de la ruta actual.",
+      "Mantener la contracción existente a riel y sus nombres accesibles, sin interferir con atajos de editores.",
+      "Marcar el destino exacto con aria-current y sus padres con peso semibold.",
+      "Conservar carpetas, cuentas, árboles y submenús propios sin convertirlos en enlaces a secciones de Inicio.",
+      "El enlace Asistente abre la aplicación existente con su diseño independiente.",
+      "En una entrega estática, las rutas locales equivalentes deben resolver vistas reales; nunca simular una integración ni reemplazar rutas de producción."
+    ],
+    "transformation": {
+      "compact": "Hasta 640px, barra superior de 48px y navegación inferior existente: Inicio, Contactos, Pipeline, Tareas y Más. Más abre panel completo con cuenta y ramas. Sin sidebar persistente.",
+      "medium": "De 641 a 1100px, sidebar plegada en panel accesible desde la barra. Conservar etiquetas y submenús.",
+      "expanded": "Desde 1101px, sidebar de 228px y barra de 48px formando el marco continuo; cuenta siempre al pie."
+    }
+  },
+  "sections": [
+    {
+      "id": "shell",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Identificar producto, organización y destinos.",
+      "userQuestion": "¿Dónde estoy y a qué área puedo ir?",
+      "stage": "orient",
+      "dependencies": [],
+      "evidence": [
+        "DESIGN.md",
+        "src/lib/crm-navigation.ts",
+        "src/components/Sidebar.tsx"
+      ],
+      "copy": {
+        "heading": "Noxy CRM",
+        "body": [
+          "Noxy Digital",
+          "Principal",
+          "Áreas",
+          "Espacios"
+        ],
+        "callsToAction": [
+          {
+            "label": "Inicio",
+            "target": "/"
+          },
+          {
+            "label": "Ajustes",
+            "target": "/settings"
+          },
+          {
+            "label": "Perfil",
+            "target": "/profile"
+          }
+        ]
+      },
+      "layout": "Un solo shell compartido. Marca y organización arriba, navegación desplazable y cuenta fija al pie. No añadir badges ni acciones ausentes. Estados de permisos y error mantienen acceso a las rutas disponibles.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Expandir ramas y panel móvil desde el control que los abre; selección inmediata y transición interrumpible.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Cambios inmediatos y foco equivalente."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [
+        "noxy-isotipo-oficial"
+      ],
+      "transformation": {
+        "compact": "Barra superior, navegación inferior y panel Más.",
+        "medium": "Barra superior con navegación en panel.",
+        "expanded": "Marco continuo de 228px y 48px."
+      }
+    },
+    {
+      "id": "inicio-prioridad",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "kpi-strip-chart-rail"
+      ],
+      "purpose": "Responder primero qué necesita atención.",
+      "userQuestion": "¿Qué trabajo debo atender primero?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/page.tsx",
+        "src/lib/editorial-data.ts",
+        "src/lib/dashboardData.ts"
+      ],
+      "copy": {
+        "heading": "Inicio",
+        "body": [
+          "Sample data",
+          "Una tarea vencida necesita atención.",
+          "Atender hoy",
+          "6 tareas pendientes · 3 citas próximas · 2 proyectos activos · 6 contactos"
+        ],
+        "callsToAction": [
+          {
+            "label": "Revisar tarea",
+            "target": "action:open-task:t1"
+          },
+          {
+            "label": "Personalizar inicio",
+            "target": "action:open-customize"
+          }
+        ]
+      },
+      "layout": "Cabecera y hallazgo con una acción primaria; Personalizar inicio es secundaria. Franja de 1154px con cuatro cifras divididas. La cifra de tareas lidera a 28px, las restantes a 22px. Hallazgo y enlace se derivan de la tarea pendiente más antigua. Reserva vertical aproximada de 190px incluyendo título, aviso de muestra y franja. Si no hay vencidas, el hallazgo cambia sin mantener el marcador urgente.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Abrir detalle o personalización conservando contexto; sin animar cifras ni entrada del bloque.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Apertura inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Hallazgo y Revisar tarea antes de la franja; cifras en dos columnas.",
+        "medium": "Cabecera flexible y cuatro cifras si caben sin truncar etiquetas.",
+        "expanded": "Título, acción y franja alineados a los 1154px."
+      }
+    },
+    {
+      "id": "inicio-tareas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "kpi-strip-chart-rail"
+      ],
+      "purpose": "Dar acceso al trabajo pendiente.",
+      "userQuestion": "¿Qué entregables están pendientes y quién los lleva?",
+      "stage": "act",
+      "dependencies": [
+        "inicio-prioridad"
+      ],
+      "evidence": [
+        "src/lib/editorial-data.ts",
+        "src/components/editorial/EditorialWorkspace.tsx"
+      ],
+      "copy": {
+        "heading": "Tareas pendientes",
+        "body": [
+          "Sample data",
+          "Revisar propuesta editorial · Lucía Vega · 6 nov, 17:00 · Vencida",
+          "Enviar cotización web · Mateo Ríos · 7 nov, 11:00",
+          "Preparar reunión de alcance · Lucía Vega · 7 nov, 13:00",
+          "Revisar catálogo · Sara León · 7 nov, 16:00"
+        ],
+        "callsToAction": [
+          {
+            "label": "Abrir tarea",
+            "target": "action:open-task:{id}"
+          },
+          {
+            "label": "Ver todas",
+            "target": "/tasks"
+          }
+        ]
+      },
+      "layout": "Lista principal de 746px, aproximadamente 320px de alto y cuatro filas visibles de 64px. Identidad y proyecto a la izquierda, responsable y vencimiento a la derecha. Mayor bloque operativo de Inicio. Orden por vencimiento, sin repetir señales rojas en varios campos. Detalle con Completar tarea y Reabrir tarea existentes. No añadir gráfico para ocupar el espacio de la ficha.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Al completar, actualizar la fila, el conteo y el hallazgo con identidad estable; no ocultar el resultado durante la transición.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Actualizar inmediatamente y anunciar el resultado."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Primera lista tras la franja; identidad y fecha en dos líneas, acción al final.",
+        "medium": "Lista de ancho completo si el rail dejaría menos de 340px.",
+        "expanded": "Columna principal de 746px, rail de citas al lado."
+      }
+    },
+    {
+      "id": "inicio-citas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "kpi-strip-chart-rail"
+      ],
+      "purpose": "Preparar las próximas reuniones.",
+      "userQuestion": "¿Con quién es la siguiente cita y a qué hora?",
+      "stage": "evaluate",
+      "dependencies": [
+        "inicio-prioridad"
+      ],
+      "evidence": [
+        "src/lib/editorial-data.ts",
+        "src/lib/dashboardData.ts"
+      ],
+      "copy": {
+        "heading": "Próximas citas",
+        "body": [
+          "Sample data",
+          "Alcance web · Nora Salas · 7 nov, 10:00 a 10:30",
+          "Revisión editorial · Iván Leal · 7 nov, 15:00 a 15:30",
+          "Seguimiento · Elena Solís · 9 nov, 10:00 a 10:30"
+        ],
+        "callsToAction": [
+          {
+            "label": "Abrir cita",
+            "target": "action:open-appointment:{id}"
+          },
+          {
+            "label": "Ver todas",
+            "target": "/appointments"
+          }
+        ]
+      },
+      "layout": "Rail de 384px que comienza a nivel de Tareas pendientes. Tres filas de 64px; título fuera del marco y enlace final. Mantener altura natural, sin estirar un vacío para igualar la lista principal.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Abrir el detalle de la cita y devolver foco a la fila al cerrar.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Detalle inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Resumen de la siguiente cita cerca del hallazgo; lista completa después de tareas.",
+        "medium": "Rail debajo de tareas cuando no quepa la pareja de columnas.",
+        "expanded": "Rail fijo de 384px con filas y horarios legibles."
+      }
+    },
+    {
+      "id": "inicio-proyectos-contactos",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "kpi-strip-chart-rail"
+      ],
+      "purpose": "Continuar proyectos y reconocer contactos recientes.",
+      "userQuestion": "¿Qué proyectos y contactos necesito abrir después?",
+      "stage": "continue",
+      "dependencies": [
+        "inicio-tareas",
+        "inicio-citas"
+      ],
+      "evidence": [
+        "app/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Proyectos",
+        "body": [
+          "Sample data",
+          "Sitio editorial · Lucía Vega",
+          "Catálogo digital · Mateo Ríos",
+          "Contactos recientes",
+          "Elena Solís · elena.solis@example.test",
+          "Bruno Cid · bruno.cid@example.test"
+        ],
+        "callsToAction": [
+          {
+            "label": "Abrir proyecto",
+            "target": "/projects/{id}"
+          },
+          {
+            "label": "Ver proyectos",
+            "target": "/projects"
+          },
+          {
+            "label": "Abrir contacto",
+            "target": "action:open-contact:{id}"
+          },
+          {
+            "label": "Ver contactos",
+            "target": "/contacts"
+          }
+        ]
+      },
+      "layout": "Segunda fila del inicio, proyectos en 746px y contactos en rail de 384px; dos registros por bloque, filas de 48px y alturas equilibradas. Ambos encabezados y registros visibles antes de 900px de alto. Los widgets personalizados se conservan, pero los bloques adicionales habilitados se sitúan después del núcleo operativo.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Responder a la apertura del objeto; sin animación de entrada de listas.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Navegación inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Proyectos y contactos apilados, sin perder sus enlaces.",
+        "medium": "Dos columnas si ambas superan 340px; en caso contrario apiladas.",
+        "expanded": "Pareja de 746px y 384px con límites comunes."
+      }
+    },
+    {
+      "id": "contactos",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Trabajar con personas registradas.",
+      "userQuestion": "¿Qué contacto necesito consultar o actualizar?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/contacts/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Contactos",
+        "body": [
+          "Sample data",
+          "6 contactos",
+          "Nora Salas · nora.salas@example.test",
+          "Iván Leal · ivan.leal@example.test",
+          "Elena Solís · elena.solis@example.test",
+          "Bruno Cid · bruno.cid@example.test",
+          "Alma Pardo · alma.pardo@example.test",
+          "Tomás Vela · tomas.vela@example.test"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear contacto",
+            "target": "action:create-contact"
+          },
+          {
+            "label": "Abrir contacto",
+            "target": "action:open-contact:{id}"
+          }
+        ]
+      },
+      "layout": "Vista /contacts con un h1, controles existentes y tabla sin tarjeta exterior. Nombre domina el ancho; correo, empresa, teléfono y alta conservan sus campos actuales. Seis filas iniciales, total derivado y carga adicional si hay más registros. Detalle existente en panel con datos y edición autorizada.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Búsqueda y orden actualizan filas estables y total; detalle conserva foco de origen.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Resultados y panel inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Filas de dos líneas, correo y secundarios debajo; detalle sustituye la lista temporalmente.",
+        "medium": "Cuatro columnas y secundarios bajo identidad.",
+        "expanded": "Tabla alineada al ancho útil, sin columnas vacías."
+      }
+    },
+    {
+      "id": "empresas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Gestionar organizaciones vinculadas.",
+      "userQuestion": "¿Qué empresa está vinculada a cada relación?",
+      "stage": "act",
+      "dependencies": [
+        "contactos"
+      ],
+      "evidence": [
+        "app/companies/page.tsx",
+        "prisma/schema.prisma"
+      ],
+      "copy": {
+        "heading": "Empresas",
+        "body": [
+          "No hay empresas registradas."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear empresa",
+            "target": "action:create-company"
+          }
+        ]
+      },
+      "layout": "Vista /companies con cabecera y tabla de campos actuales. La muestra inicia vacía de forma intencionada, con marco y primera acción. No asignar empresas ficticias a los contactos existentes. Hasta seis filas antes de carga adicional.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Creación local o guardado real confirmado incorpora la empresa a la lista; errores permanecen en el formulario.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Estado final inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Lista de dos líneas y formulario de ancho completo.",
+        "medium": "Tabla reducida con campos secundarios bajo el nombre.",
+        "expanded": "Tabla y detalle existentes, sin tarjeta redundante."
+      }
+    },
+    {
+      "id": "tareas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Completar y organizar entregables.",
+      "userQuestion": "¿Qué tarea sigue y qué falta por terminar?",
+      "stage": "act",
+      "dependencies": [
+        "inicio-tareas"
+      ],
+      "evidence": [
+        "app/tasks/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Tareas",
+        "body": [
+          "Sample data",
+          "6 pendientes · 2 completadas",
+          "Revisar propuesta editorial · Lucía Vega · Vencida",
+          "Enviar cotización web · Mateo Ríos · Hoy",
+          "Preparar reunión de alcance · Lucía Vega · Hoy",
+          "Revisar catálogo · Sara León · Hoy",
+          "Confirmar materiales · Mateo Ríos · Hoy",
+          "Ordenar entregables · Sara León · 9 nov"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear tarea",
+            "target": "action:create-task"
+          },
+          {
+            "label": "Completar tarea",
+            "target": "action:complete-task:{id}"
+          },
+          {
+            "label": "Reabrir tarea",
+            "target": "action:reopen-task:{id}"
+          }
+        ]
+      },
+      "layout": "Vista /tasks con pestañas y filtros actuales, tabla o tablero existente sin añadir modos. Seis filas iniciales de 48 a 64px, responsable, proyecto, vencimiento y estado. Detalle conserva descripción y campos originales. Pendientes y completadas se calculan desde el mismo conjunto.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Actualizar estado, lista e Inicio conjuntamente; reordenar solo después de la acción confirmada.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Actualización inmediata con anuncio accesible."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Filtros en una fila o panel; primera tarea en el 60% superior.",
+        "medium": "Tabla de cuatro columnas y responsables sin truncado innecesario.",
+        "expanded": "Lista o tablero actual al ancho útil con densidad media."
+      }
+    },
+    {
+      "id": "proyectos",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Acceder al trabajo por proyecto.",
+      "userQuestion": "¿Qué proyectos siguen activos?",
+      "stage": "continue",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/projects/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Proyectos",
+        "body": [
+          "Sample data",
+          "2 activos · 1 archivado",
+          "Sitio editorial · Lucía Vega",
+          "Catálogo digital · Mateo Ríos",
+          "Archivo de contenidos · Sara León · Archivado"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear proyecto",
+            "target": "/projects/create"
+          },
+          {
+            "label": "Abrir proyecto",
+            "target": "/projects/{id}"
+          }
+        ]
+      },
+      "layout": "Vista /projects con pestañas y controles actuales. Lista de proyectos con nombre y responsable; máximo seis filas iniciales, muestra de tres. Archivados se consultan en su estado correspondiente.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Filtrar activos y archivados sin reconstruir el shell; conservar posición al volver del detalle.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Cambio inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Filas apiladas con acción única.",
+        "medium": "Lista ancha con secundarios bajo el título.",
+        "expanded": "Lista de densidad media con resumen existente."
+      }
+    },
+    {
+      "id": "proyecto-detalle",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Trabajar dentro de un proyecto.",
+      "userQuestion": "¿Qué tareas e información pertenecen a este proyecto?",
+      "stage": "act",
+      "dependencies": [
+        "proyectos",
+        "tareas"
+      ],
+      "evidence": [
+        "app/projects/[id]/page.tsx",
+        "app/projects/[id]/info/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Sitio editorial",
+        "body": [
+          "Sample data",
+          "Lucía Vega",
+          "3 tareas pendientes · 1 completada",
+          "Revisar propuesta editorial",
+          "Enviar cotización web",
+          "Preparar reunión de alcance"
+        ],
+        "callsToAction": [
+          {
+            "label": "Información",
+            "target": "/projects/p1/info"
+          },
+          {
+            "label": "Tareas",
+            "target": "/projects/p1/tareas"
+          },
+          {
+            "label": "Actividad",
+            "target": "/projects/p1/actividad"
+          },
+          {
+            "label": "Docs",
+            "target": "/projects/p1/docs"
+          },
+          {
+            "label": "Registros",
+            "target": "/projects/p1/registros"
+          },
+          {
+            "label": "Correo",
+            "target": "/projects/p1/correo"
+          }
+        ]
+      },
+      "layout": "Rutas /projects/{id} y sus subrutas reales. Cabecera de proyecto y pestañas existentes; cada subruta tiene h1 y bloque propio: información editable, tareas vinculadas, actividad, documentos, registros o correo. Tareas usa el patrón table-filter-bar; información usa settings-two-column. Los subapartados sin datos mantienen un vacío real. No fabricar porcentaje de progreso ni actividad histórica.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Subrayado de pestaña y contenido cambian manteniendo identidad del proyecto; guardados muestran estado real.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Pestaña y contenido inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Pestañas con scroll interno; campos y listas apilados.",
+        "medium": "Información en una columna si las dos columnas quedan estrechas.",
+        "expanded": "Cabecera compartida y contenido de cada subruta dentro de 1154px."
+      }
+    },
+    {
+      "id": "pipeline",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Seguir oportunidades por etapa.",
+      "userQuestion": "¿En qué etapa está cada oportunidad?",
+      "stage": "act",
+      "dependencies": [
+        "contactos"
+      ],
+      "evidence": [
+        "app/pipeline/page.tsx",
+        "src/lib/editorial-data.ts",
+        "src/lib/dashboardWidgets.tsx"
+      ],
+      "copy": {
+        "heading": "Pipeline de ventas",
+        "body": [
+          "Sample data",
+          "4 oportunidades · 60,000.00 MXN",
+          "Contacto · Catálogo: 12,000.00 MXN · Auditoría de contenido: 6,000.00 MXN",
+          "Propuesta · Propuesta editorial: 18,000.00 MXN",
+          "Negociación · Sitio comercial: 24,000.00 MXN"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear trato",
+            "target": "action:create-deal"
+          },
+          {
+            "label": "Abrir trato",
+            "target": "/pipeline/{id}"
+          }
+        ]
+      },
+      "layout": "Vista /pipeline con tablero existente. Columnas por etapas actuales, no nuevas etapas ni gráficos obligatorios. La muestra usa Contacto, Propuesta y Negociación. Importes alineados y moneda explícita; hasta cuatro tarjetas visibles por columna, carga adicional interna. Color de etapa existente y etiqueta textual. Conservar filtros y alternativa de lista si ya existe.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Mover una oportunidad entre etapas mediante las acciones existentes actualiza sus agregados; ofrecer alternativa de teclado al arrastre.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Movimiento inmediato y anuncio de la etapa final."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Una etapa a la vez o lista agrupada; todos los importes y acciones permanecen accesibles.",
+        "medium": "Columnas dentro de contenedor desplazable, sin scroll horizontal de página.",
+        "expanded": "Tablero al ancho útil; ninguna columna se estira para rellenar altura vacía."
+      }
+    },
+    {
+      "id": "trato-detalle",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Consultar y actualizar una oportunidad.",
+      "userQuestion": "¿Qué hace falta para avanzar este trato?",
+      "stage": "act",
+      "dependencies": [
+        "pipeline"
+      ],
+      "evidence": [
+        "app/pipeline/[id]/page.tsx",
+        "src/components/DealDetailClient.tsx"
+      ],
+      "copy": {
+        "heading": "Propuesta editorial",
+        "body": [
+          "Sample data",
+          "Iván Leal · Propuesta · 18,000.00 MXN",
+          "Sin seguimiento programado"
+        ],
+        "callsToAction": [
+          {
+            "label": "Cambiar etapa",
+            "target": "action:update-deal-stage:d1"
+          },
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-deal:d1"
+          }
+        ]
+      },
+      "layout": "Vista /pipeline/{id}; identidad, valor y etapa primero; campos, seguimiento y actividad existentes después. Región principal de 746px y datos secundarios de 384px cuando existan. No inventar próximas acciones guardadas ni notas. Estado vacío de actividad dentro de su bloque.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Editar etapa y campos conserva contexto y actualiza el tablero al confirmar.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Resultado inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Datos y acciones apilados sin reducir campos.",
+        "medium": "Una columna con secundarios agrupados.",
+        "expanded": "Detalle y secundarios con separación de 24px."
+      }
+    },
+    {
+      "id": "clientes",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Gestionar clientes recurrentes y pagos existentes.",
+      "userQuestion": "¿Qué clientes tienen pagos por atender?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/pipeline/clientes/page.tsx",
+        "src/lib/dashboardData.ts"
+      ],
+      "copy": {
+        "heading": "Clientes",
+        "body": [
+          "No hay clientes recurrentes registrados."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear cliente",
+            "target": "action:create-client"
+          }
+        ]
+      },
+      "layout": "Vista /pipeline/clientes con nombre, cuota y moneda, día de cobro y estado mensual según el modelo existente. Muestra vacía; no convertir automáticamente contactos en clientes. Conteos y MRR se calculan solo con clientes reales del conjunto activo y por moneda. Seis filas iniciales cuando haya registros.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Periodo y filtros actualizan los pagos correspondientes; guardar no simula un cobro externo.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Cambios inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Nombre e importe en primera línea; fecha y pago debajo.",
+        "medium": "Tabla de cuatro columnas.",
+        "expanded": "Tabla sin contenedor adicional y resumen existente."
+      }
+    },
+    {
+      "id": "historial",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Consultar tratos cerrados.",
+      "userQuestion": "¿Qué oportunidades ya se cerraron?",
+      "stage": "evaluate",
+      "dependencies": [
+        "pipeline"
+      ],
+      "evidence": [
+        "app/pipeline/historial/page.tsx"
+      ],
+      "copy": {
+        "heading": "Historial de tratos",
+        "body": [
+          "No hay tratos cerrados."
+        ],
+        "callsToAction": [
+          {
+            "label": "Pipeline de ventas",
+            "target": "/pipeline"
+          }
+        ]
+      },
+      "layout": "Vista /pipeline/historial con estados y filtros existentes. La muestra mantiene todas sus oportunidades abiertas, de modo que el historial está vacío. Con registros, seis filas iniciales con nombre, resultado, valor y fecha existentes.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Filtros de resultado conservan orden y recalculan total.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Resultados inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Filas de dos líneas.",
+        "medium": "Tabla compacta de cuatro columnas.",
+        "expanded": "Tabla al ancho necesario con columnas sin vacíos."
+      }
+    },
+    {
+      "id": "cotizaciones",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Preparar y consultar propuestas económicas.",
+      "userQuestion": "¿Qué cotizaciones necesitan revisión?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/cotizaciones/page.tsx",
+        "app/cotizaciones/nueva/page.tsx",
+        "app/cotizaciones/[folio]/page.tsx"
+      ],
+      "copy": {
+        "heading": "Cotizaciones",
+        "body": [
+          "No hay cotizaciones creadas."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear cotización",
+            "target": "/cotizaciones/nueva"
+          },
+          {
+            "label": "Configuración",
+            "target": "/cotizaciones/configuracion"
+          }
+        ]
+      },
+      "layout": "Lista /cotizaciones, creación /cotizaciones/nueva, configuración /cotizaciones/configuracion y detalle /cotizaciones/{folio} como vistas independientes. Lista con folio, destinatario, importe, moneda, estado y fechas existentes. Creación y detalle usan editor de partidas y resumen nativos, sin inventar cotizaciones para la muestra. Subtotal, descuentos, impuestos y total se derivan de las partidas según el modelo actual.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Editar partidas recalcula el resumen sin contar cifras; guardado refleja la respuesta real.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Recalcular inmediatamente."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Lista de dos líneas; editor apilado con resumen debajo.",
+        "medium": "Tabla con secundarios como sublíneas; resumen se apila si no cabe.",
+        "expanded": "Lista table-filter-bar; editor y resumen en columnas, configuración settings-two-column."
+      }
+    },
+    {
+      "id": "formularios",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Gestionar formularios internos y sus respuestas.",
+      "userQuestion": "¿Qué formulario o respuesta necesito revisar?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/forms/page.tsx",
+        "app/forms/[id]/page.tsx"
+      ],
+      "copy": {
+        "heading": "Formularios",
+        "body": [
+          "No hay formularios creados."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear formulario",
+            "target": "action:create-form"
+          }
+        ]
+      },
+      "layout": "Vista /forms con lista, estados y acciones actuales. Detalle /forms/{id} con h1 del formulario, configuración, campos y respuestas según las pestañas existentes. La muestra no inventa envíos. El editor conserva orden y nombres de campos. No modificar la superficie pública /form/{id}.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Pestañas y reordenación existentes responden al control; sin animación en la superficie pública.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Estados inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Lista y detalle separados; editor apilado.",
+        "medium": "Respuestas conservan columnas principales y secundarios debajo.",
+        "expanded": "Lista table-filter-bar y detalle app-screen con paneles actuales."
+      }
+    },
+    {
+      "id": "citas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Revisar reuniones agendadas.",
+      "userQuestion": "¿Qué citas están próximas?",
+      "stage": "act",
+      "dependencies": [
+        "inicio-citas"
+      ],
+      "evidence": [
+        "app/appointments/page.tsx",
+        "src/lib/editorial-data.ts"
+      ],
+      "copy": {
+        "heading": "Citas Agendadas",
+        "body": [
+          "Sample data",
+          "3 citas próximas · 2 hoy",
+          "Alcance web · Nora Salas · 7 nov, 10:00 a 10:30",
+          "Revisión editorial · Iván Leal · 7 nov, 15:00 a 15:30",
+          "Seguimiento · Elena Solís · 9 nov, 10:00 a 10:30"
+        ],
+        "callsToAction": [
+          {
+            "label": "Abrir cita",
+            "target": "action:open-appointment:{id}"
+          }
+        ]
+      },
+      "layout": "Vista /appointments con filtros existentes y lista cronológica. Máximo seis filas iniciales. Detalle muestra contacto, tipo, inicio y fin; no mostrar enlaces de videollamada ni sincronización si faltan.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Hoy y próximas actualizan filas y conteos; apertura del detalle conserva foco.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Cambio inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Contacto y horario en dos líneas.",
+        "medium": "Tabla con cuatro columnas y fecha legible.",
+        "expanded": "Lista de densidad media con acciones existentes."
+      }
+    },
+    {
+      "id": "tipos-cita",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Configurar servicios de agenda.",
+      "userQuestion": "¿Qué tipos de cita se pueden reservar?",
+      "stage": "act",
+      "dependencies": [
+        "citas"
+      ],
+      "evidence": [
+        "app/appointment-types/page.tsx",
+        "prisma/schema.prisma"
+      ],
+      "copy": {
+        "heading": "Tipos de Cita",
+        "body": [
+          "Sample data",
+          "Alcance web · 30 min",
+          "Revisión editorial · 30 min",
+          "Seguimiento · 30 min"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear tipo de cita",
+            "target": "action:create-appointment-type"
+          },
+          {
+            "label": "Editar",
+            "target": "action:edit-appointment-type:{id}"
+          }
+        ]
+      },
+      "layout": "Vista /appointment-types. Tres tipos de muestra derivados de las citas y duración de 30 minutos. No afirmar que están publicados ni disponibles para reserva externa. Mantener campos y acciones existentes, seis filas como máximo antes de carga adicional.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Abrir edición y confirmar guardado sin desplazar filas ajenas.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Edición inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Nombre y duración en una fila de dos líneas.",
+        "medium": "Lista ancha con edición lateral o panel.",
+        "expanded": "Tabla simple, sin tarjetas individuales."
+      }
+    },
+    {
+      "id": "disponibilidad",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Gestionar horarios y excepciones.",
+      "userQuestion": "¿Cuándo se pueden agendar citas?",
+      "stage": "act",
+      "dependencies": [
+        "tipos-cita"
+      ],
+      "evidence": [
+        "app/availability/page.tsx"
+      ],
+      "copy": {
+        "heading": "Disponibilidad",
+        "body": [
+          "Zona horaria · America/Cancun",
+          "Sin horario configurado",
+          "Sin excepciones"
+        ],
+        "callsToAction": [
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-availability"
+          },
+          {
+            "label": "Añadir horario",
+            "target": "action:add-availability-slot"
+          }
+        ]
+      },
+      "layout": "Vista /availability con horario semanal, ampliaciones y bloqueos existentes. La muestra no deduce disponibilidad a partir de citas agendadas. Paneles de ajustes en dos columnas, vista semanal y excepciones con encabezados visibles. Validar inicio anterior a fin y cruces de horarios.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Añadir o quitar un tramo conserva su relación con el día y anuncia errores en el campo.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Tramos y mensajes inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Un día por fila, campos apilados y objetivos de 44px.",
+        "medium": "Etiquetas sobre paneles cuando no quepan dos columnas.",
+        "expanded": "Etiquetas 430px y paneles 700px con gutter de 24px."
+      }
+    },
+    {
+      "id": "correo",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Leer y responder mensajes existentes.",
+      "userQuestion": "¿Qué conversación necesita respuesta?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/emails/page.tsx"
+      ],
+      "copy": {
+        "heading": "Correo",
+        "body": [
+          "No hay mensajes en esta carpeta."
+        ],
+        "callsToAction": [
+          {
+            "label": "Redactar",
+            "target": "action:compose-email"
+          }
+        ]
+      },
+      "layout": "Vista /emails con carpetas y cuentas actuales en la rama, lista de conversaciones y lectura del mensaje seleccionado. La muestra tiene bandeja vacía y ninguna cuenta conectada. Redactar abre el compositor existente; envío requiere configuración real o queda deshabilitado con causa. No generar mensajes supuestamente recibidos. Campos destinatario, asunto y cuerpo se conservan.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Cambiar carpeta o conversación conserva selección y posición; compositor devuelve foco al cerrar.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Paneles inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Una región cada vez: lista, lectura o redacción; Volver restaura scroll.",
+        "medium": "Lista y lectura si ambas superan 340px, en otro caso una región.",
+        "expanded": "Lista y lectura dentro de la hoja; carpetas en navegación existente."
+      }
+    },
+    {
+      "id": "campanas",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Preparar campañas y revisar su estado.",
+      "userQuestion": "¿Qué campaña necesita edición o revisión?",
+      "stage": "act",
+      "dependencies": [
+        "correo"
+      ],
+      "evidence": [
+        "app/campaigns/page.tsx"
+      ],
+      "copy": {
+        "heading": "Campañas",
+        "body": [
+          "No hay campañas creadas."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear campaña",
+            "target": "action:create-campaign"
+          }
+        ]
+      },
+      "layout": "Vista /campaigns con lista y editor existentes. Muestra sin campañas ni estadísticas de envío. Conservar previsualización y validación de destinatarios. No habilitar envío externo sin la integración actual. Hasta seis filas iniciales.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Editor y previsualización abren con foco contenido y retorno al origen.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Apertura inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Lista de dos líneas y editor completo.",
+        "medium": "Campos secundarios bajo el nombre.",
+        "expanded": "Tabla de campañas y editor existentes."
+      }
+    },
+    {
+      "id": "docs",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Consultar y editar conocimiento interno.",
+      "userQuestion": "¿Qué documento necesito abrir o escribir?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/kb/page.tsx",
+        "app/kb/[id]/page.tsx"
+      ],
+      "copy": {
+        "heading": "Docs",
+        "body": [
+          "No hay documentos creados."
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear documento",
+            "target": "action:create-document"
+          },
+          {
+            "label": "Crear carpeta",
+            "target": "action:create-kb-folder"
+          }
+        ]
+      },
+      "layout": "Vista /kb con árbol y listado existentes; /kb/{id} para documento o carpeta con título propio. Editor, relaciones y compartir mantienen sus acciones. Muestra vacía, sin documentación ficticia de clientes. Documento editable conserva un único h1 accesible junto al campo de título, sin duplicación visible.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Árbol y paneles de compartir responden a su control; edición no reproduce entradas ni anima texto.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Paneles y ramas inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Árbol en panel y editor a ancho completo.",
+        "medium": "Árbol plegable, contenido principal sin compresión.",
+        "expanded": "Árbol de navegación y hoja de documento con herramientas actuales."
+      }
+    },
+    {
+      "id": "boveda",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "table-filter-bar"
+      ],
+      "purpose": "Acceder a información protegida de clientes.",
+      "userQuestion": "¿Qué información del cliente necesito consultar?",
+      "stage": "act",
+      "dependencies": [
+        "clientes"
+      ],
+      "evidence": [
+        "app/boveda/page.tsx",
+        "app/boveda/[clientId]/page.tsx"
+      ],
+      "copy": {
+        "heading": "Bóveda",
+        "body": [
+          "No hay clientes en la bóveda."
+        ],
+        "callsToAction": [
+          {
+            "label": "Abrir cliente",
+            "target": "/boveda/{clientId}"
+          }
+        ]
+      },
+      "layout": "Vista /boveda y detalle /boveda/{clientId}. Lista de clientes y entradas existentes; sin crear contraseñas ni secretos de muestra. Acciones de revelar o copiar solo cuando haya un valor y permiso válido. En vacío no mostrar el CTA de abrir un registro inexistente.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Revelar o copiar confirma la acción sin animar caracteres protegidos ni mantenerlos en mensajes.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Confirmación inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Lista y detalle separados, acciones de 44px.",
+        "medium": "Filas con secundarios apilados.",
+        "expanded": "Lista y detalle propios con campos protegidos existentes."
+      }
+    },
+    {
+      "id": "contenido",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "app-screen"
+      ],
+      "purpose": "Gestionar piezas y calendarios de clientes.",
+      "userQuestion": "¿Qué contenido está programado o pendiente?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/contenido/general/page.tsx",
+        "app/contenido/[clientId]/page.tsx"
+      ],
+      "copy": {
+        "heading": "Gestión de contenido",
+        "body": [
+          "Sin piezas programadas",
+          "Sin calendarios de clientes"
+        ],
+        "callsToAction": [
+          {
+            "label": "Crear contenido",
+            "target": "action:create-content"
+          }
+        ]
+      },
+      "layout": "Vista /contenido/general y vistas /contenido/{clientId}, cada una con título y calendario propio. Conservar vista general, clientes, periodo y detalle de pieza existentes. Muestra vacía; no inventar publicaciones. Estados y colores guardados se preservan. La navegación de mes no sustituye el h1. El CTA solo aparece si su flujo y permiso existen.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Periodo y cliente actualizan el calendario; detalle de pieza se abre desde su celda y devuelve foco al cerrar.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Calendario y detalle inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Agenda legible por día usando los mismos datos y acciones; panel de filtros.",
+        "medium": "Calendario o agenda según ancho, sin desbordar la página.",
+        "expanded": "Calendario actual al ancho útil con controles en una fila."
+      }
+    },
+    {
+      "id": "ajustes",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Mantener preferencias generales existentes.",
+      "userQuestion": "¿Cómo está configurado mi espacio de trabajo?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/settings/page.tsx",
+        "src/lib/crm-themes.ts"
+      ],
+      "copy": {
+        "heading": "Ajustes",
+        "body": [
+          "Apariencia",
+          "Noxy Índigo",
+          "Zona horaria",
+          "America/Cancun",
+          "Integraciones",
+          "Google Calendar sin conectar"
+        ],
+        "callsToAction": [
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-settings-panel:{id}"
+          }
+        ]
+      },
+      "layout": "Vista /settings con secciones actuales de apariencia, zona horaria, sonido, archivo e integraciones según permisos. Filas label-panel de 430px y 700px; separadores y paneles de la ficha. Vista previa del tema junto al selector. Guardar por panel de manera uniforme; el estado de integración procede de datos, no de decoración.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Vista previa y guardado afectan el panel correspondiente; error conserva valores editados.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Tema y mensajes inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Etiqueta y descripción encima de cada panel.",
+        "medium": "Paneles apilados, sin columna de etiquetas vacía.",
+        "expanded": "Dos columnas y resumen útil junto a paneles altos."
+      }
+    },
+    {
+      "id": "equipo",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Consultar miembros y gestionar acceso autorizado.",
+      "userQuestion": "¿Quién puede trabajar en la organización?",
+      "stage": "act",
+      "dependencies": [
+        "ajustes"
+      ],
+      "evidence": [
+        "app/settings/equipo/page.tsx",
+        "src/lib/editorial-data.ts",
+        "src/lib/permissions.ts"
+      ],
+      "copy": {
+        "heading": "Equipo",
+        "body": [
+          "Sample data",
+          "3 miembros",
+          "Lucía Vega",
+          "Mateo Ríos",
+          "Sara León"
+        ],
+        "callsToAction": [
+          {
+            "label": "Invitar miembro",
+            "target": "action:invite-member"
+          }
+        ]
+      },
+      "layout": "Vista /settings/equipo accesible solo a roles autorizados. Lista de tres personas de muestra con iniciales estables. No atribuirles roles reales: permisos de la muestra se definen como fixture separado y explícito. Invitaciones solo se envían mediante el servicio existente; en modo local se mantienen pendientes sin envío.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Invitación y edición de acceso actualizan la fila tras resultado confirmado.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Fila y resultado inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Miembro y permisos apilados.",
+        "medium": "Panel de miembros de ancho completo.",
+        "expanded": "Etiqueta contextual y panel de miembros en dos columnas."
+      }
+    },
+    {
+      "id": "modelos",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Conservar la selección existente de modelos.",
+      "userQuestion": "¿Qué modelos están disponibles y seleccionados?",
+      "stage": "act",
+      "dependencies": [
+        "ajustes"
+      ],
+      "evidence": [
+        "app/settings/ai-models/page.tsx",
+        "src/lib/ai-models.ts"
+      ],
+      "copy": {
+        "heading": "Modelos de IA",
+        "body": [
+          "Modelos disponibles",
+          "Selección actual"
+        ],
+        "callsToAction": [
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-ai-models"
+          }
+        ]
+      },
+      "layout": "Vista /settings/ai-models con catálogo y campos de configuración existentes, sin inventar proveedores, precios o disponibilidad. Etiquetas desde la configuración local verificada durante Build. Campos protegidos no exponen secretos. Estado sin configurar cuando falte conexión.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Selección y guardado confirman estado sin animar el catálogo.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Confirmación inmediata."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Campos y opciones apilados.",
+        "medium": "Panel único con etiquetas arriba.",
+        "expanded": "Patrón de ajustes en dos columnas."
+      }
+    },
+    {
+      "id": "resumen",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Configurar el resumen y sus recordatorios.",
+      "userQuestion": "¿Cuándo y con qué contenido recibiré el resumen?",
+      "stage": "act",
+      "dependencies": [
+        "ajustes"
+      ],
+      "evidence": [
+        "app/settings/digest/page.tsx"
+      ],
+      "copy": {
+        "heading": "Resumen por WhatsApp",
+        "body": [
+          "Sample data",
+          "Entrega desactivada",
+          "Diario · 08:00 · America/Cancun",
+          "WhatsApp sin configurar"
+        ],
+        "callsToAction": [
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-digest"
+          },
+          {
+            "label": "Previsualizar",
+            "target": "action:preview-digest"
+          }
+        ]
+      },
+      "layout": "Vista /settings/digest. Frecuencia, días, hora, calendario, correos y recordatorios actuales; preview junto a sus ajustes cuando exista. Muestra desactivada y sin envío. Paneles de frecuencia y contenido visibles con su primer control antes de 900px. No simular entrega exitosa.",
+      "motion": {
+        "purpose": "state_change",
+        "trigger": "state_change",
+        "behavior": "Cambiar frecuencia muestra únicamente campos dependientes; previsualización conserva valores editados.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Dependencias y preview inmediatos."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Campos apilados, previsualización después del panel.",
+        "medium": "Una columna cuando el preview estreche los campos.",
+        "expanded": "Etiqueta y panel, preview próximo a la configuración."
+      }
+    },
+    {
+      "id": "perfil",
+      "layoutFamily": "dashboard",
+      "layoutCases": [
+        "settings-two-column"
+      ],
+      "purpose": "Editar datos personales existentes.",
+      "userQuestion": "¿Qué datos personales están guardados?",
+      "stage": "act",
+      "dependencies": [
+        "shell"
+      ],
+      "evidence": [
+        "app/profile/page.tsx"
+      ],
+      "copy": {
+        "heading": "Perfil",
+        "body": [
+          "Datos personales",
+          "Preferencias"
+        ],
+        "callsToAction": [
+          {
+            "label": "Guardar cambios",
+            "target": "action:save-profile"
+          }
+        ]
+      },
+      "layout": "Vista /profile con campos y orden existentes. Identidad tomada de sesión en producción; fixture de usuario separado en muestra, sin atribuir credenciales a Noxy. Mantener validaciones, datos no editables y acciones de seguridad existentes. No añadir campos nuevos.",
+      "motion": {
+        "purpose": "feedback",
+        "trigger": "press",
+        "behavior": "Guardado conserva foco, muestra progreso y confirma solo el resultado obtenido.",
+        "durationMs": 180,
+        "easing": "cubic-bezier(0.2, 0, 0, 1)",
+        "reducedMotion": "Resultado inmediato."
+      },
+      "componentNeeds": [],
+      "assetNeeds": [],
+      "transformation": {
+        "compact": "Etiquetas encima de campos y paneles.",
+        "medium": "Formulario de ancho legible en una columna.",
+        "expanded": "Patrón de ajustes en dos columnas."
+      }
+    }
+  ],
+  "responsive": [
+    "Compact hasta 640px; medium de 641 a 1100px; expanded desde 1101px. Verificar 375, 390, 768, 1100 y 1440px.",
+    "A 1440x900, Inicio muestra cabecera, hallazgo, franja, cuatro tareas, tres citas y los encabezados y primeras filas de proyectos y contactos. Los otros módulos son vistas propias, no bloques añadidos a Inicio.",
+    "En cada vista operativa, los bloques nombrados para esa vista muestran título y primer dato o control dentro del primer viewport; los listados largos usan seis filas iniciales y carga adicional.",
+    "En compact, márgenes de 16px, controles táctiles de 44px y tablas convertidas en filas de dos líneas sin perder campos. El documento nunca tiene scroll horizontal.",
+    "El rail pasa debajo del contenido principal; su siguiente cita puede resumirse arriba sin duplicar toda la lista.",
+    "En medium, las tablas conservan cuatro o cinco columnas y secundarios como sublíneas; apilar parejas de paneles si alguna baja de 340px.",
+    "Pestañas y tableros pueden desplazarse solo dentro de su contenedor. Los paneles de lista y detalle se convierten en navegación de una región a la vez.",
+    "No reducir tipografía o márgenes de manera arbitraria para encajar datos. Cifras y títulos siguen la escala de marca."
+  ],
+  "interactions": [
+    "Contrato de estados compartido por todos los bloques: vacío conserva encabezado y marco con una frase pertinente; cero se muestra como 0 con su unidad; dato ausente usa guion corto accesible; carga inicial mantiene dimensiones con barras grises sin shimmer; actualización conserva datos previos; error queda dentro del bloque con Reintentar y última lectura solo si existe una marca temporal real.",
+    "Contrato de filas y controles: hover tonal, selección semántica, foco visible, navegación por teclado y disabled con causa accesible. No depender solo del color. No ocultar la única acción tras hover. Envíos en curso impiden duplicación, conservan valores y devuelven el control al finalizar.",
+    "Todas las referencias action: son identificadores de comportamiento, no enlaces literales. Build debe vincularlas a handlers existentes o a estado local real en muestra. Ningún CTA puede permanecer sin efecto; acciones de registros solo aparecen si el registro existe.",
+    "La acción Revisar tarea abre t1 en un clic. Completar cambia completed, recalcula pendientes y elimina el hallazgo vencido cuando corresponda. Reabrir restaura su posición según fecha.",
+    "Buscar, ordenar y filtrar usan el conjunto de datos de la vista; conteos y vacíos se recalculan. Conservar filtros al abrir un detalle y volver. No añadir filtros que el producto no tiene.",
+    "Personalizar inicio abre el selector existente de widgets y pestañas. Cancelar descarta; Guardar aplica la preferencia según el adaptador activo. Mantener los widgets existentes disponibles y no reemplazar silenciosamente la preferencia de un usuario.",
+    "Los widgets de gráficos ya existentes solo se muestran cuando estén habilitados. Deals por etapa usa barras horizontales por recuento, eje desde cero y etiquetas de etapa; los cuatro deals producen recuentos 2, 1 y 1. No crear una serie temporal ni variaciones históricas a partir de esta muestra.",
+    "Cambiar etapa en Pipeline actualiza tablero, detalle y agregados desde el mismo registro. Si hay arrastre, añadir operación equivalente con teclado usando los controles actuales.",
+    "Diálogos y paneles contienen el foco, se cierran con Escape y devuelven foco al control de origen. En móvil, Volver restaura la posición de la lista.",
+    "Cada vista de ajustes usa Guardar por panel de forma uniforme. Cambios sin guardar conservan una señal local; errores no borran campos. Previsualización no equivale a guardado ni envío.",
+    "En muestra, las mutaciones afectan únicamente al estado local del navegador y el resultado dice «Guardado en este navegador». Correo, invitaciones, OAuth, publicación y WhatsApp no simulan acciones externas. En producción se conservan los servicios y respuestas existentes.",
+    "El aviso Sample data aparece una sola vez por vista cuando hay datos representativos. No sustituye al estado de conexión real ni se repite por tarjeta.",
+    "Toda transición útil usa 180ms y cubic-bezier(0.2, 0, 0, 1), es interrumpible y responde a una acción. Con prefers-reduced-motion, duración 0ms y operación equivalente. No hay entradas, scroll reveals, cifras contadas ni movimiento perpetuo.",
+    "Las rutas de creación, detalles y subapartados enumeradas en los bloques son vistas independientes con h1 y contenido propio, aunque no aparezcan en el primer nivel. Asistente se conserva como enlace a la vista existente, sin reconstrucción."
+  ],
+  "acceptanceCriteria": [
+    "Inventario verificado: app/page.tsx usa EditorialWorkspace y WorkspaceData; src/lib/editorial-data.ts ya contiene muestras reutilizables. No consultar bases de datos ni material privado para poblar el plan.",
+    "Dataset inicial: reutilizar el instante 2026-11-07T09:00:00-05:00 y zona America/Cancun; seis contactos c1–c6, ocho tareas t1–t8, tres proyectos p1–p3, tres citas a1–a3, cuatro oportunidades d1–d4 y tres responsables de muestra. Extender solo los campos necesarios sin cambiar identidades o relaciones existentes.",
+    "Contactos: Nora Salas, Iván Leal, Elena Solís, Bruno Cid, Alma Pardo y Tomás Vela con correos example.test. c3 y c4 se crearon el 7 de noviembre; el resto en octubre según el archivo. No presentarlos como clientes reales ni contactos de producción.",
+    "Tareas: t1 Revisar propuesta editorial, Lucía, p1, 6 nov 17:00; t2 Enviar cotización web, Mateo, p1, 7 nov 11:00; t3 Preparar reunión de alcance, Lucía, p1, 7 nov 13:00; t4 Revisar catálogo, Sara, p2, 7 nov 16:00; t5 Confirmar materiales, Mateo, p2, 7 nov 17:00; t6 Ordenar entregables, Sara, p2, 9 nov 12:00. Todas pendientes. t7 Validar navegación, Lucía, p1, y t8 Preparar estructura, Mateo, p2, vencen el 5 nov y están completadas.",
+    "Afirmaciones derivadas: tareas totales 8 = pendientes 6 + completadas 2; pendientes vencidas 1; pendientes con fecha de hoy 4; pendientes posteriores 1. p1 tiene 4 tareas, 3 pendientes y 1 completada; p2 tiene 4 tareas, 3 pendientes y 1 completada. Completar t1 deja 5 pendientes y 0 pendientes vencidas.",
+    "Proyectos: p1 Sitio editorial y p2 Catálogo digital activos, p3 Archivo de contenidos archivado. Afirmar total 3 = activos 2 + archivados 1; no inventar avance ni ingresos de proyecto.",
+    "Citas: a1 Alcance web con Nora el 7 nov de 10:00 a 10:30; a2 Revisión editorial con Iván el 7 nov de 15:00 a 15:30; a3 Seguimiento con Elena el 9 nov de 10:00 a 10:30. Todas posteriores al instante de muestra: próximas 3, hoy 2 y duración individual 30 min. Inicio siempre anterior a fin.",
+    "Tipos de cita de muestra: tres, con nombres y duraciones derivados de las tres citas, sin afirmar publicación. Disponibilidad inicial no configurada; no inferirla de las reservas.",
+    "Oportunidades: d1 Propuesta editorial, c2, Propuesta, 1,800,000 centavos MXN; d2 Sitio comercial, c1, Negociación, 2,400,000; d3 Catálogo, c5, Contacto, 1,200,000; d4 Auditoría de contenido, c6, Contacto, 600,000. Total 6,000,000 centavos = 60,000.00 MXN. Contacto 18,000.00, Propuesta 18,000.00 y Negociación 24,000.00 MXN. Recuentos 2 + 1 + 1 = 4.",
+    "Dataset sin registros adicionales: empresas, clientes recurrentes, pagos, historial cerrado, cotizaciones, formularios, respuestas, correos, campañas, documentos, entradas de bóveda y piezas de contenido comienzan vacíos. Sus vistas tienen vacío válido y acciones reales, no registros fabricados para aparentar actividad.",
+    "Totales y estados compartidos se calculan desde registros, nunca se escriben por separado. Dinero en centavos enteros, unidad MXN visible y formato es-MX. No sumar monedas distintas. No mostrar tasa de cierre o comparaciones temporales sin denominador o periodo verificable.",
+    "Una única fuente para el instante, el periodo, las relaciones y los conteos. Build añade y ejecuta aserciones de conciliación; cualquier diferencia entre filas, franja, detalle y gráfico bloquea la verificación.",
+    "Sample data está incluido en copy.body de cada bloque con cifras representativas y se renderiza una sola vez por vista. Los avisos de muestra no se muestran sobre datos reales de producción.",
+    "El plan no añade funcionalidad por las suposiciones de fases anteriores. Inicio es la vista predeterminada; ninguna ruta privada existente se sustituye por una pantalla vacía genérica. Los módulos sin muestra conservan su estructura y primera acción.",
+    "Cobertura de rutas: /, /contacts, /companies, /tasks, /projects, /projects/create, /projects/{id} y subapartados actuales; /pipeline, /pipeline/{id}, /pipeline/clientes, /pipeline/historial; /cotizaciones y creación, configuración y detalle; /forms y detalle; /appointments, /appointment-types, /availability; /emails, /campaigns; /kb y detalle; /boveda y detalle; /contenido/general y calendario por cliente; /settings, /settings/equipo, /settings/ai-models, /settings/digest y /profile. Cada ruta tiene h1 y bloques propios. /assistant conserva su implementación independiente.",
+    "En todas las vistas, verificar vacío, cero, carga inicial, error con reintento y datos presentes. En todas las filas y controles, verificar hover, seleccionado, foco y disabled. No mostrar controles para registros inexistentes ni estados deshabilitados sin explicación.",
+    "A 1440x900 comprobar con captura y DOM que los bloques de Inicio caben según el presupuesto vertical y comparten bordes. En otras vistas comprobar el encabezado y primer registro o control de cada bloque principal. No comprimir todo el alcance del CRM dentro de Inicio.",
+    "Verificar 375px y 390px sin desbordamiento horizontal, primera fila dentro del 60% superior en vistas de lista, controles de 44px y retorno de lista a detalle. Verificar medium a 768px y 1100px.",
+    "Reutilizar public/Isotipo_Azul.svg mediante el ID estable noxy-isotipo-oficial. Sin nuevas imágenes, fuentes ni paquetes. Iniciales se generan desde nombres, no requieren assets.",
+    "Cargar realmente Open Sauce Two 400, 500 y 600 desde los archivos locales, esperar document.fonts.ready y comprobar FontFace y document.fonts.check. Verificar que tabular-nums produce cifras tabulares; si no funciona, registrar el bloqueo sin sustituir silenciosamente la fuente.",
+    "Usar los colores y decisiones de brand-system sin ampliarlos. Verificar contraste de texto y foco en los diez temas, estados distinguibles sin color, acento saturado bajo el presupuesto y ausencia de sombras en reposo.",
+    "En navegador, ejercitar navegación, ramas, personalización, completar y reabrir tarea, búsqueda, filtros, ordenación, cambios de etapa, guardado por panel y abrir/cerrar detalles. Incluir entradas rápidas repetidas, teclado, Escape y retorno del foco.",
+    "Si un gráfico habilitado tiene periodo o selector real, probar el cambio de datos y mantener escalas legibles; si no hay control existente, no añadirlo. Una captura estática no prueba estas interacciones.",
+    "Repetir los flujos con movimiento reducido y confirmar estados finales inmediatos, sin entradas ni animaciones decorativas. Registrar qué interacciones se ejercitaron y qué integraciones no se probaron.",
+    "No afirmar sincronización, envío, publicación, conexión ni persistencia de servidor sin evidencia de la respuesta real. La entrega de muestra se identifica como local y mantiene separadas las mutaciones de producción."
+  ]
+}

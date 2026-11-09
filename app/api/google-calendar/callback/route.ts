@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const error = req.nextUrl.searchParams.get("error");
 
   if (error || !code) {
-    return NextResponse.redirect(new URL("/settings?error=google_denied", req.url));
+    return NextResponse.redirect(new URL("/settings/integraciones?error=google_denied", req.url));
   }
 
   try {
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const { tokens } = await oauth2Client.getToken(code);
 
     if (!tokens.access_token) {
-      return NextResponse.redirect(new URL("/settings?error=google_no_token", req.url));
+      return NextResponse.redirect(new URL("/settings/integraciones?error=google_no_token", req.url));
     }
 
     await prisma.googleCalendarToken.upsert({
@@ -41,9 +41,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(new URL("/settings?google=connected", req.url));
+    return NextResponse.redirect(new URL("/settings/integraciones?google=connected", req.url));
   } catch (err) {
     console.error("[google-calendar] OAuth callback error:", err);
-    return NextResponse.redirect(new URL("/settings?error=google_auth", req.url));
+    return NextResponse.redirect(new URL("/settings/integraciones?error=google_auth", req.url));
   }
 }

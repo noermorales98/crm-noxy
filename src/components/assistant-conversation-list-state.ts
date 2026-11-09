@@ -43,3 +43,30 @@ export function assistantConversationListReducer(
     hasSnapshot: state.hasSnapshot,
   };
 }
+
+export type ConversationDayGroup = { label: "Hoy" | "Ayer" | "Últimos 7 días" | "Anteriores"; conversations: AiConversation[] };
+
+/**
+ * Agrupa el historial por día local, en el orden recibido (más reciente primero):
+ * Hoy, Ayer, Últimos 7 días y Anteriores. Los grupos vacíos no se devuelven.
+ */
+export function groupConversationsByDay(conversations: readonly AiConversation[], now: Date = new Date()): ConversationDayGroup[] {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day = 24 * 60 * 60 * 1000;
+  const order: ConversationDayGroup["label"][] = ["Hoy", "Ayer", "Últimos 7 días", "Anteriores"];
+  const buckets = new Map<ConversationDayGroup["label"], AiConversation[]>(order.map((label) => [label, []]));
+  for (const conversation of conversations) {
+    const at = new Date(conversation.updatedAt).getTime();
+    const label: ConversationDayGroup["label"] = Number.isNaN(at)
+      ? "Anteriores"
+      : at >= startOfToday
+        ? "Hoy"
+        : at >= startOfToday - day
+          ? "Ayer"
+          : at >= startOfToday - 7 * day
+            ? "Últimos 7 días"
+            : "Anteriores";
+    buckets.get(label)!.push(conversation);
+  }
+  return order.map((label) => ({ label, conversations: buckets.get(label)! })).filter((group) => group.conversations.length > 0);
+}

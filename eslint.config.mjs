@@ -7,6 +7,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    // TasteCode working artifacts and the unmodified upstream chart helper are not application source.
+    ".taste/**",
+    "src/lib/vendor/app-charts.js",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

@@ -3,30 +3,40 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const sidebarSource = readFileSync(new URL("./Sidebar.tsx", import.meta.url), "utf8");
+const navsSource = readFileSync(new URL("./context-navs.tsx", import.meta.url), "utf8");
 const shellSource = readFileSync(new URL("./AssistantSidebarShell.tsx", import.meta.url), "utf8");
+const accountSource = readFileSync(new URL("./AccountMenu.tsx", import.meta.url), "utf8");
 
-function sourceBetween(start: string, end: string): string {
-  const startIndex = sidebarSource.indexOf(start);
-  const endIndex = sidebarSource.indexOf(end, startIndex);
+// AssistantNav vive en context-navs.tsx (ronda 3: la sidebar por modos no lleva ramas).
+function sourceFrom(start: string): string {
+  const startIndex = navsSource.indexOf(start);
   assert.notEqual(startIndex, -1, `Missing source marker: ${start}`);
-  assert.notEqual(endIndex, -1, `Missing source marker: ${end}`);
-  return sidebarSource.slice(startIndex, endIndex);
+  return navsSource.slice(startIndex);
 }
 
 function staticLinkTag(href: string): string {
-  const tag = sidebarSource.match(new RegExp(`<Link\\b(?=[^>]*href="${href}")[^>]*>`))?.[0];
+  const tag = navsSource.match(new RegExp(`<Link\\b(?=[^>]*href="${href}")[^>]*>`))?.[0];
   assert.ok(tag, `Missing Link for ${href}`);
   return tag;
 }
 
-const assistantNavSource = sourceBetween("function AssistantNav(", "// ─── Main Sidebar");
+const assistantNavSource = sourceFrom("export function AssistantNav(");
 const sidebarComponentSource = sidebarSource.slice(sidebarSource.indexOf("export default function Sidebar("));
 
-// Rediseño «marco claro» (T006): el selector de secciones desaparece; los destinos de la lista
-// plana cierran el panel flotante al navegar (chooseDestination → onNavigate).
-test("flat-list destinations close the floating panel before navigating", () => {
+// Lista plana por modos: cada destino cierra el panel flotante al navegar
+// (chooseDestination → onNavigate). La barra fijada no se cierra: ver closeForNavigation.
+test("mode destinations close the floating panel before navigating", () => {
   assert.match(sidebarComponentSource, /const chooseDestination = \(\) => \{[\s\S]*?onNavigate\?\.\(\);[\s\S]*?\};/);
-  assert.match(sidebarComponentSource, /<FlatNav[\s\S]*?onChoose=\{chooseDestination\}[\s\S]*?\/>/);
+  assert.match(sidebarComponentSource, /<NavLeaf[\s\S]*?onChoose=\{chooseDestination\}[\s\S]*?\/>/);
+});
+
+// Ronda 3: el asistente usa la sidebar acoplada de siempre en escritorio; no hay fijar, soltar ni vistazo.
+test("the assistant has no pin / unpin / hover-peek: desktop uses the docked sidebar, the shell is the mobile drawer", () => {
+  assert.doesNotMatch(shellSource, /Fijar barra lateral|Soltar barra lateral|PinIcon|PinOffIcon|data-assistant-sidebar-(?:edge|pinned|pin-hint)|type: "unpin"|type: "pin"|peekOpen/);
+  const dashboard = readFileSync(new URL("./DashboardShell.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(dashboard, /useFloatingAssistantSidebar/, "no separate assistant chrome on desktop");
+  assert.match(dashboard, /<Sidebar \/>/, "docked sidebar on every route, /assistant included");
+  assert.match(shellSource, /return null;/, "no desktop panel from the drawer shell");
 });
 
 test("assistant conversation destinations keep the floating panel open", () => {
@@ -46,45 +56,31 @@ test("assistant conversation destinations keep the floating panel open", () => {
     assistantNavSource,
     /if \(pathname === `\/assistant\/\$\{id\}`\) \{[\s\S]*?onNavigate\?\.\(\);/,
   );
-  assert.doesNotMatch(sidebarSource, /const createNew = \(\) =>/);
+  assert.doesNotMatch(navsSource, /const createNew = \(\) =>/);
   assert.match(shellSource, /onNavigate=\{closeForNavigation\}/);
-  assert.match(shellSource, /writeAssistantSidebarStoredMode/);
   assert.doesNotMatch(shellSource, /dispatch\(\{ type: "navigate" \}\)/);
-  assert.match(shellSource, /dispatch\(\{ type: "unpin" \}\)/);
 });
 
-test("floating sidebar is a solid light panel with pin hover peek", () => {
+test("the mobile drawer is a solid light panel with a close control and keyboard trap", () => {
   assert.match(sidebarComponentSource, /variant === "floating"[\s\S]*?bg-surface-sidebar/);
-  assert.match(sidebarComponentSource, /variant === "pinned"[\s\S]*?bg-surface-sidebar/);
   assert.doesNotMatch(shellSource, /crm-glass/);
-  assert.match(shellSource, /data-assistant-sidebar-edge/);
-  assert.match(shellSource, /data-assistant-sidebar-pin-hint/);
-  assert.match(shellSource, /data-assistant-sidebar-pinned/);
-  assert.match(shellSource, /variant="pinned"/);
-  assert.match(shellSource, /relative z-20 flex h-full w-64 shrink-0/);
-  assert.match(shellSource, /aria-label="Fijar barra lateral"/);
-  assert.match(shellSource, /title="Fijar barra lateral"/);
-  assert.match(shellSource, /dispatch\(\{ type: "peekOpen" \}\)/);
-  assert.match(shellSource, /dispatch\(\{ type: "peekClose" \}\)/);
+  assert.match(shellSource, /aria-label="Ocultar barra lateral"/);
+  assert.match(shellSource, /["']Escape["']/);
   assert.match(shellSource, /registerOpenMobileSidebar/);
   assert.match(shellSource, /if \(isMobile\)/);
 });
 
-test("user-menu destinations and sign out close the floating panel", () => {
-  assert.match(
-    sidebarComponentSource,
-    /const closeUserMenuForNavigation = \(\) => \{[\s\S]*?setSidebarUserOpen\(false\);[\s\S]*?onNavigate\?\.\(\);[\s\S]*?\};/,
-  );
-
-  for (const href of ["/profile", "/settings", "/settings/digest", "/settings/ai-models", "/settings/equipo"]) {
-    assert.match(staticLinkTag(href), /onClick=\{closeUserMenuForNavigation\}/);
+// Los destinos de cuenta viven en AccountMenu (header y pie de la sidebar); siguen cerrando el panel.
+test("account-menu destinations and sign out close the menu and the floating panel", () => {
+  assert.match(accountSource, /const choose = \(\) => \{[\s\S]*?setOpen\(false\);[\s\S]*?onNavigate\?\.\(\);[\s\S]*?\};/);
+  for (const href of ["/profile", "/settings", "/settings/ai-models", "/settings/equipo"]) {
+    const tag = accountSource.match(new RegExp(`<Link\\b(?=[^>]*href="${href}")[^>]*>`))?.[0];
+    assert.ok(tag, `Missing Link for ${href}`);
+    assert.match(tag, /onClick=\{choose\}/);
   }
-
-  assert.match(
-    sidebarComponentSource,
-    /const handleSignOut = \(\) => \{[\s\S]*?onNavigate\?\.\(\);[\s\S]*?void signOut\(\);[\s\S]*?\};/,
-  );
-  assert.match(sidebarComponentSource, /onClick=\{handleSignOut\}/);
+  assert.match(accountSource, /const handleSignOut = \(\) => \{[\s\S]*?onNavigate\?\.\(\);[\s\S]*?void signOut\(\);[\s\S]*?\};/);
+  assert.match(accountSource, /onClick=\{handleSignOut\}/);
+  assert.match(sidebarComponentSource, /<AccountMenu[\s\S]*?onNavigate=\{onNavigate\}/, "the sidebar passes its onNavigate");
 });
 
 test("assistant history exposes accessible loading and refresh feedback", () => {

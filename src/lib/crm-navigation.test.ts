@@ -18,7 +18,10 @@ import {
   contextualSectionLabel,
   visibleMobileTabs,
   visibleNavGroups,
-  sidebarView,
+  SETTINGS_ITEMS,
+  isSettingsRoute,
+  isCollapseShortcut,
+  visibleSettingsItems,
   // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 } from "./crm-navigation.ts";
 
@@ -34,7 +37,7 @@ const EXPECTED_TOP: Array<[string, Array<[string, string, string]>]> = [
 ];
 const EXPECTED_AREAS: Record<string, Array<[string, string]>> = {
   contacts: [["Contactos", "/contacts"], ["Empresas", "/companies"]],
-  sales: [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]],
+  sales: [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]],
   agenda: [["Citas Agendadas", "/appointments"], ["Tipos de Cita", "/appointment-types"], ["Disponibilidad", "/availability"]],
 };
 const SPACE_SECTION: Record<string, string> = {
@@ -64,10 +67,11 @@ test("each area lists its destinations with the labels and routes of always; the
   }
 });
 
-test("the 17 destinations stay reachable, once each, with the permission that gated them", () => {
+// Árbol con subsecciones: Historial de tratos pasa a ser un destino propio de Ventas (17 → 18).
+test("the 18 destinations stay reachable, once each, with the permission that gated them", () => {
   const all = NAV_DESTINATIONS as Item[];
-  assert.equal(all.length, 17);
-  assert.equal(new Set(all.map((i) => i.href)).size, 17, "no duplicates");
+  assert.equal(all.length, 18);
+  assert.equal(new Set(all.map((i) => i.href)).size, 18, "no duplicates");
   for (const item of all) {
     const expected = SPACE_SECTION[item.href] ? SECTION_PERMISSION[SPACE_SECTION[item.href]] : "crm";
     assert.equal(item.permission, expected, item.label);
@@ -95,7 +99,7 @@ test("visibleNavGroups filters by permission, hides areas with no visible destin
   const entries = (visibleNavGroups("MEMBER", noCrm) as Group[]).flatMap((g) => g.items);
   assert.ok(!entries.some((i) => i.kind === "area" || i.permission === "crm"), "crm destinations and areas hidden");
   assert.deepEqual(visibleAreaItems("sales", "MEMBER", noCrm), [], "area submenu also filtered");
-  assert.equal(visibleAreaItems("sales", "OWNER", ALL_PERMISSIONS).length, 4);
+  assert.equal(visibleAreaItems("sales", "OWNER", ALL_PERMISSIONS).length, 5);
 });
 
 test("contextual sections: the three areas plus Correo (incl. campañas), Docs, Bóveda, Asistente y Contenido", () => {
@@ -205,23 +209,48 @@ test("the active mobile tab is the most specific match; other routes live under 
   for (const [path, href] of cases) assert.equal(activeMobileTab(path, MOBILE_TABS), href, path);
 });
 
-test("«Volver» shows the flat list on that route; moving to another route decides again", () => {
-  assert.deepEqual(sidebarView("/emails", null), { mode: "contextual", section: "mail" });
-  assert.deepEqual(sidebarView("/emails", "/emails"), { mode: "flat" }, "Volver on /emails");
-  assert.deepEqual(sidebarView("/kb/page-1", "/emails"), { mode: "contextual", section: "kb" }, "then Docs");
-  assert.deepEqual(sidebarView("/emails", "/kb/page-1"), { mode: "contextual", section: "mail" }, "back to Correo");
-  assert.deepEqual(sidebarView("/contacts", null), { mode: "contextual", section: "contacts" }, "areas open their submenu");
-  assert.deepEqual(sidebarView("/contacts", "/contacts"), { mode: "flat" }, "Volver on an area");
-  assert.deepEqual(sidebarView("/tasks", "/emails"), { mode: "flat" });
-});
-
-test("active styles carry the nav ink on text, icon and bar, plus weight (two signals)", () => {
+// Escalera de acento: la pastilla es la tinta nav-active del tema (en ::before, dentro de la caja de
+// 44px) y ya no lleva barra izquierda. Dos señales siguen: el fondo y el peso.
+test("active styles carry the nav-active pill, the nav ink and weight, with no left bar", () => {
   const ink = /(?:\[var\(--nav-active-ink\)\]|\(--nav-active-ink\))/.source;
   assert.match(NAV_ITEM_ACTIVE, new RegExp(`(?:^|\\s)text-${ink}(?=\\s|$)`), "text and icon (currentColor) use the ink");
-  assert.match(NAV_ITEM_ACTIVE, new RegExp(`(?:^|\\s)before:bg-${ink}(?=\\s|$)`), "bar uses the ink");
-  assert.match(NAV_ITEM_ACTIVE, /(?:^|\s)before:w-(?:\[3px\]|0\.75)(?=\s|$)/, "3px bar");
+  assert.match(NAV_ITEM_ACTIVE, /(?:^|\s)before:bg-nav-active(?=\s|$)/, "the pill is the nav-active tint");
   assert.match(NAV_ITEM_ACTIVE, /(?:^|\s)font-semibold(?=\s|$)/);
-  assert.match(NAV_ITEM_ACTIVE, /(?:^|\s)bg-surface-elevated(?=\s|$)/);
+  assert.doesNotMatch(NAV_ITEM_ACTIVE, /before:w-|before:-left|before:bg-\[var\(--nav-active-ink\)\]/, "no left accent bar");
   assert.match(MOBILE_TAB_ACTIVE, new RegExp(`(?:^|\\s)text-${ink}(?=\\s|$)`));
   assert.match(MOBILE_TAB_ACTIVE, /(?:^|\s)font-semibold(?=\s|$)/);
+});
+
+// ─── Árbol con subsecciones en línea (sustituye al panel «Volver») ─────────────
+
+test("Ajustes has one screen per section, grouped; Equipo only for who manages the team", () => {
+  assert.deepEqual((SETTINGS_ITEMS as Array<Item & { group: string }>).map((i) => [i.label, i.href, i.group]), [
+    ["General", "/settings", "Organización"],
+    ["Equipo", "/settings/equipo", "Organización"],
+    ["Notificaciones", "/settings/notificaciones", "Organización"],
+    ["Resumen diario", "/settings/digest", "Organización"],
+    ["Integraciones", "/settings/integraciones", "Conexiones"],
+    ["Modelos de IA", "/settings/ai-models", "Conexiones"],
+    ["Apariencia y sonidos", "/settings/apariencia", "Personal"],
+  ]);
+  const hrefs = (role: string, perms: unknown, team: boolean) => (visibleSettingsItems(role, perms, team) as Item[]).map((i) => i.href);
+  assert.equal(hrefs("OWNER", ALL_PERMISSIONS, true).length, 7);
+  assert.ok(!hrefs("MEMBER", ALL_PERMISSIONS, false).includes("/settings/equipo"), "members do not see Equipo");
+  assert.deepEqual(hrefs("MEMBER", { ...ALL_PERMISSIONS, settings: false }, false), [], "no settings permission, no sections");
+});
+
+test("Ajustes and Perfil swap the main sidebar for their own", () => {
+  for (const path of ["/settings", "/settings/equipo", "/settings/apariencia", "/profile"]) assert.equal(isSettingsRoute(path), true, path);
+  for (const path of ["/", "/tasks", "/settingsx", "/projects/settings"]) assert.equal(isSettingsRoute(path), false, path);
+});
+
+test("⌘B / Ctrl+B collapses the sidebar, except while typing (⌘B is bold in an editor)", () => {
+  const base = { key: "b", metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, editable: false };
+  assert.equal(isCollapseShortcut({ ...base, metaKey: true }), true);
+  assert.equal(isCollapseShortcut({ ...base, ctrlKey: true, key: "B" }), true);
+  assert.equal(isCollapseShortcut({ ...base, metaKey: true, editable: true }), false);
+  assert.equal(isCollapseShortcut({ ...base, metaKey: true, shiftKey: true }), false);
+  assert.equal(isCollapseShortcut({ ...base, metaKey: true, altKey: true }), false);
+  assert.equal(isCollapseShortcut({ ...base }), false);
+  assert.equal(isCollapseShortcut({ ...base, metaKey: true, key: "k" }), false);
 });

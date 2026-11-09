@@ -62,9 +62,10 @@ test("personal themes wrap only the authenticated CRM shell", () => {
 
 test("Settings exposes an accessible responsive theme selector", () => {
   const settings = read("app/settings/page.tsx");
+  const appearance = read("app/settings/apariencia/page.tsx");
   const selector = read("src/components/settings/ThemeSelector.tsx");
 
-  assert.match(settings, /<ThemeSelector\s*\/>/);
+  assert.match(appearance, /<ThemeSelector\s*\/>/, "el tema vive en Apariencia y sonidos");
   assert.match(selector, /<h2[^>]*>Apariencia<\/h2>/);
   assert.match(selector, /aria-pressed=\{selected\}/);
   assert.match(selector, /role="status"/);

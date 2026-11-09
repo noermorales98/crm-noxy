@@ -347,11 +347,11 @@ export function contrastRatio(foreground: string, background: string): number {
 }
 
 /**
- * Color del destino activo en el marco claro (texto, icono y barra de 3 px).
- * Usa la acción del tema cuando alcanza AA sobre la pastilla blanca; si no (Azul Recuerdo, Lima),
+ * Color del destino activo en el marco claro (texto e icono sobre la pastilla `navActive`).
+ * Usa la acción del tema cuando alcanza AA sobre la pastilla; si no (Azul Recuerdo, Lima),
  * vuelve al texto principal, como manda la regla de pares de DESIGN.md.
  */
 export function navActiveInk(theme: CrmThemeDefinition): string {
-  const { actionPrimary, surfaceElevated, textPrimary } = theme.tokens;
-  return contrastRatio(actionPrimary, surfaceElevated) >= 4.5 ? actionPrimary : textPrimary;
+  const { actionPrimary, navActive, textPrimary } = theme.tokens;
+  return contrastRatio(actionPrimary, navActive) >= 4.5 ? actionPrimary : textPrimary;
 }

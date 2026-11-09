@@ -1,18 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useSoundSettings } from "@/src/context/SoundContext";
-import ThemeSelector from "@/src/components/settings/ThemeSelector";
-import { useHeader } from "@/src/context/HeaderContext";
-import { PageHeader } from "@/src/components/ui";
-
-type GoogleStatus = {
-  connected: boolean;
-  configured: boolean;
-  calendarId: string;
-  connectedAt: string | null;
-};
+import { SaveBar, SettingsScreen } from "@/src/components/settings/SettingsScreen";
+import { Block, Enter, PageHeader } from "@/src/components/ui";
+import { useOrgSettings } from "@/src/components/settings/useOrgSettings";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 const TIMEZONES = [
   // México
@@ -45,349 +36,44 @@ const TIMEZONES = [
   { label: "Madrid, España (UTC+1)", value: "Europe/Madrid" },
 ];
 
-export default function SettingsPage() {
-  const { setConfig, resetState } = useHeader();
-  useEffect(() => {
-    resetState();
-    setConfig({ title: "Configuración", pageHeader: true });
-    return () => setConfig({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  const [phone, setPhone] = useState("");
-  const [callMeBotApiKey, setCallMeBotApiKey] = useState("");
-  const [notificationEmail, setNotificationEmail] = useState("");
-  const [timezone, setTimezone] = useState("America/Cancun");
-  const [autoArchiveDays, setAutoArchiveDays] = useState(30);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Google Calendar state
-  const [googleStatus, setGoogleStatus] = useState<GoogleStatus | null>(null);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [googleMsg, setGoogleMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-  // Sound settings
-  const { enabled: soundEnabled, toggle: toggleSound } = useSoundSettings();
-
-  useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const res = await fetch("/api/settings");
-        if (res.ok) {
-          const data = await res.json();
-          if (data) {
-            setPhone(data.phone || "");
-            setCallMeBotApiKey(data.callMeBotApiKey || "");
-            setNotificationEmail(data.notificationEmail || "");
-            setTimezone(data.timezone || "America/Cancun");
-            if (data.autoArchiveDays !== undefined) setAutoArchiveDays(data.autoArchiveDays);
-          }
-        }
-      } catch {
-        console.error("Failed to load settings");
-      }
-    }
-    async function fetchGoogleStatus() {
-      try {
-        const res = await fetch("/api/google-calendar/status");
-        if (res.ok) setGoogleStatus(await res.json());
-      } catch { /* ignore */ }
-    }
-    fetchSettings();
-    fetchGoogleStatus();
-
-    // Handle OAuth redirect feedback
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("google") === "connected") {
-      setGoogleMsg({ type: "success", text: "Google Calendar conectado correctamente." });
-      fetchGoogleStatus();
-      window.history.replaceState({}, "", "/settings");
-    } else if (params.get("error")?.startsWith("google")) {
-      setGoogleMsg({ type: "error", text: "No se pudo conectar con Google Calendar." });
-      window.history.replaceState({}, "", "/settings");
-    }
-  }, []);
-
-  const handleConnectGoogle = async () => {
-    setGoogleLoading(true);
-    setGoogleMsg(null);
-    try {
-      const res = await fetch("/api/google-calendar/auth");
-      if (!res.ok) {
-        const data = await res.json();
-        setGoogleMsg({ type: "error", text: data.error || "Error al conectar." });
-        return;
-      }
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch {
-      setGoogleMsg({ type: "error", text: "Error al conectar con Google." });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleDisconnectGoogle = async () => {
-    if (!confirm("¿Desconectar Google Calendar? Las citas futuras no se sincronizarán.")) return;
-    setGoogleLoading(true);
-    try {
-      await fetch("/api/google-calendar/disconnect", { method: "DELETE" });
-      setGoogleStatus(prev => prev ? { ...prev, connected: false, connectedAt: null } : null);
-      setGoogleMsg({ type: "success", text: "Google Calendar desconectado." });
-    } catch {
-      setGoogleMsg({ type: "error", text: "Error al desconectar." });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setSuccess(false);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, callMeBotApiKey, notificationEmail, timezone, autoArchiveDays }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to save settings");
-      }
-      setSuccess(true);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function SettingsGeneralPage() {
+  const { values, set, save, saving, saved, error } = useOrgSettings();
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
-          <PageHeader title="Configuración" subtitle="Integraciones, notificaciones y preferencias de la organización." />
-
-          <div className="bg-surface-elevated rounded-surface border border-line p-5 sm:p-8 max-w-4xl flex flex-col gap-8">
-
-            <ThemeSelector />
-
-            <hr className="border-line" />
-
-            {/* Sonidos de interacción */}
-            <div>
-              <label className="flex items-center justify-between cursor-pointer">
-                <div>
-                  <h2 className="text-lg font-bold text-text-primary mb-1">Sonidos de interacción</h2>
-                  <p className="text-sm text-text-secondary">Reproduce sonidos sutiles al pulsar botones, navegar y recibir notificaciones.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={toggleSound}
-                  role="switch"
-                  aria-checked={soundEnabled}
-                  aria-label="Sonidos de interacción"
-                  className={`w-11 h-6 rounded-full transition-colors relative shrink-0 before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${soundEnabled ? "bg-emerald-500" : "bg-nav-active"}`}
-                  data-check-ignore-tap
-                >
-                  <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${soundEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
-                </button>
-              </label>
-            </div>
-
-            <hr className="border-line" />
-
-            {/* Google Calendar */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Google Calendar</h2>
-              <p className="text-sm text-text-secondary mb-5">
-                Sincroniza automáticamente tus citas con Google Calendar. Las nuevas citas aparecerán en tu calendario y recibirás recordatorios adicionales.
-              </p>
-
-              {googleMsg && (
-                <div className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium ${googleMsg.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>
-                  {googleMsg.text}
-                </div>
-              )}
-
-              {googleStatus === null ? (
-                <div className="h-10 w-40 rounded-lg bg-surface-sidebar animate-pulse" />
-              ) : !googleStatus.configured ? (
-                <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-100 text-sm text-amber-700">
-                  Para activar esta integración, configura <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_CLIENT_ID</code>, <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code> y <code className="font-mono text-xs bg-amber-100 px-1 rounded">GOOGLE_REDIRECT_URI</code> en tu <code className="font-mono text-xs bg-amber-100 px-1 rounded">.env.local</code>.
-                </div>
-              ) : googleStatus.connected ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-50 border border-green-100 text-sm text-green-700 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                    Conectado
-                    {googleStatus.connectedAt && (
-                      <span className="text-green-500 font-normal ml-1">
-                        · desde {new Date(googleStatus.connectedAt).toLocaleDateString("es-MX")}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleDisconnectGoogle}
-                    disabled={googleLoading}
-                    className="min-h-11 lg:min-h-10 px-4 py-2.5 rounded-lg border border-line text-sm text-text-secondary hover:bg-surface-sidebar transition-colors disabled:opacity-50"
-                  >
-                    Desconectar
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleConnectGoogle}
-                  disabled={googleLoading}
-                  className="min-h-11 lg:min-h-10 flex items-center gap-2 px-5 py-2.5 bg-surface-elevated border border-line hover:bg-surface-sidebar text-text-primary text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
-                    <path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>
-                    <path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/>
-                    <path d="M43.611 20.083H42V20H24v8h11.303a11.944 11.944 0 01-4.087 5.571l.002-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/>
-                  </svg>
-                  {googleLoading ? "Conectando..." : "Conectar con Google Calendar"}
-                </button>
-              )}
-            </div>
-
-            <hr className="border-line" />
-
-            {/* Timezone */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Zona Horaria</h2>
-              <p className="text-sm text-text-secondary mb-5">
-                Define la zona horaria de tu organización. Se usará para guardar horarios bloqueados y disponibilidad correctamente.
-              </p>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="timezone" className="text-sm font-semibold text-text-primary">Zona horaria</label>
-                <select
-                  id="timezone"
-                  value={timezone}
-                  onChange={e => setTimezone(e.target.value)}
-                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
-                >
-                  {TIMEZONES.map((tz, i) => (
-                    <option key={i} value={tz.value} disabled={tz.disabled}>{tz.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <hr className="border-line" />
-
-            {/* Email Notifications */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Notificaciones por Email</h2>
-              <p className="text-sm text-text-secondary mb-5">
-                Recibe un correo cada vez que alguien llene un formulario. Usa el SMTP configurado en la empresa vinculada al formulario.
-              </p>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">Correo de notificación</label>
-                <input
-                  type="email"
-                  placeholder="tu@correo.com"
-                  value={notificationEmail}
-                  onChange={e => setNotificationEmail(e.target.value)}
-                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
-                />
-                <p className="text-xs text-text-secondary">Si lo dejas vacío, se usará el correo de tu cuenta. El SMTP debe estar configurado en la empresa del formulario.</p>
-              </div>
-            </div>
-
-            <hr className="border-line" />
-
-            {/* Pipeline Settings */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Pipeline de Ventas</h2>
-              <p className="text-sm text-text-secondary mb-5">
-                Configura cómo se gestionan tus ventas. Los deals en la etapa Ganado se archivarán automáticamente después del período indicado. Las ventas perdidas solo se archivan manualmente.
-              </p>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">Auto-archivar deals ganados (días)</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    value={autoArchiveDays}
-                    onChange={e => setAutoArchiveDays(parseInt(e.target.value) || 0)}
-                    className="min-h-11 lg:min-h-10 w-24 px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
-                  />
-                  <span className="text-sm text-text-secondary">{autoArchiveDays === 0 ? "Desactivado (nunca archivar)" : "días después de ganar"}</span>
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-line" />
-
-            {/* Digest summary */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Resumen por WhatsApp</h2>
-              <p className="text-sm text-text-secondary mb-4">
-                Programa un resumen diario/semanal generado por IA con pipelines, ventas pendientes, ingresos y cobros próximos.
-              </p>
-              <Link
-                href="/settings/digest"
-                className="inline-flex min-h-11 items-center px-4 py-2.5 border border-line text-sm font-semibold rounded-control hover:bg-nav-hover transition-colors lg:min-h-10"
-              >
-                Configurar resumen →
-              </Link>
-            </div>
-
-            <hr className="border-line" />
-
-            {/* WhatsApp */}
-            <div>
-              <h2 className="text-lg font-bold text-text-primary mb-1">Notificaciones por WhatsApp</h2>
-              <p className="text-sm text-text-secondary mb-5" data-check-ignore-tap>
-                Recibe alertas vía <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-primary hover:underline">CallMeBot</a> cuando ocurran eventos en tu CRM.
-              </p>
-            </div>
-
-            <form onSubmit={handleSave} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">Phone Number</label>
-                <input
-                  type="text"
-                  placeholder="Ej. +34612345678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
-                />
-                <p className="text-xs text-text-secondary">Incluye el código de país (ej. +1, +34, +52).</p>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-text-primary">CallMeBot API Key</label>
-                <input
-                  type="password"
-                  placeholder="Tu clave de 6 o 7 dígitos"
-                  value={callMeBotApiKey}
-                  onChange={(e) => setCallMeBotApiKey(e.target.value)}
-                  className="min-h-11 lg:min-h-10 w-full px-4 py-2.5 rounded-lg border border-line bg-surface-sidebar focus:bg-surface-elevated focus:outline-none focus:ring-1 focus:ring-focus/40 transition-all text-sm"
-                />
-                <p className="text-xs text-text-secondary">Obtén la clave enviando &quot;I allow callmebot to send me messages&quot; al número de WhatsApp de CallMeBot.</p>
-              </div>
-
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              {success && <p className="text-sm text-green-600 font-medium">Configuración guardada correctamente.</p>}
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="min-h-11 lg:min-h-10 px-5 py-2.5 bg-action-primary hover:opacity-90 text-action-primary-foreground text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {loading ? "Guardando..." : "Guardar configuración"}
-                </button>
-              </div>
-            </form>
+    <SettingsScreen title="General">
+      <Enter index={0}>
+        <PageHeader title="General" subtitle="Zona horaria y reglas del pipeline de tu organización." />
+      </Enter>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          void save();
+        }}
+        className="flex flex-col gap-5"
+      >
+        <Block title="Zona horaria">
+          <div className="flex flex-col gap-2 px-4 py-4 sm:px-5">
+            <p className="text-sm text-text-secondary">Se usa para guardar horarios bloqueados y la disponibilidad correctamente.</p>
+            <label htmlFor="timezone" className="text-sm font-semibold text-text-primary">Zona horaria</label>
+            <select id="timezone" value={values.timezone} onChange={(e) => set("timezone", e.target.value)} className={inputCls}>
+              {TIMEZONES.map((tz, i) => (
+                <option key={i} value={tz.value} disabled={tz.disabled}>{tz.label}</option>
+              ))}
+            </select>
           </div>
-    </main>
+        </Block>
+
+        <Block title="Pipeline de ventas">
+          <div className="flex flex-col gap-2 px-4 py-4 sm:px-5">
+            <p className="text-sm text-text-secondary">Los deals en la etapa Ganado se archivan solos después del periodo indicado. Las ventas perdidas solo se archivan a mano.</p>
+            <label htmlFor="auto-archive" className="text-sm font-semibold text-text-primary">Auto-archivar deals ganados (días)</label>
+            <div className="flex items-center gap-3">
+              <input id="auto-archive" type="number" min={0} value={values.autoArchiveDays} onChange={(e) => set("autoArchiveDays", parseInt(e.target.value) || 0)} className={`${inputCls} w-28`} />
+              <span className="text-sm text-text-secondary">{values.autoArchiveDays === 0 ? "Desactivado (nunca archivar)" : "días después de ganar"}</span>
+            </div>
+          </div>
+          <SaveBar saving={saving} saved={saved} error={error} />
+        </Block>
+      </form>
+    </SettingsScreen>
   );
 }

@@ -248,8 +248,9 @@ test("Chip tones map to tokens: hot Lima+Obsidiana, late danger, done success, n
   assert.match(tone("late"), /\btext-danger\b/);
   assert.match(tone("done"), /\bbg-success-soft\b/);
   assert.match(tone("done"), /\btext-success\b/);
-  // DESIGN.md · Chips: «Lavanda para neutral».
-  assert.match(tone("neutral"), /\bbg-surface-sidebar\b/);
+  // 2026-11-08: el neutral es minimalista (solo borde fino y texto), sin relleno de color.
+  assert.match(tone("neutral"), /\bborder-line\b/);
+  assert.doesNotMatch(tone("neutral"), /\bbg-/);
   assert.match(src, /\brounded-full\b/);
   assert.match(src, /children\s*:\s*(?:React\.)?ReactNode/, "children is required: chips always carry text");
 });

@@ -14,7 +14,7 @@ type SegmentedProps = {
 
 export function Segmented({ options, value, onChange, label }: SegmentedProps) {
   return (
-    <div role="group" aria-label={label} className="inline-flex max-w-full rounded-control bg-surface-sidebar p-0.5">
+    <div role="group" aria-label={label} className="inline-flex max-w-full flex-wrap items-center gap-1">
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -24,8 +24,10 @@ export function Segmented({ options, value, onChange, label }: SegmentedProps) {
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
             className={cn(
-              "crm-press min-h-11 whitespace-nowrap rounded-[8px] px-3 text-sm lg:min-h-10",
-              selected ? "bg-surface-elevated font-semibold text-text-primary" : "font-medium text-text-secondary hover:text-text-primary",
+              "crm-press min-h-11 whitespace-nowrap rounded-full border px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9",
+              selected
+                ? "border-line bg-nav-active font-semibold text-[var(--nav-active-ink)]"
+                : "border-transparent font-medium text-text-secondary-strong hover:bg-nav-hover hover:text-text-primary",
             )}
           >
             {option.label}

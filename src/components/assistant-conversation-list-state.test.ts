@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { assistantConversationListReducer, INITIAL_ASSISTANT_CONVERSATION_LIST_STATE } from "./assistant-conversation-list-state.ts";
+import { assistantConversationListReducer, groupConversationsByDay, INITIAL_ASSISTANT_CONVERSATION_LIST_STATE } from "./assistant-conversation-list-state.ts";
 
 const existing = [{ id: "one", title: "Ventas de julio", updatedAt: "2026-07-16" }];
 
@@ -77,4 +77,28 @@ test("retrying after a successful empty snapshot remains a background refresh", 
     conversations: [],
     hasSnapshot: true,
   });
+});
+
+test("history groups by local day: Hoy, Ayer, Últimos 7 días, Anteriores; empty groups are dropped", () => {
+  const now = new Date(2026, 10, 6, 15, 30);
+  const at = (days: number, hour = 10) => new Date(2026, 10, 6 - days, hour).toISOString();
+  const rows = [
+    { id: "a", title: "Propuesta de rediseño para Clínica Sanar", updatedAt: at(0, 14) },
+    { id: "b", title: "Resumen de tratos de octubre", updatedAt: at(0, 0) },
+    { id: "c", title: "Correo de seguimiento a Grupo Ferrer", updatedAt: at(1, 23) },
+    { id: "d", title: "Ideas de contenido para noviembre", updatedAt: at(3) },
+    { id: "e", title: "Cotización de landing para Café Altura", updatedAt: at(6) },
+    { id: "f", title: "Agenda de la semana del 2 de noviembre", updatedAt: at(7) },
+    { id: "g", title: "Plan de octubre", updatedAt: at(30) },
+  ];
+  const groups = groupConversationsByDay(rows, now);
+  assert.deepEqual(groups.map((g: { label: string; conversations: { id: string }[] }) => [g.label, g.conversations.map((c) => c.id)]), [
+    ["Hoy", ["a", "b"]],
+    ["Ayer", ["c"]],
+    ["Últimos 7 días", ["d", "e", "f"]],
+    ["Anteriores", ["g"]],
+  ]);
+  const total = groups.reduce((sum: number, g: { conversations: unknown[] }) => sum + g.conversations.length, 0);
+  assert.equal(total, rows.length, "every conversation lands in exactly one group");
+  assert.deepEqual(groupConversationsByDay([], now), []);
 });

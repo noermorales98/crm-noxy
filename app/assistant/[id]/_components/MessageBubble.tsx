@@ -306,7 +306,7 @@ export default function MessageBubble({
                   aria-label="Ver respuesta en pantalla completa"
                   className={usesSoftCards
                     ? `${styles.iconButton} ${styles.metaButton}`
-                    : "p-1 rounded-md text-text-secondary/30 hover:text-text-secondary/70 hover:bg-black/5 transition-colors"}
+                    : "p-1 rounded-md text-text-secondary/30 hover:text-text-secondary/70 transition-colors"}
                 >
                   <Maximize2 size={11} aria-hidden="true" />
                 </button>
@@ -448,7 +448,7 @@ export default function MessageBubble({
                   aria-label="Cerrar pantalla completa"
                   className={usesSoftCards
                     ? `${styles.iconButton} ${styles.fullscreenClose}`
-                    : "absolute top-2.5 right-2.5 p-1.5 rounded-lg text-text-secondary/40 hover:text-text-secondary hover:bg-black/5 transition-colors z-10"}
+                    : "absolute top-2.5 right-2.5 p-1.5 rounded-lg text-text-secondary/40 hover:text-text-secondary transition-colors z-10"}
                 >
                   <Minimize2 size={14} aria-hidden="true" />
                 </button>

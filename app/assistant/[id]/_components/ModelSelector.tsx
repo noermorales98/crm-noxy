@@ -144,7 +144,7 @@ export default function ModelSelector({
   const isInline = placement === "top-right";
 
   const btnClass = isInline
-    ? "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-text-secondary hover:text-text-primary hover:bg-black/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    ? "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-text-secondary hover:text-text-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     : "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-nav-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   const menu = open && menuPos

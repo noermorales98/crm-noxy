@@ -7,7 +7,6 @@ import { useState, useEffect, useCallback } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Add01Icon,
-  Search01Icon,
   User02Icon,
 } from "@hugeicons/core-free-icons";
 import AddClientModal from "./AddClientModal";
@@ -33,7 +32,6 @@ export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
   const router = useRouter();
   const { data: session } = useSession();
   const [clients, setClients] = useState<VaultClient[]>([]);
-  const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState<VaultClient | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -48,9 +46,7 @@ export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
     if (session?.user) fetchClients();
   }, [session, fetchClients]);
 
-  const filtered = clients.filter(
-    (c) => !search || c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = clients;
 
   function handleClientAdded(client: { id: string; name: string }) {
     setShowAddModal(false);
@@ -85,36 +81,26 @@ export default function VaultNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       <div className="flex flex-col h-full">
-        <div className="px-3 pt-1 pb-3 shrink-0 flex flex-col gap-1.5">
+        <div className="pb-2 shrink-0 flex flex-col">
           <button
             onClick={() => setShowAddModal(true)}
-            className="w-full min-h-11 flex items-center justify-center gap-2 bg-action-primary text-action-primary-foreground py-2.5 px-3 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
+            className="relative isolate flex min-h-11 w-full items-center gap-2 px-3 text-sm font-medium text-text-primary outline-none before:absolute before:inset-x-0 before:inset-y-1 before:-z-10 before:rounded-control before:border before:border-control before:bg-surface-elevated hover:before:bg-nav-hover focus-visible:before:ring-2 focus-visible:before:ring-focus"
           >
-            <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} color="white" />
+            <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} aria-hidden="true" />
             Nuevo cliente
           </button>
           <button
             onClick={() => setShowImportModal(true)}
-            className="w-full flex items-center justify-center gap-2 border border-line text-text-primary py-2 px-3 rounded-lg text-sm font-medium hover:bg-nav-hover transition-colors"
+            className="flex min-h-11 w-full items-center gap-2 px-3 text-sm font-medium text-text-secondary-strong hover:text-text-primary rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus"
           >
             Agregar existente
           </button>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-surface-sidebar border border-line focus-within:ring-1 focus-within:ring-line">
-            <HugeiconsIcon icon={Search01Icon} size={ICON_SIZE} color="#9ca3af" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar cliente…"
-              className="flex-1 text-sm bg-transparent focus:outline-none min-w-0"
-            />
-          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-4 min-h-0">
+        <div className="pb-2">
           {filtered.length === 0 ? (
             <p className="text-xs text-text-secondary px-1 py-2 italic">
-              {clients.length === 0 ? "Sin clientes" : "Sin resultados"}
+              Sin clientes
             </p>
           ) : (
             <div className="flex flex-col gap-0.5">

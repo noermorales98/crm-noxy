@@ -76,12 +76,12 @@ test("light frame pairs meet WCAG AA in every theme", () => {
     const { id, tokens } = theme;
     // Marco claro: texto secundario e iconos sobre el fondo del marco.
     assert.ok(contrastRatio(tokens.textSecondary, tokens.surfaceSidebar) >= 4.5, `${id}: secondary text on frame`);
-    // Destino activo: su tinta sobre la pastilla blanca.
+    // Destino activo (escalera de acento): su tinta sobre la pastilla navActive del tema.
     const ink = navActiveInk(theme);
-    assert.ok(contrastRatio(ink, tokens.surfaceElevated) >= 4.5, `${id}: active ink ${ink} on elevated`);
-    // La tinta es la acción del tema cuando llega a AA (identidad del tema); si no, Obsidiana
+    assert.ok(contrastRatio(ink, tokens.navActive) >= 4.5, `${id}: active ink ${ink} on the nav-active pill`);
+    // La tinta es la acción del tema cuando llega a AA sobre la pastilla; si no, el texto principal
     // (regla de pares de DESIGN.md: Azul Recuerdo y Lima siempre con Obsidiana).
-    const actionPasses = contrastRatio(tokens.actionPrimary, tokens.surfaceElevated) >= 4.5;
+    const actionPasses = contrastRatio(tokens.actionPrimary, tokens.navActive) >= 4.5;
     assert.equal(ink, actionPasses ? tokens.actionPrimary : tokens.textPrimary, `${id}: active ink choice`);
     // La tinta llega al shell como variable CSS del tema.
     assert.equal((crmThemeCssVariables(theme) as Record<string, string>)["--nav-active-ink"], ink, `${id}: --nav-active-ink`);

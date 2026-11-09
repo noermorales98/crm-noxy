@@ -4,19 +4,10 @@ import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete01Icon, Building04Icon, Cancel01Icon, ServerStack01Icon, GlobeIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
+import { Delete01Icon, Cancel01Icon, ServerStack01Icon, GlobeIcon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { CompanyAvatar, CompanyIconPicker, useCompanyIcons, type CompanyIconKey } from "@/src/components/ui/EntityIcon";
 import { Chip, DataTable, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
-
-function CompanyAvatar({ name }: { name: string }) {
-  const colors = ["bg-blue-100 text-blue-700", "bg-purple-100 text-purple-700", "bg-green-100 text-green-700", "bg-amber-100 text-amber-700", "bg-rose-100 text-rose-700", "bg-cyan-100 text-cyan-700"];
-  const color = colors[name.charCodeAt(0) % colors.length];
-  return (
-    <div className={`flex size-9 shrink-0 items-center justify-center rounded-control text-sm font-semibold ${color}`}>
-      {name.charAt(0).toUpperCase()}
-    </div>
-  );
-}
 
 type CompanyRow = {
   id: string;
@@ -37,6 +28,8 @@ export default function CompaniesPage() {
   const [loadError, setLoadError] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { iconFor, setIcon } = useCompanyIcons();
+  const [iconDraft, setIconDraft] = useState<CompanyIconKey>("building");
   const [formData, setFormData] = useState({ name: "", website: "", industry: "" });
 
   const [showSmtpModal, setShowSmtpModal] = useState(false);
@@ -84,6 +77,7 @@ export default function CompaniesPage() {
   const openCreateModal = () => {
     setEditingId(null);
     setFormData({ name: "", website: "", industry: "" });
+    setIconDraft("building");
     setShowModal(true);
   };
 
@@ -105,6 +99,7 @@ export default function CompaniesPage() {
   const openEditModal = (company: any) => {
     setEditingId(company.id);
     setFormData({ name: company.name, website: company.website || "", industry: company.industry || "" });
+    setIconDraft(iconFor(company.id));
     setShowModal(true);
   };
 
@@ -146,6 +141,7 @@ export default function CompaniesPage() {
       const res = await fetch("/api/companies", { method: isEditing ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(isEditing ? { ...formData, id: editingId } : formData) });
       if (res.ok) {
         const saved = await res.json();
+        if (saved?.id) setIcon(saved.id, iconDraft);
         if (isEditing) setCompanies(companies.map(c => c.id === editingId ? saved : c));
         else setCompanies([saved, ...companies]);
         setShowModal(false); setEditingId(null); setFormData({ name: "", website: "", industry: "" });
@@ -262,7 +258,7 @@ export default function CompaniesPage() {
       header: "Empresa",
       render: (c: CompanyRow) => (
         <div className="flex min-w-0 items-center gap-3">
-          <CompanyAvatar name={c.name} />
+          <CompanyAvatar icon={iconFor(c.id)} />
           <span className="truncate font-semibold text-text-primary" title={c.name}>{c.name}</span>
         </div>
       ),
@@ -277,7 +273,7 @@ export default function CompaniesPage() {
   const mobileRow = (c: CompanyRow) => (
     <div className="flex min-w-0 flex-1 flex-col gap-2 py-1">
       <div className="flex min-w-0 items-center gap-3">
-        <CompanyAvatar name={c.name} />
+        <CompanyAvatar icon={iconFor(c.id)} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-text-primary">{c.name}</p>
           <p className="truncate text-xs text-text-secondary">{c.industry || "Sin industria"}</p>
@@ -341,6 +337,10 @@ export default function CompaniesPage() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-text-primary">Website</label>
                     <input type="text" value={formData.website} onChange={e => setFormData({ ...formData, website: e.target.value })} className={inputCls} placeholder="acme.com" />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-semibold text-text-primary">Icono</span>
+                    <CompanyIconPicker value={iconDraft} onChange={setIconDraft} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-semibold text-text-primary">Industria</label>

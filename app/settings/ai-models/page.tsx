@@ -153,7 +153,7 @@ export default function AiModelsPage() {
   );
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-6 py-6 bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 bg-surface-app">
       <div className="max-w-3xl">
         {/* Header */}
         <PageHeader

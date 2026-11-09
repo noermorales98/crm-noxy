@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useHeader } from "@/src/context/HeaderContext";
 import VaultPanel from "@/src/components/vault/VaultPanel";
+import VaultClientSearch from "@/src/components/vault/VaultClientSearch";
 
 export default function BovedaClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const router = useRouter();
   const { resetState } = useHeader();
   const [clientName, setClientName] = useState<string | null>(null);
+  const [allClients, setAllClients] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,6 +24,7 @@ export default function BovedaClientPage() {
       const res = await fetch("/api/clients");
       if (res.ok) {
         const clients = await res.json();
+        setAllClients(clients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
         const client = clients.find((c: any) => c.id === clientId);
         if (client) {
           setClientName(client.name);
@@ -44,5 +47,12 @@ export default function BovedaClientPage() {
     );
   }
 
-  return <VaultPanel clientId={clientId} clientName={clientName ?? undefined} />;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 border-b border-line px-4 py-3 sm:px-6">
+        <VaultClientSearch clients={allClients} currentId={clientId} />
+      </div>
+      <VaultPanel clientId={clientId} clientName={clientName ?? undefined} />
+    </div>
+  );
 }

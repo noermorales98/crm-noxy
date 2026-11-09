@@ -1,13 +1,13 @@
 "use client";
 
+import "@/src/styles/crm-framed.css";
 import Sidebar from "@/src/components/Sidebar";
-import Header from "@/src/components/Header";
+import PageBar from "@/src/components/PageBar";
 import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
 import MobileBottomTabBar from "@/src/components/MobileBottomTabBar";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import DbOutageBanner from "@/src/components/DbOutageBanner";
 import PermissionGate from "@/src/components/PermissionGate";
-import { isAssistantRoute } from "@/src/components/assistant-new-sidebar-state";
 import { KbProvider } from "@/src/context/KbContext";
 import { EmailProvider } from "@/src/context/EmailContext";
 import { SearchProvider } from "@/src/context/SearchContext";
@@ -25,7 +25,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const { themeId, theme } = useCrmTheme();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
-  const useFloatingAssistantSidebar = isAssistantRoute(pathname ?? "");
   const showAssistantMobileChrome =
     hideHeader && (pathname ?? "").startsWith("/assistant");
 
@@ -35,25 +34,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         <EmailProvider>
           <MobileChromeProvider>
             <div
-              className="flex h-dvh overflow-hidden bg-surface-sidebar"
+              className="noxy-product-frame flex h-dvh overflow-hidden bg-surface-sidebar"
               data-crm-theme={themeId}
               style={crmThemeCssVariables(theme) as CSSProperties}
             >
-              {useFloatingAssistantSidebar ? (
+              <div className="hidden lg:flex">
+                <Sidebar />
+              </div>
+              <div className="lg:hidden">
                 <AssistantSidebarShell />
-              ) : (
-                <>
-                  <div className="hidden lg:flex">
-                    <Sidebar />
-                  </div>
-                  <div className="lg:hidden">
-                    <AssistantSidebarShell />
-                  </div>
-                </>
-              )}
+              </div>
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 <DbOutageBanner />
-                {!hideHeader && <Header />}
                 {showAssistantMobileChrome && (
                   <div className="crm-header-chrome-solid crm-safe-top shrink-0 lg:hidden">
                     <div className="flex h-12 items-center gap-2 px-3">
@@ -67,8 +59,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {/* Hoja de contenido: lo que separa el marco claro del trabajo. */}
                 <div
                   data-crm-sheet
-                  className="flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app lg:rounded-tl-surface lg:border-l lg:border-t"
+                  className={`${showAssistantMobileChrome ? "" : "crm-safe-top"} flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app lg:border-l lg:border-t`}
                 >
+                  {!hideHeader && <PageBar />}
                   <PermissionGate>{children}</PermissionGate>
                 </div>
               </div>

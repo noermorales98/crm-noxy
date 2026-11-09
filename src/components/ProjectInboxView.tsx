@@ -1,5 +1,6 @@
 "use client";
 
+import EmailFrame from "@/src/components/EmailFrame";
 import { useState, useEffect } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, SentIcon, Archive01Icon, ArrowLeft01Icon, SpamIcon } from "@hugeicons/core-free-icons";
@@ -88,9 +89,9 @@ export default function ProjectInboxView({ companyId }: { companyId: string }) {
                 </p>
               </div>
             </div>
-            <div className="p-6">
+            <div className="flex min-h-0 flex-1 flex-col p-6">
               {selected.bodyHtml ? (
-                <iframe srcDoc={selected.bodyHtml} sandbox="allow-same-origin" className="w-full border-0" style={{ minHeight: "400px" }} title="Cuerpo del correo" />
+                <EmailFrame html={selected.bodyHtml} sandbox="allow-same-origin" title="Cuerpo del correo" />
               ) : selected.bodyText ? (
                 <pre className="text-sm text-text-primary whitespace-pre-wrap font-sans leading-relaxed">{selected.bodyText}</pre>
               ) : (

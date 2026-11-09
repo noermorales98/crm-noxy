@@ -1,0 +1,48 @@
+/* Shared private chrome. Public routes and the assistant keep their existing surfaces. */
+.noxy-product-frame {
+  --frame-surface: #FFFFFF;
+  --frame-edge: #E8EAEC;
+  --frame-radius: 16px;
+  --frame-control-radius: 6px;
+  --frame-card-radius: 8px;
+  --frame-title: 22px;
+  --frame-body: 14px;
+  --frame-small: 12px;
+  --frame-family: "Open Sauce Two", system-ui, sans-serif;
+  --frame-gap: 24px; --frame-flat-radius: 0px;
+  --frame-inset: 8px;
+  --frame-duration: 180ms;
+  --frame-ease: cubic-bezier(0.2, 0, 0, 1);
+  --radius-control: var(--frame-control-radius);
+  --radius-surface: var(--frame-card-radius);
+  font-family: var(--frame-family);
+}
+.noxy-product-frame [data-crm-sheet] {
+  background: var(--frame-surface);
+  /* Hoja recta, pegada a los bordes: una línea fina continua la separa del sidebar. */
+  border: 0 solid var(--frame-edge);
+  border-radius: 0;
+  margin: 0;
+}
+.noxy-product-frame > .hidden { flex: none; }
+.noxy-product-frame > .hidden > aside { border-right: 1px solid var(--color-border-subtle); }
+.noxy-product-frame header > .relative.flex.h-14 { height: 48px; }
+.noxy-product-frame :is(button, input, select, summary, a[role="button"]) { min-width: 44px; min-height: 44px; }
+.noxy-product-frame [data-crm-sheet] :is(h1,h2,h3) { font-family: var(--frame-family); }
+.noxy-product-frame [data-crm-sheet] h1 { font-size: var(--frame-title); }
+.noxy-product-frame [data-crm-sheet] :is(table,.tabular-nums) { font-variant-numeric: tabular-nums; }
+.noxy-product-frame .crm-enter { animation: none; }
+.noxy-product-frame .crm-lift { box-shadow: none; transform: none; }
+@media (max-width:1100px) {
+  .noxy-product-frame > .hidden { display: none; }
+  .noxy-product-frame [data-crm-sheet] { margin: 0; border: 0; border-radius: var(--frame-flat-radius); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .noxy-product-frame *, .noxy-product-frame *::before, .noxy-product-frame *::after { animation: none !important; transition: none !important; }
+}
+
+.noxy-product-frame > .hidden:has([data-sidebar-collapsed="true"]) { width: 64px; }
+@media (min-width:1024px) and (max-width:1100px) {
+  .noxy-product-frame > div.lg\:hidden { display: block; }
+  .noxy-product-frame header button[aria-controls="assistant-sidebar"] { display: flex; }
+}

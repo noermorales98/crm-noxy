@@ -14,7 +14,6 @@ export type NavArea = { kind: "area"; section: AreaSection; href: string; label:
 export type NavEntry = NavItem | NavArea;
 export type NavGroup = { label: string; items: NavEntry[] };
 export type MobileTab = { href: string; label: string; permission: PermissionModule };
-export type SidebarView = { mode: "flat" } | { mode: "contextual"; section: ContextualSection };
 
 const space = (href: string, label: string, section: SpaceSection, badge?: NavItem["badge"]): NavItem => ({
   href,
@@ -32,6 +31,7 @@ export const AREA_ITEMS: Readonly<Record<AreaSection, readonly NavItem[]>> = {
   sales: [
     { href: "/pipeline", label: "Pipeline de ventas", permission: "crm" },
     { href: "/pipeline/clientes", label: "Clientes", permission: "crm" },
+    { href: "/pipeline/historial", label: "Historial de tratos", permission: "crm" },
     { href: "/cotizaciones", label: "Cotizaciones", permission: "crm" },
     { href: "/forms", label: "Formularios", permission: "crm" },
   ],
@@ -79,7 +79,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
 
 const isArea = (entry: NavEntry): entry is NavArea => entry.kind === "area";
 
-/** Los 17 destinos de siempre, en una lista plana (directos + los de cada área). */
+/** Los 18 destinos de siempre, en una lista plana (directos + los de cada área). */
 export const NAV_DESTINATIONS: readonly NavItem[] = NAV_GROUPS.flatMap((group) =>
   group.items.flatMap((entry) => (isArea(entry) ? AREA_ITEMS[entry.section] : [entry])),
 );
@@ -121,9 +121,11 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   { href: "/tasks", label: "Tareas", permission: "crm" },
 ];
 
-/** Clases del destino activo de la sidebar: pastilla blanca, tinta del tema en texto e icono, peso y barra de 3 px. */
-export const NAV_ITEM_ACTIVE =
-  "bg-surface-elevated font-semibold text-[var(--nav-active-ink)] before:absolute before:-left-3 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r-full before:bg-[var(--nav-active-ink)]";
+/**
+ * Clases del destino activo de la sidebar (escalera de acento): pastilla `nav-active` del tema,
+ * tinta del tema en texto e icono y peso 600. Dos señales sin color (fondo y peso); sin barra izquierda.
+ */
+export const NAV_ITEM_ACTIVE = "before:bg-nav-active before:border-line font-semibold text-[var(--nav-active-ink)]";
 
 /** Clases de la pestaña móvil activa: tinta y peso. */
 export const MOBILE_TAB_ACTIVE = "font-semibold text-[var(--nav-active-ink)]";
@@ -197,13 +199,132 @@ export function activeMobileTab(pathname: string, tabs: readonly MobileTab[]): s
   );
 }
 
-/**
- * Vista de la sidebar: contextual en las rutas de una sección con submenú, salvo que la persona haya
- * pulsado «Volver» en esa misma ruta (`dismissedPath`). Cambiar de ruta vuelve a decidir.
- */
-export function sidebarView(pathname: string, dismissedPath: string | null): SidebarView {
-  const section = contextualSectionFor(pathname);
-  if (!section || dismissedPath === pathname) return { mode: "flat" };
-  return { mode: "contextual", section };
+// ─── Ajustes ───────────────────────────────────────────────────────────────────
+
+export type SettingsGroup = "Organización" | "Conexiones" | "Personal";
+export type SettingsItem = NavItem & { requiresTeam?: boolean; group: SettingsGroup };
+
+/** Apartados de Ajustes, cada uno en su propia pantalla; Equipo solo para quien gestiona el equipo. */
+export const SETTINGS_ITEMS: readonly SettingsItem[] = [
+  { href: "/settings", label: "General", permission: "settings", group: "Organización" },
+  { href: "/settings/equipo", label: "Equipo", permission: "settings", requiresTeam: true, group: "Organización" },
+  { href: "/settings/notificaciones", label: "Notificaciones", permission: "settings", group: "Organización" },
+  { href: "/settings/digest", label: "Resumen diario", permission: "settings", group: "Organización" },
+  { href: "/settings/integraciones", label: "Integraciones", permission: "settings", group: "Conexiones" },
+  { href: "/settings/ai-models", label: "Modelos de IA", permission: "settings", group: "Conexiones" },
+  { href: "/settings/apariencia", label: "Apariencia y sonidos", permission: "settings", group: "Personal" },
+];
+
+/** Ajustes y Perfil tienen su propia sidebar: la principal no aparece ahí. */
+export function isSettingsRoute(pathname: string): boolean {
+  return matchesRoute(pathname, "/settings") || matchesRoute(pathname, "/profile");
 }
 
+export function visibleSettingsItems(role: Role, permissions: Permissions, canManageTeam: boolean): SettingsItem[] {
+  return SETTINGS_ITEMS.filter(
+    (item) => hasPermission(role, permissions, item.permission) && (!item.requiresTeam || canManageTeam),
+  );
+}
+
+export const SIDEBAR_COLLAPSED_STORAGE_KEY = "noxy.sidebar.collapsed";
+
+/** ⌘B / Ctrl+B contrae la sidebar, salvo cuando se escribe (en un editor ⌘B es negrita). */
+export function isCollapseShortcut(event: { key: string; metaKey: boolean; ctrlKey: boolean; altKey: boolean; shiftKey: boolean; editable: boolean }): boolean {
+  if (event.editable || event.altKey || event.shiftKey) return false;
+  return (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "b";
+}
+
+
+// ─── Modos de la sidebar (Ronda 3: selector tipo Claude, listas planas y cortas) ─────────────
+
+export type NavMode = "work" | "sales" | "spaces";
+export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
+
+const spaceItems = (NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[];
+
+/**
+ * Tres modos, cada uno con una lista plana de 5 a 8 entradas (sin ramas desplegables). Reparten los mismos
+ * 18 destinos de siempre; un destino vive en un solo modo.
+ */
+export const NAV_MODES: readonly NavModeDef[] = [
+  {
+    key: "work",
+    label: "Trabajo",
+    groups: [
+      {
+        label: "Principal",
+        items: [
+          { href: "/", label: "Inicio", permission: "crm" },
+          { href: "/tasks", label: "Tareas", permission: "crm" },
+          { href: "/projects", label: "Proyectos", permission: "crm" },
+          ...AREA_ITEMS.contacts,
+        ],
+      },
+      { label: "Agenda", items: [...AREA_ITEMS.agenda] },
+    ],
+  },
+  { key: "sales", label: "Ventas", groups: [{ label: "Ventas", items: [...AREA_ITEMS.sales] }] },
+  { key: "spaces", label: "Espacios", groups: [{ label: "Espacios", items: spaceItems }] },
+];
+
+export const MODE_STORAGE_KEY = "noxy.sidebar.mode";
+
+function visibleGroups(groups: readonly NavGroup[], role: Role, permissions: Permissions): NavGroup[] {
+  return groups
+    .map((group) => ({ label: group.label, items: group.items.filter((item) => hasPermission(role, permissions, item.permission)) }))
+    .filter((group) => group.items.length > 0);
+}
+
+/** Grupos visibles de un modo (por permiso); vacío si la persona no puede ver nada de ese modo. */
+export function modeGroups(mode: NavMode, role: Role, permissions: Permissions): NavGroup[] {
+  const def = NAV_MODES.find((candidate) => candidate.key === mode);
+  return def ? visibleGroups(def.groups, role, permissions) : [];
+}
+
+/** Modos con al menos un destino visible, con sus grupos ya filtrados. */
+export function visibleModes(role: Role, permissions: Permissions): NavModeDef[] {
+  return NAV_MODES.map((def) => ({ ...def, groups: visibleGroups(def.groups, role, permissions) })).filter((def) => def.groups.length > 0);
+}
+
+const MODE_BY_SECTION: Partial<Record<ContextualSection, NavMode>> = {
+  contacts: "work",
+  agenda: "work",
+  sales: "sales",
+  mail: "spaces",
+  kb: "spaces",
+  vault: "spaces",
+  assistant: "spaces",
+  content: "spaces",
+};
+
+/** Modo dueño de la ruta: el destino más específico y, si no, la sección de la ruta; `null` en Ajustes, Perfil, etc. */
+export function modeForPath(pathname: string): NavMode | null {
+  const owners = new Map<string, NavMode>();
+  for (const def of NAV_MODES) for (const group of def.groups) for (const item of group.items) owners.set(item.href, def.key);
+  const best = activeNavHref(pathname, [...owners.keys()]);
+  if (best) return owners.get(best) ?? null;
+  const section = contextualSectionFor(pathname);
+  return section ? (MODE_BY_SECTION[section] ?? null) : null;
+}
+
+export function parseMode(raw: string | null | undefined): NavMode | null {
+  return NAV_MODES.some((def) => def.key === raw) ? (raw as NavMode) : null;
+}
+
+/** La ruta manda; si no tiene modo (Ajustes, Perfil), el guardado; si no hay, Trabajo. */
+export function resolveMode(pathname: string, stored: string | null | undefined): NavMode {
+  return modeForPath(pathname) ?? parseMode(stored) ?? "work";
+}
+
+export type ContextPanelKey = "mail" | "kb" | "vault" | "content";
+
+/** Pantallas con lista propia en la segunda columna (el Asistente conserva su chrome propio). */
+export function contextPanelFor(pathname: string): ContextPanelKey | null {
+  const section = contextualSectionFor(pathname);
+  return section === "mail" || section === "kb" || section === "vault" || section === "content" ? section : null;
+}
+
+/** Primera pantalla visible de un modo: a donde lleva hacer clic en el modo. */
+export function modeHome(mode: NavModeDef): string | null {
+  return mode.groups[0]?.items[0]?.href ?? null;
+}

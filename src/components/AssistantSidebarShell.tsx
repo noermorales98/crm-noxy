@@ -1,17 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon, PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import Sidebar from "@/src/components/Sidebar";
 import {
   INITIAL_ASSISTANT_SIDEBAR_STATE,
   assistantNewSidebarReducer,
   getSidebarFocusTarget,
-  isAssistantSidebarVisible,
-  readAssistantSidebarStoredMode,
-  writeAssistantSidebarStoredMode,
 } from "./assistant-new-sidebar-state";
 import { useOptionalMobileChrome } from "@/src/context/MobileChromeContext";
 
@@ -24,11 +21,6 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
-const PANEL_BASE_CLASSES =
-  "absolute bottom-3 left-3 top-3 w-64 max-w-[calc(100vw-24px)] transition-[transform,opacity] duration-200 motion-reduce:transition-none";
-const OPEN_PANEL_CLASSES = `${PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
-const CLOSED_PANEL_CLASSES = `${PANEL_BASE_CLASSES} -translate-x-[calc(100%+32px)] opacity-0 pointer-events-none`;
-
 const MOBILE_PANEL_BASE_CLASSES =
   "fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-[70] w-64 max-w-[calc(100vw-24px)] bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] transition-[transform,opacity] duration-200 motion-reduce:transition-none";
 const MOBILE_OPEN_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} translate-x-0 opacity-100`;
@@ -38,16 +30,15 @@ const MOBILE_CLOSED_PANEL_CLASSES = `${MOBILE_PANEL_BASE_CLASSES} -translate-x-[
 const FRAME_CONTROL_CLASSES =
   "border border-line bg-surface-sidebar text-text-primary transition-colors duration-200 hover:bg-surface-elevated motion-reduce:transition-none";
 
-const HOVER_HOST_OPEN_WIDTH = "w-[17.5rem]";
-
+/**
+ * Cajón de navegación móvil. En escritorio la navegación es la sidebar acoplada de siempre (también
+ * en /assistant): ya no hay fijar, soltar ni vistazo al pasar el cursor.
+ */
 export default function AssistantSidebarShell() {
   const [state, dispatch] = useReducer(assistantNewSidebarReducer, INITIAL_ASSISTANT_SIDEBAR_STATE);
   const [isMobile, setIsMobile] = useState(false);
-  const [hasHydrated, setHasHydrated] = useState(false);
-  const openButtonRef = useRef<HTMLButtonElement>(null);
   const hideButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const hoverHostRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef(false);
   const openedByMobileButtonRef = useRef(false);
   // Control externo que abrió el panel móvil («Más» o el botón de menú): recupera el foco al cerrar.
@@ -55,37 +46,19 @@ export default function AssistantSidebarShell() {
   const pathname = usePathname();
   const pathnameRef = useRef(pathname);
   const mobileChrome = useOptionalMobileChrome();
-  const isPinned = state.mode === "pinned";
-  const isVisible = isMobile ? state.peek : isAssistantSidebarVisible(state);
-
-  useEffect(() => {
-    const storedMode = readAssistantSidebarStoredMode();
-    if (storedMode === "pinned") dispatch({ type: "pin" });
-    setHasHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hasHydrated) return;
-    writeAssistantSidebarStoredMode(state.mode);
-  }, [hasHydrated, state.mode]);
+  const isVisible = isMobile && state.peek;
 
   const hideSidebar = useCallback(() => {
     restoreFocusRef.current = true;
-    if (isMobile) {
-      dispatch({ type: "mobileClose" });
-      return;
-    }
-    dispatch({ type: "unpin" });
-  }, [isMobile]);
+    dispatch({ type: "mobileClose" });
+  }, []);
 
+  // Elegir un destino cierra el panel móvil o el vistazo; la barra fijada se queda fija
+  // (antes navegar la desfijaba: por eso «no quedaba fijo»).
   const closeForNavigation = useCallback(() => {
     restoreFocusRef.current = true;
-    if (isMobile) {
-      dispatch({ type: "mobileClose" });
-      return;
-    }
-    dispatch({ type: "unpin" });
-  }, [isMobile]);
+    dispatch({ type: "mobileClose" });
+  }, []);
 
   useEffect(() => {
     if (pathnameRef.current === pathname) return;
@@ -124,10 +97,7 @@ export default function AssistantSidebarShell() {
       // Quien abrió el panel ya no existe (p. ej. la barra móvil en /assistant): foco de respaldo.
     }
 
-    if (!isVisible && restoreFocusRef.current) {
-      restoreFocusRef.current = false;
-      openButtonRef.current?.focus();
-    }
+    if (!isVisible) restoreFocusRef.current = false;
   }, [isMobile, isVisible]);
 
   useEffect(() => {
@@ -169,41 +139,19 @@ export default function AssistantSidebarShell() {
     return () => window.removeEventListener("keydown", handlePanelKeys);
   }, [hideSidebar, isMobile, isVisible]);
 
-  const handleHoverHostLeave = useCallback(
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (isPinned) return;
-      const next = event.relatedTarget;
-      if (next instanceof Node && hoverHostRef.current?.contains(next)) return;
-      dispatch({ type: "peekClose" });
-    },
-    [isPinned],
-  );
-
-  const peekControls = (
-    <div className="absolute -right-4 top-3 z-10 flex flex-col gap-1.5">
-      {!isMobile && (
-        <button
-          type="button"
-          aria-label="Fijar barra lateral"
-          aria-pressed={false}
-          onClick={() => dispatch({ type: "pin" })}
-          className={`flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
-        >
-          <HugeiconsIcon icon={PinIcon} size={16} aria-hidden="true" />
-        </button>
-      )}
-      <button
-        ref={hideButtonRef}
-        type="button"
-        aria-label="Ocultar barra lateral"
-        aria-expanded={isVisible}
-        aria-controls="assistant-sidebar"
-        onClick={hideSidebar}
-        className={`flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
-      >
-        <HugeiconsIcon icon={Cancel01Icon} size={17} aria-hidden="true" />
-      </button>
-    </div>
+  // Móvil: cerrar en la esquina del panel.
+  const mobileCloseControl = (
+    <button
+      ref={hideButtonRef}
+      type="button"
+      aria-label="Ocultar barra lateral"
+      aria-expanded={isVisible}
+      aria-controls="assistant-sidebar"
+      onClick={hideSidebar}
+      className={`absolute -right-4 top-3 z-10 flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
+    >
+      <HugeiconsIcon icon={Cancel01Icon} size={17} aria-hidden="true" />
+    </button>
   );
 
   if (isMobile) {
@@ -229,71 +177,12 @@ export default function AssistantSidebarShell() {
           aria-label={isVisible ? "Barra lateral principal" : undefined}
           className={isVisible ? MOBILE_OPEN_PANEL_CLASSES : MOBILE_CLOSED_PANEL_CLASSES}
         >
-          {peekControls}
+          {mobileCloseControl}
           <Sidebar variant="floating" onNavigate={closeForNavigation} />
         </div>
       </>
     );
   }
 
-  if (isPinned) {
-    return (
-      <div
-        ref={panelRef}
-        id="assistant-sidebar"
-        data-assistant-sidebar-pinned
-        className="relative z-20 flex h-full w-64 shrink-0 flex-col transition-[width,opacity] duration-200 motion-reduce:transition-none"
-      >
-        <button
-          ref={hideButtonRef}
-          type="button"
-          aria-label="Ocultar barra lateral"
-          aria-expanded={true}
-          aria-controls="assistant-sidebar"
-          aria-pressed={true}
-          onClick={hideSidebar}
-          className={`absolute right-2 top-3 z-10 flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
-        >
-          <HugeiconsIcon icon={PinOffIcon} size={16} aria-hidden="true" />
-        </button>
-        <Sidebar variant="pinned" onNavigate={closeForNavigation} />
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {!isVisible && (
-        <button
-          type="button"
-          data-assistant-sidebar-pin-hint
-          aria-label="Fijar barra lateral"
-          title="Fijar barra lateral"
-          onClick={() => dispatch({ type: "pin" })}
-          className={`fixed left-4 top-5 z-[75] flex size-11 items-center justify-center rounded-control ${FRAME_CONTROL_CLASSES}`}
-        >
-          <HugeiconsIcon icon={PinIcon} size={18} aria-hidden="true" />
-        </button>
-      )}
-
-      <div
-        ref={hoverHostRef}
-        data-assistant-sidebar-edge
-        className={`pointer-events-auto fixed inset-y-0 left-0 z-[70] ${isVisible ? HOVER_HOST_OPEN_WIDTH : "w-3"}`}
-        onPointerEnter={() => dispatch({ type: "peekOpen" })}
-        onPointerLeave={handleHoverHostLeave}
-      >
-        <div
-          ref={panelRef}
-          id="assistant-sidebar"
-          inert={!isVisible}
-          aria-hidden={!isVisible}
-          className={isVisible ? OPEN_PANEL_CLASSES : CLOSED_PANEL_CLASSES}
-        >
-          {peekControls}
-          <Sidebar variant="floating" onNavigate={closeForNavigation} />
-        </div>
-      </div>
-    </>
-  );
+  return null;
 }

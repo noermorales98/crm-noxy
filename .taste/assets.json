@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "noxy-isotipo-oficial",
+      "kind": "image",
+      "status": "existing",
+      "purpose": "Identificar Noxy CRM en el shell compartido.",
+      "requirements": [
+        "SVG existente verificado: viewBox 0 0 264 198 y relleno #3545D6.",
+        "Conservar geometría, proporción y transparencia; no añadir recuadro ni redibujar.",
+        "Usar /Isotipo_Azul.svg, con nombre accesible aportado por el texto Noxy CRM contiguo.",
+        "Los iconos funcionales se reutilizan del conjunto Hugeicons ya declarado en el proyecto; no requieren adquisición ni componentes externos."
+      ],
+      "role": "logo",
+      "sectionIds": [
+        "shell"
+      ],
+      "aspectRatio": "4:3",
+      "composition": "Isotipo oficial completo, centrado y sin recorte sobre el marco del shell. Tamaño existente de 24 por 18px junto al nombre Noxy CRM; texto fuera del archivo y fondo transparente.",
+      "source": {
+        "kind": "project",
+        "reference": "public/Isotipo_Azul.svg",
+        "license": "Marca existente del proyecto Noxy; conservar para este producto. No se presupone licencia de redistribución independiente."
+      },
+      "destination": "public/Isotipo_Azul.svg"
+    },
+    {
+      "id": "open-sauce-two-400-normal",
+      "kind": "font",
+      "status": "existing",
+      "purpose": "Texto regular, filas, cifras KPI y etiquetas de gráficos.",
+      "requirements": [
+        "Archivo local de 25200 bytes; firma wOF2 y tablas internas decodificadas correctamente.",
+        "Familia interna Open Sauce Two, peso 400, estilo normal; cobertura de caracteres españoles verificada.",
+        "Funciones OpenType pnum y tnum presentes; los diez dígitos tienen avance tabular de 640 unidades.",
+        "Conservar public/fonts/open-sauce-two/OFL.txt junto al archivo.",
+        "SHA-256: 99639351886188c7e254950dfbb124213333eb28b319a3e163fe13074951318d.",
+        "En Build comprobar carga mediante FontFace y document.fonts.check; las cifras ya son tabulares por defecto, por lo que activar tnum puede conservar sus anchos.",
+        "Archivo reutilizado, sin descarga en esta fase; no existe un Content-Type de descarga que registrar."
+      ],
+      "role": "font",
+      "sectionIds": [
+        "shell",
+        "inicio-prioridad",
+        "inicio-tareas",
+        "inicio-citas",
+        "inicio-proyectos-contactos",
+        "contactos",
+        "empresas",
+        "tareas",
+        "proyectos",
+        "proyecto-detalle",
+        "pipeline",
+        "trato-detalle",
+        "clientes",
+        "historial",
+        "cotizaciones",
+        "formularios",
+        "citas",
+        "tipos-cita",
+        "disponibilidad",
+        "correo",
+        "campanas",
+        "docs",
+        "boveda",
+        "contenido",
+        "ajustes",
+        "equipo",
+        "modelos",
+        "resumen",
+        "perfil"
+      ],
+      "source": {
+        "kind": "project",
+        "reference": "public/fonts/open-sauce-two/open-sauce-two-latin-400-normal.woff2",
+        "license": "SIL Open Font License 1.1. Licencia local e información interna verificadas; familia y licencia contrastadas con el [repositorio oficial](https://github.com/marcologous/Open-Sauce-Fonts)."
+      },
+      "destination": "public/fonts/open-sauce-two/open-sauce-two-latin-400-normal.woff2"
+    },
+    {
+      "id": "open-sauce-two-500-normal",
+      "kind": "font",
+      "status": "existing",
+      "purpose": "Controles, nombres de registros y etiquetas de peso medio.",
+      "requirements": [
+        "Archivo local de 26652 bytes; firma wOF2 y tablas internas decodificadas correctamente.",
+        "Familia interna Open Sauce Two Medium, peso 500, estilo normal; cobertura de caracteres españoles verificada.",
+        "Funciones OpenType pnum y tnum presentes; los diez dígitos tienen avance tabular de 640 unidades.",
+        "Declarar como peso 500 de la familia de interfaz Open Sauce Two, sin síntesis de peso.",
+        "Conservar public/fonts/open-sauce-two/OFL.txt junto al archivo.",
+        "SHA-256: 5569b7bb220200e06fb6e90d805dc1a1985aba5bdaefe3343caf25d684eb8f64.",
+        "Comprobar carga real en Build; archivo reutilizado sin descarga ni cabecera Content-Type nueva."
+      ],
+      "role": "font",
+      "sectionIds": [
+        "shell",
+        "inicio-prioridad",
+        "inicio-tareas",
+        "inicio-citas",
+        "inicio-proyectos-contactos",
+        "contactos",
+        "empresas",
+        "tareas",
+        "proyectos",
+        "proyecto-detalle",
+        "pipeline",
+        "trato-detalle",
+        "clientes",
+        "historial",
+        "cotizaciones",
+        "formularios",
+        "citas",
+        "tipos-cita",
+        "disponibilidad",
+        "correo",
+        "campanas",
+        "docs",
+        "boveda",
+        "contenido",
+        "ajustes",
+        "equipo",
+        "modelos",
+        "resumen",
+        "perfil"
+      ],
+      "source": {
+        "kind": "project",
+        "reference": "public/fonts/open-sauce-two/open-sauce-two-latin-500-normal.woff2",
+        "license": "SIL Open Font License 1.1. Licencia local e información interna verificadas; familia y licencia contrastadas con el [repositorio oficial](https://github.com/marcologous/Open-Sauce-Fonts)."
+      },
+      "destination": "public/fonts/open-sauce-two/open-sauce-two-latin-500-normal.woff2"
+    },
+    {
+      "id": "open-sauce-two-600-normal",
+      "kind": "font",
+      "status": "existing",
+      "purpose": "Títulos, encabezados de sección, etiquetas semibold y selección activa.",
+      "requirements": [
+        "Archivo local de 27412 bytes; firma wOF2 y tablas internas decodificadas correctamente.",
+        "Familia interna Open Sauce Two SemiBold, peso 600, estilo normal; cobertura de caracteres españoles verificada.",
+        "Funciones OpenType pnum y tnum presentes; los diez dígitos tienen avance tabular de 640 unidades.",
+        "Declarar como peso 600 de la familia de interfaz Open Sauce Two, sin síntesis de peso.",
+        "Conservar public/fonts/open-sauce-two/OFL.txt junto al archivo.",
+        "SHA-256: a886e6399f84b9d1ec88b3efaa7b48f278983038e6955ce9070d8adc66bb32ea.",
+        "Comprobar carga real en Build; archivo reutilizado sin descarga ni cabecera Content-Type nueva."
+      ],
+      "role": "font",
+      "sectionIds": [
+        "shell",
+        "inicio-prioridad",
+        "inicio-tareas",
+        "inicio-citas",
+        "inicio-proyectos-contactos",
+        "contactos",
+        "empresas",
+        "tareas",
+        "proyectos",
+        "proyecto-detalle",
+        "pipeline",
+        "trato-detalle",
+        "clientes",
+        "historial",
+        "cotizaciones",
+        "formularios",
+        "citas",
+        "tipos-cita",
+        "disponibilidad",
+        "correo",
+        "campanas",
+        "docs",
+        "boveda",
+        "contenido",
+        "ajustes",
+        "equipo",
+        "modelos",
+        "resumen",
+        "perfil"
+      ],
+      "source": {
+        "kind": "project",
+        "reference": "public/fonts/open-sauce-two/open-sauce-two-latin-600-normal.woff2",
+        "license": "SIL Open Font License 1.1. Licencia local e información interna verificadas; familia y licencia contrastadas con el [repositorio oficial](https://github.com/marcologous/Open-Sauce-Fonts)."
+      },
+      "destination": "public/fonts/open-sauce-two/open-sauce-two-latin-600-normal.woff2"
+    }
+  ]
+}

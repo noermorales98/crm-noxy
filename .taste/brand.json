@@ -1,0 +1,353 @@
+{
+  "version": 1,
+  "foundation": {
+    "strategy": "preserve",
+    "existingAssets": [
+      "DESIGN.md",
+      "app/globals.css",
+      "src/lib/crm-themes.ts",
+      "src/components/Sidebar.tsx",
+      "public/Isotipo_Azul.svg",
+      "public/fonts/open-sauce-two/open-sauce-two-latin-400-normal.woff2",
+      "public/fonts/open-sauce-two/open-sauce-two-latin-500-normal.woff2",
+      "public/fonts/open-sauce-two/open-sauce-two-latin-600-normal.woff2",
+      "public/fonts/open-sauce-two/OFL.txt",
+      "02-DOCS/wiki/sdd/specs/assets/rediseno-obsidiana-estructural/maqueta.html"
+    ],
+    "assetActions": [
+      {
+        "asset": "DESIGN.md",
+        "action": "preserve",
+        "reason": "Define Noxy CRM, su vocabulario y la navegación actual con ramas plegables."
+      },
+      {
+        "asset": "app/globals.css",
+        "action": "preserve",
+        "reason": "Conservar la paleta verificada y la familia tipográfica existente."
+      },
+      {
+        "asset": "src/lib/crm-themes.ts",
+        "action": "protect",
+        "reason": "Mantener los diez temas y separar sus preferencias de los colores semánticos y de datos."
+      },
+      {
+        "asset": "src/components/Sidebar.tsx",
+        "action": "preserve",
+        "reason": "Conservar la identificación Noxy CRM, el isotipo sin recuadro y las funciones actuales de navegación."
+      },
+      {
+        "asset": "public/Isotipo_Azul.svg",
+        "action": "protect",
+        "reason": "Isotipo oficial verificado en Índigo #3545D6; usar su geometría original sin inventar una marca."
+      },
+      {
+        "asset": "public/fonts/open-sauce-two/open-sauce-two-latin-400-normal.woff2",
+        "action": "preserve",
+        "reason": "Archivo local para texto y cifras regulares."
+      },
+      {
+        "asset": "public/fonts/open-sauce-two/open-sauce-two-latin-500-normal.woff2",
+        "action": "preserve",
+        "reason": "Archivo local para controles y etiquetas de peso medio."
+      },
+      {
+        "asset": "public/fonts/open-sauce-two/open-sauce-two-latin-600-normal.woff2",
+        "action": "preserve",
+        "reason": "Archivo local para títulos y selección."
+      },
+      {
+        "asset": "public/fonts/open-sauce-two/OFL.txt",
+        "action": "protect",
+        "reason": "Conservar la licencia junto a los archivos tipográficos."
+      },
+      {
+        "asset": "02-DOCS/wiki/sdd/specs/assets/rediseno-obsidiana-estructural/maqueta.html",
+        "action": "preserve",
+        "reason": "Referencia local del lenguaje aprobado; las medidas de esta fase siguen la ficha recibida."
+      }
+    ],
+    "lockedDecisions": [
+      "Producto Noxy CRM, organización Noxy Digital e interfaz en español.",
+      "Open Sauce Two como única familia de interfaz, pesos 400, 500 y 600.",
+      "Isotipo oficial azul sin fondo ni caja.",
+      "Marco claro en L; conservar los diez temas personales y las preferencias guardadas.",
+      "Conservar acciones principales Índigo y navegación activa con pastilla accesible según DESIGN.md; las pestañas de contenido usan subrayado de 2px.",
+      "Mantener rutas, permisos, campos, acciones y funciones actuales; no introducir buscadores, indicadores ni promociones nuevos.",
+      "Preservar navegación con ramas plegables y cuenta al pie, según la documentación actual, frente a la lista plana mencionada en el brief anterior.",
+      "Conservar colores semánticos, de integraciones y de datos guardados por el usuario.",
+      "Texto funcional mínimo de 12px, contraste AA, foco visible y objetivos táctiles de al menos 44px.",
+      "No modificar superficies públicas, login ni el diseño independiente del asistente.",
+      "La ficha fija hoja blanca, borde de 1px, esquina de 16px, margen exterior de 8px y ausencia de sombras.",
+      "La instrucción actual de movimiento prevalece sobre las entradas escalonadas antiguas: solo feedback de interacción."
+    ],
+    "assumptions": [
+      "El sistema de colores describe Noxy Índigo por defecto; los otros temas mantienen sus equivalencias semánticas.",
+      "Se adopta la cara de marco teñido por la marca, sin convertir Índigo en una nueva serie de gráficos.",
+      "Las medidas de la ficha sustituyen las medidas históricas del sistema, salvo el mínimo táctil explícito de 44px.",
+      "El límite de color inferior al 3% se aplica a acentos saturados; el marco Lavanda permanece como superficie de baja cromaticidad.",
+      "No se aportaron imágenes de referencia adjuntas; se utilizan los archivos de marca verificados.",
+      "La comprobación de fuentes cargadas, cifras tabulares, contraste en todos los temas y comportamiento interactivo queda para las fases de implementación y revisión."
+    ]
+  },
+  "creativeDirection": {
+    "summary": "Framed sheet con cara Noxy: marco Lavanda de baja cromaticidad, hoja blanca y Open Sauce Two. La interfaz responde a qué necesita atención hoy.",
+    "traits": [
+      {
+        "quality": "Precisión operativa",
+        "boundary": "not una cabecera comercial ni cifras ornamentales"
+      },
+      {
+        "quality": "Identidad reconocible",
+        "boundary": "not navegación saturada ni una marca nueva"
+      },
+      {
+        "quality": "Densidad legible",
+        "boundary": "not tarjetas repetidas ni información comprimida por debajo de 12px"
+      }
+    ],
+    "productiveTension": "El marco identifica a Noxy; el contenido conserva neutralidad para que las personas, fechas y decisiones destaquen.",
+    "signatureDevice": {
+      "description": "Franja operativa Noxy: cifras existentes en Obsidiana y un marcador Lima «Atender hoy» únicamente cuando los datos actuales justifican urgencia.",
+      "status": "candidate",
+      "invariants": [
+        "Utiliza exclusivamente cifras y estados ya disponibles.",
+        "Una franja compartida con divisores finos, sin iconos decorativos ni minigráficos.",
+        "Lima siempre lleva texto Obsidiana y una etiqueta explícita.",
+        "No añade un indicador de urgencia si la pantalla carece de ese estado.",
+        "El isotipo oficial y el marco Lavanda sostienen la identidad incluso sin marcador."
+      ]
+    },
+    "restraint": "Menos del 3% de acento saturado como objetivo; una sola acción principal, cromatismo de datos con significado y un máximo de tres niveles: marco, hoja y tarjeta.",
+    "avoid": [
+      "Vidrio, gradientes, brillos y sombras de reposo",
+      "Iconos en cuadrados tintados",
+      "Tarjetas KPI individuales y sparklines",
+      "Cabeceras hero y mensajes de bienvenida",
+      "Arcoíris en gráficos",
+      "Promociones o funciones ajenas al CRM existente"
+    ]
+  },
+  "colorPalette": [
+    {
+      "name": "ground",
+      "value": "#EBEDFA",
+      "usage": "Marco lateral y superior continuo; sustituye el gris de la ficha por Lavanda verificado de Noxy."
+    },
+    {
+      "name": "surface",
+      "value": "#FFFFFF",
+      "usage": "Hoja de trabajo y tarjetas planas."
+    },
+    {
+      "name": "raised",
+      "value": "#F5F6FB",
+      "usage": "Agrupaciones secundarias; Jazmín existente sustituye el gris elevado de la ficha."
+    },
+    {
+      "name": "active",
+      "value": "#DDE3FE",
+      "usage": "Pastilla del destino activo del tema predeterminado; tinta Índigo o Obsidiana."
+    },
+    {
+      "name": "border",
+      "value": "#E8EAEC",
+      "usage": "Borde de 1px de hoja y tarjetas; ninguna tarjeta tiene un borde más pesado."
+    },
+    {
+      "name": "rule",
+      "value": "#F0F1F2",
+      "usage": "Divisores interiores de filas y cifras."
+    },
+    {
+      "name": "control",
+      "value": "#CDCED1",
+      "usage": "Contorno de controles; no se utiliza como texto."
+    },
+    {
+      "name": "text",
+      "value": "#0B0B18",
+      "usage": "Obsidiana de marca para texto principal y cifras."
+    },
+    {
+      "name": "muted",
+      "value": "#555B6E",
+      "usage": "Gris accesible verificado para etiquetas, metadatos y placeholders sobre blanco, Jazmín y Lavanda."
+    },
+    {
+      "name": "accent",
+      "value": "#3545D6",
+      "usage": "Índigo oficial para isotipo, acción principal, foco y subrayado seleccionado. Excepción de marca al acento teal de la ficha."
+    },
+    {
+      "name": "positive",
+      "value": "#067647",
+      "usage": "Éxito existente en globals.css; significado favorable, nunca crecimiento automático."
+    },
+    {
+      "name": "negative",
+      "value": "#B42318",
+      "usage": "Error y acciones destructivas según el token existente."
+    },
+    {
+      "name": "warning",
+      "value": "#92400E",
+      "usage": "Advertencias con texto explícito; coincide con el sistema existente."
+    },
+    {
+      "name": "chart-1",
+      "value": "#1B6C80",
+      "usage": "Serie principal predeterminada de la ficha cuando no existe una asignación de datos previa; no sustituye colores guardados."
+    },
+    {
+      "name": "chart-2",
+      "value": "#2F70BB",
+      "usage": "Segunda serie solo cuando responde a una comparación necesaria."
+    },
+    {
+      "name": "chart-3",
+      "value": "#A86F0C",
+      "usage": "Tercera serie ámbar cuando sea necesaria; no usar como texto pequeño sobre fondos tintados."
+    },
+    {
+      "name": "pill-positive-bg",
+      "value": "#E7F6EE",
+      "usage": "Fondo de estado favorable; conserva success-soft del proyecto."
+    },
+    {
+      "name": "pill-positive-ink",
+      "value": "#067647",
+      "usage": "Texto de estado favorable sobre su fondo claro, con contraste AA."
+    },
+    {
+      "name": "pill-negative-bg",
+      "value": "#FDECEA",
+      "usage": "Fondo de error; conserva danger-soft del proyecto."
+    },
+    {
+      "name": "pill-negative-ink",
+      "value": "#B42318",
+      "usage": "Texto de error sobre su fondo claro, con contraste AA."
+    },
+    {
+      "name": "pill-warning-bg",
+      "value": "#FFFBEB",
+      "usage": "Fondo de advertencia existente."
+    },
+    {
+      "name": "pill-warning-ink",
+      "value": "#92400E",
+      "usage": "Texto de advertencia sobre su fondo claro."
+    },
+    {
+      "name": "pill-neutral-bg",
+      "value": "#EBEDEE",
+      "usage": "Estado neutral sin prioridad semántica."
+    },
+    {
+      "name": "pill-neutral-ink",
+      "value": "#353736",
+      "usage": "Texto de estado neutral."
+    },
+    {
+      "name": "highlight",
+      "value": "#C8FE37",
+      "usage": "Lima existente, reservado para urgencia o novedad verificadas; siempre con texto Obsidiana."
+    }
+  ],
+  "typefaces": [
+    {
+      "family": "Open Sauce Two",
+      "source": "Archivos locales verificados en public/fonts/open-sauce-two, con licencia OFL.txt",
+      "roles": [
+        "interface",
+        "navigation",
+        "labels",
+        "tables",
+        "kpi",
+        "chart labels"
+      ],
+      "weights": [
+        400,
+        500,
+        600
+      ]
+    }
+  ],
+  "interfaceDirection": "Densidad media. Marco en L Lavanda, sidebar de 228px y barra superior de 48px sin línea entre ambas. Mantener el contenido real del shell, sin añadir búsqueda centrada ni duplicar la cuenta. Hoja blanca inset 8px a derecha y abajo, borde 1px, radio 16px, padding y separación de 24px. Navegación actual con ramas plegables, iconos de contorno grises y destino activo en pastilla accesible; pestañas de contenido con subrayado de 2px. Filas base de 48px, ampliables para contenido multilineal, sin zebra ni bandas en cabeceras. Controles de escritorio de 32px; objetivos táctiles de 44px como mínimo. Una etiqueta común de 12px, gris accesible y sentence case; campos a 14px cuando necesiten mayor lectura. Estados con pares positivo, negativo, advertencia y neutral, siempre acompañados de palabras. Hover mediante un paso tonal; selección mediante semántica selected/current; foco Índigo visible de 2px; disabled conserva texto legible y explica indisponibilidad cuando corresponda; carga mantiene dimensiones y comunica estado. En móvil desaparece el marco lateral, la hoja ocupa la pantalla y se conservan las barras y el panel Más existentes.",
+  "designTokens": {
+    "typeScale": {
+      "display": "22px",
+      "h1": "22px",
+      "h2": "16px",
+      "h3": "28px",
+      "body": "14px",
+      "small": "12px",
+      "label": "12px"
+    },
+    "radius": {
+      "scale": [
+        "6px",
+        "8px",
+        "16px"
+      ],
+      "pill": "999px"
+    },
+    "spacing": {
+      "section": "24px",
+      "gutter": "24px",
+      "stack": "24px"
+    },
+    "buttons": {
+      "primary": "Una acción principal existente: fondo Índigo #3545D6 y texto blanco, Open Sauce Two 14px/500, radio 6px, altura 32px en escritorio y objetivo táctil mínimo 44px. En temas personales, usar action-primary y su foreground accesible guardados.",
+      "secondary": "Fondo blanco, texto Obsidiana, borde control de 1px, Open Sauce Two 14px/500, radio 6px y altura 32px en escritorio; objetivo táctil mínimo 44px."
+    },
+    "surfaces": "Marco ground continuo, hoja surface blanca y agrupaciones raised Jazmín. Bordes de tarjeta y hoja de 1px, divisores interiores más suaves y controles con borde más visible. Radios: control 6px, tarjeta 8px, hoja 16px. Ninguna superficie proyecta sombra en reposo; overlays se separan con borde y fondo. KPI en una franja dividida, sin tarjetas individuales. Cifras a peso 400 con tabular-nums; títulos y selección a 600."
+  },
+  "imageDirection": {
+    "summary": "Mostrar únicamente imágenes que ya pertenecen a los objetos del CRM y el isotipo oficial.",
+    "subjects": [
+      "Isotipo Noxy existente",
+      "Avatares reales disponibles o iniciales estables sobre tintes pálidos",
+      "Miniaturas de adjuntos o contenido cuando existan en los datos"
+    ],
+    "treatment": "Conservar proporciones, identidad y color de los archivos reales. Las iniciales mantienen una asignación estable por persona; sus tintes no representan estados ni series de gráficos. No exigir nuevas fotografías.",
+    "avoid": [
+      "Fotografía de stock",
+      "Ilustraciones decorativas",
+      "Personas generadas como clientes reales",
+      "Imágenes añadidas para rellenar vacíos",
+      "Logotipos inventados"
+    ]
+  },
+  "motionDirection": {
+    "summary": "Feedback funcional con duración compartida de 180ms y cubic-bezier(0.2, 0, 0, 1); ninguna entrada de pantalla.",
+    "principles": [
+      "Confirmar selección al cambiar pestaña o destino; indicador y contenido conservan su relación espacial; 180ms dentro del rango 120–250ms; ease-out compartido e interrumpible.",
+      "Orientar al abrir o cerrar ramas, menús y paneles; el control permanece unido visualmente a su contenido, con Escape y retorno del foco; 180ms dentro del rango 120–250ms; ease-out compartido.",
+      "Explicar filtros y ordenación tras una acción real; las filas conservan identidad y los resultados actualizados permanecen legibles; 180ms dentro del rango 120–250ms; ease-out compartido sin ocultar datos.",
+      "Relacionar cambios de periodo o métrica con el gráfico existente; mantener escalas comparables y valores legibles; 180ms dentro del rango 120–250ms; ease-out compartido.",
+      "Confirmar pulsación, hover y reordenación existentes; controles y objetos responden sin desplazar contenido ajeno; 180ms dentro del rango 120–250ms; ease-out compartido.",
+      "Respetar movimiento reducido cuando el sistema lo solicite; las mismas relaciones y acciones alcanzan su estado final inmediatamente; 0ms en lugar de 120–250ms, sin interpolación."
+    ],
+    "avoid": [
+      "Entradas escalonadas",
+      "Scroll reveals",
+      "Contadores animados",
+      "Movimiento perpetuo",
+      "Repetir animaciones en cada actualización",
+      "Transiciones que bloqueen entradas rápidas"
+    ]
+  },
+  "voice": {
+    "summary": "Español directo de trabajo: conservar los nombres actuales y nombrar objeto, acción y siguiente paso. Usar «Crear contacto», «Guardar cambios», «Citas agendadas» y «Reintentar». Un vacío explica la situación sin inventar actividad: «No hay contactos que coincidan con estos filtros». Las fechas, cantidades y estados proceden de datos reales; cero es cero y un valor ausente se muestra como raya con significado accesible.",
+    "avoid": [
+      "Welcome back",
+      "Items y records",
+      "Celebraciones sin una acción completada",
+      "Métricas inventadas",
+      "Urgencia comercial",
+      "Mayúsculas espaciadas",
+      "Emojis decorativos"
+    ]
+  }
+}

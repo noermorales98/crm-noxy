@@ -16,8 +16,9 @@ export type AssistantSidebarAction =
   | { type: "mobileClose" }
   | { type: "navigate" };
 
+/** La barra del asistente arranca visible y fijada; ocultarla es una elección que se recuerda. */
 export const INITIAL_ASSISTANT_SIDEBAR_STATE: AssistantSidebarState = {
-  mode: "auto",
+  mode: "pinned",
   peek: false,
 };
 
@@ -59,29 +60,31 @@ export function assistantNewSidebarReducer(
 
 export const ASSISTANT_SIDEBAR_MODE_STORAGE_KEY = "assistant-sidebar-mode";
 
-function canUseSessionStorage(): boolean {
+// localStorage (no sessionStorage): la elección sobrevive a recargas, pestañas nuevas y cambios de ruta.
+function storage(): Storage | null {
   try {
-    return typeof globalThis.sessionStorage !== "undefined";
+    return typeof globalThis.localStorage !== "undefined" ? globalThis.localStorage : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
+/** Modo guardado; sin preferencia (o sin almacenamiento) la barra queda fijada. */
 export function readAssistantSidebarStoredMode(): AssistantSidebarMode {
-  if (!canUseSessionStorage()) return "auto";
+  const store = storage();
+  if (!store) return "pinned";
   try {
-    return globalThis.sessionStorage.getItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY) === "pinned"
-      ? "pinned"
-      : "auto";
+    return store.getItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY) === "auto" ? "auto" : "pinned";
   } catch {
-    return "auto";
+    return "pinned";
   }
 }
 
 export function writeAssistantSidebarStoredMode(mode: AssistantSidebarMode): void {
-  if (!canUseSessionStorage()) return;
+  const store = storage();
+  if (!store) return;
   try {
-    globalThis.sessionStorage.setItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY, mode);
+    store.setItem(ASSISTANT_SIDEBAR_MODE_STORAGE_KEY, mode);
   } catch {
     // Ignore quota / private-mode failures.
   }

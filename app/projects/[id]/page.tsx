@@ -2,9 +2,10 @@ import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { CheckmarkSquare01Icon, FolderIcon, UserMultipleIcon, Mail01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { CheckmarkSquare01Icon, FolderIcon, UserMultipleIcon, Mail01Icon } from "@hugeicons/core-free-icons";
 import PageIcon from "@/src/components/kb/PageIcon";
+import { KpiWidget } from "@/src/components/dashboard/KpiWidget";
+import { Block, Chip, DataList, EmptyState } from "@/src/components/ui";
 
 export default async function ProjectOverviewPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
@@ -49,110 +50,83 @@ export default async function ProjectOverviewPage(props: { params: Promise<{ id:
         }),
       ]);
 
+  // Cifras con el mismo componente que el Inicio: círculo de un solo tono y tarjeta con borde.
   const stats = [
-    { label: "Tareas pendientes", value: pendingTasksCount, icon: CheckmarkSquare01Icon, color: "#ef4444", href: `/projects/${id}/tareas` },
-    { label: "Docs vinculados", value: docsCount, icon: FolderIcon, color: "#0891b2", href: `/projects/${id}/docs` },
-    { label: "Registrados", value: submissionsCount, icon: UserMultipleIcon, color: "#22c55e", href: `/projects/${id}/registros` },
-    { label: "Campañas", value: campaignsCount, icon: Mail01Icon, color: "#f97316", href: `/projects/${id}/info` },
+    { label: "Tareas pendientes", value: pendingTasksCount, icon: CheckmarkSquare01Icon, href: `/projects/${id}/tareas` },
+    { label: "Docs vinculados", value: docsCount, icon: FolderIcon, href: `/projects/${id}/docs` },
+    { label: "Registrados", value: submissionsCount, icon: UserMultipleIcon, href: `/projects/${id}/registros` },
+    { label: "Campañas", value: campaignsCount, icon: Mail01Icon, href: `/projects/${id}/info` },
   ];
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="bg-surface-elevated border border-line rounded-lg p-4 hover:bg-nav-hover transition-colors">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: `${s.color}1A` }}>
-              <HugeiconsIcon icon={s.icon} size={16} color={s.color} />
-            </div>
-            <p className="text-xl font-bold text-text-primary">{s.value}</p>
-            <p className="text-xs text-text-secondary mt-0.5">{s.label}</p>
-          </Link>
+          <KpiWidget
+            key={s.label}
+            icon={s.icon}
+            iconBg="var(--color-nav-active)"
+            iconColor="var(--nav-active-ink)"
+            value={String(s.value)}
+            label={s.label}
+            href={s.href}
+          />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-surface-elevated border border-line rounded-lg p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-text-primary text-sm">Últimas tareas</h3>
-            <Link href={`/projects/${id}/tareas`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
-              Ver todas <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
-            </Link>
-          </div>
-          {recentTasks.length === 0 ? (
-            <p className="text-sm text-text-secondary text-center py-8">Sin tareas vinculadas todavía</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {recentTasks.map((t) => (
-                <li key={t.id} className="py-2.5 flex items-center justify-between gap-2">
-                  <span className={`text-sm truncate ${t.isCompleted ? "text-text-secondary line-through" : "text-text-primary font-medium"}`}>{t.title}</span>
-                  <span className={`shrink-0 text-xs font-bold uppercase px-2 py-0.5 rounded-full ${t.isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                    {t.isCompleted ? "Hecha" : "Pendiente"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {tasksTotal > 0 && (
-            <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-line">{tasksTotal} tareas en total</p>
-          )}
-        </div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <Block title="Últimas tareas" action={{ label: "Ver todas", href: `/projects/${id}/tareas` }}>
+          <DataList
+            label="Últimas tareas"
+            rows={recentTasks}
+            getKey={(t) => t.id}
+            empty={<EmptyState title="Sin tareas vinculadas todavía" />}
+            renderRow={(t) => (
+              <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                <span className={`truncate text-sm ${t.isCompleted ? "text-text-secondary line-through" : "font-medium text-text-primary"}`}>{t.title}</span>
+                <Chip tone={t.isCompleted ? "done" : "neutral"}>{t.isCompleted ? "Hecha" : "Pendiente"}</Chip>
+              </div>
+            )}
+          />
+          {tasksTotal > 0 && <p className="border-t border-line px-4 py-3 text-xs text-text-secondary sm:px-5">{tasksTotal} tareas en total</p>}
+        </Block>
 
-        <div className="bg-surface-elevated border border-line rounded-lg p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-text-primary text-sm">Últimos docs</h3>
-            <Link href={`/projects/${id}/docs`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
-              Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
-            </Link>
-          </div>
-          {docsRelations.length === 0 ? (
-            <p className="text-sm text-text-secondary text-center py-8">Sin documentos vinculados todavía</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {docsRelations.map((r) => (
-                <li key={r.id} className="py-2.5">
-                  <Link href={`/kb/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-primary">
-                    <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
-                    <span className="truncate">{r.page.title}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Block title="Últimos docs" action={{ label: "Ver todos", href: `/projects/${id}/docs` }}>
+          <DataList
+            label="Últimos docs"
+            rows={docsRelations}
+            getKey={(r) => r.id}
+            empty={<EmptyState title="Sin documentos vinculados todavía" />}
+            renderRow={(r) => (
+              <Link href={`/kb/${r.page.id}`} className="flex min-h-11 min-w-0 items-center gap-2 text-sm font-medium text-text-primary hover:underline">
+                <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
+                <span className="truncate">{r.page.title}</span>
+              </Link>
+            )}
+          />
+        </Block>
       </div>
 
-      <div className="bg-surface-elevated border border-line rounded-lg p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-text-primary text-sm">Últimos registros</h3>
-          <Link href={`/projects/${id}/registros`} className="-my-3 -mr-2 flex min-h-11 items-center gap-1 px-2 text-sm font-semibold text-text-secondary hover:text-text-primary lg:my-0 lg:mr-0 lg:min-h-0 lg:px-0 lg:text-xs">
-            Ver todos <HugeiconsIcon icon={ArrowRight01Icon} size={12} />
-          </Link>
-        </div>
-        {recentSubmissions.length === 0 ? (
-          <p className="text-sm text-text-secondary text-center py-8">Sin registros de formularios todavía</p>
-        ) : (
-          <ul className="divide-y divide-line">
-            {recentSubmissions.map((c) => (
-              <li key={c.id} className="py-2.5 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <span className="text-sm font-medium text-text-primary truncate block">
-                    {c.firstName} {c.lastName || ""}
-                  </span>
-                  {c.sourceForm?.name && (
-                    <span className="text-xs text-text-secondary">{c.sourceForm.name}</span>
-                  )}
-                </div>
-                <span className="shrink-0 text-xs font-semibold text-text-secondary">
-                  {c.createdAt.toLocaleDateString("es-MX")}
+      <Block title="Últimos registros" action={{ label: "Ver todos", href: `/projects/${id}/registros` }}>
+        <DataList
+          label="Últimos registros"
+          rows={recentSubmissions}
+          getKey={(c) => c.id}
+          empty={<EmptyState title="Sin registros de formularios todavía" />}
+          renderRow={(c) => (
+            <div className="flex w-full min-w-0 items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="block truncate text-sm font-medium text-text-primary">
+                  {c.firstName} {c.lastName || ""}
                 </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {submissionsCount > 0 && (
-          <p className="text-xs text-text-secondary mt-3 pt-3 border-t border-line">{submissionsCount} registros en total</p>
-        )}
-      </div>
+                {c.sourceForm?.name && <span className="block truncate text-xs text-text-secondary">{c.sourceForm.name}</span>}
+              </div>
+              <span className="shrink-0 text-xs text-text-secondary">{c.createdAt.toLocaleDateString("es-MX")}</span>
+            </div>
+          )}
+        />
+        {submissionsCount > 0 && <p className="border-t border-line px-4 py-3 text-xs text-text-secondary sm:px-5">{submissionsCount} registros en total</p>}
+      </Block>
     </div>
   );
 }

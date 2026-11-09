@@ -30,7 +30,7 @@ export function DataTable<T>({ columns, rows, mobileRow, empty, getKey, label }:
     <>
       {/* Desplazamiento propio: un valor largo nunca recorta la última columna (Acciones). */}
       <div className="hidden lg:block min-w-0 overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-separate border-spacing-0 text-sm">
           {label && <caption className="sr-only">{label}</caption>}
           <thead>
             <tr>
@@ -39,7 +39,7 @@ export function DataTable<T>({ columns, rows, mobileRow, empty, getKey, label }:
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "whitespace-nowrap border-b border-line px-5 py-3 text-xs font-semibold text-text-secondary",
+                    "whitespace-nowrap border-b border-line px-4 py-2 text-xs font-medium text-text-secondary",
                     column.align === "right" ? "text-right" : "text-left",
                   )}
                 >
@@ -48,13 +48,16 @@ export function DataTable<T>({ columns, rows, mobileRow, empty, getKey, label }:
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody>
             {rows.map((row) => (
-              <tr key={getKey(row)}>
+              <tr key={getKey(row)} className="group/row">
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={cn("px-5 py-3 align-middle", column.align === "right" && "text-right tabular-nums")}
+                    className={cn(
+                      "border-b border-line px-4 py-2 align-middle group-last/row:border-b-0",
+                      column.align === "right" && "text-right tabular-nums",
+                    )}
                   >
                     {column.render(row)}
                   </td>
@@ -66,7 +69,7 @@ export function DataTable<T>({ columns, rows, mobileRow, empty, getKey, label }:
       </div>
       <ul aria-label={label} className="divide-y divide-line lg:hidden">
         {rows.map((row) => (
-          <li key={getKey(row)} className="flex min-h-14 min-w-0 items-center gap-3 px-4 py-2">
+          <li key={getKey(row)} className="flex min-h-14 min-w-0 items-center gap-3 px-4 py-1.5">
             {mobileRow(row)}
           </li>
         ))}
