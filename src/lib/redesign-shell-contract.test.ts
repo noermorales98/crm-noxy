@@ -230,6 +230,16 @@ test("the mobile bottom bar is a floating glass capsule: tabs from the model, «
   assert.match(bar, /aria-current=/);
 });
 
+test("mobile: Settings has a section picker, the system bars take the navbar colour, and the sheet always leaves room for the bottom bar", () => {
+  const shell = code("src/components/DashboardShell.tsx");
+  assert.match(shell, /<SettingsMobileNav\b/, "Ajustes can reach every section on mobile");
+  assert.match(code("src/components/SettingsMobileNav.tsx"), /lg:hidden/, "desktop uses the settings sidebar");
+  assert.match(shell, /meta\[name="theme-color"\]/, "the browser/system bar colour follows the navbar");
+  assert.match(raw("app/layout.tsx"), /themeColor:\s*"#EBEDFA"/i, "initial theme colour is the navbar colour, not the brand blue");
+  assert.match(shell, /pb-\[calc\(5\.75rem\+env\(safe-area-inset-bottom\)\)\]/, "bottom padding so the capsule never covers content");
+  assert.match(shell, /lg:pb-0/, "desktop has no bottom padding");
+});
+
 test("the mobile chrome: fixed top bar, and «Más» is a bottom sheet that does not reuse the desktop sidebar", () => {
   const top = code("src/components/MobileTopBar.tsx");
   assert.match(top, /fixed inset-x-0 top-0/, "fixed top bar");

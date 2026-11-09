@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  MoreHorizontalIcon,
   InboxIcon,
   SentIcon,
   ArchiveIcon,
@@ -160,6 +161,7 @@ function EmailsPageInner() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [emails, setEmails] = useState<EmailSummary[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
+  const [mailMenu, setMailMenu] = useState(false);
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
@@ -858,13 +860,13 @@ function EmailsPageInner() {
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="shrink-0 border-b border-line bg-surface-elevated px-4 py-2 sm:px-6 lg:py-4">
-                <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between lg:gap-3">
+              <div className="relative shrink-0 border-b border-line bg-surface-elevated px-2 py-1 sm:px-6 lg:py-4">
+                <div className="flex items-center gap-1 lg:items-start lg:justify-between lg:gap-3">
                   <div className="flex min-w-0 flex-1 gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedEmail(null)}
-                      className="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
+                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
                       title="Volver a la lista"
                       aria-label="Volver a la lista"
                     >
@@ -942,6 +944,7 @@ function EmailsPageInner() {
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
+                        aria-label="Responder"
                         className="flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
                         title="Responder"
                       >
@@ -950,7 +953,7 @@ function EmailsPageInner() {
                     )}
                     <button
                       onClick={() => handleToggleRead(selectedEmail)}
-                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
+                      className="hidden size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex lg:size-8"
                       title={selectedEmail.isRead ? "Marcar como no leído" : "Marcar como leído"}
                     >
                       {selectedEmail.isRead ? <HugeiconsIcon icon={ViewOffIcon} size={15} /> : <HugeiconsIcon icon={ViewIcon} size={15} />}
@@ -958,7 +961,7 @@ function EmailsPageInner() {
                     {selectedEmail.type === "RECEIVED" && !selectedEmail.isSpam && (
                       <button
                         onClick={() => handleToggleSpam(selectedEmail.id, true)}
-                        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
+                        className="hidden size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex lg:size-8"
                         title="Marcar como spam"
                       >
                         <HugeiconsIcon icon={SpamIcon} size={15} />
@@ -967,7 +970,7 @@ function EmailsPageInner() {
                     {selectedEmail.isSpam ? (
                       <button
                         onClick={() => handleToggleSpam(selectedEmail.id, false)}
-                        className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
+                        className="hidden size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex lg:size-8"
                         title="No es spam"
                       >
                         <HugeiconsIcon icon={CheckmarkCircle02Icon} size={15} />
@@ -976,7 +979,7 @@ function EmailsPageInner() {
                       !selectedEmail.isArchived && (
                         <button
                           onClick={() => handleArchive(selectedEmail.id)}
-                          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:size-8"
+                          className="hidden size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex lg:size-8"
                           title="Archivar"
                         >
                           <HugeiconsIcon icon={ArchiveIcon} size={15} />
@@ -985,11 +988,50 @@ function EmailsPageInner() {
                     )}
                     <button
                       onClick={() => handleDelete(selectedEmail.id)}
-                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:size-8"
+                      className="hidden size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-danger-soft hover:text-danger lg:flex lg:size-8"
                       title="Eliminar"
                     >
                       <HugeiconsIcon icon={Delete01Icon} size={15} />
                     </button>
+                    {/* Móvil: el resto de acciones va en un menú «⋯» para que la cabecera quede en una sola fila. */}
+                    <div className="relative lg:hidden">
+                      <button
+                        type="button"
+                        onClick={() => setMailMenu((value) => !value)}
+                        aria-haspopup="menu"
+                        aria-expanded={mailMenu}
+                        aria-label="Más acciones"
+                        className="flex size-11 items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+                      >
+                        <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
+                      </button>
+                      {mailMenu && (
+                        <>
+                          <button type="button" aria-label="Cerrar menú" tabIndex={-1} className="fixed inset-0 z-30 cursor-default" onClick={() => setMailMenu(false)} />
+                          <div role="menu" className="crm-floating-menu absolute right-0 top-full z-40 mt-1 w-56 overflow-hidden rounded-surface border border-line bg-surface-elevated py-1">
+                            {[
+                              { label: selectedEmail.isRead ? "Marcar como no leído" : "Marcar como leído", run: () => handleToggleRead(selectedEmail), show: true },
+                              { label: "Marcar como spam", run: () => handleToggleSpam(selectedEmail.id, true), show: selectedEmail.type === "RECEIVED" && !selectedEmail.isSpam },
+                              { label: "No es spam", run: () => handleToggleSpam(selectedEmail.id, false), show: selectedEmail.isSpam },
+                              { label: "Archivar", run: () => handleArchive(selectedEmail.id), show: !selectedEmail.isSpam && !selectedEmail.isArchived },
+                              { label: "Eliminar", run: () => handleDelete(selectedEmail.id), show: true, danger: true },
+                            ]
+                              .filter((item) => item.show)
+                              .map((item) => (
+                                <button
+                                  key={item.label}
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => { setMailMenu(false); item.run(); }}
+                                  className={`flex min-h-11 w-full items-center px-4 text-left text-sm hover:bg-nav-hover ${item.danger ? "text-danger" : "text-text-primary"}`}
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
                     <button
                       onClick={() => setSelectedEmail(null)}
                       className="hidden size-8 items-center justify-center rounded-lg p-1.5 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:flex"

@@ -113,8 +113,9 @@ export const CALENDAR_CSS = `
   .ncc-daynum{width:20px;height:20px;font-size:11px;}
   .ncc-event-title{font-size:11px;}
   .ncc-add-day{display:none;}
-  .ncc-fill .ncc-day{padding:2px 1px;min-height:84px;}
-  .ncc-fill .ncc-grid{grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(84px, 1fr));}
+  .ncc-fill .ncc-day{padding:2px 1px;min-height:0;}
+  /* Móvil: la semana sin contenido se encoge (--ncc-rows la calcula el componente). */
+  .ncc-fill .ncc-grid{grid-template-rows:var(--ncc-rows, repeat(var(--ncc-weeks, 6), minmax(84px, 1fr)));}
   .ncc-fill .ncc-dayhead{min-height:16px;margin:0;}
   .ncc-fill .ncc-daynum{width:16px;height:16px;font-size:10px;}
   .ncc-fill .ncc-hoy-word,.ncc-fill .ncc-event-time,.ncc-fill .ncc-status-capsule{display:none;}
@@ -162,6 +163,10 @@ export const CALENDAR_CSS = `
 .ncc-fill .ncc-weekdays{flex:none;}
 .ncc-fill .ncc-grid{flex:1 0 auto;min-height:0;grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(120px, 1fr));}
 .ncc-fill .ncc-day{min-height:120px;height:100%;overflow:hidden;}
+@media (max-width:640px){
+  .ncc-fill .ncc-grid{grid-template-rows:var(--ncc-rows, repeat(var(--ncc-weeks, 6), minmax(84px, 1fr)));}
+  .ncc-fill .ncc-day{min-height:0;}
+}
 @media (max-width:720px){
   .ncc-modal{border-radius:14px;max-height:calc(100vh - 24px);}
   .ncc-modal-body{grid-template-columns:minmax(0,1fr);padding:4px 18px 20px;overflow-y:auto;}
@@ -216,6 +221,15 @@ export function ContentMonthGrid({
   const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
   const firstWeekday = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7; // 0=Lun
   const weekCount = Math.ceil((firstWeekday + daysInMonth) / 7);
+  // Móvil: una semana sin piezas ocupa una fila baja; las que tienen contenido reparten el resto.
+  const rowTemplate = Array.from({ length: weekCount }, (_, week) => {
+    let hasItems = false;
+    for (let slot = 0; slot < 7 && !hasItems; slot++) {
+      const day = week * 7 + slot - firstWeekday + 1;
+      if (day >= 1 && day <= daysInMonth && (byDay.get(day)?.length ?? 0) > 0) hasItems = true;
+    }
+    return hasItems ? "minmax(84px, 1fr)" : "minmax(36px, 0.3fr)";
+  }).join(" ");
   const today = new Date();
   const isCurrentMonth = today.getUTCFullYear() === year && today.getUTCMonth() === month;
   const todayDay = isCurrentMonth ? today.getUTCDate() : -1;
@@ -301,7 +315,7 @@ export function ContentMonthGrid({
 
   if (!fill) return grid;
   return (
-    <div className="ncc-fill" style={{ ["--ncc-weeks" as string]: weekCount }}>
+    <div className="ncc-fill" style={{ ["--ncc-weeks" as string]: weekCount, ["--ncc-rows" as string]: rowTemplate }}>
       {grid}
     </div>
   );
