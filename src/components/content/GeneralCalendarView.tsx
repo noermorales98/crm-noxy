@@ -202,6 +202,27 @@ export default function GeneralCalendarView() {
     }
   };
 
+  // Enlaces del resumen: ?cliente=<id> abre el calendario general ya filtrado; ?pieza=<id> abre su ventana.
+  const piezaParam = searchParams.get("pieza");
+  const clienteParam = searchParams.get("cliente");
+  const urlFilterApplied = useRef(false);
+  useEffect(() => {
+    if (clienteParam && !urlFilterApplied.current) {
+      urlFilterApplied.current = true;
+      setFilterId(clienteParam);
+    }
+  }, [clienteParam]);
+  useEffect(() => {
+    if (!piezaParam || loading) return;
+    const found = items.find((item) => item.id === piezaParam);
+    if (found) setSelected(found);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("pieza");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [piezaParam, loading, items]);
+
   const syncRef = useRef(syncGoogle);
   const createRef = useRef(startCreate);
   const moveRef = useRef(moveMonth);

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { Block, Chip, DataList, EmptyState, Enter, PageHeader } from "@/src/components/ui";
+import { pieceHref } from "@/src/components/content/ContentPieceRow";
 import { contentTypeLabel } from "@/src/lib/content-client-colors";
 
 const TIME_ZONE = "America/Cancun";
@@ -57,7 +58,7 @@ export default async function ContentRemindersPage() {
             renderRow={(item) => {
               const sendDay = notifyDay(item.date, item.reminderDaysBefore);
               return (
-                <Link href={`/contenido/${item.clientId}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Link href={pieceHref(item)} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.client.color }} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-text-primary">{item.title || "Sin título"}</span>
@@ -83,7 +84,7 @@ export default async function ContentRemindersPage() {
             getKey={(client) => client.id}
             empty={<EmptyState title="Aún no hay clientes de contenido" />}
             renderRow={(client) => (
-              <Link href={`/contenido/${client.id}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
+              <Link href={`/contenido/general?cliente=${client.id}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
                 <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: client.color }} />
                 <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">{client.name}</span>
                 <span className="shrink-0 text-xs tabular-nums text-text-secondary">

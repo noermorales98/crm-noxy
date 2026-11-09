@@ -20,6 +20,7 @@ import {
   visibleNavGroups,
   SETTINGS_ITEMS,
   isSettingsRoute,
+  sectionTitleFor,
   isCollapseShortcut,
   visibleSettingsItems,
   // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
@@ -242,6 +243,24 @@ test("Ajustes has one screen per section, grouped; Equipo only for who manages t
 test("Ajustes and Perfil swap the main sidebar for their own", () => {
   for (const path of ["/settings", "/settings/equipo", "/settings/apariencia", "/profile"]) assert.equal(isSettingsRoute(path), true, path);
   for (const path of ["/", "/tasks", "/settingsx", "/projects/settings"]) assert.equal(isSettingsRoute(path), false, path);
+});
+
+test("sectionTitleFor names the screen for the mobile top bar", () => {
+  const cases: Array<[string, string]> = [
+    ["/", "Inicio"],
+    ["/tasks", "Tareas"],
+    ["/contacts/9", "Contactos"],
+    ["/pipeline/historial", "Historial de tratos"],
+    ["/emails", "Correo"],
+    ["/contenido", "Resumen"],
+    ["/contenido/general", "Calendario"],
+    ["/contenido/abc", "Resumen"],
+    ["/settings/equipo", "Equipo"],
+    ["/profile", "Perfil"],
+    ["/assistant/xyz", "Asistente"],
+    ["/algo-desconocido", "Noxy"],
+  ];
+  for (const [path, title] of cases) assert.equal(sectionTitleFor(path), title, path);
 });
 
 test("⌘B / Ctrl+B collapses the sidebar, except while typing (⌘B is bold in an editor)", () => {

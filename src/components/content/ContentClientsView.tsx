@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, MegaphoneIcon, Calendar01Icon, Delete01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Calendar01Icon, Delete01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { CLIENT_PALETTE } from "@/src/lib/content-client-colors";
+import { Chip, DataTable, EmptyState, Enter, PageHeader, Segmented, Skeleton } from "@/src/components/ui";
 
 type ContentClient = {
   id: string;
@@ -183,6 +184,24 @@ export default function ContentClientsView() {
   const [editing, setEditing] = useState<ContentClient | null>(null);
   const [deleting, setDeleting] = useState<ContentClient | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  // La vista (tarjetas o tabla) se recuerda en este navegador.
+  const [view, setView] = useState<"cards" | "table">("cards");
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- preferencia del navegador: leerla en el servidor desajustaría la hidratación
+      if (window.localStorage.getItem("noxy.content.clients.view") === "table") setView("table");
+    } catch {
+      /* sin almacenamiento */
+    }
+  }, []);
+  const changeView = (next: "cards" | "table") => {
+    setView(next);
+    try {
+      window.localStorage.setItem("noxy.content.clients.view", next);
+    } catch {
+      /* sin almacenamiento */
+    }
+  };
 
   const load = () => {
     fetch("/api/content/clients")
@@ -202,117 +221,154 @@ export default function ContentClientsView() {
     load();
   };
 
+  const kindLabel = (c: ContentClient) => (c.kind === "cliente" ? "Cliente" : "Marca propia");
+  const avatar = (c: ContentClient) => (
+    <span
+      aria-hidden="true"
+      className="flex size-10 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white"
+      style={{ backgroundColor: c.color || "#3545D6" }}
+    >
+      {c.name.charAt(0).toUpperCase()}
+    </span>
+  );
+  const rowActions = (c: ContentClient) => (
+    <span className="flex items-center justify-end gap-1">
+      <Link
+        href={`/contenido/${c.id}`}
+        className="inline-flex min-h-11 items-center gap-2 rounded-control border border-line px-3 text-sm font-medium text-text-primary hover:bg-nav-hover lg:min-h-9"
+      >
+        <HugeiconsIcon icon={Calendar01Icon} size={14} aria-hidden="true" />
+        Calendario
+      </Link>
+      <button
+        type="button"
+        onClick={() => { setEditing(c); setModalOpen(true); }}
+        aria-label={`Editar ${c.name}`}
+        title="Editar"
+        className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary lg:size-9"
+      >
+        <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setDeleting(c)}
+        aria-label={`Eliminar ${c.name}`}
+        title="Eliminar"
+        className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-danger-soft hover:text-danger lg:size-9"
+      >
+        <HugeiconsIcon icon={Delete01Icon} size={15} />
+      </button>
+    </span>
+  );
+  const columns = [
+    {
+      key: "name",
+      header: "Cliente o marca",
+      render: (c: ContentClient) => (
+        <Link href={`/contenido/${c.id}`} className="flex min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          {avatar(c)}
+          <span className="min-w-0">
+            <span className="block truncate font-medium text-text-primary">{c.name}</span>
+            {c.description && <span className="block max-w-xs truncate text-xs text-text-secondary">{c.description}</span>}
+          </span>
+        </Link>
+      ),
+    },
+    { key: "kind", header: "Tipo", render: (c: ContentClient) => <Chip>{kindLabel(c)}</Chip> },
+    { key: "items", header: "Piezas", align: "right" as const, render: (c: ContentClient) => c._count?.items ?? 0 },
+    { key: "phones", header: "WhatsApp", align: "right" as const, render: (c: ContentClient) => c._count?.phones ?? 0 },
+    { key: "ai", header: "Contexto IA", render: (c: ContentClient) => (c.context ? <Chip tone="done">Con contexto</Chip> : <span className="text-text-secondary">—</span>) },
+    { key: "actions", header: "Acciones", align: "right" as const, render: rowActions },
+  ];
+  const newButton = (
+    <button
+      type="button"
+      onClick={() => { setEditing(null); setModalOpen(true); }}
+      className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary lg:min-h-10"
+    >
+      <HugeiconsIcon icon={Add01Icon} size={16} aria-hidden="true" />
+      Nuevo cliente / marca
+    </button>
+  );
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">Gestión de contenido</h1>
-          <p className="text-sm text-text-secondary mt-1">
-            Calendarios de contenido por cliente o marca, con avisos de grabación por WhatsApp.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/contenido/general"
-            className="min-h-11 flex items-center gap-2 border border-line bg-surface-elevated text-text-primary px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-surface-sidebar transition-colors duration-200 motion-reduce:transition-none"
-          >
-            <HugeiconsIcon icon={Calendar01Icon} size={15} />
-            <span className="hidden sm:inline">Calendario general</span>
-            <span className="sm:hidden">General</span>
-          </Link>
-          <button
-            onClick={() => { setEditing(null); setModalOpen(true); }}
-            className="min-h-11 flex items-center gap-2 bg-action-primary text-action-primary-foreground px-4 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
-          >
-            <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
-            <span className="hidden sm:inline">Nuevo cliente / marca</span>
-            <span className="sm:hidden">Nuevo</span>
-          </button>
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-6">
+      <Enter index={0}>
+        <PageHeader
+          title="Clientes de contenido"
+          subtitle="Calendarios por cliente o marca, con avisos de grabación por WhatsApp."
+          actions={
+            <>
+              <Segmented
+                label="Vista"
+                value={view}
+                onChange={(next) => changeView(next as "cards" | "table")}
+                options={[
+                  { value: "cards", label: "Tarjetas" },
+                  { value: "table", label: "Tabla" },
+                ]}
+              />
+              {newButton}
+            </>
+          }
+        />
+      </Enter>
 
       {clients === null ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 rounded-xl bg-surface-sidebar animate-pulse" />
-          ))}
-        </div>
+        <Skeleton shape="rows" count={4} label="Cargando clientes" />
       ) : clients.length === 0 ? (
-        <div className="text-center py-16 border border-dashed border-line rounded-surface">
-          <div className="w-14 h-14 rounded-surface bg-nav-active flex items-center justify-center mx-auto mb-4">
-            <HugeiconsIcon icon={MegaphoneIcon} size={24} color="#3545D6" />
-          </div>
-          <h2 className="text-base font-semibold text-text-primary mb-1">Sin clientes ni marcas todavía</h2>
-          <p className="text-sm text-text-secondary mb-5 max-w-sm mx-auto">
-            Crea tu primer cliente o marca para armar su calendario de contenido y avisarle cuándo grabar.
-          </p>
-          <button
-            onClick={() => { setEditing(null); setModalOpen(true); }}
-            className="inline-flex min-h-11 items-center gap-2 bg-action-primary text-action-primary-foreground px-5 py-2.5 rounded-control text-sm font-semibold hover:bg-action-secondary transition-colors duration-200 motion-reduce:transition-none"
-          >
-            <HugeiconsIcon icon={Add01Icon} size={15} color="white" />
-            Crear el primero
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {clients.map((c) => (
-            <div
-              key={c.id}
-              className="group relative bg-surface-elevated border border-line rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col"
-            >
-              <div className="flex items-start gap-3 mb-3">
-                <span
-                  className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-base font-bold text-white"
-                  style={{ backgroundColor: c.color || "#3545D6" }}
-                >
-                  {c.name.charAt(0).toUpperCase()}
+        <section className="rounded-surface border border-line bg-surface-elevated">
+          <EmptyState title="Sin clientes ni marcas todavía" body="Crea tu primer cliente o marca para armar su calendario de contenido y avisarle cuándo grabar." action={newButton} />
+        </section>
+      ) : view === "table" ? (
+        <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
+          <DataTable
+            label="Clientes de contenido"
+            columns={columns}
+            rows={clients}
+            getKey={(c: ContentClient) => c.id}
+            mobileRow={(c: ContentClient) => (
+              <div className="flex w-full min-w-0 items-center gap-3">
+                {avatar(c)}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-text-primary">{c.name}</span>
+                  <span className="block truncate text-xs text-text-secondary">{kindLabel(c)} · {c._count?.items ?? 0} piezas</span>
                 </span>
+                <Link href={`/contenido/${c.id}`} aria-label={`Calendario de ${c.name}`} className="flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover">
+                  <HugeiconsIcon icon={Calendar01Icon} size={16} />
+                </Link>
+              </div>
+            )}
+            empty={null}
+          />
+        </section>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {clients.map((c) => (
+            <article key={c.id} className="flex flex-col rounded-surface border border-line bg-surface-elevated p-5">
+              <div className="mb-3 flex items-start gap-3">
+                {avatar(c)}
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-text-primary truncate">{c.name}</h3>
-                  <p className="text-xs text-text-secondary truncate">
-                    {c.kind === "cliente" ? "Cliente" : "Marca propia"}
+                  <h3 className="truncate font-semibold text-text-primary">{c.name}</h3>
+                  <p className="truncate text-xs text-text-secondary">
+                    {kindLabel(c)}
                     {c.description ? ` · ${c.description}` : ""}
                   </p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 text-xs text-text-secondary mb-4">
+              <p className="mb-4 flex flex-wrap items-center gap-x-2 text-xs text-text-secondary">
                 <span>{c._count?.items ?? 0} piezas</span>
-                <span>·</span>
+                <span aria-hidden="true">·</span>
                 <span>{c._count?.phones ?? 0} números WhatsApp</span>
                 {c.context && (
                   <>
-                    <span>·</span>
-                    <span className="text-action-primary font-semibold">Con contexto IA</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-semibold text-action-primary">Con contexto IA</span>
                   </>
                 )}
-              </div>
-
-              <div className="mt-auto flex items-center gap-2">
-                <Link
-                  href={`/contenido/${c.id}`}
-                  className="flex-1 min-h-10 flex items-center justify-center gap-2 py-2 text-sm rounded-control bg-nav-active text-action-primary font-semibold hover:bg-nav-hover transition-colors duration-200 motion-reduce:transition-none"
-                >
-                  <HugeiconsIcon icon={Calendar01Icon} size={14} color="#3545D6" />
-                  Ver calendario
-                </Link>
-                <button
-                  onClick={() => { setEditing(c); setModalOpen(true); }}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:bg-surface-sidebar transition-colors"
-                  title="Editar"
-                >
-                  <HugeiconsIcon icon={PencilEdit01Icon} size={15} />
-                </button>
-                <button
-                  onClick={() => setDeleting(c)}
-                  className="w-9 h-9 flex items-center justify-center rounded-lg text-text-secondary hover:bg-red-50 hover:text-red-600 transition-colors"
-                  title="Eliminar"
-                >
-                  <HugeiconsIcon icon={Delete01Icon} size={15} />
-                </button>
-              </div>
-            </div>
+              </p>
+              <div className="mt-auto">{rowActions(c)}</div>
+            </article>
           ))}
         </div>
       )}

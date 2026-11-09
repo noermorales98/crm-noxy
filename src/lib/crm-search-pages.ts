@@ -42,7 +42,7 @@ export const CRM_SEARCH_PAGES: CrmSearchPage[] = [
   { id: "nav-profile", title: "Perfil", subtitle: "Tu cuenta", href: "/profile", keywords: ["perfil", "profile", "cuenta", "mi usuario", "contraseña", "foto"] },
   { id: "nav-settings", title: "Ajustes", subtitle: "General", href: "/settings", keywords: ["ajustes", "configuracion", "settings", "general", "organizacion", "zona horaria", "pipeline", "archivar"] },
   { id: "nav-settings-notifications", title: "Notificaciones", subtitle: "Ajustes", href: "/settings/notificaciones", keywords: ["notificaciones", "alertas", "correo de notificacion", "whatsapp", "callmebot"] },
-  { id: "nav-settings-integrations", title: "Integraciones", subtitle: "Ajustes", href: "/settings/integraciones", keywords: ["integraciones", "google calendar", "calendario de google", "conectar"] },
+  { id: "nav-settings-integrations", title: "Integraciones", subtitle: "Ajustes", href: "/settings/integraciones", keywords: ["integraciones", "google calendar", "calendario de google", "conectar", "mcp", "conexiones mcp", "servidores mcp"] },
   { id: "nav-settings-appearance", title: "Apariencia y sonidos", subtitle: "Ajustes", href: "/settings/apariencia", keywords: ["apariencia", "tema", "colores", "sonidos", "modo oscuro"] },
   { id: "nav-settings-team", title: "Equipo", subtitle: "Ajustes", href: "/settings/equipo", keywords: ["equipo", "team", "miembros", "invitar", "roles", "permisos"] },
   { id: "nav-settings-ai", title: "Modelos de IA", subtitle: "Ajustes", href: "/settings/ai-models", keywords: ["modelos", "ia", "openrouter", "llm", "api key"] },

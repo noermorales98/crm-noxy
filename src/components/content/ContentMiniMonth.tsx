@@ -57,12 +57,12 @@ export default function ContentMiniMonth() {
   };
 
   return (
-    <div className="shrink-0 border-t border-line px-3 py-3">
+    <div className="shrink-0 border-t border-line px-3 py-2">
       <div className="mb-2 flex items-center justify-between gap-1">
         <button
           type="button"
           aria-label="Mes anterior"
-          className="flex size-7 items-center justify-center rounded-md text-text-secondary hover:bg-nav-hover"
+          className="flex size-7 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover"
           onClick={() => {
             const next = shiftMonth(view.year, view.month, -1);
             openMonth(next.year, next.month);
@@ -74,7 +74,7 @@ export default function ContentMiniMonth() {
         <button
           type="button"
           aria-label="Mes siguiente"
-          className="flex size-7 items-center justify-center rounded-md text-text-secondary hover:bg-nav-hover"
+          className="flex size-7 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover"
           onClick={() => {
             const next = shiftMonth(view.year, view.month, 1);
             openMonth(next.year, next.month);
@@ -85,7 +85,7 @@ export default function ContentMiniMonth() {
       </div>
       <div className="grid grid-cols-7 text-center">
         {WEEKDAYS.map((day, index) => (
-          <div key={`${day}-${index}`} className="py-1 text-xs font-medium text-text-tertiary">
+          <div key={`${day}-${index}`} className="py-0.5 text-xs font-medium text-text-tertiary">
             {day}
           </div>
         ))}
@@ -96,9 +96,9 @@ export default function ContentMiniMonth() {
               key={`${cell.year}-${cell.month}-${cell.day}-${cell.inMonth ? "in" : "out"}`}
               type="button"
               onClick={() => openMonth(cell.year, cell.month)}
-              className={`mx-auto flex size-7 items-center justify-center rounded-full text-[12px] ${
+              className={`mx-auto flex size-6 min-h-0! min-w-0! items-center justify-center rounded-full text-xs ${
                 isToday
-                  ? "bg-[#3545D6] font-semibold text-white"
+                  ? "bg-[var(--nav-active-ink)] font-semibold text-white"
                   : cell.inMonth
                     ? "text-text-primary hover:bg-nav-hover"
                     : "text-text-tertiary hover:bg-nav-hover"

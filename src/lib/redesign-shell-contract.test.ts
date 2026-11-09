@@ -159,7 +159,7 @@ test("the unread-mail counter survives on the Correo destination", () => {
 });
 
 test("the context lists (Correo, Docs, Boveda, Contenido) live inside the same sidebar: no second column", () => {
-  for (const nav of ["MailNav", "KbSidebarTree", "VaultNav", "ContentNav"]) {
+  for (const nav of ["MailNav", "KbSidebarTree", "VaultNav"]) {
     assert.match(contextContent, new RegExp(`<${nav}\\b`), `${nav} rendered by the context list`);
   }
   assert.match(sidebar, /contextPanelFor\(/, "which list shows comes from the model");

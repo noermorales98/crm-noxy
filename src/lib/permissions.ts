@@ -137,6 +137,7 @@ const API_MODULE_PREFIXES: Array<[string, PermissionModule]> = [
   ["/api/content", "content"],
   ["/api/settings", "settings"],
   ["/api/google-calendar", "settings"],
+  ["/api/mcp-integrations", "settings"],
   ["/api/companies", "crm"],
   ["/api/contacts", "crm"],
   ["/api/tasks", "crm"],

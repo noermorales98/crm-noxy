@@ -147,6 +147,7 @@ model Organization {
   quoteEvents           QuoteEvent[]
   quoteSettings         QuoteSettings?
   contentClients        ContentClient[]
+  mcpIntegrations       McpIntegration[]
   contentItems          ContentItem[]
 }
 
@@ -1556,4 +1557,25 @@ model ContentItemEditorNote {
   item      ContentItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId, createdAt])
+}
+
+// Conexiones MCP de la organización (se listan en Ajustes › Integraciones). La credencial va cifrada.
+model McpIntegration {
+  id          String   @id @default(cuid())
+  name        String
+  url         String?  @db.Text
+  transport   String   @default("http") // http | sse | stdio | otro
+  authToken   String?  @db.Text // cifrado (AES-256-GCM); nunca se devuelve al navegador
+  enabled     Boolean  @default(true)
+  source      String   @default("manual") // manual | claude
+  category    String?
+  note        String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
 }

@@ -122,10 +122,10 @@ test("resolveMode: the route wins, then the stored mode, then Trabajo; parseMode
 });
 
 test("each context list opens under exactly one sidebar item", () => {
-  assert.deepEqual(CONTEXT_OWNER_HREF, { mail: "/emails", kb: "/kb", vault: "/boveda", content: "/contenido/general" });
+  assert.deepEqual(CONTEXT_OWNER_HREF, { mail: "/emails", kb: "/kb", vault: "/boveda" });
 });
 
-test("contextPanelFor: only Correo (incl. campañas), Docs, Bóveda and Contenido open a second column", () => {
+test("contextPanelFor: only Correo (incl. campañas), Docs and Bóveda have their own list (Contenido has none)", () => {
   const cases: Array<[string, string | null]> = [
     ["/emails", "mail"],
     ["/campaigns", "mail"],
@@ -133,8 +133,8 @@ test("contextPanelFor: only Correo (incl. campañas), Docs, Bóveda and Contenid
     ["/kb", "kb"],
     ["/kb/page-1", "kb"],
     ["/boveda/client-1", "vault"],
-    ["/contenido/general", "content"],
-    ["/contenido/client-7", "content"],
+    ["/contenido/general", null],
+    ["/contenido/client-7", null],
     ["/assistant/new", null],
     ["/", null],
     ["/tasks", null],

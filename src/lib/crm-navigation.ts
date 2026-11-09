@@ -327,23 +327,32 @@ export function resolveMode(pathname: string, stored: string | null | undefined)
   return modeForPath(pathname) ?? parseMode(stored) ?? "work";
 }
 
-export type ContextPanelKey = "mail" | "kb" | "vault" | "content";
+export type ContextPanelKey = "mail" | "kb" | "vault";
 
 /** Elemento del sidebar bajo el cual se abre la lista propia de cada sección (uno solo por sección). */
 export const CONTEXT_OWNER_HREF: Record<ContextPanelKey, string> = {
   mail: "/emails",
   kb: "/kb",
   vault: "/boveda",
-  content: CONTENT_HOME,
 };
 
 /** Pantallas con lista propia en la segunda columna (el Asistente conserva su chrome propio). */
 export function contextPanelFor(pathname: string): ContextPanelKey | null {
   const section = contextualSectionFor(pathname);
-  return section === "mail" || section === "kb" || section === "vault" || section === "content" ? section : null;
+  return section === "mail" || section === "kb" || section === "vault" ? section : null;
 }
 
 /** Primera pantalla visible de un modo: a donde lleva hacer clic en el modo. */
 export function modeHome(mode: NavModeDef): string | null {
   return mode.groups[0]?.items[0]?.href ?? null;
+}
+
+/** Título corto de la pantalla para la barra superior móvil. */
+export function sectionTitleFor(pathname: string): string {
+  const titles = new Map<string, string>();
+  for (const def of NAV_MODES) for (const group of def.groups) for (const item of group.items) titles.set(item.href, item.label);
+  for (const item of SETTINGS_ITEMS) titles.set(item.href, item.label);
+  titles.set("/profile", "Perfil");
+  const best = activeNavHref(pathname, [...titles.keys()]);
+  return best ? (titles.get(best) ?? "Noxy") : "Noxy";
 }

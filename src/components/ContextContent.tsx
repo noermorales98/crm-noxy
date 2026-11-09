@@ -2,7 +2,7 @@
 
 import KbSidebarTree from "@/src/components/kb/KbSidebarTree";
 import VaultNav from "@/src/components/vault/VaultNav";
-import { MailNav, ContentNav } from "@/src/components/context-navs";
+import { MailNav } from "@/src/components/context-navs";
 import { useNotifications } from "@/src/context/NotificationContext";
 import type { ContextPanelKey } from "@/src/lib/crm-navigation";
 
@@ -17,8 +17,6 @@ export function ContextContent({ section, onNavigate }: { section: ContextPanelK
       return <KbSidebarTree onNavigate={onNavigate} />;
     case "vault":
       return <VaultNav onNavigate={onNavigate} />;
-    case "content":
-      return <ContentNav onNavigate={onNavigate} />;
     default:
       return null;
   }

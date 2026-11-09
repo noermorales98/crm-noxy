@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Fragment,
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -28,6 +29,7 @@ import AccountMenu from "@/src/components/AccountMenu";
 import NotificationsMenu from "@/src/components/NotificationsMenu";
 import { AssistantNav } from "@/src/components/context-navs";
 import { ContextContent } from "@/src/components/ContextContent";
+import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
 import SettingsSidebar from "@/src/components/SettingsSidebar";
 import { KbRootActions } from "@/src/components/kb/KbSidebarTree";
 import { CountBadge, NAV_ICONS, NavLeaf, groupLabelClass } from "@/src/components/sidebar-parts";
@@ -135,7 +137,7 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
   // El destino más específico de todos los modos marca la fila activa.
   const allHrefs = modes.flatMap((mode) => mode.groups.flatMap((group) => group.items.map((item) => item.href)));
   // Rutas de un espacio que no cuelgan de su href (campañas, clientes de contenido) marcan su destino.
-  const spaceFallback = contextPanelFor(pathname) === "mail" ? "/emails" : contextPanelFor(pathname) === "content" ? "/contenido/general" : null;
+  const spaceFallback = contextPanelFor(pathname) === "mail" ? "/emails" : null;
   const rawLeaf = activeNavHref(pathname, allHrefs);
   // Las páginas de un cliente de contenido pertenecen al calendario, no al resumen.
   const contentCalendarRoute = rawLeaf === "/contenido" && pathname.startsWith("/contenido/") && !/^\/contenido\/(clientes|recordatorios)(\/|$)/.test(pathname);
@@ -416,6 +418,13 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
             ),
           )}
         </nav>
+
+        {/* Mini calendario del mes: fijo abajo, fuera del desplazamiento de la lista. */}
+        {!collapsed && pathname.startsWith("/contenido") && (
+          <Suspense fallback={null}>
+            <ContentMiniMonth />
+          </Suspense>
+        )}
 
         {/* ── Pie: cuenta (Ajustes vive en su menú) ────────────────────────────────────────── */}
         <div className={`shrink-0 border-t border-line py-2 ${collapsed ? "flex flex-col items-center gap-0.5 px-2" : "px-3"}`}>

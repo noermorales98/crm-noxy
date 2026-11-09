@@ -2,11 +2,10 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Building04Icon, InboxIcon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
-import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
 import { groupConversationsByDay } from "@/src/components/assistant-conversation-list-state";
 import { ICON_SIZE, ICON_IDLE, branchActionClass, sectionLabelClass, navItemClass, rowClass, CountBadge, NavLeaf, CappedList } from "@/src/components/sidebar-parts";
@@ -195,60 +194,6 @@ export function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNa
             }}
           />
         </>
-      )}
-    </div>
-  );
-}
-
-// ─── Rama: Gestión de contenido ────────────────────────────────────────────────
-
-type ContentClientEntry = { id: string; name: string; kind: string; color: string };
-
-export function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname() ?? "/";
-  const [clients, setClients] = useState<ContentClientEntry[]>([]);
-
-  useEffect(() => {
-    fetch("/api/content/clients")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: Array<{ id: string; name: string; kind: string; color?: string | null }>) => {
-        if (Array.isArray(data)) setClients(data.map((c) => ({ id: c.id, name: c.name, kind: c.kind, color: c.color || "#3545D6" })));
-      })
-      .catch(() => {});
-  }, [pathname]);
-
-  return (
-    <div className="flex flex-col">
-      <Link href="/contenido?new=1" onClick={onNavigate} className={branchActionClass}>
-        <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} aria-hidden="true" />
-        Nuevo
-      </Link>
-
-      <p className={sectionLabelClass}>Clientes y marcas</p>
-      {clients.length === 0 ? (
-        <p className="px-3 py-2 text-xs text-text-secondary-strong">Aún no hay calendarios de clientes</p>
-      ) : (
-        <CappedList
-          items={clients}
-          noun="todos"
-          render={(c) => {
-            const isActive = pathname === `/contenido/${c.id}`;
-            return (
-              <Link key={c.id} href={`/contenido/${c.id}`} onClick={onNavigate} aria-current={isActive ? "page" : undefined} className={navItemClass(isActive)}>
-                {/* Identidad del cliente: su color, como punto pequeño; no es un dato. */}
-                <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: c.color || "#3545D6" }} />
-                <span className="min-w-0 flex-1 truncate">{c.name}</span>
-              </Link>
-            );
-          }}
-        />
-      )}
-      {pathname.startsWith("/contenido") && (
-        <div className="-ml-2 pt-2">
-          <Suspense fallback={null}>
-            <ContentMiniMonth />
-          </Suspense>
-        </div>
       )}
     </div>
   );

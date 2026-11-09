@@ -38,7 +38,14 @@ export default async function ContenidoResumenPage() {
   );
   const colorOf = new Map(clients.map((client) => [client.id, client.color]));
   const { counts } = summary;
-  const circle = { iconBg: "var(--color-nav-active)", iconColor: "var(--nav-active-ink)" };
+  // Misma paleta de círculos que el Inicio: índigo, naranja, verde, morado y rojo.
+  const tone = {
+    indigo: { iconBg: "#EBEDFA", iconColor: "#3545D6" },
+    orange: { iconBg: "#FFECD2", iconColor: "#D9730D" },
+    green: { iconBg: "#E2F6E9", iconColor: "#448361" },
+    purple: { iconBg: "#F0E6F9", iconColor: "#9065B0" },
+    red: { iconBg: "#FFE2E2", iconColor: "#D44020" },
+  } as const;
 
   return (
     <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
@@ -61,12 +68,12 @@ export default async function ContenidoResumenPage() {
 
       <Enter index={1}>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-          <KpiWidget icon={Calendar03Icon} {...circle} value={String(counts.today)} label="Para hoy" href="/contenido/general" />
-          <KpiWidget icon={Alert02Icon} {...circle} value={String(counts.overdue)} label="Atrasadas" href="/contenido/general" highlight={counts.overdue > 0} />
-          <KpiWidget icon={Upload01Icon} {...circle} value={String(counts.toUpload)} label="Listas para subir" href="/contenido/general" />
-          <KpiWidget icon={PencilEdit02Icon} {...circle} value={String(counts.inEditing)} label="En edición" href="/contenido/general" />
-          <KpiWidget icon={CheckmarkCircle02Icon} {...circle} value={String(counts.pending)} label="Pendientes" href="/contenido/general" />
-          <KpiWidget icon={Megaphone01Icon} {...circle} value={String(counts.thisWeek)} label="Próximos 7 días" href="/contenido/general" />
+          <KpiWidget icon={Calendar03Icon} {...tone.indigo} value={String(counts.today)} label="Para hoy" href="/contenido/general" />
+          <KpiWidget icon={Alert02Icon} {...tone.red} value={String(counts.overdue)} label="Atrasadas" href="/contenido/general" highlight={counts.overdue > 0} />
+          <KpiWidget icon={Upload01Icon} {...tone.green} value={String(counts.toUpload)} label="Listas para subir" href="/contenido/general" />
+          <KpiWidget icon={PencilEdit02Icon} {...tone.orange} value={String(counts.inEditing)} label="En edición" href="/contenido/general" />
+          <KpiWidget icon={CheckmarkCircle02Icon} {...tone.purple} value={String(counts.pending)} label="Pendientes" href="/contenido/general" />
+          <KpiWidget icon={Megaphone01Icon} {...tone.indigo} value={String(counts.thisWeek)} label="Próximos 7 días" href="/contenido/general" />
         </div>
       </Enter>
 
@@ -111,7 +118,7 @@ export default async function ContenidoResumenPage() {
               getKey={(client) => client.id}
               empty={<EmptyState title="Aún no hay clientes de contenido" body="Crea un cliente o marca para empezar a planear su calendario." />}
               renderRow={(client) => (
-                <Link href={`/contenido/${client.id}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                <Link href={`/contenido/general?cliente=${client.id}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
                   <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: client.color }} />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">{client.name}</span>
                   <span className="shrink-0 text-xs tabular-nums text-text-secondary">
