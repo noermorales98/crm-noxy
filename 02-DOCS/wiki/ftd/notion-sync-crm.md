@@ -17,7 +17,7 @@ Usar la conexión de Notion guardada en Ajustes › Integraciones desde el propi
 
 ## Checklist
 - [x] Columnas nuevas (`NotionConfig.docsDatabaseId/autoSync*`, `KbPage.notionPageId`) — SQL aplicado
-- [ ] `KbPage.notionSyncedAt` — `prisma/add_notion_sync.sql` (última línea) **pendiente de aplicar en la BD**
+- [x] `KbPage.notionSyncedAt` — aplicada en la BD y leída con Prisma
 - [x] Markdown → bloques de Notion (`src/lib/notion-blocks.ts`, 3 pruebas)
 - [x] Servicio `src/lib/notion-sync.ts` + `/api/notion/sync`
 - [x] UI en Ajustes, deal y documento
