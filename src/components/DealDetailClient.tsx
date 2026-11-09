@@ -586,7 +586,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   ] as const;
 
   return (
-    <main className="flex-1 overflow-y-auto bg-surface-app">
+    <main className="crm-mobile-bottom-clearance flex-1 overflow-y-auto bg-surface-app">
 
       {/* ── Header ── */}
       <div className="bg-surface-elevated border-b border-line">

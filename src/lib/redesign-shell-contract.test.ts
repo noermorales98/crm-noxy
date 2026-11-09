@@ -236,8 +236,10 @@ test("mobile: Settings has a section picker, the system bars take the navbar col
   assert.match(code("src/components/SettingsMobileNav.tsx"), /lg:hidden/, "desktop uses the settings sidebar");
   assert.match(shell, /meta\[name="theme-color"\]/, "the browser/system bar colour follows the navbar");
   assert.match(raw("app/layout.tsx"), /themeColor:\s*"#EBEDFA"/i, "initial theme colour is the navbar colour, not the brand blue");
-  assert.match(shell, /pb-\[calc\(5\.75rem\+env\(safe-area-inset-bottom\)\)\]/, "bottom padding so the capsule never covers content");
-  assert.match(shell, /lg:pb-0/, "desktop has no bottom padding");
+  // El espacio inferior va al final del scroll (no en una banda fija de la hoja, que se vería como un cuadro detrás de la cápsula).
+  assert.doesNotMatch(shell, /pb-\[calc\(5\.75rem/, "no fixed band on the sheet");
+  assert.match(raw("app/globals.css"), /\.crm-mobile-bottom-clearance\s*\{[^}]*padding-bottom:\s*calc\(6rem/, "scroll areas end with room for the capsule");
+  assert.match(shell, /documentElement/, "html/body take the navbar colour behind the OS bottom bar");
 });
 
 test("the mobile chrome: fixed top bar, and «Más» is a bottom sheet that does not reuse the desktop sidebar", () => {

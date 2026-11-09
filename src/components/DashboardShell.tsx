@@ -42,7 +42,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     }
     const previous = meta.content;
     meta.content = color;
+    // Lo que queda detrás de la barra de navegación inferior (Android/iOS) es el fondo de html/body.
+    const html = document.documentElement;
+    const previousHtml = html.style.backgroundColor;
+    const previousBody = document.body.style.backgroundColor;
+    html.style.backgroundColor = color;
+    document.body.style.backgroundColor = color;
     return () => {
+      html.style.backgroundColor = previousHtml;
+      document.body.style.backgroundColor = previousBody;
       if (created) meta?.remove();
       else if (meta) meta.content = previous;
     };
@@ -69,7 +77,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 {/* Hoja de contenido: lo que separa el marco claro del trabajo. */}
                 <div
                   data-crm-sheet
-                  className={`flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app pt-[calc(3.5rem+env(safe-area-inset-top))] lg:border-l lg:border-t lg:pb-0 lg:pt-0 ${isAssistant ? "pb-[env(safe-area-inset-bottom)]" : "pb-[calc(5.75rem+env(safe-area-inset-bottom))]"}`}
+                  className={`flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app pt-[calc(3.5rem+env(safe-area-inset-top))] lg:border-l lg:border-t lg:pt-0 ${isAssistant ? "pb-[env(safe-area-inset-bottom)]" : ""}`}
                 >
                   <SettingsMobileNav />
                   {!hideHeader && <PageBar />}

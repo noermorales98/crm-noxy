@@ -98,7 +98,7 @@ export default function VaultPanel({
   const socials = vaultEntries.filter((e) => e.type === "social");
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="crm-mobile-bottom-clearance flex-1 overflow-y-auto">
       {clientName && (
         <div className="px-6 pt-6 pb-2">
           <h2 className="text-lg font-bold text-text-primary">{clientName}</h2>

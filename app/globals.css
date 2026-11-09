@@ -94,6 +94,10 @@
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+html {
+  background-color: var(--surface-sidebar);
+}
+
 body {
   background-color: var(--surface-app);
   color: var(--text-primary);
@@ -128,7 +132,7 @@ body {
 
   /* Clearance inside scroll areas — does not paint a gray band behind the pill */
   .crm-mobile-bottom-clearance {
-    padding-bottom: 1rem; /* el espacio de la barra inferior lo reserva la hoja del shell */
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); /* al final del scroll: el contenido pasa por debajo de la cápsula y queda libre al terminar */
   }
 
   .crm-table-scroll {
