@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: mcp-notion-hub
-status: review-done
+status: done
+merged: 2026-11-09
+merged_by: Noeli
 ---
 # Hub MCP del CRM
 
@@ -37,5 +39,4 @@ Fuera: webhooks, Redis, SSE legado, WebSockets, API OpenAPI y function calling d
 - Límite conocido: el control de un solo uso del token vive en memoria de cada instancia; en otra instancia el token vale hasta caducar (10 min).
 
 ## Next
-
-Probar un `sync_lead_to_notion` con `NOTION_TOKEN` y `NOTION_LEADS_DATABASE_ID`, y abrir el enlace de confirmación.
+Fusionado en main el 2026-11-09 (5d887ed).
