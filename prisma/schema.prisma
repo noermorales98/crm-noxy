@@ -148,6 +148,7 @@ model Organization {
   quoteSettings         QuoteSettings?
   contentClients        ContentClient[]
   mcpIntegrations       McpIntegration[]
+  notionConfig          NotionConfig?
   contentItems          ContentItem[]
 }
 
@@ -1579,4 +1580,16 @@ model McpIntegration {
 
   @@unique([organizationId, name])
   @@index([organizationId])
+}
+
+/// Credenciales de Notion de la organización (Ajustes › Integraciones). El token va cifrado y nunca se devuelve al navegador.
+model NotionConfig {
+  id         String   @id @default(cuid())
+  token      String   @db.Text
+  databaseId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

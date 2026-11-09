@@ -40,3 +40,4 @@ Fuera: webhooks, Redis, SSE legado, WebSockets, API OpenAPI y function calling d
 
 ## Next
 Fusionado en main el 2026-11-09 (5d887ed).
+- 2026-11-09: credenciales de Notion (token cifrado + base de leads) se guardan en la BD (modelo NotionConfig, Ajustes › Integraciones); notion.ts las lee con respaldo a NOTION_TOKEN/NOTION_LEADS_DATABASE_ID.

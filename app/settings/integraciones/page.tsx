@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { McpIntegrations } from "@/src/components/settings/McpIntegrations";
+import { NotionSettings } from "@/src/components/settings/NotionSettings";
 import { SettingsScreen } from "@/src/components/settings/SettingsScreen";
 import { Block, Enter, PageHeader } from "@/src/components/ui";
 
@@ -133,6 +134,7 @@ export default function SettingsIntegrationsPage() {
             
         </div>
       </Block>
+        <NotionSettings />
         <McpIntegrations />
       </div>
     </SettingsScreen>

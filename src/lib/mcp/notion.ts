@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
+import { resolveNotionEnv, type NotionEnv } from "@/src/lib/mcp/notion-credentials";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
@@ -17,16 +18,7 @@ function err(message: string) {
   return { content: [{ type: "text" as const, text: `Error: ${message}` }], isError: true as const };
 }
 
-function notionEnv(): { token: string; databaseId: string } | null {
-  const token = process.env.NOTION_TOKEN;
-  const databaseId = process.env.NOTION_LEADS_DATABASE_ID;
-  if (!token || !databaseId) return null;
-  return { token, databaseId };
-}
-
-async function notionFetch(path: string, init?: { method?: string; body?: string }) {
-  const env = notionEnv();
-  if (!env) throw new Error("Notion no está configurado");
+async function notionFetch(env: NotionEnv, path: string, init?: { method?: string; body?: string }) {
   const response = await fetch(`${NOTION}${path}`, {
     method: init?.method ?? "GET",
     headers: {
@@ -102,7 +94,7 @@ function fieldsOf(input: {
 }
 
 export function registerNotionTools(server: McpServer, organizationId: string) {
-  const missing = () => err("Notion no está configurado (NOTION_TOKEN y NOTION_LEADS_DATABASE_ID).");
+  const missing = () => err("Notion no está configurado. Agrega el token y la base de leads en Ajustes › Integraciones.");
 
   server.registerTool(
     "notion_search",
@@ -115,12 +107,12 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       },
     },
     async ({ search, limit }) => {
-      const env = notionEnv();
+      const env = await resolveNotionEnv(organizationId);
       if (!env) return missing();
       try {
         const body: Record<string, unknown> = { page_size: limit };
         if (search) body.filter = { property: "Name", title: { contains: search } };
-        const result = await notionFetch(`/databases/${env.databaseId}/query`, {
+        const result = await notionFetch(env, `/databases/${env.databaseId}/query`, {
           method: "POST",
           body: JSON.stringify(body),
         });
@@ -139,9 +131,10 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       inputSchema: { pageId: z.string().min(1) },
     },
     async ({ pageId }) => {
-      if (!notionEnv()) return missing();
+      const env = await resolveNotionEnv(organizationId);
+      if (!env) return missing();
       try {
-        const page = await notionFetch(`/pages/${pageId}`);
+        const page = await notionFetch(env, `/pages/${pageId}`);
         return json(slimPage(page));
       } catch (error) {
         return err(error instanceof Error ? error.message : "Notion no respondió");
@@ -157,14 +150,14 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       inputSchema: pageFields,
     },
     async ({ approvalToken, ...input }) => {
-      const env = notionEnv();
+      const env = await resolveNotionEnv(organizationId);
       if (!env) return missing();
       const fields = fieldsOf(input);
       const action = canonicalAction("notion_create_page", definedRecord({ ...fields }));
       const gated = gateWrite(action, `Crear en Notion la página «${fields.title}».`, approvalToken);
       if (!gated.ok) return gated.result;
       try {
-        const page = await notionFetch("/pages", {
+        const page = await notionFetch(env, "/pages", {
           method: "POST",
           body: JSON.stringify({
             parent: { database_id: env.databaseId },
@@ -191,13 +184,14 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       inputSchema: { pageId: z.string().min(1), ...pageFields },
     },
     async ({ pageId, approvalToken, ...input }) => {
-      if (!notionEnv()) return missing();
+      const env = await resolveNotionEnv(organizationId);
+      if (!env) return missing();
       const fields = fieldsOf(input);
       const action = canonicalAction("notion_update_page", definedRecord({ pageId, ...fields }));
       const gated = gateWrite(action, `Actualizar en Notion la página ${pageId} («${fields.title}»).`, approvalToken);
       if (!gated.ok) return gated.result;
       try {
-        const page = await notionFetch(`/pages/${pageId}`, {
+        const page = await notionFetch(env, `/pages/${pageId}`, {
           method: "PATCH",
           body: JSON.stringify({ properties: leadToNotionProperties(fields) }),
         });
@@ -219,7 +213,7 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       },
     },
     async ({ dealId, approvalToken }) => {
-      const env = notionEnv();
+      const env = await resolveNotionEnv(organizationId);
       if (!env) return missing();
       const deal = await prisma.deal.findFirst({
         where: { id: dealId, organizationId },
@@ -248,7 +242,7 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
       try {
         let pageId = deal.notionPageId;
         if (!pageId) {
-          const found = await notionFetch(`/databases/${env.databaseId}/query`, {
+          const found = await notionFetch(env, `/databases/${env.databaseId}/query`, {
             method: "POST",
             body: JSON.stringify({
               page_size: 1,
@@ -259,11 +253,11 @@ export function registerNotionTools(server: McpServer, organizationId: string) {
           pageId = first?.id ?? null;
         }
         const page = pageId
-          ? await notionFetch(`/pages/${pageId}`, {
+          ? await notionFetch(env, `/pages/${pageId}`, {
               method: "PATCH",
               body: JSON.stringify({ properties: leadToNotionProperties(fields) }),
             })
-          : await notionFetch("/pages", {
+          : await notionFetch(env, "/pages", {
               method: "POST",
               body: JSON.stringify({
                 parent: { database_id: env.databaseId },
