@@ -448,6 +448,7 @@ model Deal {
   lostReason  String?
   probability Int         @default(50)
   notes       String?     @db.Text
+  notionPageId String?
   bookingToken String?    @unique @default(cuid())
   allowedBookingTypes String? @db.Text
   isArchived  Boolean     @default(false)
