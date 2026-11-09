@@ -860,35 +860,32 @@ function EmailsPageInner() {
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="relative shrink-0 border-b border-line bg-surface-elevated px-1 py-0 sm:px-6 sm:py-1 lg:py-4">
-                <div className="flex items-center gap-1 lg:items-start lg:justify-between lg:gap-3">
-                  <div className="flex min-w-0 flex-1 gap-2">
+              <div className="relative shrink-0 border-b border-line bg-surface-elevated px-1 py-0 sm:px-6 lg:py-4">
+                <div className="flex min-h-10 items-center gap-0.5 lg:items-start lg:justify-between lg:gap-3">
+                  <div className="flex min-w-0 flex-1 items-center gap-1 lg:items-start lg:gap-2">
                     <button
                       type="button"
                       onClick={() => setSelectedEmail(null)}
-                      className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
+                      className="flex size-9 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary lg:hidden"
                       title="Volver a la lista"
                       aria-label="Volver a la lista"
                     >
                       <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                     </button>
-                    <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
                     <h2 className="line-clamp-1 text-sm font-semibold leading-snug text-text-primary lg:mb-2 lg:line-clamp-none lg:text-lg lg:font-bold">
                       {selectedEmail.subject}
                     </h2>
-                    <p className="truncate text-xs text-text-secondary lg:hidden">
-                      {selectedEmail.fromName || sanitizeEmail(selectedEmail.fromAddress)}
-                      {" · "}
-                      {new Date(selectedEmail.receivedAt).toLocaleString("es-MX", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <details className="mt-1 lg:hidden">
-                      <summary className="cursor-pointer text-xs text-text-secondary">Detalles</summary>
-                      <div className="mt-1 space-y-0.5 text-xs text-text-secondary">
+                    <details className="group lg:hidden">
+                      <summary className="flex min-h-0 cursor-pointer list-none items-center gap-1 truncate text-xs leading-tight text-text-secondary [&::-webkit-details-marker]:hidden">
+                        <span className="truncate">
+                          {selectedEmail.fromName || sanitizeEmail(selectedEmail.fromAddress)}
+                          {" · "}
+                          {new Date(selectedEmail.receivedAt).toLocaleString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                        <span aria-hidden="true" className="shrink-0 text-xs transition-transform group-open:rotate-180">▾</span>
+                      </summary>
+                      <div className="mt-1 space-y-0.5 pb-1 text-xs text-text-secondary">
                         <p className="truncate">
                           De:{" "}
                           {selectedEmail.fromName
@@ -945,7 +942,7 @@ function EmailsPageInner() {
                       <button
                         onClick={() => openReply(selectedEmail)}
                         aria-label="Responder"
-                        className="flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
+                        className="flex size-9 min-h-0! min-w-0! items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary sm:hidden"
                         title="Responder"
                       >
                         <HugeiconsIcon icon={MailReplyIcon} size={15} />
@@ -1001,7 +998,7 @@ function EmailsPageInner() {
                         aria-haspopup="menu"
                         aria-expanded={mailMenu}
                         aria-label="Más acciones"
-                        className="flex size-11 items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+                        className="flex size-9 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary"
                       >
                         <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
                       </button>
