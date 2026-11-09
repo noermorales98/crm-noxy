@@ -2,19 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BarChartIcon, Home01Icon, MoreHorizontalCircle01Icon, Task01Icon, UserMultipleIcon } from "@hugeicons/core-free-icons";
+import { Home01Icon, Megaphone01Icon, MoreHorizontalCircle01Icon } from "@hugeicons/core-free-icons";
+import { NAV_ICONS } from "@/src/components/sidebar-parts";
+import { useMobileTabs } from "@/src/hooks/useMobileTabs";
 import { useOptionalMobileChrome } from "@/src/context/MobileChromeContext";
-import { activeMobileTab, visibleMobileTabs } from "@/src/lib/crm-navigation";
-import type { ModulePermissions, RoleName } from "@/src/lib/permissions";
+import { activeMobileTab } from "@/src/lib/crm-navigation";
 
-const TAB_ICONS: Record<string, typeof Home01Icon> = {
-  "/": Home01Icon,
-  "/contacts": UserMultipleIcon,
-  "/pipeline": BarChartIcon,
-  "/tasks": Task01Icon,
-};
+const iconFor = (href: string) => NAV_ICONS[href] ?? (href.startsWith("/contenido") ? Megaphone01Icon : Home01Icon);
 
 const itemClass =
   "relative flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-full px-1 text-xs outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none";
@@ -22,16 +17,13 @@ const ACTIVE = "bg-[color-mix(in_srgb,var(--color-surface-elevated)_88%,transpar
 const IDLE = "font-medium text-text-secondary-strong hover:text-text-primary";
 
 /**
- * Barra inferior móvil en cápsula flotante, de cristal translúcido (estilo «liquid glass»): cuatro destinos y «Más»,
+ * Barra inferior móvil en cápsula flotante, de cristal translúcido (estilo «liquid glass»): Inicio, tres secciones a tu elección y «Más»,
  * que abre la hoja de secciones. El asistente la oculta para no tapar el campo de mensaje.
  */
 export default function MobileBottomTabBar() {
   const pathname = usePathname() ?? "/";
-  const { data: session } = useSession();
   const mobileChrome = useOptionalMobileChrome();
-  const role = session?.role as RoleName | undefined;
-  const permissions = session?.permissions as ModulePermissions | undefined;
-  const tabs = visibleMobileTabs(role, permissions);
+  const { tabs } = useMobileTabs();
   const activeHref = activeMobileTab(pathname, tabs);
 
   if (pathname === "/assistant" || pathname.startsWith("/assistant/")) return null;
@@ -47,7 +39,7 @@ export default function MobileBottomTabBar() {
           return (
             <li key={tab.href} className="min-w-0 flex-1">
               <Link href={tab.href} aria-current={isActive ? "page" : undefined} className={`${itemClass} ${isActive ? ACTIVE : IDLE}`}>
-                <HugeiconsIcon icon={TAB_ICONS[tab.href] ?? Home01Icon} size={21} aria-hidden="true" />
+                <HugeiconsIcon icon={iconFor(tab.href)} size={21} aria-hidden="true" />
                 <span className="max-w-full truncate">{tab.label}</span>
               </Link>
             </li>

@@ -356,3 +356,68 @@ export function sectionTitleFor(pathname: string): string {
   const best = activeNavHref(pathname, [...titles.keys()]);
   return best ? (titles.get(best) ?? "Noxy") : "Noxy";
 }
+
+// ─── Barra inferior móvil personalizable ───────────────────────────────────────
+// Inicio (primero) y «Más» (último) son fijos; los tres espacios intermedios los elige la persona.
+
+export const MOBILE_TABS_STORAGE_KEY = "noxy.mobile.tabs";
+export const DEFAULT_MOBILE_TAB_HREFS: readonly string[] = ["/contacts", "/pipeline", "/tasks"];
+export const MAX_CUSTOM_TABS = 3;
+
+/** Nombres cortos para que quepan en la cápsula. */
+const TAB_SHORT_LABEL: Record<string, string> = {
+  "/pipeline": "Pipeline",
+  "/pipeline/clientes": "Clientes",
+  "/pipeline/historial": "Historial",
+  "/appointments": "Citas",
+  "/appointment-types": "Tipos",
+  "/availability": "Horarios",
+  "/contenido": "Contenido",
+  "/contenido/clientes": "Marcas",
+  "/contenido/general": "Calendario",
+  "/contenido/recordatorios": "Avisos",
+  "/assistant": "Asistente",
+};
+
+/** Destinos que se pueden fijar en la barra (todos los visibles menos Inicio). */
+export function mobilePickableHrefs(role: Role, permissions: Permissions): string[] {
+  return visibleModes(role, permissions)
+    .flatMap((mode) => mode.groups.flatMap((group) => group.items.map((item) => item.href)))
+    .filter((href) => href !== "/");
+}
+
+/** Lee la elección guardada: JSON válido, destinos conocidos, sin Inicio ni repetidos, máximo 3; sin preferencia, la de fábrica. */
+export function parseMobileTabs(raw: string | null | undefined, allowed: readonly string[]): string[] {
+  const keep = (list: readonly unknown[]) => {
+    const out: string[] = [];
+    for (const href of list) {
+      if (typeof href === "string" && href !== "/" && allowed.includes(href) && !out.includes(href)) out.push(href);
+      if (out.length === MAX_CUSTOM_TABS) break;
+    }
+    return out;
+  };
+  if (!raw) return keep(DEFAULT_MOBILE_TAB_HREFS);
+  try {
+    const value: unknown = JSON.parse(raw);
+    return Array.isArray(value) ? keep(value) : keep(DEFAULT_MOBILE_TAB_HREFS);
+  } catch {
+    return keep(DEFAULT_MOBILE_TAB_HREFS);
+  }
+}
+
+/** Añade o quita un destino; con la barra llena no añade más. */
+export function toggleMobileTab(current: readonly string[], href: string, allowed: readonly string[]): string[] {
+  if (current.includes(href)) return current.filter((item) => item !== href);
+  if (href === "/" || !allowed.includes(href) || current.length >= MAX_CUSTOM_TABS) return [...current];
+  return [...current, href];
+}
+
+/** Pestañas de la barra: Inicio y luego tus secciones permitidas, con nombre corto. */
+export function customMobileTabs(selected: readonly string[], role: Role, permissions: Permissions): MobileTab[] {
+  const labels = new Map<string, MobileTab>();
+  for (const def of NAV_MODES) for (const group of def.groups) for (const item of group.items) {
+    if (hasPermission(role, permissions, item.permission)) labels.set(item.href, { href: item.href, label: TAB_SHORT_LABEL[item.href] ?? item.label, permission: item.permission });
+  }
+  const chosen = selected.map((href) => labels.get(href)).filter((tab): tab is MobileTab => Boolean(tab));
+  return [{ href: "/", label: "Inicio", permission: "crm" }, ...chosen];
+}

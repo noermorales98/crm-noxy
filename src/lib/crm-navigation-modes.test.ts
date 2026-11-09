@@ -4,6 +4,13 @@ import test from "node:test";
 import { ALL_PERMISSIONS } from "./permissions.ts";
 import {
   MODE_STORAGE_KEY,
+  MOBILE_TABS_STORAGE_KEY,
+  DEFAULT_MOBILE_TAB_HREFS,
+  MAX_CUSTOM_TABS,
+  parseMobileTabs,
+  toggleMobileTab,
+  customMobileTabs,
+  mobilePickableHrefs,
   CONTEXT_OWNER_HREF,
   modeHome,
   NAV_DESTINATIONS,
@@ -22,6 +29,8 @@ type Entry = { kind?: string; href: string; label: string; permission: string; b
 type Group = { label: string; items: Entry[] };
 const shape = (groups: readonly Group[]) => groups.map((g) => [g.label, g.items.map((i) => [i.label, i.href])]);
 const mode = (key: string) => (NAV_MODES as unknown as Array<{ key: string; label: string; groups: Group[] }>).find((m) => m.key === key)!;
+
+const ALL_HREFS = ['/', '/tasks', '/projects', '/contacts', '/companies', '/pipeline', '/forms', '/emails', '/kb', '/boveda', '/contenido'];
 
 test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat lists, in order", () => {
   assert.deepEqual(
@@ -156,4 +165,28 @@ test("modeHome is the first visible screen of a mode (clicking a mode opens it)"
   const spaces = visibleModes("OWNER", ALL_PERMISSIONS).find((m) => m.key === "spaces")!;
   assert.equal(modeHome(spaces), "/emails");
   assert.equal(modeHome({ key: "work", label: "Trabajo", groups: [] }), null);
+});
+
+test("the mobile bar: Inicio and Más are fixed, three slots are yours, stored and validated", () => {
+  assert.equal(MOBILE_TABS_STORAGE_KEY, "noxy.mobile.tabs");
+  assert.deepEqual(DEFAULT_MOBILE_TAB_HREFS, ["/contacts", "/pipeline", "/tasks"]);
+  assert.equal(MAX_CUSTOM_TABS, 3);
+  // parseMobileTabs: JSON válido, destinos conocidos y sin Inicio, sin repetidos, máximo 3.
+  assert.deepEqual(parseMobileTabs('["/emails","/kb"]', ALL_HREFS), ["/emails", "/kb"]);
+  assert.deepEqual(parseMobileTabs('["/","/emails","/emails","/nope","/kb","/tasks","/projects"]', ALL_HREFS), ["/emails", "/kb", "/tasks"]);
+  assert.deepEqual(parseMobileTabs(null, ALL_HREFS), DEFAULT_MOBILE_TAB_HREFS, "no preference → defaults");
+  assert.deepEqual(parseMobileTabs("not json", ALL_HREFS), DEFAULT_MOBILE_TAB_HREFS);
+  assert.deepEqual(parseMobileTabs("[]", ALL_HREFS), [], "an empty choice is allowed (only Inicio and Más)");
+  // toggleMobileTab: añade hasta 3, quita, y no deja pasar de 3 ni añadir Inicio.
+  assert.deepEqual(toggleMobileTab(["/emails"], "/kb", ALL_HREFS), ["/emails", "/kb"]);
+  assert.deepEqual(toggleMobileTab(["/emails", "/kb"], "/emails", ALL_HREFS), ["/kb"]);
+  assert.deepEqual(toggleMobileTab(["/emails", "/kb", "/tasks"], "/projects", ALL_HREFS), ["/emails", "/kb", "/tasks"], "full: no more");
+  assert.deepEqual(toggleMobileTab(["/emails"], "/", ALL_HREFS), ["/emails"], "Inicio is not a slot");
+  // customMobileTabs: Inicio primero, luego tus secciones permitidas con su nombre corto.
+  const tabs = customMobileTabs(["/contenido", "/boveda", "/forms"], "OWNER", ALL_PERMISSIONS) as Array<{ href: string; label: string }>;
+  assert.deepEqual(tabs.map((t) => [t.href, t.label]), [["/", "Inicio"], ["/contenido", "Contenido"], ["/boveda", "Bóveda"], ["/forms", "Formularios"]]);
+  const noContent = customMobileTabs(["/contenido", "/forms"], "MEMBER", { ...ALL_PERMISSIONS, content: false }) as Array<{ href: string }>;
+  assert.deepEqual(noContent.map((t) => t.href), ["/", "/forms"], "a section you cannot open is skipped");
+  assert.deepEqual(mobilePickableHrefs("OWNER", ALL_PERMISSIONS).includes("/"), false, "Inicio is never pickable");
+  assert.ok(mobilePickableHrefs("OWNER", ALL_PERMISSIONS).includes("/emails"));
 });

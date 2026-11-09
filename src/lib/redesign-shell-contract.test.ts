@@ -216,8 +216,8 @@ test("the active destination uses the theme ink from the model, with aria-curren
 test("the mobile bottom bar is a floating glass capsule: tabs from the model, «Más» opens the bottom sheet", () => {
   const bar = code("src/components/MobileBottomTabBar.tsx");
   assert.match(bar, /from ["']@\/src\/lib\/crm-navigation["']/);
-  assert.ok(bar.includes("visibleMobileTabs("), "tabs come from the model");
-  assert.doesNotMatch(bar, /Editar barra|localStorage|sessionStorage/, "per-user customisation retired");
+  assert.ok(bar.includes("useMobileTabs("), "tabs come from the customizable hook (Inicio and Más fixed)");
+  assert.doesNotMatch(bar, /localStorage|sessionStorage/, "storage lives in the hook, not in the bar");
   const nav = openingTag(bar, 'aria-label="Navegación principal"');
   for (const cls of ["fixed", "inset-x-0", "bottom-0", "lg:hidden"]) {
     assert.match(nav, new RegExp(`(?:^|[\\s"'\`])${cls.replace(/[:.]/g, "\\$&")}(?=[\\s"'\`])`), `bar has ${cls}`);
@@ -241,6 +241,9 @@ test("the mobile chrome: fixed top bar, and «Más» is a bottom sheet that does
   assert.match(sheet, /useDialog\(/, "Escape and focus trap");
   assert.match(sheet, /registerOpenMobileSidebar\(/, "the bar and the menu button can open it");
   assert.match(sheet, /items-end/, "rises from the bottom");
+  assert.match(sheet, /Personalizar barra/, "the bar can be customised from the sheet");
+  assert.match(sheet, /useMobileTabs\(/);
+  assert.match(sheet, /aria-pressed=/, "picking a section is a toggle");
   assert.doesNotMatch(sheet, /<Sidebar\b|from ["']@\/src\/components\/Sidebar["']/, "not the desktop sidebar");
   const shell = code("src/components/DashboardShell.tsx");
   for (const piece of ["<MobileTopBar", "<MobileMoreSheet", "<MobileBottomTabBar"]) assert.ok(shell.includes(piece), `${piece} rendered`);
