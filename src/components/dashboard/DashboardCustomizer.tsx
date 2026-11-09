@@ -133,7 +133,7 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
               type="button"
               onClick={handleToggleEditMode}
               aria-pressed={editMode}
-              className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10"
+              className="crm-press hidden min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:inline-flex lg:min-h-10"
             >
               <HugeiconsIcon icon={editMode ? CheckmarkCircle01Icon : PencilEdit01Icon} size={16} />
               {editMode ? "Listo" : "Personalizar"}

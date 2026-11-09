@@ -36,7 +36,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
 
   if (!editMode) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {widgets.map((w) => (
           <div key={w.id} className={widgetSizeClass(w.size)}>
             {w.render(data)}
@@ -50,7 +50,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
     <DragDropContext onDragEnd={handleDragEnd}>
       <Droppable droppableId="dashboard-widgets" direction="horizontal">
         {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div ref={provided.innerRef} {...provided.droppableProps} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
             {widgets.map((w, index) => (
               <Draggable key={w.id} draggableId={w.id} index={index}>
                 {(dragProvided, dragSnapshot) => (

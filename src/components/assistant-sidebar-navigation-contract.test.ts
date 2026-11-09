@@ -4,7 +4,6 @@ import test from "node:test";
 
 const sidebarSource = readFileSync(new URL("./Sidebar.tsx", import.meta.url), "utf8");
 const navsSource = readFileSync(new URL("./context-navs.tsx", import.meta.url), "utf8");
-const shellSource = readFileSync(new URL("./AssistantSidebarShell.tsx", import.meta.url), "utf8");
 const accountSource = readFileSync(new URL("./AccountMenu.tsx", import.meta.url), "utf8");
 
 // AssistantNav vive en context-navs.tsx (ronda 3: la sidebar por modos no lleva ramas).
@@ -30,13 +29,14 @@ test("mode destinations close the floating panel before navigating", () => {
   assert.match(sidebarComponentSource, /<NavLeaf[\s\S]*?onChoose=\{chooseDestination\}[\s\S]*?\/>/);
 });
 
-// Ronda 3: el asistente usa la sidebar acoplada de siempre en escritorio; no hay fijar, soltar ni vistazo.
-test("the assistant has no pin / unpin / hover-peek: desktop uses the docked sidebar, the shell is the mobile drawer", () => {
-  assert.doesNotMatch(shellSource, /Fijar barra lateral|Soltar barra lateral|PinIcon|PinOffIcon|data-assistant-sidebar-(?:edge|pinned|pin-hint)|type: "unpin"|type: "pin"|peekOpen/);
+// Ronda 3: el asistente usa la sidebar acoplada de siempre en escritorio; no hay fijar, soltar ni vistazo,
+// y en móvil el menú es la hoja «Más» (no la sidebar de escritorio).
+test("the assistant has no pin / hover-peek and the old drawer shell is gone", () => {
+  assert.throws(() => readFileSync(new URL("./AssistantSidebarShell.tsx", import.meta.url), "utf8"), "AssistantSidebarShell.tsx is gone");
   const dashboard = readFileSync(new URL("./DashboardShell.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(dashboard, /useFloatingAssistantSidebar/, "no separate assistant chrome on desktop");
+  assert.doesNotMatch(dashboard, /useFloatingAssistantSidebar|AssistantSidebarShell/, "no separate assistant chrome");
   assert.match(dashboard, /<Sidebar \/>/, "docked sidebar on every route, /assistant included");
-  assert.match(shellSource, /return null;/, "no desktop panel from the drawer shell");
+  assert.match(dashboard, /<MobileMoreSheet \/>/, "mobile menu is the bottom sheet");
 });
 
 test("assistant conversation destinations keep the floating panel open", () => {
@@ -57,17 +57,6 @@ test("assistant conversation destinations keep the floating panel open", () => {
     /if \(pathname === `\/assistant\/\$\{id\}`\) \{[\s\S]*?onNavigate\?\.\(\);/,
   );
   assert.doesNotMatch(navsSource, /const createNew = \(\) =>/);
-  assert.match(shellSource, /onNavigate=\{closeForNavigation\}/);
-  assert.doesNotMatch(shellSource, /dispatch\(\{ type: "navigate" \}\)/);
-});
-
-test("the mobile drawer is a solid light panel with a close control and keyboard trap", () => {
-  assert.match(sidebarComponentSource, /variant === "floating"[\s\S]*?bg-surface-sidebar/);
-  assert.doesNotMatch(shellSource, /crm-glass/);
-  assert.match(shellSource, /aria-label="Ocultar barra lateral"/);
-  assert.match(shellSource, /["']Escape["']/);
-  assert.match(shellSource, /registerOpenMobileSidebar/);
-  assert.match(shellSource, /if \(isMobile\)/);
 });
 
 // Los destinos de cuenta viven en AccountMenu (header y pie de la sidebar); siguen cerrando el panel.

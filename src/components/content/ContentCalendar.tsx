@@ -89,7 +89,7 @@ export const CALENDAR_CSS = `
 .ncc-weekdays,.ncc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);}
 .ncc-weekdays{margin-bottom:0;}
 .ncc-weekdays div{text-align:center;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 0;background:var(--paper);}
-.ncc-day{background:#fff;border:none;border-radius:0;min-height:108px;padding:4px 4px 4px;position:relative;display:flex;flex-direction:column;gap:2px;}
+.ncc-day{background:#fff;border:none;border-radius:0;min-height:120px;padding:4px 4px 4px;position:relative;display:flex;flex-direction:column;gap:2px;}
 .ncc-day.empty{background:var(--paper);border:none;}
 .ncc-day.today{box-shadow:none;}
 .ncc-dayhead{display:flex;align-items:center;gap:4px;flex:none;min-height:22px;margin:0 0 2px 2px;}
@@ -100,10 +100,10 @@ export const CALENDAR_CSS = `
 .ncc-day-items{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:hidden;}
 .ncc-day-items.is-dots{flex-direction:row;flex-wrap:wrap;align-content:flex-start;align-items:flex-start;gap:5px;padding:4px 2px;}
 .ncc-event{flex:1;min-height:0;width:100%;border:none;border-radius:8px;padding:4px 6px;text-align:left;cursor:pointer;font-family:"Open Sauce Two",system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column;align-items:stretch;-webkit-tap-highlight-color:transparent;}
-.ncc-event-body{min-width:0;flex:1;display:flex;flex-direction:column;}
+.ncc-event-body{min-width:0;flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .ncc-event-time{display:block;font-size:11px;font-weight:400;line-height:1.2;opacity:.85;}
-.ncc-event-title{display:block;font-size:12px;font-weight:600;line-height:1.25;overflow:hidden;}
-.ncc-status-capsule{display:inline-flex;align-self:flex-start;margin-top:3px;padding:0 6px;border-radius:999px;border:1px solid currentColor;background:transparent;font-size:11px;font-weight:500;line-height:16px;letter-spacing:0.01em;}
+.ncc-event-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.25;overflow:hidden;flex:none;}
+.ncc-status-capsule{display:inline-flex;flex:none;align-self:flex-start;margin-top:auto;padding-top:0;padding:0 6px;border-radius:999px;border:1px solid currentColor;background:transparent;font-size:11px;font-weight:500;line-height:16px;letter-spacing:0.01em;}
 .ncc-dot{width:10px;height:10px;border-radius:50%;border:none;padding:0;cursor:pointer;flex:none;}
 .ncc-add-day{font-size:10px;color:var(--muted);text-align:center;padding:0;opacity:0;transition:opacity .15s;flex:none;}
 .ncc-day.editable:hover .ncc-add-day{opacity:1;}
@@ -113,7 +113,8 @@ export const CALENDAR_CSS = `
   .ncc-daynum{width:20px;height:20px;font-size:11px;}
   .ncc-event-title{font-size:11px;}
   .ncc-add-day{display:none;}
-  .ncc-fill .ncc-day{padding:2px 1px;}
+  .ncc-fill .ncc-day{padding:2px 1px;min-height:84px;}
+  .ncc-fill .ncc-grid{grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(84px, 1fr));}
   .ncc-fill .ncc-dayhead{min-height:16px;margin:0;}
   .ncc-fill .ncc-daynum{width:16px;height:16px;font-size:10px;}
   .ncc-fill .ncc-hoy-word,.ncc-fill .ncc-event-time,.ncc-fill .ncc-status-capsule{display:none;}
@@ -156,11 +157,11 @@ export const CALENDAR_CSS = `
 .ncc-more-menu button{display:block;width:100%;text-align:left;border:none;background:transparent;border-radius:8px;padding:8px 10px;font-size:14px;color:var(--ink);cursor:pointer;font-family:inherit;}
 .ncc-more-menu button:hover{background:var(--paper-2);}
 .ncc-more-menu button.is-danger{color:#b42318;}
-.ncc-fill{display:flex;flex-direction:column;flex:1;min-height:0;height:100%;}
+.ncc-fill{display:flex;flex-direction:column;flex:1;min-height:0;height:100%;overflow-y:auto;}
 .ncc-root.ncc-root-fit{min-height:0;height:100%;}
 .ncc-fill .ncc-weekdays{flex:none;}
-.ncc-fill .ncc-grid{flex:1;min-height:0;grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(0, 1fr));}
-.ncc-fill .ncc-day{min-height:0;height:100%;overflow:hidden;}
+.ncc-fill .ncc-grid{flex:1 0 auto;min-height:0;grid-template-rows:repeat(var(--ncc-weeks, 6), minmax(120px, 1fr));}
+.ncc-fill .ncc-day{min-height:120px;height:100%;overflow:hidden;}
 @media (max-width:720px){
   .ncc-modal{border-radius:14px;max-height:calc(100vh - 24px);}
   .ncc-modal-body{grid-template-columns:minmax(0,1fr);padding:4px 18px 20px;overflow-y:auto;}

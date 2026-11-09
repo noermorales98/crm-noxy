@@ -597,8 +597,8 @@ export function widgetSizeClass(size: WidgetSize) {
     case "sm":
       return "col-span-1";
     case "md":
-      return "col-span-1 sm:col-span-2";
+      return "col-span-2";
     case "lg":
-      return "col-span-1 sm:col-span-2 xl:col-span-4";
+      return "col-span-2 xl:col-span-4";
   }
 }

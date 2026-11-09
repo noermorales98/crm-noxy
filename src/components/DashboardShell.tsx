@@ -3,9 +3,9 @@
 import "@/src/styles/crm-framed.css";
 import Sidebar from "@/src/components/Sidebar";
 import PageBar from "@/src/components/PageBar";
-import AssistantSidebarShell from "@/src/components/AssistantSidebarShell";
+import MobileTopBar from "@/src/components/MobileTopBar";
+import MobileMoreSheet from "@/src/components/MobileMoreSheet";
 import MobileBottomTabBar from "@/src/components/MobileBottomTabBar";
-import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import DbOutageBanner from "@/src/components/DbOutageBanner";
 import PermissionGate from "@/src/components/PermissionGate";
 import { KbProvider } from "@/src/context/KbContext";
@@ -25,8 +25,6 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname = usePathname();
   const { themeId, theme } = useCrmTheme();
   const hideHeader = isHideHeaderRoute(pathname ?? "");
-  const showAssistantMobileChrome =
-    hideHeader && (pathname ?? "").startsWith("/assistant");
 
   return (
     <SearchProvider>
@@ -41,25 +39,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               <div className="hidden lg:flex">
                 <Sidebar />
               </div>
-              <div className="lg:hidden">
-                <AssistantSidebarShell />
-              </div>
+              <MobileTopBar />
+              <MobileMoreSheet />
               <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 <DbOutageBanner />
-                {showAssistantMobileChrome && (
-                  <div className="crm-header-chrome-solid crm-safe-top shrink-0 lg:hidden">
-                    <div className="flex h-12 items-center gap-2 px-3">
-                      <MobileSidebarToggle />
-                      <span className="truncate text-sm font-semibold text-text-primary">
-                        Asistente
-                      </span>
-                    </div>
-                  </div>
-                )}
                 {/* Hoja de contenido: lo que separa el marco claro del trabajo. */}
                 <div
                   data-crm-sheet
-                  className={`${showAssistantMobileChrome ? "" : "crm-safe-top"} flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app lg:border-l lg:border-t`}
+                  className="flex min-h-0 flex-1 flex-col overflow-hidden border-line bg-surface-app pt-[calc(3.5rem+env(safe-area-inset-top))] lg:border-l lg:border-t lg:pt-0"
                 >
                   {!hideHeader && <PageBar />}
                   <PermissionGate>{children}</PermissionGate>

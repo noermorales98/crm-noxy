@@ -293,8 +293,23 @@ body {
   }
 }
 
+@keyframes crm-sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
 @layer components {
   @media (prefers-reduced-motion: no-preference) {
+    .crm-sheet-up {
+      animation: crm-sheet-up 240ms var(--ease-state, cubic-bezier(0.22, 1, 0.36, 1)) both;
+    }
+
     /* backwards: invisible durante el retraso y, al terminar, el elemento vuelve a sus propios
        estilos (no deja transform:none fijado, que anularía el hover/press). */
     .crm-enter {

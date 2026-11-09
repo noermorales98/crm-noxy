@@ -67,14 +67,17 @@ const SHELL = [
   "src/components/PageBar.tsx",
   "src/components/PageControls.tsx",
   "src/components/MobileBottomTabBar.tsx",
-  "src/components/AssistantSidebarShell.tsx",
+  "src/components/MobileTopBar.tsx",
+  "src/components/MobileMoreSheet.tsx",
   "src/components/MobileSidebarToggle.tsx",
 ] as const;
 
 test("shell files carry no glass, lucide, hand-drawn icons, h-screen, sub-12px text or radii above 16px", () => {
   for (const file of SHELL) {
     const src = code(file);
-    assert.doesNotMatch(src, /\bcrm-glass(?:-[\w-]+)?\b|backdrop-blur|backdrop-filter/, `${file}: glass`);
+    // Excepción pedida por el dueño (2026-11-08): la cápsula inferior móvil es de cristal translúcido.
+    const glassAllowed = file === "src/components/MobileBottomTabBar.tsx";
+    if (!glassAllowed) assert.doesNotMatch(src, /\bcrm-glass(?:-[\w-]+)?\b|backdrop-blur|backdrop-filter/, `${file}: glass`);
     assert.doesNotMatch(src, /from ["']lucide-react["']/, `${file}: one icon family (Hugeicons)`);
     assert.doesNotMatch(src, /<svg\b/, `${file}: hand-drawn SVG icon`);
     assert.doesNotMatch(src, /\bh-screen\b/, `${file}: h-screen jumps on iOS; use h-dvh / h-full`);
@@ -143,7 +146,8 @@ test("there is no global top bar: controls live in PageHeader or in the sheet's 
   assert.doesNotMatch(shell, /<Header\b|components\/Header["']/, "the shell no longer renders a top Header");
   assert.throws(() => raw("src/components/Header.tsx"), "Header.tsx is gone");
   const sheet = openingTag(shell, "data-crm-sheet");
-  assert.match(sheet, /\bcrm-safe-top\b|\bmax-lg:pt-\[env\(safe-area-inset-top/, "no top bar: the sheet clears the mobile safe area");
+  assert.match(sheet, /\bpt-\[calc\(3\.5rem\+env\(safe-area-inset-top\)\)\]/, "mobile: the sheet clears the fixed top bar and the safe area");
+  assert.match(sheet, /\blg:pt-0\b/, "desktop: no top bar");
   assert.match(shell, /<PageBar\b/, "pages without PageHeader keep their title and controls in a row of the sheet");
   const controls = code("src/components/PageControls.tsx");
   for (const piece of ["sortOptions", "filterGroups", "addButton", "actions", "backHref"]) {
@@ -209,7 +213,7 @@ test("the active destination uses the theme ink from the model, with aria-curren
   assert.match(`${sidebar}${sidebarParts}`, /aria-current=\{[^}]*["']page["']/);
 });
 
-test("the mobile tab bar: fixed tabs from the model, solid full-width bar, «Más» opens the panel", () => {
+test("the mobile bottom bar is a floating glass capsule: tabs from the model, «Más» opens the bottom sheet", () => {
   const bar = code("src/components/MobileBottomTabBar.tsx");
   assert.match(bar, /from ["']@\/src\/lib\/crm-navigation["']/);
   assert.ok(bar.includes("visibleMobileTabs("), "tabs come from the model");
@@ -218,27 +222,28 @@ test("the mobile tab bar: fixed tabs from the model, solid full-width bar, «Má
   for (const cls of ["fixed", "inset-x-0", "bottom-0", "lg:hidden"]) {
     assert.match(nav, new RegExp(`(?:^|[\\s"'\`])${cls.replace(/[:.]/g, "\\$&")}(?=[\\s"'\`])`), `bar has ${cls}`);
   }
-  // Fondo sólido y borde superior: en la propia barra o en su primer contenedor.
-  // La propia etiqueta <nav> o su primer elemento hijo, no una ventana de texto arbitraria.
-  const afterNav = bar.slice(bar.indexOf(nav) + nav.length);
-  const firstChildAt = afterNav.search(/<[A-Za-z]/);
-  const firstChild = firstChildAt >= 0 ? openingTagAt(afterNav, firstChildAt) : "";
-  const surface = `${nav} ${firstChild}`;
-  assert.match(surface, /\bbg-surface-sidebar\b/, "solid frame colour");
-  assert.match(surface, /\bborder-t\b/, "top border");
+  assert.match(bar, /rounded-full/, "capsule");
+  assert.match(bar, /backdrop-blur/, "translucent glass");
   assert.ok(bar.includes("activeMobileTab("), "active tab comes from the model");
-  assert.match(bar, /\bMOBILE_TAB_ACTIVE\b/, "active tab style comes from the model");
   assert.match(bar, />\s*Más\s*</);
-  assert.match(bar, /openMobileSidebar\b/, "«Más» opens the navigation panel");
+  assert.match(bar, /openMobileSidebar\b/, "«Más» opens the sheet");
   assert.match(bar, /aria-current=/);
 });
 
-test("the mobile navigation panel stays keyboard-operable and the toggle is a 44px target", () => {
-  const shell = code("src/components/AssistantSidebarShell.tsx");
-  assert.match(shell, /["']Escape["']/, "Escape closes the panel");
-  assert.match(shell, /["']Tab["']/, "focus stays inside the panel");
-  assert.match(shell, /aria-modal=/);
-  assert.match(shell, /registerOpenMobileSidebar\(/, "«Más» and the toggle can open it");
+test("the mobile chrome: fixed top bar, and «Más» is a bottom sheet that does not reuse the desktop sidebar", () => {
+  const top = code("src/components/MobileTopBar.tsx");
+  assert.match(top, /fixed inset-x-0 top-0/, "fixed top bar");
+  assert.match(top, /lg:hidden/, "desktop has no top bar");
+  assert.match(top, /sectionTitleFor\(/, "names the current screen");
+  const sheet = code("src/components/MobileMoreSheet.tsx");
+  assert.match(sheet, /role="dialog"/);
+  assert.match(sheet, /aria-modal=/);
+  assert.match(sheet, /useDialog\(/, "Escape and focus trap");
+  assert.match(sheet, /registerOpenMobileSidebar\(/, "the bar and the menu button can open it");
+  assert.match(sheet, /items-end/, "rises from the bottom");
+  assert.doesNotMatch(sheet, /<Sidebar\b|from ["']@\/src\/components\/Sidebar["']/, "not the desktop sidebar");
+  const shell = code("src/components/DashboardShell.tsx");
+  for (const piece of ["<MobileTopBar", "<MobileMoreSheet", "<MobileBottomTabBar"]) assert.ok(shell.includes(piece), `${piece} rendered`);
   const toggle = code("src/components/MobileSidebarToggle.tsx");
   assert.match(toggle, /\bsize-11\b|\bmin-h-11\b[\s\S]*\bmin-w-11\b/, "44px toggle");
 });
