@@ -22,3 +22,12 @@ test("el deal se mapea a las propiedades fijas de Notion", () => {
   assert.deepEqual(properties.Source, { rich_text: [{ text: { content: "LINKEDIN" } }] });
   assert.deepEqual(properties["CRM Deal ID"], { rich_text: [{ text: { content: "deal-1" } }] });
 });
+
+test("docToNotionProperties sets the title and the CRM doc id", async () => {
+  // @ts-expect-error: node --test carga el .ts directo
+  const { docToNotionProperties } = await import("./notion-map.ts");
+  assert.deepEqual(docToNotionProperties({ title: "  ", docId: "abc" }), {
+    Name: { title: [{ text: { content: "Sin título" } }] },
+    "CRM Doc ID": { rich_text: [{ text: { content: "abc" } }] },
+  });
+});

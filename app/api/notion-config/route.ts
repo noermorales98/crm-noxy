@@ -13,10 +13,20 @@ async function organizationOf() {
 }
 
 async function viewOf(organizationId: string): Promise<NotionConfigView> {
-  const row = await prisma.notionConfig.findUnique({ where: { organizationId }, select: { databaseId: true } });
-  if (row) return { configured: true, hasToken: true, databaseId: row.databaseId, source: "db" };
+  const row = await prisma.notionConfig.findUnique({ where: { organizationId } });
+  if (row) {
+    return { configured: true, hasToken: true, databaseId: row.databaseId, docsDatabaseId: row.docsDatabaseId, autoSyncDeals: row.autoSyncDeals, autoSyncDocs: row.autoSyncDocs, source: "db" };
+  }
   const fromEnv = Boolean(process.env.NOTION_TOKEN && process.env.NOTION_LEADS_DATABASE_ID);
-  return { configured: fromEnv, hasToken: fromEnv, databaseId: fromEnv ? (process.env.NOTION_LEADS_DATABASE_ID ?? null) : null, source: fromEnv ? "env" : "none" };
+  return {
+    configured: fromEnv,
+    hasToken: fromEnv,
+    databaseId: fromEnv ? (process.env.NOTION_LEADS_DATABASE_ID ?? null) : null,
+    docsDatabaseId: fromEnv ? (process.env.NOTION_DOCS_DATABASE_ID ?? null) : null,
+    autoSyncDeals: false,
+    autoSyncDocs: false,
+    source: fromEnv ? "env" : "none",
+  };
 }
 
 export async function GET() {
@@ -32,14 +42,15 @@ export async function PUT(req: Request) {
   const existing = await prisma.notionConfig.findUnique({ where: { organizationId: scope.organizationId }, select: { id: true } });
   const parsed = parseNotionConfigInput(body, Boolean(existing));
   if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
-  const { token, databaseId } = parsed.value;
+  const { token, databaseId, docsDatabaseId, autoSyncDeals, autoSyncDocs } = parsed.value;
+  const flags = { ...(autoSyncDeals !== null ? { autoSyncDeals } : {}), ...(autoSyncDocs !== null ? { autoSyncDocs } : {}) };
   if (existing) {
     await prisma.notionConfig.update({
       where: { organizationId: scope.organizationId },
-      data: { databaseId, ...(token ? { token: encryptSecret(token, appSecretKey()) } : {}) },
+      data: { databaseId, docsDatabaseId, ...flags, ...(token ? { token: encryptSecret(token, appSecretKey()) } : {}) },
     });
   } else {
-    await prisma.notionConfig.create({ data: { organizationId: scope.organizationId, databaseId, token: encryptSecret(token!, appSecretKey()) } });
+    await prisma.notionConfig.create({ data: { organizationId: scope.organizationId, databaseId, docsDatabaseId, ...flags, token: encryptSecret(token!, appSecretKey()) } });
   }
   return NextResponse.json(await viewOf(scope.organizationId));
 }

@@ -29,6 +29,7 @@ import { renderPagesToPdf } from "@/src/lib/kb-pdf-export";
 import { slugifyPdfFilename } from "@/src/lib/kb-pdf-tree";
 import { useOptionalKbContext } from "@/src/context/KbContext";
 import { useToast } from "@/src/context/ToastContext";
+import { sendToNotion } from "@/src/lib/notion-client";
 import KbSuggestionsReviewSidebar from "@/src/components/kb/KbSuggestionsReviewSidebar";
 import KbEditorAiBar from "@/src/components/kb/KbEditorAiBar";
 import KbRevisionHistoryPanel from "@/src/components/kb/KbRevisionHistoryPanel";
@@ -202,6 +203,13 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
   const [exportPdfLoading, setExportPdfLoading] = useState(false);
   const [exportPdfModalOpen, setExportPdfModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [notionLoading, setNotionLoading] = useState(false);
+  const handleSendToNotion = useCallback(async () => {
+    setNotionLoading(true);
+    const result = await sendToNotion("doc", pageId);
+    setNotionLoading(false);
+    addToast(result.message, result.ok ? "success" : "error");
+  }, [pageId, addToast]);
   const [restoringRevisionId, setRestoringRevisionId] = useState<string | null>(null);
   const [hasLocalDraft, setHasLocalDraft] = useState(false);
 
@@ -782,6 +790,8 @@ const KbEditor = forwardRef<KbEditorHandle, KbEditorProps>(function KbEditor({
         onExportPdf={handleExportPdf}
         exportPdfLoading={exportPdfLoading}
         onOpenHistory={() => setHistoryOpen(true)}
+        onSendToNotion={handleSendToNotion}
+        notionLoading={notionLoading}
         hasLocalDraft={hasLocalDraft}
       />
 

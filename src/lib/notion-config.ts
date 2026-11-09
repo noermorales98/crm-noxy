@@ -12,7 +12,7 @@ export function extractNotionDatabaseId(input: unknown): string | null {
 }
 
 type ParseResult =
-  | { ok: true; value: { token: string | null; databaseId: string } }
+  | { ok: true; value: { token: string | null; databaseId: string; docsDatabaseId: string | null; autoSyncDeals: boolean | null; autoSyncDocs: boolean | null } }
   | { ok: false; error: string; value?: undefined };
 
 /** `hasToken`: ya hay uno guardado, así que dejarlo en blanco lo conserva. */
@@ -22,7 +22,19 @@ export function parseNotionConfigInput(body: unknown, hasToken: boolean): ParseR
   if (!databaseId) return { ok: false, error: "Pega el enlace o el id de la base de leads de Notion." };
   const token = typeof raw.token === "string" ? raw.token.trim().slice(0, 4000) : "";
   if (!token && !hasToken) return { ok: false, error: "El token de la integración de Notion es obligatorio." };
-  return { ok: true, value: { token: token || null, databaseId } };
+  const docsRaw = typeof raw.docsDatabaseId === "string" ? raw.docsDatabaseId.trim() : "";
+  const docsDatabaseId = docsRaw ? extractNotionDatabaseId(docsRaw) : null;
+  if (docsRaw && !docsDatabaseId) return { ok: false, error: "El enlace o id de la base de documentos no es válido." };
+  const flag = (value: unknown) => (typeof value === "boolean" ? value : null);
+  return { ok: true, value: { token: token || null, databaseId, docsDatabaseId, autoSyncDeals: flag(raw.autoSyncDeals), autoSyncDocs: flag(raw.autoSyncDocs) } };
 }
 
-export type NotionConfigView = { configured: boolean; hasToken: boolean; databaseId: string | null; source: "db" | "env" | "none" };
+export type NotionConfigView = {
+  configured: boolean;
+  hasToken: boolean;
+  databaseId: string | null;
+  docsDatabaseId: string | null;
+  autoSyncDeals: boolean;
+  autoSyncDocs: boolean;
+  source: "db" | "env" | "none";
+};

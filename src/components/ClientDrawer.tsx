@@ -9,6 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import DatePicker from "./DatePicker";
 import { inputCompact as inputCls } from "@/src/lib/crm-ui";
+import { Switch } from "@/src/components/ui";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -302,22 +303,12 @@ export default function ClientDrawer({
                         <p className="text-sm font-semibold text-text-primary">Cobro automático</p>
                         <p className="text-xs text-text-secondary">Marca los pagos como recibidos automáticamente cada mes</p>
                       </div>
-                      <div
-                        onClick={() => setForm(f => ({ ...f, autoMarkPaid: !f.autoMarkPaid }))}
-                        className={`w-11 h-6 rounded-full transition-colors relative ${form.autoMarkPaid ? "bg-action-primary" : "bg-nav-active"}`}
-                      >
-                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.autoMarkPaid ? "translate-x-5" : "translate-x-0.5"}`} />
-                      </div>
+                      <Switch checked={form.autoMarkPaid} onChange={(v) => setForm(f => ({ ...f, autoMarkPaid: v }))} label="Cobro automático" />
                     </label>
 
                     <label className="flex items-center justify-between cursor-pointer">
                       <p className="text-sm font-semibold text-text-primary">Cliente activo</p>
-                      <div
-                        onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
-                        className={`w-11 h-6 rounded-full transition-colors relative ${form.isActive ? "bg-emerald-500" : "bg-nav-active"}`}
-                      >
-                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.isActive ? "translate-x-5" : "translate-x-0.5"}`} />
-                      </div>
+                      <Switch checked={form.isActive} onChange={(v) => setForm(f => ({ ...f, isActive: v }))} label="Cliente activo" />
                     </label>
                   </div>
 

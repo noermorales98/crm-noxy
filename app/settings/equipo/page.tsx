@@ -12,7 +12,7 @@ import {
 } from "@/src/lib/permissions";
 import { parseSexo, type Sexo } from "@/src/lib/user-sexo";
 import { useHeader } from "@/src/context/HeaderContext";
-import { PageHeader } from "@/src/components/ui";
+import { CheckRow, PageHeader } from "@/src/components/ui";
 
 type MemberRow = {
   id: string;
@@ -269,19 +269,7 @@ export default function EquipoPage() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {permissionChecks.map((mod) => (
-                <label key={mod.key} data-check-ignore-tap className={`flex min-h-11 items-start gap-3 rounded-control border border-line px-3 py-2.5 ${form.role === "ADMIN" ? "opacity-70" : ""}`}>
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={form.permissions[mod.key]}
-                    disabled={form.role === "ADMIN"}
-                    onChange={(e) => togglePerm(mod.key, e.target.checked)}
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-text-primary">{mod.label}</span>
-                    <span className="block text-xs text-text-secondary">{mod.description}</span>
-                  </span>
-                </label>
+                <CheckRow key={mod.key} checked={form.permissions[mod.key]} disabled={form.role === "ADMIN"} onChange={(checked) => togglePerm(mod.key, checked)} label={mod.label} description={mod.description} />
               ))}
             </div>
           </div>
@@ -379,24 +367,22 @@ export default function EquipoPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                           {permissionChecks.map((mod) => (
-                            <label key={mod.key} data-check-ignore-tap className={`flex min-h-11 items-center gap-2 text-sm text-text-primary ${role === "ADMIN" ? "opacity-70" : ""}`}>
-                              <input
-                                type="checkbox"
-                                checked={perms[mod.key]}
-                                disabled={role === "ADMIN"}
-                                onChange={(e) => {
-                                  setEditing((prev) => ({
-                                    ...prev,
-                                    [member.id]: {
-                                      role: (draft?.role ?? member.role) as Exclude<RoleName, "OWNER">,
-                                      permissions: { ...perms, [mod.key]: e.target.checked },
-                                      sexo: prev[member.id]?.sexo ?? parseSexo(member.user.sexo),
-                                    },
-                                  }));
-                                }}
-                              />
-                              {mod.label}
-                            </label>
+                            <CheckRow
+                              key={mod.key}
+                              checked={perms[mod.key]}
+                              disabled={role === "ADMIN"}
+                              label={mod.label}
+                              onChange={(checked) => {
+                                setEditing((prev) => ({
+                                  ...prev,
+                                  [member.id]: {
+                                    role: (draft?.role ?? member.role) as Exclude<RoleName, "OWNER">,
+                                    permissions: { ...perms, [mod.key]: checked },
+                                    sexo: prev[member.id]?.sexo ?? parseSexo(member.user.sexo),
+                                  },
+                                }));
+                              }}
+                            />
                           ))}
                         </div>
                         <div className="flex flex-wrap gap-2">

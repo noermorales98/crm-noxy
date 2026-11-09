@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { autoSync } from "@/src/lib/notion-sync";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { defaultIconForNewPage } from "@/src/lib/kb-icons";
@@ -84,5 +85,6 @@ export async function POST(req: Request) {
     },
   });
 
+  if (!folder) after(() => autoSync(orgId, "doc", page.id));
   return NextResponse.json(page, { status: 201 });
 }

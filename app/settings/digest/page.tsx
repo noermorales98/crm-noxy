@@ -5,7 +5,7 @@ import Link from "next/link";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import { DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { useHeader } from "@/src/context/HeaderContext";
-import { PageHeader } from "@/src/components/ui";
+import { PageHeader, Switch } from "@/src/components/ui";
 
 const WEEKDAYS = [
   { value: 0, label: "Dom" },
@@ -197,13 +197,7 @@ export default function DigestSettingsPage() {
                 <p className="text-sm font-semibold text-text-primary">Activar resumen automático</p>
                 <p className="text-xs text-text-secondary">Se enviará por WhatsApp según la programación</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setEnabled((v) => !v)}
-                data-check-ignore-tap role="switch" aria-checked={enabled} className={`w-11 h-6 rounded-full transition-colors relative before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${enabled ? "bg-emerald-500" : "bg-nav-active"}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`} />
-              </button>
+              <Switch checked={enabled} onChange={setEnabled} label="Activar resumen automático" />
             </label>
 
             <hr className="border-line" />
@@ -309,13 +303,7 @@ export default function DigestSettingsPage() {
                 <p className="text-sm font-semibold text-text-primary">Correos sin leer</p>
                 <p className="text-xs text-text-secondary">Incluye el total de correos sin leer de tu organización en el resumen</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIncludeUnreadEmails((v) => !v)}
-                data-check-ignore-tap role="switch" aria-checked={includeUnreadEmails} className={`w-11 h-6 rounded-full transition-colors relative before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${includeUnreadEmails ? "bg-emerald-500" : "bg-nav-active"}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${includeUnreadEmails ? "translate-x-5" : "translate-x-0.5"}`} />
-              </button>
+              <Switch checked={includeUnreadEmails} onChange={setIncludeUnreadEmails} label="Incluir correos sin leer" />
             </label>
 
             <hr className="border-line" />
@@ -341,14 +329,7 @@ export default function DigestSettingsPage() {
                   <p className="text-sm font-medium text-text-primary">Incluir en el resumen</p>
                   <p className="text-xs text-text-secondary">Lista eventos de los próximos 7 días</p>
                 </div>
-                <button
-                  type="button"
-                  disabled={!googleCalendarConnected}
-                  onClick={() => setIncludeGoogleCalendar((v) => !v)}
-                  data-check-ignore-tap role="switch" aria-checked={includeGoogleCalendar} className={`w-11 h-6 rounded-full transition-colors relative before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] disabled:opacity-40 ${includeGoogleCalendar ? "bg-emerald-500" : "bg-nav-active"}`}
-                >
-                  <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${includeGoogleCalendar ? "translate-x-5" : "translate-x-0.5"}`} />
-                </button>
+                <Switch checked={includeGoogleCalendar} onChange={setIncludeGoogleCalendar} label="Incluir Google Calendar en el resumen" disabled={!googleCalendarConnected} />
               </label>
 
               <label className="flex items-center justify-between cursor-pointer">
@@ -356,14 +337,7 @@ export default function DigestSettingsPage() {
                   <p className="text-sm font-medium text-text-primary">Recordatorio 1 día antes</p>
                   <p className="text-xs text-text-secondary">Aviso por WhatsApp 24 h antes del evento</p>
                 </div>
-                <button
-                  type="button"
-                  disabled={!googleCalendarConnected}
-                  onClick={() => setCalendarRemindDayBefore((v) => !v)}
-                  data-check-ignore-tap role="switch" aria-checked={calendarRemindDayBefore} className={`w-11 h-6 rounded-full transition-colors relative before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] disabled:opacity-40 ${calendarRemindDayBefore ? "bg-emerald-500" : "bg-nav-active"}`}
-                >
-                  <div className={`absolute top-0.5 w-5 h-5 bg-surface-elevated rounded-full shadow transition-transform ${calendarRemindDayBefore ? "translate-x-5" : "translate-x-0.5"}`} />
-                </button>
+                <Switch checked={calendarRemindDayBefore} onChange={setCalendarRemindDayBefore} label="Recordatorio 1 día antes" disabled={!googleCalendarConnected} />
               </label>
 
               <div className="flex flex-col gap-2">

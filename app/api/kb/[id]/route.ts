@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { autoSync } from "@/src/lib/notion-sync";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { getFolderStatsAndTree } from "@/src/lib/kb-folder-stats";
@@ -144,6 +145,7 @@ export async function PATCH(req: Request, { params }: Params) {
       }
     }
 
+    if (updated && !updated.isFolder) after(() => autoSync(orgId, "doc", id));
     return NextResponse.json({ ok: true, updatedAt: updated?.updatedAt ?? null });
   } catch (err) {
     console.error("[kb PATCH]", err);

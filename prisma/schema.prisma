@@ -1170,6 +1170,8 @@ model KbPage {
   parentId       String?
   parent         KbPage?          @relation("KbChildren", fields: [parentId], references: [id], onDelete: SetNull)
   children       KbPage[]         @relation("KbChildren")
+  notionPageId   String?
+  notionSyncedAt DateTime?
   isFolder       Boolean          @default(false)
   isPublished    Boolean          @default(false)
   markdownTheme  String           @default("minimal")
@@ -1586,7 +1588,11 @@ model McpIntegration {
 model NotionConfig {
   id         String   @id @default(cuid())
   token      String   @db.Text
-  databaseId String
+  databaseId String // base de leads (deals)
+  /// Segunda base: documentos del /kb.
+  docsDatabaseId String?
+  autoSyncDeals  Boolean @default(false)
+  autoSyncDocs   Boolean @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

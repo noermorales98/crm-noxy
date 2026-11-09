@@ -16,7 +16,18 @@ test("extractNotionDatabaseId accepts a share link, a bare id or a dashed uuid",
 
 test("parseNotionConfigInput requires a token the first time and keeps it afterwards", () => {
   assert.equal(parseNotionConfigInput({ databaseId: ID }, false).ok, false, "first save needs a token");
-  assert.deepEqual(parseNotionConfigInput({ token: "  secret_x ", databaseId: ID }, false), { ok: true, value: { token: "secret_x", databaseId: ID } });
-  assert.deepEqual(parseNotionConfigInput({ databaseId: ID }, true), { ok: true, value: { token: null, databaseId: ID } });
+  assert.deepEqual(parseNotionConfigInput({ token: "  secret_x ", databaseId: ID }, false), { ok: true, value: { token: "secret_x", databaseId: ID, docsDatabaseId: null, autoSyncDeals: null, autoSyncDocs: null } });
+  assert.deepEqual(parseNotionConfigInput({ databaseId: ID }, true), { ok: true, value: { token: null, databaseId: ID, docsDatabaseId: null, autoSyncDeals: null, autoSyncDocs: null } });
   assert.equal(parseNotionConfigInput({ token: "t", databaseId: "xx" }, false).ok, false, "invalid database");
+});
+
+test("parseNotionConfigInput reads the docs database and the auto-sync switches", () => {
+  const DOCS = "11111111222233334444555566667777";
+  assert.deepEqual(parseNotionConfigInput({ databaseId: ID, docsDatabaseId: `https://notion.so/Docs-${DOCS}?v=1`, autoSyncDeals: true, autoSyncDocs: false }, true), {
+    ok: true,
+    value: { token: null, databaseId: ID, docsDatabaseId: DOCS, autoSyncDeals: true, autoSyncDocs: false },
+  });
+  assert.equal(parseNotionConfigInput({ databaseId: ID, docsDatabaseId: "no es base" }, true).ok, false, "invalid docs database");
+  const cleared = parseNotionConfigInput({ databaseId: ID, docsDatabaseId: "" }, true);
+  assert.equal(cleared.ok && cleared.value.docsDatabaseId, null, "empty clears it");
 });

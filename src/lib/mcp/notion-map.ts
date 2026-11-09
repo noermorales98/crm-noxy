@@ -35,3 +35,11 @@ export function leadToNotionProperties(fields: LeadNotionFields): Record<string,
   if (dealId) properties["CRM Deal ID"] = { rich_text: text(dealId) };
   return properties;
 }
+
+/** Propiedades fijas de la base de documentos: Name (título) y CRM Doc ID (texto). */
+export function docToNotionProperties(fields: { title: string; docId: string }): Record<string, unknown> {
+  return {
+    Name: { title: text(fields.title.trim() || "Sin título") },
+    "CRM Doc ID": { rich_text: text(fields.docId) },
+  };
+}

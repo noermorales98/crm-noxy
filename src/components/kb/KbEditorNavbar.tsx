@@ -18,7 +18,7 @@ import {
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
 import { userAvatarSrc } from "@/src/lib/user-sexo";
-import { ArrowDown01Icon, ArrowRight01Icon, ArrowLeft01Icon, Clock01Icon, Download01Icon, Globe02Icon, LockIcon, Message01Icon, PaintBoardIcon, PencilEdit01Icon, ViewIcon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, ArrowRight01Icon, ArrowLeft01Icon, Clock01Icon, CloudUploadIcon, Download01Icon, Globe02Icon, LockIcon, Message01Icon, PaintBoardIcon, PencilEdit01Icon, ViewIcon } from "@hugeicons/core-free-icons";
 
 export interface KbBreadcrumb {
   id: string;
@@ -46,6 +46,8 @@ interface Props {
   onExportPdf?: () => void;
   exportPdfLoading?: boolean;
   onOpenHistory?: () => void;
+  onSendToNotion?: () => void;
+  notionLoading?: boolean;
   hasLocalDraft?: boolean;
 }
 
@@ -66,6 +68,8 @@ export default function KbEditorNavbar({
   onExportPdf,
   exportPdfLoading = false,
   onOpenHistory,
+  onSendToNotion,
+  notionLoading = false,
   hasLocalDraft = false,
 }: Props) {
   const { data: session } = useSession();
@@ -170,6 +174,20 @@ export default function KbEditorNavbar({
             >
               <HugeiconsIcon icon={Clock01Icon} size={12} />
               <span className="hidden lg:inline">Historial</span>
+            </button>
+          )}
+
+          {!isFolder && onSendToNotion && (
+            <button
+              type="button"
+              onClick={onSendToNotion}
+              disabled={notionLoading}
+              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 min-w-11 justify-center px-2.5 py-1.5 lg:min-h-0 lg:min-w-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
+              title="Enviar a Notion"
+              aria-label="Enviar a Notion"
+            >
+              <HugeiconsIcon icon={CloudUploadIcon} size={12} />
+              <span className="hidden lg:inline">{notionLoading ? "Enviando…" : "Notion"}</span>
             </button>
           )}
 
@@ -333,6 +351,20 @@ export default function KbEditorNavbar({
                   >
                     <HugeiconsIcon icon={Clock01Icon} size={14} />
                     Historial
+                  </button>
+                )}
+                {!isFolder && onSendToNotion && (
+                  <button
+                    type="button"
+                    disabled={notionLoading}
+                    onClick={() => {
+                      onSendToNotion();
+                      setMoreOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-text-primary hover:bg-nav-hover disabled:opacity-50"
+                  >
+                    <HugeiconsIcon icon={CloudUploadIcon} size={14} />
+                    {notionLoading ? "Enviando a Notion…" : "Enviar a Notion"}
                   </button>
                 )}
                 {!isFolder && onMarkdownThemeChange && (

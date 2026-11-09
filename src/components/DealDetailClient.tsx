@@ -7,6 +7,7 @@ import {
   Folder01Icon,
   ArrowLeft01Icon,
   Edit01Icon,
+  CloudUploadIcon,
   CheckmarkCircle01Icon,
   Cancel01Icon,
   Add01Icon,
@@ -31,6 +32,7 @@ import { input as inputCls } from "@/src/lib/crm-ui";
 import { useAi } from "@/src/hooks/useAi";
 import { useHeader } from "@/src/context/HeaderContext";
 import { PageHeader } from "@/src/components/ui";
+import { sendToNotion } from "@/src/lib/notion-client";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -157,6 +159,12 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   const router = useRouter();
   const [deal, setDeal] = useState(initialDeal);
   const [, startTransition] = useTransition();
+  const [notionState, setNotionState] = useState<{ busy: boolean; message: string | null; ok: boolean; url: string | null }>({ busy: false, message: null, ok: true, url: null });
+  const handleSendToNotion = async () => {
+    setNotionState({ busy: true, message: null, ok: true, url: null });
+    const result = await sendToNotion("deal", deal.id);
+    setNotionState({ busy: false, message: result.message, ok: result.ok, url: result.ok ? result.url : null });
+  };
 
   // Title
   const [editingTitle, setEditingTitle] = useState(false);
@@ -703,6 +711,16 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               <PageHeader
                 title={deal.title}
                 actions={
+                  <>
+                  <button
+                    type="button"
+                    onClick={handleSendToNotion}
+                    disabled={notionState.busy}
+                    className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar disabled:opacity-50 lg:min-h-10"
+                  >
+                    <HugeiconsIcon icon={CloudUploadIcon} size={14} />
+                    {notionState.busy ? "Enviando…" : "Enviar a Notion"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setEditingTitle(true)}
@@ -711,8 +729,21 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     <HugeiconsIcon icon={Edit01Icon} size={14} />
                     Editar título
                   </button>
+                  </>
                 }
               />
+            )}
+
+            {notionState.message && (
+              <p role="status" className={`mb-2 text-xs font-medium ${notionState.ok ? "text-success" : "text-danger"}`}>
+                {notionState.message}
+                {notionState.url && (
+                  <>
+                    {" "}
+                    <a href={notionState.url} target="_blank" rel="noreferrer" className="underline">Abrir en Notion</a>
+                  </>
+                )}
+              </p>
             )}
 
             {/* Subtitle: contact name + email, creation date */}

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { autoSync } from "@/src/lib/notion-sync";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
@@ -85,6 +86,7 @@ export async function POST(req: Request) {
       },
     });
 
+    after(() => autoSync(organizationId, "deal", deal.id));
     return NextResponse.json(deal, { status: 201 });
   } catch (error) {
     console.error("POST /api/deals error:", error);
@@ -156,6 +158,7 @@ export async function PATCH(req: Request) {
       },
     });
 
+    after(() => autoSync(organizationId, "deal", deal.id));
     return NextResponse.json(deal);
   } catch (error) {
     console.error("PATCH /api/deals error:", error);

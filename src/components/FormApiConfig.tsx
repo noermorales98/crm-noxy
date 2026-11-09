@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Copy01Icon, RefreshIcon, CheckmarkCircle01Icon, LinkSquare02Icon, CodeIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useToast } from "@/src/context/ToastContext";
+import { Switch } from "@/src/components/ui";
 
 interface ApiConfig {
   id: string | null;
@@ -146,16 +147,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
               Permite consultar los leads a través de la API
             </p>
           </div>
-          <label className="relative inline-flex min-h-11 items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={config.isEnabled}
-              onChange={(e) => saveConfig({ ...config, isEnabled: e.target.checked })}
-              disabled={saving}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-nav-active peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-elevated after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
-          </label>
+          <Switch checked={config.isEnabled} onChange={(next) => saveConfig({ ...config, isEnabled: next })} label="Activar la API del formulario" disabled={saving} />
         </div>
 
         {config.isEnabled && (
@@ -169,16 +161,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
                     : "La API requiere un Bearer Token para acceder"}
                 </p>
               </div>
-              <label className="relative inline-flex min-h-11 items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={config.isPublic}
-                  onChange={(e) => saveConfig({ ...config, isPublic: e.target.checked })}
-                  disabled={saving}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-nav-active peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-elevated after:border-line after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action-primary"></div>
-              </label>
+              <Switch checked={config.isPublic} onChange={(next) => saveConfig({ ...config, isPublic: next })} label="Acceso público" disabled={saving} />
             </div>
 
             {!config.isPublic && config.apiToken && (

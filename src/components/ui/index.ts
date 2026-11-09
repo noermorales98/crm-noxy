@@ -13,3 +13,5 @@ export { Skeleton } from "./Skeleton";
 export { Enter } from "./Enter";
 export { cn } from "./cn";
 export { useDialog } from "./useDialog";
+export { Switch } from "./Switch";
+export { CheckRow } from "./CheckRow";

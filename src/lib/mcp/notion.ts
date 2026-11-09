@@ -1,14 +1,12 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
-import { resolveNotionEnv, type NotionEnv } from "@/src/lib/mcp/notion-credentials";
+import { resolveNotionEnv } from "@/src/lib/mcp/notion-credentials";
+import { notionFetch } from "@/src/lib/notion-api";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { leadToNotionProperties, type LeadNotionFields } from "./notion-map.ts";
-
-const NOTION = "https://api.notion.com/v1";
-const NOTION_VERSION = "2022-06-28";
 
 function json(data: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }] };
@@ -16,21 +14,6 @@ function json(data: unknown) {
 
 function err(message: string) {
   return { content: [{ type: "text" as const, text: `Error: ${message}` }], isError: true as const };
-}
-
-async function notionFetch(env: NotionEnv, path: string, init?: { method?: string; body?: string }) {
-  const response = await fetch(`${NOTION}${path}`, {
-    method: init?.method ?? "GET",
-    headers: {
-      Authorization: `Bearer ${env.token}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    body: init?.body,
-  });
-  const body = (await response.json().catch(() => ({}))) as { message?: string; id?: string; url?: string };
-  if (!response.ok) throw new Error(body.message || `Notion respondió ${response.status}`);
-  return body as Record<string, unknown>;
 }
 
 function plainProperty(property: unknown): string | number | null {

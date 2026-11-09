@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDialog } from "@/src/components/ui";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Cancel01Icon, Delete01Icon, PlugSocketIcon } from "@hugeicons/core-free-icons";
-import { Block, Chip, DataList, EmptyState } from "@/src/components/ui";
+import { Block, Chip, DataList, EmptyState, Switch } from "@/src/components/ui";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { MCP_TRANSPORTS } from "@/src/lib/mcp-connections";
 
@@ -115,16 +115,7 @@ export function McpIntegrations() {
                 </span>
                 <span className="block truncate text-xs text-text-secondary">{row.url ?? row.note ?? "Sin URL"}</span>
               </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={row.enabled}
-                aria-label={`${row.enabled ? "Desactivar" : "Activar"} ${row.name}`}
-                onClick={() => toggle(row)}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors before:absolute before:-inset-y-2.5 before:inset-x-0 before:content-[''] ${row.enabled ? "bg-action-primary" : "bg-nav-active"}`}
-              >
-                <span className={`absolute top-0.5 size-5 rounded-full bg-surface-elevated shadow transition-transform ${row.enabled ? "translate-x-5" : "translate-x-0.5"}`} />
-              </button>
+              <Switch checked={row.enabled} onChange={() => toggle(row)} label={`${row.enabled ? "Desactivar" : "Activar"} ${row.name}`} />
               <button
                 type="button"
                 onClick={() => remove(row)}
