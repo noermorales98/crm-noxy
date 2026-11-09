@@ -131,3 +131,9 @@ Context   — `redesign-shell-contract.test.ts`, `assistant-sidebar-navigation-c
 Options    — (a) conservar el árbol para no tocar las pruebas; (b) sustituirlas por el contrato aprobado y podar el código muerto.
 Decision   — (b). Las pruebas nuevas exigen tablist de 3 modos, lista plana, búsqueda y campana en la cabecera, segunda columna con estado guardado y ausencia de ramas; las del asistente leen `context-navs.tsx`. Se podaron `sidebarView`, `branchFor*`, `parseOpenBranches`, `initialOpenBranches`, `toggleBranch`, `SIDEBAR_OPEN_STORAGE_KEY` y `NAV_PARENT_ACTIVE`. No se debilita ninguna aserción vigente: cambia lo que protege porque cambió la regla.
 Why        — Mantener las pruebas antiguas obligaría a incumplir la spec de la ronda 3.
+
+## 2026-11-08 — Radios más redondos, hoja recta y submenú bajo su elemento  (feature: rediseno-obsidiana-estructural, ronda 3)
+Context   — El dueño pidió uniformidad (sidebar con los mismos bordes que el CRM), elementos y tarjetas más redondeados, la esquina de la hoja recta, tablas rediseñadas y que la lista de Correo/Docs/Bóveda/Contenido aparezca debajo de su elemento.
+Options    — (a) mantener el tope de 16px de DESIGN.md; (b) subir los tokens y actualizar el contrato.
+Decision   — (b). control 14px, superficie 20px, ningún radio sobre 24px (DESIGN.md y las pruebas de tokens actualizadas); `lg:rounded-tl-surface` fuera de la hoja; fila activa, modo activo y cuenta del sidebar con `border-line`; `DataTable` con encabezado tintado fijo, hover por fila y primera columna en peso medio.
+Why        — Orden explícita del dueño; el cambio vive en tokens, así todas las superficies quedan uniformes.
