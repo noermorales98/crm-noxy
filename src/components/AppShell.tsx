@@ -8,6 +8,7 @@ const PUBLIC_PREFIXES = ["/login", "/book/", "/form/", "/schedule/", "/docs/", "
 
 function isPublicRoute(pathname: string): boolean {
   if (pathname === "/login") return true;
+  if (pathname === "/mcp/approve" || pathname.startsWith("/mcp/approve/")) return true;
   return PUBLIC_PREFIXES.some((prefix) => prefix.endsWith("/") && pathname.startsWith(prefix));
 }
 

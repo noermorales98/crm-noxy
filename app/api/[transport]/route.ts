@@ -1,8 +1,11 @@
 import { createMcpHandler } from "mcp-handler";
 import { timingSafeEqual } from "crypto";
 import { registerCrmTools } from "@/src/lib/mcp/tools";
-import { verifyAccessToken } from "@/src/lib/mcp/oauth";
+import { registerCrmProtocol } from "@/src/lib/mcp/protocol";
+import { registerNotionTools } from "@/src/lib/mcp/notion";
+import { verifyAccessToken, verifyPayload, type OAuthClient } from "@/src/lib/mcp/oauth";
 import { OAUTH_CORS, corsOptions } from "@/src/lib/mcp/cors";
+import { runWithMcpContext } from "@/src/lib/mcp/client-context";
 
 // Servidor MCP del CRM. URL pública: https://noxthy.co/mcp (rewrite a /api/mcp).
 // Auth (dos métodos, cualquiera válido):
@@ -12,7 +15,10 @@ import { OAUTH_CORS, corsOptions } from "@/src/lib/mcp/cors";
 
 const handler = createMcpHandler(
   (server) => {
-    registerCrmTools(server, process.env.MCP_ORGANIZATION_ID!);
+    const organizationId = process.env.MCP_ORGANIZATION_ID!;
+    registerCrmTools(server, organizationId);
+    registerCrmProtocol(server, organizationId);
+    registerNotionTools(server, organizationId);
   },
   { serverInfo: { name: "noxthy-crm", version: "1.0.0" } },
   // basePath "" -> endpoint Streamable HTTP "/mcp" (la URL pública; el rewrite
@@ -27,15 +33,16 @@ function isValidApiKey(token: string, expected: string): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function isAuthorized(req: Request, apiKey: string, organizationId: string): boolean {
+function clientName(req: Request, apiKey: string, organizationId: string): string | null {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return false;
+  if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7);
-  // Método 1: API key estática
-  if (isValidApiKey(token, apiKey)) return true;
-  // Método 2: access token OAuth emitido por /api/oauth/token
+  if (isValidApiKey(token, apiKey)) return "api-key";
   const oauth = verifyAccessToken(token);
-  return oauth !== null && oauth.org === organizationId;
+  if (!oauth || oauth.org !== organizationId) return null;
+  const client = verifyPayload<OAuthClient>(oauth.clientId);
+  if (!client || client.type !== "client" || !client.name) return "oauth";
+  return client.name;
 }
 
 // Stream SSE "dummy" para GET /mcp. El protocolo permite responder 405 en
@@ -84,7 +91,8 @@ function withAuth(req: Request) {
       headers: { "Content-Type": "application/json" },
     });
   }
-  if (!isAuthorized(req, apiKey, organizationId)) {
+  const client = clientName(req, apiKey, organizationId);
+  if (!client) {
     const origin = new URL(req.url).origin;
     // WWW-Authenticate con resource_metadata (RFC 9728): así los clientes MCP
     // descubren el flujo OAuth automáticamente.
@@ -100,7 +108,8 @@ function withAuth(req: Request) {
   if (req.method === "GET") {
     return sseListener();
   }
-  return handler(req);
+  const origin = new URL(req.url).origin;
+  return runWithMcpContext({ client, origin }, () => handler(req));
 }
 
 export { withAuth as GET, withAuth as POST, withAuth as DELETE };

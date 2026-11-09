@@ -5,6 +5,9 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
+import { loadSalesMetrics } from "@/src/lib/mcp/sales-metrics";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -392,13 +395,15 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "update_deal",
     {
-      description: "Actualiza un deal: título, valor, etapa (mover en el pipeline), probabilidad, notas, seguimiento o razón de pérdida.",
+      description:
+        "Actualiza un deal: título, valor, etapa (mover en el pipeline), probabilidad, notas, seguimiento o razón de pérdida. Mover a una etapa ganada o perdida exige approvalToken.",
       inputSchema: {
         id: z.string().describe("ID del deal"),
         title: z.string().optional(),
         value: z.number().optional(),
         currency: z.string().optional(),
         stageId: z.string().optional().describe("ID de la nueva etapa (mover de etapa)"),
+        approvalToken: z.string().optional().describe("Token que devuelve la página de confirmación humana"),
         source: z
           .enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "OTRO"])
           .nullable()
@@ -409,12 +414,18 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         lostReason: z.string().nullable().optional(),
       },
     },
-    async ({ id, stageId, ...fields }) => {
+    async ({ id, stageId, approvalToken, ...fields }) => {
       if (!(await owns("deal", id))) return err("Deal no encontrado");
       const data: any = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
       if (stageId) {
         const stage = await prisma.stage.findUnique({ where: { id: stageId }, include: { pipeline: true } });
         if (!stage || stage.pipeline.organizationId !== org) return err("Etapa inválida");
+        if (stage.isWon || stage.isLost) {
+          const action = canonicalAction("update_deal", definedRecord({ id, ...data, stageId }));
+          const summary = `Mover el deal ${id} a «${stage.name}» (${stage.isWon ? "ganado" : "perdido"}).`;
+          const gated = gateWrite(action, summary, approvalToken);
+          if (!gated.ok) return gated.result;
+        }
         data.stageId = stageId;
         data.pipelineId = stage.pipelineId;
       }
@@ -1126,52 +1137,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes.",
       inputSchema: {},
     },
-    async () => {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
-      const [totalDeals, dealsThisMonth, allDeals, revenueData, followUpsData] = await Promise.all([
-        prisma.deal.count({ where: { organizationId: org } }),
-        prisma.deal.count({ where: { organizationId: org, createdAt: { gte: startOfMonth } } }),
-        prisma.deal.findMany({
-          where: { organizationId: org },
-          select: { value: true, stage: { select: { isWon: true, isLost: true } } },
-        }),
-        prisma.payment.aggregate({
-          where: { organizationId: org, status: "RECIBIDO", receivedAt: { gte: startOfMonth, lte: endOfMonth } },
-          _sum: { amount: true },
-        }),
-        prisma.deal.findMany({
-          where: { organizationId: org, followUpAt: { lte: now }, stage: { isWon: false, isLost: false } },
-          select: {
-            id: true,
-            title: true,
-            followUpAt: true,
-            contact: { select: { firstName: true, lastName: true } },
-          },
-          orderBy: { followUpAt: "asc" },
-          take: 10,
-        }),
-      ]);
-
-      const wonDeals = allDeals.filter((d) => d.stage.isWon).length;
-      const lostDeals = allDeals.filter((d) => d.stage.isLost).length;
-      const activeDeals = allDeals.filter((d) => !d.stage.isWon && !d.stage.isLost);
-
-      return json({
-        totalDeals,
-        dealsThisMonth,
-        wonDeals,
-        lostDeals,
-        activeDeals: activeDeals.length,
-        followUpsDue: followUpsData.length,
-        closingRate: totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0,
-        pipelineValue: activeDeals.reduce((sum, d) => sum + (d.value ?? 0), 0),
-        revenueThisMonth: revenueData._sum.amount ?? 0,
-        followUps: followUpsData,
-      });
-    }
+    async () => json(await loadSalesMetrics(org))
   );
 
   server.registerTool(
