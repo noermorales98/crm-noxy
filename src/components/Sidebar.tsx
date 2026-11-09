@@ -16,6 +16,7 @@ import {
   BarChartIcon,
   Briefcase01Icon,
   GridViewIcon,
+  Megaphone01Icon,
   Home01Icon,
   Search01Icon,
   SidebarLeftIcon,
@@ -36,6 +37,7 @@ import {
   MODE_STORAGE_KEY,
   SIDEBAR_COLLAPSED_STORAGE_KEY,
   activeNavHref,
+  CONTEXT_OWNER_HREF,
   contextPanelFor,
   isCollapseShortcut,
   isSettingsRoute,
@@ -56,6 +58,7 @@ const MODE_ICONS: Record<NavMode, typeof Home01Icon> = {
   work: Briefcase01Icon,
   sales: BarChartIcon,
   spaces: GridViewIcon,
+  content: Megaphone01Icon,
 };
 
 interface SidebarProps {
@@ -133,7 +136,10 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
   const allHrefs = modes.flatMap((mode) => mode.groups.flatMap((group) => group.items.map((item) => item.href)));
   // Rutas de un espacio que no cuelgan de su href (campañas, clientes de contenido) marcan su destino.
   const spaceFallback = contextPanelFor(pathname) === "mail" ? "/emails" : contextPanelFor(pathname) === "content" ? "/contenido/general" : null;
-  const activeLeaf = activeNavHref(pathname, allHrefs) ?? (spaceFallback && allHrefs.includes(spaceFallback) ? spaceFallback : null);
+  const rawLeaf = activeNavHref(pathname, allHrefs);
+  // Las páginas de un cliente de contenido pertenecen al calendario, no al resumen.
+  const contentCalendarRoute = rawLeaf === "/contenido" && pathname.startsWith("/contenido/") && !/^\/contenido\/(clientes|recordatorios)(\/|$)/.test(pathname);
+  const activeLeaf = contentCalendarRoute ? "/contenido/general" : (rawLeaf ?? (spaceFallback && allHrefs.includes(spaceFallback) ? spaceFallback : null));
 
   // ── Riel (solo la sidebar acoplada de escritorio) ─────────────────────────────
   const canCollapse = variant === "docked";
@@ -307,7 +313,7 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
   // Debajo de la lista del modo, integrada en la misma sidebar (no hay segunda columna).
   const section = contextPanelFor(pathname);
   const onAssistant = pathname === "/assistant" || pathname.startsWith("/assistant/");
-  const ownsSection = (href: string) => (onAssistant ? href === "/assistant" || href.startsWith("/assistant/") : section !== null && contextPanelFor(href) === section);
+  const ownsSection = (href: string) => (onAssistant ? href === "/assistant" : section !== null && href === CONTEXT_OWNER_HREF[section]);
   const lowerSection = onAssistant ? <AssistantNav /> : section ? <ContextContent section={section} onNavigate={onNavigate} /> : null;
 
   return (

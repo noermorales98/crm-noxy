@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Building04Icon, InboxIcon, Calendar01Icon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, MegaphoneIcon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Building04Icon, InboxIcon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
@@ -223,8 +223,6 @@ export function ContentNav({ onNavigate }: { onNavigate?: () => void }) {
         <HugeiconsIcon icon={Add01Icon} size={ICON_SIZE} aria-hidden="true" />
         Nuevo
       </Link>
-      <NavLeaf href="/contenido/general" label="Calendario general" icon={Calendar01Icon} isActive={pathname === "/contenido/general"} onChoose={onNavigate} />
-      <NavLeaf href="/contenido" label="Todos los calendarios" icon={MegaphoneIcon} isActive={pathname === "/contenido"} onChoose={onNavigate} />
 
       <p className={sectionLabelClass}>Clientes y marcas</p>
       {clients.length === 0 ? (

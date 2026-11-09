@@ -4,6 +4,7 @@ import test from "node:test";
 import { ALL_PERMISSIONS } from "./permissions.ts";
 import {
   MODE_STORAGE_KEY,
+  CONTEXT_OWNER_HREF,
   modeHome,
   NAV_DESTINATIONS,
   NAV_MODES,
@@ -22,10 +23,10 @@ type Group = { label: string; items: Entry[] };
 const shape = (groups: readonly Group[]) => groups.map((g) => [g.label, g.items.map((i) => [i.label, i.href])]);
 const mode = (key: string) => (NAV_MODES as unknown as Array<{ key: string; label: string; groups: Group[] }>).find((m) => m.key === key)!;
 
-test("three modes (Trabajo, Ventas, Espacios) with their short flat lists, in order", () => {
+test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat lists, in order", () => {
   assert.deepEqual(
     (NAV_MODES as unknown as Array<{ key: string; label: string }>).map((m) => [m.key, m.label]),
-    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"]],
+    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"], ["content", "Contenido"]],
   );
   assert.deepEqual(shape(mode("work").groups), [
     ["Principal", [["Inicio", "/"], ["Tareas", "/tasks"], ["Proyectos", "/projects"], ["Contactos", "/contacts"], ["Empresas", "/companies"]]],
@@ -35,7 +36,10 @@ test("three modes (Trabajo, Ventas, Espacios) with their short flat lists, in or
     ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
   assert.deepEqual(shape(mode("spaces").groups), [
-    ["Espacios", [["Correo", "/emails"], ["Docs", "/kb"], ["Asistente", "/assistant"], ["Bóveda", "/boveda"], ["Gestión de contenido", "/contenido/general"]]],
+    ["Espacios", [["Correo", "/emails"], ["Docs", "/kb"], ["Asistente", "/assistant"], ["Bóveda", "/boveda"]]],
+  ]);
+  assert.deepEqual(shape(mode("content").groups), [
+    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Recordatorios", "/contenido/recordatorios"]]],
   ]);
 });
 
@@ -47,21 +51,22 @@ test("no mode has a branch: every entry is a plain link and no mode lists more t
   }
 });
 
-test("the 18 destinations each live in exactly one mode, with the same permission as before", () => {
+test("every destination lives in exactly one mode (plus the new Contenido screens), with the same permission as before", () => {
   const all = (NAV_MODES as unknown as Array<{ groups: Group[] }>).flatMap((m) => m.groups.flatMap((g) => g.items));
   const hrefs = all.map((e) => e.href);
   assert.equal(new Set(hrefs).size, hrefs.length, "no destination in two modes");
-  assert.deepEqual([...hrefs].sort(), (NAV_DESTINATIONS as Entry[]).map((d) => d.href).sort(), "same destinations as the flat model");
+  const extra = ["/contenido", "/contenido/clientes", "/contenido/recordatorios"];
+  assert.deepEqual([...hrefs].sort(), [...(NAV_DESTINATIONS as Entry[]).map((d) => d.href), ...extra].sort(), "same destinations as the flat model plus the Contenido screens");
   const byHref = new Map((NAV_DESTINATIONS as Entry[]).map((d) => [d.href, d]));
-  for (const e of all) assert.equal(e.permission, byHref.get(e.href)!.permission, e.label);
+  for (const e of all) assert.equal(e.permission, byHref.get(e.href)?.permission ?? "content", e.label);
   assert.deepEqual(all.filter((e) => e.badge).map((e) => [e.href, e.badge]), [["/emails", "unread-mail"]], "only Correo keeps the unread counter");
 });
 
 test("visibleModes and modeGroups filter by permission and hide a mode with nothing to show", () => {
-  assert.deepEqual((visibleModes("OWNER", ALL_PERMISSIONS) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces"]);
-  assert.deepEqual((visibleModes(undefined, undefined) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces"], "legacy session keeps everything");
+  assert.deepEqual((visibleModes("OWNER", ALL_PERMISSIONS) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "content"]);
+  assert.deepEqual((visibleModes(undefined, undefined) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "content"], "legacy session keeps everything");
   const noCrm = { ...ALL_PERMISSIONS, crm: false };
-  assert.deepEqual((visibleModes("MEMBER", noCrm) as Array<{ key: string }>).map((m) => m.key), ["spaces"]);
+  assert.deepEqual((visibleModes("MEMBER", noCrm) as Array<{ key: string }>).map((m) => m.key), ["spaces", "content"]);
   const mailOnly = { ...Object.fromEntries(Object.keys(ALL_PERMISSIONS).map((k) => [k, false])), mail: true };
   const spaces = visibleModes("MEMBER", mailOnly) as Array<{ key: string; groups: Group[] }>;
   assert.deepEqual(spaces.map((m) => m.key), ["spaces"]);
@@ -91,8 +96,11 @@ test("modeForPath picks the mode that owns the route (most specific match, secti
     ["/kb/page-1", "spaces"],
     ["/assistant/new", "spaces"],
     ["/boveda/client-1", "spaces"],
-    ["/contenido/general", "spaces"],
-    ["/contenido/client-7", "spaces"],
+    ["/contenido", "content"],
+    ["/contenido/clientes", "content"],
+    ["/contenido/recordatorios", "content"],
+    ["/contenido/general", "content"],
+    ["/contenido/client-7", "content"],
     ["/settings", null],
     ["/settings/equipo", null],
     ["/profile", null],
@@ -107,9 +115,14 @@ test("resolveMode: the route wins, then the stored mode, then Trabajo; parseMode
   assert.equal(resolveMode("/settings", null), "work");
   assert.equal(resolveMode("/profile", "nope"), "work", "junk storage falls back");
   assert.equal(parseMode("spaces"), "spaces");
+  assert.equal(parseMode("content"), "content");
   assert.equal(parseMode("Ventas"), null);
   assert.equal(parseMode(null), null);
   assert.equal(parseMode(undefined), null);
+});
+
+test("each context list opens under exactly one sidebar item", () => {
+  assert.deepEqual(CONTEXT_OWNER_HREF, { mail: "/emails", kb: "/kb", vault: "/boveda", content: "/contenido/general" });
 });
 
 test("contextPanelFor: only Correo (incl. campañas), Docs, Bóveda and Contenido open a second column", () => {

@@ -239,7 +239,7 @@ export default function GeneralCalendarView() {
           key: "clients",
           icon: User02Icon,
           label: "Ver clientes",
-          href: "/contenido",
+          href: "/contenido/clientes",
           hideOnMobile: true,
         },
         {

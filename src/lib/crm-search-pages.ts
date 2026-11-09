@@ -34,7 +34,10 @@ export const CRM_SEARCH_PAGES: CrmSearchPage[] = [
   { id: "nav-assistant", title: "Asistente IA", href: "/assistant", keywords: ["asistente", "assistant", "ia", "ai", "chat", "inteligencia artificial"] },
   { id: "nav-assistant-new", title: "Nuevo chat con la IA", subtitle: "Asistente IA", href: "/assistant/new", keywords: ["nueva conversacion", "nuevo chat", "preguntar"] },
   { id: "nav-vault", title: "Bóveda", subtitle: "Credenciales de clientes", href: "/boveda", keywords: ["boveda", "vault", "contraseñas", "credenciales", "accesos"] },
-  { id: "nav-content", title: "Gestión de contenido", subtitle: "Calendario editorial", href: "/contenido/general", keywords: ["contenido", "calendario", "publicaciones", "redes sociales", "piezas"] },
+  { id: "nav-content-home", title: "Contenido", subtitle: "Resumen de piezas y clientes", href: "/contenido", keywords: ["contenido", "resumen", "pendientes", "por subir", "atrasadas", "dashboard"] },
+  { id: "nav-content-clients", title: "Clientes de contenido", subtitle: "Contenido", href: "/contenido/clientes", keywords: ["clientes", "marcas", "calendarios", "contenido"] },
+  { id: "nav-content", title: "Calendario de contenido", subtitle: "Gestión de contenido", href: "/contenido/general", keywords: ["gestion de contenido", "calendario", "publicaciones", "redes sociales", "piezas"] },
+  { id: "nav-content-reminders", title: "Recordatorios de contenido", subtitle: "Contenido", href: "/contenido/recordatorios", keywords: ["recordatorios", "avisos", "whatsapp", "grabacion", "publicar"] },
   // Cuenta y ajustes
   { id: "nav-profile", title: "Perfil", subtitle: "Tu cuenta", href: "/profile", keywords: ["perfil", "profile", "cuenta", "mi usuario", "contraseña", "foto"] },
   { id: "nav-settings", title: "Ajustes", subtitle: "General", href: "/settings", keywords: ["ajustes", "configuracion", "settings", "general", "organizacion", "zona horaria", "pipeline", "archivar"] },

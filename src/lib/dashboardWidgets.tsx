@@ -566,7 +566,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     size: "md",
     dataKeys: ["contentInEditing"],
     render: (d) => (
-      <WidgetCard title="En edición" href="/contenido">
+      <WidgetCard title="En edición" href="/contenido/general">
         <ContentPieceRows items={d.contentInEditing ?? []} empty="No hay piezas en edición" />
       </WidgetCard>
     ),

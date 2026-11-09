@@ -237,10 +237,20 @@ export function isCollapseShortcut(event: { key: string; metaKey: boolean; ctrlK
 
 // ─── Modos de la sidebar (Ronda 3: selector tipo Claude, listas planas y cortas) ─────────────
 
-export type NavMode = "work" | "sales" | "spaces";
+export type NavMode = "work" | "sales" | "spaces" | "content";
 export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
 
-const spaceItems = (NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[];
+const CONTENT_HOME = "/contenido/general";
+// Gestión de contenido se muda a su propio modo; Espacios conserva el resto.
+const spaceItems = ((NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[]).filter((item) => item.href !== CONTENT_HOME);
+
+/** Pantallas del modo Contenido: resumen, clientes, calendario y recordatorios. */
+const contentItems: NavItem[] = [
+  { href: "/contenido", label: "Resumen", permission: "content" },
+  { href: "/contenido/clientes", label: "Clientes", permission: "content" },
+  { href: CONTENT_HOME, label: "Calendario", permission: "content" },
+  { href: "/contenido/recordatorios", label: "Recordatorios", permission: "content" },
+];
 
 /**
  * Tres modos, cada uno con una lista plana de 5 a 8 entradas (sin ramas desplegables). Reparten los mismos
@@ -265,6 +275,7 @@ export const NAV_MODES: readonly NavModeDef[] = [
   },
   { key: "sales", label: "Ventas", groups: [{ label: "Ventas", items: [...AREA_ITEMS.sales] }] },
   { key: "spaces", label: "Espacios", groups: [{ label: "Espacios", items: spaceItems }] },
+  { key: "content", label: "Contenido", groups: [{ label: "Contenido", items: contentItems }] },
 ];
 
 export const MODE_STORAGE_KEY = "noxy.sidebar.mode";
@@ -294,7 +305,7 @@ const MODE_BY_SECTION: Partial<Record<ContextualSection, NavMode>> = {
   kb: "spaces",
   vault: "spaces",
   assistant: "spaces",
-  content: "spaces",
+  content: "content",
 };
 
 /** Modo dueño de la ruta: el destino más específico y, si no, la sección de la ruta; `null` en Ajustes, Perfil, etc. */
@@ -317,6 +328,14 @@ export function resolveMode(pathname: string, stored: string | null | undefined)
 }
 
 export type ContextPanelKey = "mail" | "kb" | "vault" | "content";
+
+/** Elemento del sidebar bajo el cual se abre la lista propia de cada sección (uno solo por sección). */
+export const CONTEXT_OWNER_HREF: Record<ContextPanelKey, string> = {
+  mail: "/emails",
+  kb: "/kb",
+  vault: "/boveda",
+  content: CONTENT_HOME,
+};
 
 /** Pantallas con lista propia en la segunda columna (el Asistente conserva su chrome propio). */
 export function contextPanelFor(pathname: string): ContextPanelKey | null {

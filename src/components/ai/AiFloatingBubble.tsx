@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiMagicIcon,
   ArrowUpRight01Icon,
+  BubbleChatIcon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { useAi } from "@/src/hooks/useAi";
@@ -274,7 +275,7 @@ export function AiFloatingBubble() {
         title={isOpen ? "Cerrar asistente" : "Asistente IA"}
         className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-brand-obsidian bg-brand-obsidian text-white shadow-md outline-none transition-colors duration-200 hover:bg-brand-obsidian/85 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
       >
-        <HugeiconsIcon icon={isOpen ? Cancel01Icon : AiMagicIcon} size={22} aria-hidden="true" />
+        <HugeiconsIcon icon={isOpen ? Cancel01Icon : BubbleChatIcon} size={22} aria-hidden="true" />
       </button>
     </>
   );
