@@ -860,7 +860,7 @@ function EmailsPageInner() {
           ) : selectedEmail ? (
             <>
               {/* Email detail header */}
-              <div className="relative shrink-0 border-b border-line bg-surface-elevated px-2 py-1 sm:px-6 lg:py-4">
+              <div className="relative shrink-0 border-b border-line bg-surface-elevated px-1 py-0 sm:px-6 sm:py-1 lg:py-4">
                 <div className="flex items-center gap-1 lg:items-start lg:justify-between lg:gap-3">
                   <div className="flex min-w-0 flex-1 gap-2">
                     <button
@@ -1064,7 +1064,7 @@ function EmailsPageInner() {
                 )}
 
                 {/* Blanco literal a propósito: el HTML del correo asume fondo blanco. */}
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-line bg-[#ffffff]">
+                <div className="flex flex-1 flex-col overflow-clip rounded-lg border border-line bg-[#ffffff]">
                   {selectedEmail.bodyHtml ? (
                     <EmailFrame html={withExternalLinks(selectedEmail.bodyHtml)} title="Email body" />
                   ) : selectedEmail.bodyText ? (

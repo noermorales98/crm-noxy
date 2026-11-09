@@ -131,8 +131,12 @@ body {
   }
 
   /* Clearance inside scroll areas — does not paint a gray band behind the pill */
-  .crm-mobile-bottom-clearance {
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)); /* al final del scroll: el contenido pasa por debajo de la cápsula y queda libre al terminar */
+  /* Solo móvil. Lleva !important porque las clases de relleno de cada pantalla (py-5, p-6…) también fijan
+     padding-bottom y lo anularían: así el último elemento siempre queda libre de la cápsula. */
+  @media (max-width: 1023.98px) {
+    .crm-mobile-bottom-clearance {
+      padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
   }
 
   .crm-table-scroll {
@@ -157,9 +161,6 @@ body {
   }
 
   @media (min-width: 1024px) {
-    .crm-mobile-bottom-clearance {
-      padding-bottom: 0;
-    }
 
     .crm-header-chrome,
     .crm-header-chrome-solid {
