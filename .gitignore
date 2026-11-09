@@ -206,3 +206,9 @@ next-env.d.ts
 
 # Skill de diseño instalada con `npx skills add Leonxlnx/taste-skill`; se versiona solo skills-lock.json
 .claude/skills/design-taste-frontend/
+
+# rsc local state (hooks, seals, logs) and managed skill links — machine-local
+.claude/skills/security-audit
+.codex/rsc/security-audit
+.cursor/rules/security-audit.mdc
+.cursor/commands/security-audit.md

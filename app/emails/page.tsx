@@ -128,6 +128,8 @@ function EmailsPageInner() {
   const { setConfig, resetState } = useHeader();
   const { modelId: aiModelId, setModelId: setAiModelId } = useStoredAiModel();
 
+  const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
+
   useEffect(() => {
     resetState();
   }, []);
@@ -135,6 +137,7 @@ function EmailsPageInner() {
   useEffect(() => {
     setConfig({
       title: FOLDERS.find((f) => f.key === folder)?.label,
+      hideBarOnMobile: Boolean(selectedEmail),
       actions: [
         {
           key: "sync",
@@ -156,11 +159,10 @@ function EmailsPageInner() {
       ],
     });
     return () => setConfig({});
-  }, [folder, isSyncing]);
+  }, [folder, isSyncing, Boolean(selectedEmail)]);
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [emails, setEmails] = useState<EmailSummary[]>([]);
-  const [selectedEmail, setSelectedEmail] = useState<EmailDetail | null>(null);
   const [mailMenu, setMailMenu] = useState(false);
   const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
@@ -872,12 +874,12 @@ function EmailsPageInner() {
                     >
                       <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
                     </button>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center">
-                    <h2 className="line-clamp-1 text-sm font-semibold leading-snug text-text-primary lg:mb-2 lg:line-clamp-none lg:text-lg lg:font-bold">
+                    <div className="flex min-w-0 flex-1 flex-col justify-center text-center lg:text-left">
+                    <h2 className="m-0 line-clamp-1 text-sm font-semibold leading-tight text-text-primary lg:mb-2 lg:line-clamp-none lg:text-lg lg:font-bold">
                       {selectedEmail.subject}
                     </h2>
                     <details className="group lg:hidden">
-                      <summary className="flex min-h-0 cursor-pointer list-none items-center gap-1 truncate text-xs leading-tight text-text-secondary [&::-webkit-details-marker]:hidden">
+                      <summary className="flex min-h-0! min-w-0! cursor-pointer list-none items-center justify-center gap-1 truncate text-xs leading-tight text-text-secondary [&::-webkit-details-marker]:hidden">
                         <span className="truncate">
                           {selectedEmail.fromName || sanitizeEmail(selectedEmail.fromAddress)}
                           {" · "}

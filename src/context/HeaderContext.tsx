@@ -45,6 +45,8 @@ export interface HeaderConfig {
   actions?: HeaderAction[];
   /** La página pinta su propio PageHeader (h1): la barra superior no repite el título como h1. */
   pageHeader?: boolean;
+  /** En móvil la fila de página no se pinta (p. ej. detalle de un correo, que trae su propia cabecera). */
+  hideBarOnMobile?: boolean;
 }
 
 interface HeaderContextValue {

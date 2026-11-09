@@ -17,7 +17,7 @@ export default function PageBar() {
   if (!hasTitle && !config.backHref && !hasControls) return null;
   const badge = config.titleBadge || config.titleBadge === 0 ? config.titleBadge : null;
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-4 py-2 lg:px-6">
+    <div className={`flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-4 py-2 lg:px-6${config.hideBarOnMobile ? " max-lg:hidden" : ""}`}>
       <div className="flex min-w-0 items-center gap-2">
         <BackLink />
         {typeof config.title === "string" ? (
