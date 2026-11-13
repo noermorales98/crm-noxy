@@ -23,7 +23,7 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Interruptores de formularios y barra del `/kb`
 - [x] Cabecera y pestañas del lead rediseñadas
 - [x] tsc 20 (igual), tests 241/245 (4 de siempre), build OK
-- [ ] **Columna `Quote.dealId` aplicada en la BD** (`prisma/add_quote_deal.sql`): pendiente de autorización
+- [x] Columna `Quote.dealId` aplicada en la BD (`prisma/add_quote_deal.sql`); Prisma la lee: 7 cotizaciones sin lead y la consulta de leads ganados con cotizaciones responde
 - [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
 
 ## Next
