@@ -45,7 +45,10 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Botón «Nueva cita» en `/appointments`, «Cita manual» en la pestaña Citas del lead, «Nueva cita» en la ficha de contacto y de cliente
 - [x] Google Calendar: se sincroniza si está conectado; sin correo no se agrega invitado
 - [ ] Probado en pantalla (el navegador del panel no tiene sesión)
-- Límite conocido: la cita necesita un tipo de cita activo (da nombre, duración y color); sin tipos, el diálogo lleva a crearlo
+- Cita sin tipo (horario apartado): `Appointment.appointmentTypeId` opcional + `title`; el título es obligatorio sin tipo, 60 min por defecto, la descripción vive en `notes`
+- Una cita sin tipo bloquea todas las agendas de la organización: `busyAppointmentsWhere` (3 pruebas) usado en horarios libres, reserva pública, formularios y reserva desde el lead
+- Recordatorios, panel de Inicio, citas del lead/contacto/cliente y MCP aceptan citas sin tipo
+- [ ] **Migración `prisma/add_appointment_title.sql` pendiente de aplicar en la BD** (tipo opcional + columna `title`); no desplegar antes
 
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
