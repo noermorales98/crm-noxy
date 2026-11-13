@@ -250,7 +250,7 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
       const appts = d.upcomingAppointments ?? [];
       return (
         <WidgetCard title="Próximas citas" href="/appointments">
-          <DataList rows={appts} getKey={(a) => a.id} renderRow={(a) => <ListRow dotColor={a.appointmentType.color} title={a.guestName} subtitle={a.appointmentType.name} right={shortDate(new Date(a.startTime))} />} empty={<EmptyState title="No hay citas próximas" />} />
+          <DataList rows={appts} getKey={(a) => a.id} renderRow={(a) => <ListRow dotColor={a.appointmentType?.color ?? "#6B7184"} title={a.guestName} subtitle={a.title?.trim() || a.appointmentType?.name || "Cita"} right={shortDate(new Date(a.startTime))} />} empty={<EmptyState title="No hay citas próximas" />} />
         </WidgetCard>
       );
     },

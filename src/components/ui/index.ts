@@ -16,4 +16,7 @@ export { useDialog } from "./useDialog";
 export { Switch } from "./Switch";
 export { CheckRow } from "./CheckRow";
 export { RangeBar } from "./RangeBar";
+export { ActionMenu, type ActionMenuItem } from "./ActionMenu";
+export { DateField } from "./DateField";
+export { TimeField } from "./TimeField";
 export { DealIconBadge, DealIconPicker, resolveDealIcon } from "./DealIcon";

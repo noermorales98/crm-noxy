@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Cancel01Icon, Edit01Icon, CheckmarkCircle01Icon,
@@ -203,6 +204,9 @@ export default function ClientDrawer({
               {fmtCurrency(client.monthlyFee, client.currency)}
               <span className="text-xs font-normal text-text-secondary ml-1">/mes · {monthsSince > 0 ? `${monthsSince} meses` : "Nuevo"}</span>
             </p>
+            <Link href={`/pipeline/clientes/${client.id}`} className="mt-0.5 inline-block text-xs font-semibold text-text-primary underline underline-offset-2">
+              Ver ficha completa
+            </Link>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button

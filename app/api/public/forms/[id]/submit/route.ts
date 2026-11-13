@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
@@ -164,7 +165,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       // Check for conflicts
       const conflict = await prisma.appointment.findFirst({
         where: {
-          appointmentTypeId: apptType.id,
+          ...busyAppointmentsWhere({ organizationId: apptType.organizationId, appointmentTypeId: apptType.id }),
           status: { not: "CANCELLED" },
           startTime: { lt: end },
           endTime: { gt: start }

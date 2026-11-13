@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 import { randomUUID } from "crypto";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
@@ -87,7 +88,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   // Check conflicts across all appointment types sharing the same schedule
   const conflict = await prisma.appointment.findFirst({
     where: {
-      appointmentType: { scheduleId: appointmentType.scheduleId },
+      ...busyAppointmentsWhere({ organizationId: appointmentType.organizationId, scheduleId: appointmentType.scheduleId }),
       status: { not: "CANCELLED" },
       startTime: { lt: end },
       endTime: { gt: start },

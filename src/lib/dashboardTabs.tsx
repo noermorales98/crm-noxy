@@ -118,14 +118,14 @@ export const TAB_REGISTRY: TabDefinition[] = [
             appointments.map((appt, i) => (
               <div key={appt.id} className={`grid grid-cols-12 px-4 sm:px-6 py-3.5 items-center hover:bg-surface-sidebar/50 transition-colors ${i < appointments.length - 1 ? "border-b border-line" : ""}`}>
                 <div className="col-span-3 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType.color }} />
+                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: appt.appointmentType?.color ?? "#6B7184" }} />
                   <span className="text-xs text-text-secondary tabular-nums flex items-center gap-1">
                     <HugeiconsIcon icon={Clock01Icon} size={11} color="#9ca3af" />
                     {formatDate(new Date(appt.startTime))}
                   </span>
                 </div>
                 <span className="col-span-4 text-sm font-medium text-text-primary truncate pr-3">{appt.guestName}</span>
-                <span className="col-span-3 text-sm text-text-secondary truncate pr-3">{appt.appointmentType.name}</span>
+                <span className="col-span-3 text-sm text-text-secondary truncate pr-3">{appt.title?.trim() || appt.appointmentType?.name || "Cita"}</span>
                 <span className="col-span-2"><Badge text="CITA" color="blue" /></span>
               </div>
             ))

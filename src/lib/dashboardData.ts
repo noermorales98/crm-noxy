@@ -96,7 +96,7 @@ export interface DashboardData {
   pendingPaymentsValue?: number;
   vaultClientsCount?: number;
   latestContacts?: Contact[];
-  upcomingAppointments?: (Appointment & { appointmentType: AppointmentType })[];
+  upcomingAppointments?: (Appointment & { appointmentType: AppointmentType | null })[];
   pendingTasks?: (Task & { assignedTo?: { name: string | null } })[];
   dealsByStage?: DealsByStageEntry[];
   latestCampaigns?: EmailCampaign[];

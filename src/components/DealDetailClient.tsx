@@ -34,13 +34,16 @@ import { useHeader } from "@/src/context/HeaderContext";
 import { Chip, DealIconBadge, DealIconPicker, PageHeader, RangeBar } from "@/src/components/ui";
 import { sendToNotion } from "@/src/lib/notion-client";
 import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
+import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 // Acción rápida circular de la cabecera. El marco fuerza 44 px a todo botón: se anula con min-h-0!/min-w-0!.
 const QUICK_ACTION =
   "inline-flex size-9 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-full border border-transparent text-text-secondary outline-none transition-colors hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50";
-const FACT_LABEL = "mb-1 flex items-center justify-between gap-2 text-xs text-text-secondary";
+const PROP_ROW = "flex min-h-11 items-center justify-between gap-3 px-4 py-1.5";
+const PROP_LABEL = "w-28 shrink-0 text-xs text-text-secondary";
+const PROP_VALUE = "flex min-w-0 flex-1 items-center justify-end";
 
 const ACTIVITY_TYPES = [
   { value: "LLAMADA",           label: "Llamada",          icon: CallIcon },
@@ -222,6 +225,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   // Appointments
   const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
   const [dealAppointments, setDealAppointments] = useState<any[]>(deal.appointments || []);
+  const [showManualAppointment, setShowManualAppointment] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [bookingStep, setBookingStep] = useState<"type" | "date" | "slots" | "confirm">("type");
   const [selectedApptType, setSelectedApptType] = useState<any>(null);
@@ -746,186 +750,40 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           </div>
         )}
 
-        {/* Datos clave: una sola rejilla, cada dato una vez */}
-        <section aria-label="Datos del lead" className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line px-4 py-4 sm:px-6 md:grid-cols-4 xl:grid-cols-6">
-          <div className="min-w-0">
-            <p className={FACT_LABEL}>Valor</p>
-            {editingValue ? (
-              <div className="flex h-9 items-center gap-1.5 rounded-control border border-line bg-surface-elevated pl-2 pr-1">
-                <select value={currency} onChange={(e) => setCurrency(e.target.value)} aria-label="Moneda" className="h-8 min-h-0! min-w-0! bg-transparent text-xs font-semibold text-text-secondary outline-none">
-                  <option value="USD">USD</option>
-                  <option value="MXN">MXN</option>
-                </select>
-                <input
-                  ref={valueRef}
-                  type="number"
-                  value={valueInput}
-                  onChange={(e) => setValueInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") saveValue(); if (e.key === "Escape") setEditingValue(false); }}
-                  aria-label="Valor del lead"
-                  className="h-8 min-h-0! min-w-0! w-20 bg-transparent text-sm font-semibold text-text-primary outline-none"
-                  autoFocus min={0} step={0.01}
-                />
-                <button type="button" onClick={saveValue} aria-label="Guardar valor" className="flex size-7 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary">
-                  <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => { setEditingValue(true); setValueInput(String(deal.value ?? "")); setTimeout(() => valueRef.current?.select(), 50); }}
-                className="group/val flex h-9 min-h-0! min-w-0! items-center gap-1.5 text-lg font-semibold tabular-nums text-text-primary"
-                title="Editar valor"
-              >
-                {fmt(deal.value, deal.currency)}
-                <HugeiconsIcon icon={Edit01Icon} size={12} className="text-text-secondary opacity-0 transition-opacity group-hover/val:opacity-100" />
-              </button>
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <p className={FACT_LABEL}>Etapa</p>
-            <div className="relative">
-              <select
-                value={deal.stage?.id || ""}
-                onChange={(e) => changeStage(e.target.value)}
-                disabled={savingStage}
-                aria-label="Etapa"
-                className="h-9 min-h-0! w-full appearance-none rounded-control border border-line bg-surface-elevated pl-3 pr-8 text-sm font-medium outline-none transition-colors hover:border-text-secondary/40 focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
-                style={{ color: currentStage?.color || undefined }}
-              >
-                {stages.map((s: any) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <HugeiconsIcon icon={ChevronDown} size={12} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-            </div>
-          </div>
-
-          <div className="min-w-0">
-            <p className={FACT_LABEL}>
-              Probabilidad
-              <span className="font-semibold tabular-nums text-text-primary">{probability}%</span>
-            </p>
-            <div className="flex h-9 items-center">
-              <RangeBar value={probability} onChange={setProbability} label="Probabilidad de cierre" valueText={`${probability} por ciento`} />
-            </div>
-          </div>
-
-          <div className="min-w-0">
-            <p className={`${FACT_LABEL} ${isFollowUpOverdue ? "text-danger!" : ""}`}>Seguimiento{isFollowUpOverdue && " vencido"}</p>
-            <DatePicker value={followUpAt} onChange={setFollowUpAt} placeholder="Sin fecha" compact align="left" />
-          </div>
-
-          <div className="min-w-0">
-            <p className={FACT_LABEL}>Contacto</p>
-            {deal.contact ? (
-              <div className="flex items-center gap-1.5 group/ct">
-                <div className="size-6 rounded-full bg-nav-active text-[var(--nav-active-ink)] flex items-center justify-center text-xs font-semibold shrink-0">
-                  {deal.contact.firstName?.[0]?.toUpperCase()}
-                </div>
-                <span className="text-sm font-semibold text-text-primary truncate max-w-[160px]">
-                  {deal.contact.firstName} {deal.contact.lastName || ""}
-                </span>
-                <button
-                  onClick={unlinkContact}
-                  className="opacity-0 group-hover/ct:opacity-100 p-0.5 text-text-secondary hover:text-red-500 transition-all rounded"
-                  title="Desvincular"
-                >
-                  <HugeiconsIcon icon={Cancel01Icon} size={11} />
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => { setShowContactSearch(!showContactSearch); if (allContacts.length === 0) fetchContacts(); }}
-                  className="flex min-h-11 items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors lg:min-h-0"
-                >
-                  <HugeiconsIcon icon={Add01Icon} size={12} />
-                  Vincular
-                </button>
-                {showContactSearch && (
-                  <div className="crm-floating-menu absolute top-full left-0 mt-1 w-64 bg-surface-elevated border border-line rounded-lg z-20 p-3 flex flex-col gap-2">
-                    <input
-                      value={contactSearch}
-                      onChange={(e) => setContactSearch(e.target.value)}
-                      placeholder="Buscar contacto..."
-                      className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`}
-                      autoFocus
-                    />
-                    <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
-                      {loadingContacts ? (
-                        <p className="text-xs text-text-secondary text-center py-2">Cargando...</p>
-                      ) : (
-                        allContacts
-                          .filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) || c.email?.toLowerCase().includes(contactSearch.toLowerCase()))
-                          .slice(0, 8)
-                          .map((c) => (
-                            <button key={c.id} onClick={() => linkContact(c.id)} className="min-h-11 lg:min-h-10 flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-nav-hover transition-colors">
-                              <div className="size-7 rounded-full bg-nav-active text-[var(--nav-active-ink)] flex items-center justify-center text-xs font-semibold shrink-0">
-                                {c.firstName?.[0]?.toUpperCase()}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-text-primary truncate">{c.firstName} {c.lastName || ""}</p>
-                                {c.email && <p className="text-xs text-text-secondary truncate">{c.email}</p>}
-                              </div>
-                            </button>
-                          ))
-                      )}
-                      {!loadingContacts && allContacts.filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase())).length === 0 && (
-                        <p className="text-xs text-text-secondary text-center py-2">Sin resultados.</p>
-                      )}
-                    </div>
-                    <button onClick={() => { setShowContactSearch(false); setContactSearch(""); }} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors text-left">
-                      Cancelar
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {deal.contact?.phone && (
-            <div className="min-w-0">
-              <p className={FACT_LABEL}>Teléfono</p>
-              <a href={`tel:${deal.contact.phone}`} className="block truncate text-sm text-text-primary hover:underline">{deal.contact.phone}</a>
-            </div>
-          )}
-
-          {deal.company && (
-            <div className="min-w-0">
-              <p className={FACT_LABEL}>Empresa</p>
-              <p className="flex items-center gap-1.5 text-sm text-text-primary">
-                <HugeiconsIcon icon={Building02Icon} size={14} className="shrink-0 text-text-secondary" />
-                <span className="truncate">{deal.company.name}</span>
-              </p>
-            </div>
-          )}
-
-          {deal.stage?.isLost && (
-            <div className="min-w-0 md:col-span-2">
-              <p className={FACT_LABEL}>Motivo de la pérdida</p>
-              <input
-                value={lostReason}
-                onChange={(e) => setLostReason(e.target.value)}
-                placeholder="¿Por qué se perdió?"
-                aria-label="Motivo de la pérdida"
-                className="h-9 min-h-0! w-full border-b border-line bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-action-primary"
-              />
-            </div>
-          )}
-
-          <div className="col-span-2 flex items-end justify-end md:col-span-1 md:col-start-4 xl:col-start-6">
-            <button
-              type="button"
-              onClick={saveInfo}
-              disabled={savingNotes}
-              className="crm-press inline-flex h-9 min-h-0! items-center rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground transition-colors hover:bg-action-secondary disabled:opacity-50"
-            >
-              {savingNotes ? "Guardando…" : "Guardar cambios"}
-            </button>
-          </div>
-        </section>
+        {/* Recorrido de etapas: la etapa actual resaltada, las anteriores llenas y las siguientes vacías. Un toque cambia de etapa. */}
+        <nav aria-label="Etapa del lead" className="border-t border-line px-4 py-3 sm:px-6">
+          <ol className="flex gap-1 overflow-x-auto pb-0.5">
+            {stages.map((stage: any, index: number) => {
+              const currentIndex = stages.findIndex((item: any) => item.id === deal.stage?.id);
+              const isCurrent = index === currentIndex;
+              const isPast = currentIndex > -1 && index < currentIndex;
+              return (
+                <li key={stage.id} className="min-w-[7.5rem] flex-1">
+                  <button
+                    type="button"
+                    onClick={() => !isCurrent && changeStage(stage.id)}
+                    disabled={savingStage}
+                    aria-current={isCurrent ? "step" : undefined}
+                    title={isCurrent ? `Etapa actual: ${stage.name}` : `Mover a ${stage.name}`}
+                    className={`flex h-9 min-h-0! w-full items-center justify-center truncate rounded-control px-3 text-xs font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60 ${
+                      isCurrent
+                        ? stage.isLost
+                          ? "bg-danger-soft text-danger"
+                          : stage.isWon
+                            ? "bg-success-soft text-success"
+                            : "bg-action-primary text-action-primary-foreground"
+                        : isPast
+                          ? "bg-nav-active text-[var(--nav-active-ink)] hover:bg-nav-hover"
+                          : "border border-line text-text-secondary hover:bg-nav-hover hover:text-text-primary"
+                    }`}
+                  >
+                    <span className="truncate">{stage.name}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
 
         {/* Pestañas */}
         <div role="tablist" aria-label="Secciones del lead" className="flex items-center gap-1 overflow-x-auto border-t border-line px-3 sm:px-5">
@@ -948,7 +806,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
       </div>
 
       {/* ── Body ── */}
-      <div className="flex flex-col gap-5 p-4 sm:p-6 items-stretch max-w-6xl lg:flex-row lg:items-start">
+      <div className="grid max-w-[1200px] items-start gap-5 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_21rem]">
 
         {/* ── LEFT: Tabbed content ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
@@ -1133,13 +991,23 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   <HugeiconsIcon icon={Calendar02Icon} size={15} color="#9ca3af" />
                   <p className="text-sm font-bold text-text-primary">Citas</p>
                 </div>
-                <button
-                  onClick={startBooking}
-                  className="min-h-11 lg:min-h-10 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-lg transition-colors"
-                >
-                  <HugeiconsIcon icon={Add01Icon} size={13} />
-                  Agendar cita
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowManualAppointment(true)}
+                    className="crm-press inline-flex min-h-11 items-center gap-1 rounded-control bg-action-primary px-3 text-xs font-semibold text-action-primary-foreground hover:bg-action-secondary lg:min-h-9"
+                  >
+                    <HugeiconsIcon icon={Add01Icon} size={13} />
+                    Cita manual
+                  </button>
+                  <button
+                    onClick={startBooking}
+                    className="min-h-11 lg:min-h-9 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-control transition-colors"
+                    title="Elegir un horario libre según tu disponibilidad"
+                  >
+                    Agendar con disponibilidad
+                  </button>
+                </div>
               </div>
 
               {/* Booking flow */}
@@ -1270,7 +1138,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-bold text-text-primary">{appt.appointmentType?.name || "Cita"}</span>
+                            <span className="text-xs font-bold text-text-primary">{appt.title?.trim() || appt.appointmentType?.name || "Cita"}</span>
                             <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${isCancelled ? "bg-red-50 text-red-500" : isPast ? "bg-surface-sidebar text-text-secondary" : "bg-emerald-50 text-emerald-700"}`}>
                               {isCancelled ? "Cancelada" : isPast ? "Pasada" : "Confirmada"}
                             </span>
@@ -1280,7 +1148,8 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                             {" · "}{new Date(appt.startTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             {" — "}{new Date(appt.endTime).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                           </p>
-                          <p className="text-xs text-text-secondary mt-0.5 truncate">{appt.guestName} · {appt.guestEmail}</p>
+                          <p className="text-xs text-text-secondary mt-0.5 truncate">{[appt.title?.trim() ? appt.appointmentType?.name : null, appt.guestName !== appt.title ? appt.guestName : null, appt.guestEmail].filter(Boolean).join(" · ") || "Horario apartado"}</p>
+                          {appt.notes && <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">{appt.notes}</p>}
                         </div>
                         {isUpcoming && (
                           <button onClick={() => cancelAppointment(appt.id)} disabled={cancellingApptId === appt.id} className="shrink-0 flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
@@ -1297,7 +1166,201 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         </div>
 
         {/* ── RIGHT: Details sidebar ── */}
-        <div className="w-full shrink-0 flex flex-col gap-4 lg:w-72">
+        <div className="flex w-full min-w-0 flex-col gap-4 lg:sticky lg:top-4">
+
+          {/* Propiedades: una fila por dato, etiqueta a la izquierda y valor editable a la derecha */}
+          <section aria-label="Propiedades del lead" className="rounded-surface border border-line bg-surface-elevated">
+            <h2 className="border-b border-line px-4 py-3 text-sm font-semibold text-text-primary">Propiedades</h2>
+            <dl className="divide-y divide-line">
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Valor</dt>
+                <dd className={PROP_VALUE}>
+                  {editingValue ? (
+                    <div className="flex h-8 items-center gap-1 rounded-control border border-line bg-surface-elevated pl-2 pr-1">
+                      <select value={currency} onChange={(e) => setCurrency(e.target.value)} aria-label="Moneda" className="h-7 min-h-0! min-w-0! bg-transparent text-xs font-semibold text-text-secondary outline-none">
+                        <option value="USD">USD</option>
+                        <option value="MXN">MXN</option>
+                      </select>
+                      <input
+                        ref={valueRef}
+                        type="number"
+                        value={valueInput}
+                        onChange={(e) => setValueInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") saveValue(); if (e.key === "Escape") setEditingValue(false); }}
+                        aria-label="Valor del lead"
+                        className="h-7 min-h-0! min-w-0! w-20 bg-transparent text-sm font-semibold text-text-primary outline-none"
+                        autoFocus min={0} step={0.01}
+                      />
+                      <button type="button" onClick={saveValue} aria-label="Guardar valor" className="flex size-6 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary">
+                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setEditingValue(true); setValueInput(String(deal.value ?? "")); setTimeout(() => valueRef.current?.select(), 50); }}
+                      className="group/val flex h-8 min-h-0! min-w-0! items-center gap-1.5 text-sm font-semibold tabular-nums text-text-primary"
+                      title="Editar valor"
+                    >
+                      {fmt(deal.value, deal.currency)}
+                      <HugeiconsIcon icon={Edit01Icon} size={12} className="text-text-secondary opacity-0 transition-opacity group-hover/val:opacity-100" />
+                    </button>
+                  )}
+                </dd>
+              </div>
+
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Probabilidad</dt>
+                <dd className={`${PROP_VALUE} gap-3`}>
+                  <div className="w-28 sm:w-32">
+                    <RangeBar value={probability} onChange={setProbability} label="Probabilidad de cierre" valueText={`${probability} por ciento`} />
+                  </div>
+                  <span className="w-9 text-right text-sm font-semibold tabular-nums text-text-primary">{probability}%</span>
+                </dd>
+              </div>
+
+              <div className={PROP_ROW}>
+                <dt className={`${PROP_LABEL} ${isFollowUpOverdue ? "text-danger!" : ""}`}>{isFollowUpOverdue ? "Seguimiento vencido" : "Seguimiento"}</dt>
+                <dd className={PROP_VALUE}>
+                  <DatePicker value={followUpAt} onChange={setFollowUpAt} placeholder="Sin fecha" compact align="right" />
+                </dd>
+              </div>
+
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Contacto</dt>
+                <dd className={PROP_VALUE}>
+                  <div className="min-w-0">
+            {deal.contact ? (
+              <div className="flex items-center gap-1.5 group/ct">
+                <div className="size-6 rounded-full bg-nav-active text-[var(--nav-active-ink)] flex items-center justify-center text-xs font-semibold shrink-0">
+                  {deal.contact.firstName?.[0]?.toUpperCase()}
+                </div>
+                <span className="text-sm font-semibold text-text-primary truncate max-w-[160px]">
+                  {deal.contact.firstName} {deal.contact.lastName || ""}
+                </span>
+                <button
+                  onClick={unlinkContact}
+                  className="opacity-0 group-hover/ct:opacity-100 p-0.5 text-text-secondary hover:text-red-500 transition-all rounded"
+                  title="Desvincular"
+                >
+                  <HugeiconsIcon icon={Cancel01Icon} size={11} />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => { setShowContactSearch(!showContactSearch); if (allContacts.length === 0) fetchContacts(); }}
+                  className="flex min-h-11 items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors lg:min-h-0"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={12} />
+                  Vincular
+                </button>
+                {showContactSearch && (
+                  <div className="crm-floating-menu absolute top-full right-0 mt-1 w-64 bg-surface-elevated border border-line rounded-lg z-20 p-3 flex flex-col gap-2">
+                    <input
+                      value={contactSearch}
+                      onChange={(e) => setContactSearch(e.target.value)}
+                      placeholder="Buscar contacto..."
+                      className={`min-h-11 lg:min-h-10 ${inputCls} text-xs`}
+                      autoFocus
+                    />
+                    <div className="max-h-36 overflow-y-auto flex flex-col gap-1">
+                      {loadingContacts ? (
+                        <p className="text-xs text-text-secondary text-center py-2">Cargando...</p>
+                      ) : (
+                        allContacts
+                          .filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase()) || c.email?.toLowerCase().includes(contactSearch.toLowerCase()))
+                          .slice(0, 8)
+                          .map((c) => (
+                            <button key={c.id} onClick={() => linkContact(c.id)} className="min-h-11 lg:min-h-10 flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg hover:bg-nav-hover transition-colors">
+                              <div className="size-7 rounded-full bg-nav-active text-[var(--nav-active-ink)] flex items-center justify-center text-xs font-semibold shrink-0">
+                                {c.firstName?.[0]?.toUpperCase()}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-text-primary truncate">{c.firstName} {c.lastName || ""}</p>
+                                {c.email && <p className="text-xs text-text-secondary truncate">{c.email}</p>}
+                              </div>
+                            </button>
+                          ))
+                      )}
+                      {!loadingContacts && allContacts.filter((c) => !contactSearch || `${c.firstName} ${c.lastName || ""}`.toLowerCase().includes(contactSearch.toLowerCase())).length === 0 && (
+                        <p className="text-xs text-text-secondary text-center py-2">Sin resultados.</p>
+                      )}
+                    </div>
+                    <button onClick={() => { setShowContactSearch(false); setContactSearch(""); }} className="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors text-left">
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          
+                  </div>
+                </dd>
+              </div>
+
+              {deal.contact?.phone && (
+                <div className={PROP_ROW}>
+                  <dt className={PROP_LABEL}>Teléfono</dt>
+                  <dd className={PROP_VALUE}>
+                    <a href={`tel:${deal.contact.phone}`} className="truncate text-sm tabular-nums text-text-primary hover:underline">{deal.contact.phone}</a>
+                  </dd>
+                </div>
+              )}
+
+              {deal.company && (
+                <div className={PROP_ROW}>
+                  <dt className={PROP_LABEL}>Empresa</dt>
+                  <dd className={PROP_VALUE}>
+                    <span className="flex min-w-0 items-center gap-1.5 text-sm text-text-primary">
+                      <HugeiconsIcon icon={Building02Icon} size={14} className="shrink-0 text-text-secondary" />
+                      <span className="truncate">{deal.company.name}</span>
+                    </span>
+                  </dd>
+                </div>
+              )}
+
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Origen</dt>
+                <dd className={PROP_VALUE}>
+                  <span className="truncate text-sm text-text-primary">{deal.source ? SOURCE_LABELS[deal.source] || deal.source : "Sin origen"}</span>
+                </dd>
+              </div>
+
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Creado</dt>
+                <dd className={PROP_VALUE}>
+                  <span className="text-sm text-text-primary">{fmtDate(deal.createdAt)}</span>
+                </dd>
+              </div>
+
+              {deal.stage?.isLost && (
+                <div className={PROP_ROW}>
+                  <dt className={PROP_LABEL}>Motivo de pérdida</dt>
+                  <dd className={PROP_VALUE}>
+                    <input
+                      value={lostReason}
+                      onChange={(e) => setLostReason(e.target.value)}
+                      placeholder="¿Por qué se perdió?"
+                      aria-label="Motivo de la pérdida"
+                      className="h-8 min-h-0! w-full min-w-0 border-b border-line bg-transparent text-right text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-action-primary"
+                    />
+                  </dd>
+                </div>
+              )}
+            </dl>
+            <div className="flex justify-end border-t border-line px-4 py-3">
+              <button
+                type="button"
+                onClick={saveInfo}
+                disabled={savingNotes}
+                className="crm-press inline-flex h-8 min-h-0! items-center rounded-control bg-action-primary px-3.5 text-xs font-semibold text-action-primary-foreground transition-colors hover:bg-action-secondary disabled:opacity-50"
+              >
+                {savingNotes ? "Guardando…" : "Guardar cambios"}
+              </button>
+            </div>
+          </section>
+
 
           {/* Notes / AI summary card */}
           <div className="bg-surface-elevated rounded-lg border border-line p-5">
@@ -1374,6 +1437,22 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           </button>
         </div>
       </div>
+
+      <ManualAppointmentDialog
+        open={showManualAppointment}
+        onClose={() => setShowManualAppointment(false)}
+        prefill={{
+          dealId: deal.id,
+          contactId: deal.contact?.id ?? null,
+          guestName: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim() : "",
+          guestEmail: deal.contact?.email ?? "",
+          guestPhone: deal.contact?.phone ?? "",
+        }}
+        onCreated={(appt) => {
+          setDealAppointments((prev) => [...prev, appt].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
+          setActiveTab("citas");
+        }}
+      />
 
       {/* ── Proposal Modal ── */}
       {showProposalModal && (

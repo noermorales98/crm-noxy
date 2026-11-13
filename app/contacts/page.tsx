@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
@@ -165,12 +166,12 @@ function ContactsContent() {
   );
 
   const person = (c: ContactRow) => (
-    <div className="flex min-w-0 items-center gap-3">
+    <Link href={`/contacts/${c.id}`} className="flex min-w-0 items-center gap-3 hover:underline">
       <ContactAvatar />
       <span className="truncate font-semibold text-text-primary" title={`${c.firstName} ${c.lastName || ""}`}>
         {c.firstName} {c.lastName}
       </span>
-    </div>
+    </Link>
   );
 
   const columns = [
@@ -189,7 +190,7 @@ function ContactsContent() {
     <>
       <ContactAvatar />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-text-primary">{c.firstName} {c.lastName}</p>
+        <Link href={`/contacts/${c.id}`} className="block truncate font-semibold text-text-primary hover:underline">{c.firstName} {c.lastName}</Link>
         <p className="truncate text-xs text-text-secondary">
           {[showCompany ? c.company?.name : null, c.email].filter(Boolean).join(" · ") || "Sin email"}
         </p>

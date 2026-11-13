@@ -886,8 +886,11 @@ model AppointmentType {
 
 model Appointment {
   id                String          @id @default(cuid())
-  appointmentTypeId String
-  appointmentType   AppointmentType @relation(fields: [appointmentTypeId], references: [id], onDelete: Cascade)
+  // Null = cita apartada a mano que no pertenece a ninguna agenda: bloquea el horario en todos los tipos.
+  appointmentTypeId String?
+  appointmentType   AppointmentType? @relation(fields: [appointmentTypeId], references: [id], onDelete: Cascade)
+  // Título de la cita (obligatorio de hecho cuando no tiene tipo); la descripción vive en `notes`.
+  title             String?
   organizationId    String
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   contactId         String?

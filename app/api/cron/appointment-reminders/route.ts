@@ -251,20 +251,24 @@ export async function GET(req: Request) {
           const tz = appt.organization.timezone || "America/Cancun";
           const formattedDate = formatDateTime(appt.startTime, tz);
           const owner = appt.organization.members[0]?.user;
-          const smtp = buildSmtpConfig(appt.appointmentType.company ?? null);
+          // Una cita apartada a mano puede no tener tipo: título propio, duración por sus horas y sin lugar.
+          const label = appt.title?.trim() || appt.appointmentType?.name || "Cita";
+          const minutes = Math.round((appt.endTime.getTime() - appt.startTime.getTime()) / 60000);
+          const place = appt.appointmentType?.location ?? null;
+          const smtp = buildSmtpConfig(appt.appointmentType?.company ?? null);
 
           // Email → cliente
           if (smtp && appt.guestEmail) {
             await sendReminderEmail(
               smtp,
               appt.guestEmail,
-              `${window.urgency === "high" ? "🚨" : "⏰"} Tu cita "${appt.appointmentType.name}" es en ${window.timeLabel}`,
+              `${window.urgency === "high" ? "🚨" : "⏰"} Tu cita "${label}" es en ${window.timeLabel}`,
               buildClientEmail({
                 guestName: appt.guestName,
-                typeName: appt.appointmentType.name,
+                typeName: label,
                 formattedDate,
-                duration: appt.appointmentType.duration,
-                location: appt.appointmentType.location,
+                duration: minutes,
+                location: place,
                 timeLabel: window.timeLabel,
                 urgency: window.urgency,
               })
@@ -276,15 +280,15 @@ export async function GET(req: Request) {
             await sendReminderEmail(
               smtp,
               owner.email,
-              `${window.urgency === "high" ? "🚨" : "📅"} Cita en ${window.timeLabel}: ${appt.guestName} — ${appt.appointmentType.name}`,
+              `${window.urgency === "high" ? "🚨" : "📅"} Cita en ${window.timeLabel}: ${appt.guestName} — ${label}`,
               buildOwnerEmail({
                 guestName: appt.guestName,
                 guestEmail: appt.guestEmail,
                 guestPhone: appt.guestPhone,
-                typeName: appt.appointmentType.name,
+                typeName: label,
                 formattedDate,
-                duration: appt.appointmentType.duration,
-                location: appt.appointmentType.location,
+                duration: minutes,
+                location: place,
                 notes: appt.notes,
                 timeLabel: window.timeLabel,
                 urgency: window.urgency,
@@ -296,7 +300,7 @@ export async function GET(req: Request) {
           if (owner?.callMeBot?.phone && owner.callMeBot.apiKey) {
             const icon = window.urgency === "high" ? "🚨" : "📅";
             const msg =
-              `${icon} *Cita en ${window.timeLabel} — ${appt.appointmentType.name}*\n` +
+              `${icon} *Cita en ${window.timeLabel} — ${label}*\n` +
               `👤 ${appt.guestName}\n` +
               `📧 ${appt.guestEmail}\n` +
               (appt.guestPhone ? `📞 ${appt.guestPhone}\n` : "") +

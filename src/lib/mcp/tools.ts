@@ -602,7 +602,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "list_appointments",
     {
-      description: "Lista las citas agendadas, con filtros por estado y rango de fechas.",
+      description: "Lista las citas agendadas, con filtros por estado y rango de fechas. Una cita sin appointmentType es un horario apartado a mano (usa su title); bloquea todas las agendas.",
       inputSchema: {
         status: z.string().optional().describe("CONFIRMED, CANCELLED, COMPLETED, etc."),
         from: DATE.optional().describe("Inicio del rango"),

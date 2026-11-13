@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 import { auth } from "@/auth";
 import { randomUUID } from "crypto";
 
@@ -70,7 +71,7 @@ export async function POST(
     // Check for conflicts
     const conflict = await prisma.appointment.findFirst({
       where: {
-        appointmentTypeId,
+        ...busyAppointmentsWhere({ organizationId, appointmentTypeId }),
         status: { not: "CANCELLED" },
         startTime: { lt: end },
         endTime: { gt: start },

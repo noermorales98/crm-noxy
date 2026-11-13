@@ -48,7 +48,7 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
           tasks: (data.pendingTasks ?? []).map((task) => ({ dueDate: task.dueDate, isCompleted: task.isCompleted })),
           appointments: (data.upcomingAppointments ?? []).map((appointment) => ({
             startTime: appointment.startTime,
-            title: appointment.appointmentType.name,
+            title: appointment.title?.trim() || appointment.appointmentType?.name || "Cita",
           })),
         }),
       })

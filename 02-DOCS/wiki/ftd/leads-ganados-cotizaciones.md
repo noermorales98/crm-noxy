@@ -31,5 +31,38 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Icono Hugeicons del lead en lugar de las iniciales; 18 iconos elegibles (`deal-icons.ts`, 2 pruebas); `PATCH /api/deals` valida la clave
 - [x] Columna `Deal.icon` aplicada en la BD (`prisma/add_deal_icon.sql`); Prisma la lee: 4 leads, ninguno con icono elegido aún
 
+## Ronda 4 (rediseño a fondo del lead y fichas nuevas)
+- [x] Lead: recorrido de etapas clicable bajo el título, panel fijo de «Propiedades» a la derecha (filas etiqueta-valor), el resto en pestañas
+- [x] Probabilidad: medidor de 10 tramos sin perilla (`RangeBar`), con vista previa al pasar el cursor
+- [x] `/contacts/:id`: cifras, leads, cotizaciones, cliente de mensualidad, citas, tareas y correos de campañas (`record-summary.ts`, 3 pruebas)
+- [x] `/pipeline/clientes/:id`: cobrado, por cobrar y atrasados, historial de pagos, leads y cotizaciones del contacto; sin la bóveda
+- [x] Enlaces: nombre en la lista de contactos y «Ver ficha completa» en el panel del cliente
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
+## Ronda 5 (citas manuales)
+- [x] `POST /api/appointments`: cita sin pasar por disponibilidad; hora leída en la zona de la organización (`manual-appointment.ts`, 3 pruebas); un empalme no la rechaza, avisa
+- [x] `ManualAppointmentDialog` reutilizable: tipo, fecha, hora, duración (por defecto la del tipo), persona, correo y teléfono opcionales, notas
+- [x] Botón «Nueva cita» en `/appointments`, «Cita manual» en la pestaña Citas del lead, «Nueva cita» en la ficha de contacto y de cliente
+- [x] Google Calendar: se sincroniza si está conectado; sin correo no se agrega invitado
+- [ ] Probado en pantalla (el navegador del panel no tiene sesión)
+- Cita sin tipo (horario apartado): `Appointment.appointmentTypeId` opcional + `title`; el título es obligatorio sin tipo, 60 min por defecto, la descripción vive en `notes`
+- Una cita sin tipo bloquea todas las agendas de la organización: `busyAppointmentsWhere` (3 pruebas) usado en horarios libres, reserva pública, formularios y reserva desde el lead
+- Recordatorios, panel de Inicio, citas del lead/contacto/cliente y MCP aceptan citas sin tipo
+- [x] Migración `prisma/add_appointment_title.sql` aplicada en la BD (tipo opcional + columna `title`); Prisma la lee: 1 cita existente con su tipo, 0 sin tipo, y el filtro de horarios ocupados responde
+
+## Ronda 6 (selectores propios de fecha y hora)
+- [x] `DateField` (calendario que se despliega dentro del formulario; teclado: flechas, Re Pág/Av Pág, Inicio/Fin, Intro, Esc) y `TimeField` (lista cada 15 min y campo para escribir «930», «3 pm», «15:45»)
+- [x] Cálculo probado en `date-time-math.ts` (6 pruebas): cuadrícula del mes, años bisiestos, fechas inválidas, formato en español, lectura de horas escritas
+- [x] Usados en `ManualAppointmentDialog` en lugar de `type="date"` y `type="time"`; Esc cierra el selector sin cerrar el diálogo
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
+## Ronda 7 (editar citas y rediseño de /appointments)
+- [x] `PATCH /api/appointments/:id` edita o reprograma (fecha, hora, duración, título, tipo, persona, notas); conserva lo que no se envía; reinicia los recordatorios si cambia la hora; sincroniza Google Calendar; avisa de empalmes
+- [x] La hora se lee en la zona del navegador (`resolveTimezone`), la misma en que la lista muestra las citas; así reprogramar no corre la hora
+- [x] `ManualAppointmentDialog` con modo edición (`appointment`)
+- [x] `/appointments`: pestañas Próximas / Anteriores / Canceladas / Todas, citas agrupadas por día (Hoy, Mañana, Ayer…), filas sobrias; las acciones viven en un menú «⋯» (`ActionMenu`): editar, completar, cancelar y eliminar al final, en rojo y con confirmación; «Reactivar/Reabrir» para deshacer
+- [x] Lógica probada: `appointment-groups.ts` (5 pruebas) y `manual-appointment.ts` (6)
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.

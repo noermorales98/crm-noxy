@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         project: { select: { id: true, name: true, icon: true } },
         company: { select: { id: true, name: true } },
         form: { select: { id: true, name: true } },
-        appointment: { select: { id: true, startTime: true, guestName: true, appointmentType: { select: { name: true } } } },
+        appointment: { select: { id: true, startTime: true, guestName: true, title: true, appointmentType: { select: { name: true } } } },
       },
       orderBy: [
         { isCompleted: "asc" },

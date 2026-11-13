@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 
 function corsHeaders() {
   return {
@@ -120,7 +121,7 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
   const existingAppointments = await prisma.appointment.findMany({
     where: {
-      appointmentType: { scheduleId: appointmentType.scheduleId },
+      ...busyAppointmentsWhere({ organizationId: appointmentType.organizationId, scheduleId: appointmentType.scheduleId }),
       status: { not: "CANCELLED" },
       startTime: { gte: searchStart, lte: searchEnd }
     }

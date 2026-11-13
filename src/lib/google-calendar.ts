@@ -68,14 +68,14 @@ export async function syncAppointmentToCalendar(
   const { calendar, calendarId } = client;
 
   const eventBody = {
-    summary: `${appointment.appointmentType.name} — ${appointment.guestName}`,
+    // Una cita sin tipo usa su título como nombre de la persona: no se repite.
+    summary: appointment.guestName && appointment.guestName !== appointment.appointmentType.name ? `${appointment.appointmentType.name} — ${appointment.guestName}` : appointment.appointmentType.name,
     description: appointment.notes ?? "",
     location: appointment.appointmentType.location ?? undefined,
     start: { dateTime: appointment.startTime.toISOString() },
     end: { dateTime: appointment.endTime.toISOString() },
-    attendees: [
-      { email: appointment.guestEmail, displayName: appointment.guestName },
-    ],
+    // Una cita creada a mano puede no tener correo: sin invitado en el evento.
+    attendees: appointment.guestEmail ? [{ email: appointment.guestEmail, displayName: appointment.guestName }] : [],
     reminders: {
       useDefault: false,
       overrides: [
