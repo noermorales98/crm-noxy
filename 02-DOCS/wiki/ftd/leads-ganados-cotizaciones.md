@@ -56,5 +56,13 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Usados en `ManualAppointmentDialog` en lugar de `type="date"` y `type="time"`; Esc cierra el selector sin cerrar el diálogo
 - [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
 
+## Ronda 7 (editar citas y rediseño de /appointments)
+- [x] `PATCH /api/appointments/:id` edita o reprograma (fecha, hora, duración, título, tipo, persona, notas); conserva lo que no se envía; reinicia los recordatorios si cambia la hora; sincroniza Google Calendar; avisa de empalmes
+- [x] La hora se lee en la zona del navegador (`resolveTimezone`), la misma en que la lista muestra las citas; así reprogramar no corre la hora
+- [x] `ManualAppointmentDialog` con modo edición (`appointment`)
+- [x] `/appointments`: pestañas Próximas / Anteriores / Canceladas / Todas, citas agrupadas por día (Hoy, Mañana, Ayer…), filas sobrias; las acciones viven en un menú «⋯» (`ActionMenu`): editar, completar, cancelar y eliminar al final, en rojo y con confirmación; «Reactivar/Reabrir» para deshacer
+- [x] Lógica probada: `appointment-groups.ts` (5 pruebas) y `manual-appointment.ts` (6)
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
