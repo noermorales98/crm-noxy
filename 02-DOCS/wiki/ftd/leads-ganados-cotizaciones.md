@@ -39,5 +39,13 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Enlaces: nombre en la lista de contactos y «Ver ficha completa» en el panel del cliente
 - [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
 
+## Ronda 5 (citas manuales)
+- [x] `POST /api/appointments`: cita sin pasar por disponibilidad; hora leída en la zona de la organización (`manual-appointment.ts`, 3 pruebas); un empalme no la rechaza, avisa
+- [x] `ManualAppointmentDialog` reutilizable: tipo, fecha, hora, duración (por defecto la del tipo), persona, correo y teléfono opcionales, notas
+- [x] Botón «Nueva cita» en `/appointments`, «Cita manual» en la pestaña Citas del lead, «Nueva cita» en la ficha de contacto y de cliente
+- [x] Google Calendar: se sincroniza si está conectado; sin correo no se agrega invitado
+- [ ] Probado en pantalla (el navegador del panel no tiene sesión)
+- Límite conocido: la cita necesita un tipo de cita activo (da nombre, duración y color); sin tipos, el diálogo lleva a crearlo
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
