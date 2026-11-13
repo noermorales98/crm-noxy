@@ -50,5 +50,11 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - Recordatorios, panel de Inicio, citas del lead/contacto/cliente y MCP aceptan citas sin tipo
 - [x] Migración `prisma/add_appointment_title.sql` aplicada en la BD (tipo opcional + columna `title`); Prisma la lee: 1 cita existente con su tipo, 0 sin tipo, y el filtro de horarios ocupados responde
 
+## Ronda 6 (selectores propios de fecha y hora)
+- [x] `DateField` (calendario que se despliega dentro del formulario; teclado: flechas, Re Pág/Av Pág, Inicio/Fin, Intro, Esc) y `TimeField` (lista cada 15 min y campo para escribir «930», «3 pm», «15:45»)
+- [x] Cálculo probado en `date-time-math.ts` (6 pruebas): cuadrícula del mes, años bisiestos, fechas inválidas, formato en español, lectura de horas escritas
+- [x] Usados en `ManualAppointmentDialog` en lugar de `type="date"` y `type="time"`; Esc cierra el selector sin cerrar el diálogo
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
