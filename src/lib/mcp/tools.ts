@@ -290,8 +290,11 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "list_deals",
     {
-      description: "Lista los deals (oportunidades) del CRM con filtros por etapa, pipeline, contacto o empresa.",
+      description:
+        "Lista los leads / deals (oportunidades) del CRM con filtros por texto, etapa, pipeline, contacto o empresa. Los archivados quedan fuera salvo que pidas includeArchived.",
       inputSchema: {
+        search: z.string().optional().describe("Buscar en el título del deal"),
+        includeArchived: z.boolean().default(false),
         stageId: z.string().optional(),
         pipelineId: z.string().optional(),
         contactId: z.string().optional(),
@@ -299,8 +302,10 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         ...pagination,
       },
     },
-    async ({ stageId, pipelineId, contactId, companyId, limit, offset }) => {
+    async ({ search, includeArchived, stageId, pipelineId, contactId, companyId, limit, offset }) => {
       const where: any = { organizationId: org };
+      if (!includeArchived) where.isArchived = false;
+      if (search) where.title = { contains: search };
       if (stageId) where.stageId = stageId;
       if (pipelineId) where.pipelineId = pipelineId;
       if (contactId) where.contactId = contactId;
@@ -906,15 +911,18 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "list_clients",
     {
-      description: "Lista los clientes de facturación recurrente (mensualidades) con sus pagos del año en curso.",
+      description:
+        "Lista los clientes de facturación recurrente (mensualidades) con sus pagos del año en curso. Para los clientes de gestión de contenido usa list_content_clients.",
       inputSchema: {
+        search: z.string().optional().describe("Buscar en nombre, contacto o email"),
         isActive: z.boolean().optional().describe("Filtrar por activos/inactivos"),
         ...pagination,
       },
     },
-    async ({ isActive, limit, offset }) => {
+    async ({ search, isActive, limit, offset }) => {
       const where: any = { organizationId: org };
       if (isActive !== undefined) where.isActive = isActive;
+      if (search) where.OR = [{ name: { contains: search } }, { contactName: { contains: search } }, { email: { contains: search } }];
       const year = new Date().getFullYear();
       const [total, clients] = await Promise.all([
         prisma.client.count({ where }),
@@ -944,6 +952,31 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         }),
       ]);
       return json({ total, year, clients });
+    }
+  );
+
+  server.registerTool(
+    "get_client",
+    {
+      description:
+        "Detalle de un cliente de facturación: tarifa, contacto, notas y todos sus pagos (todos los años). No incluye la bóveda de credenciales.",
+      inputSchema: { id: z.string().describe("ID del cliente (list_clients)") },
+    },
+    async ({ id }) => {
+      const client = await prisma.client.findFirst({
+        where: { id, organizationId: org },
+        select: {
+          id: true, name: true, monthlyFee: true, currency: true, startDate: true, billingDay: true, autoMarkPaid: true,
+          notes: true, isActive: true, contactName: true, phoneCode: true, phone: true, email: true, createdAt: true,
+          company: { select: { id: true, name: true } },
+          contact: { select: { id: true, firstName: true, lastName: true } },
+          payments: {
+            orderBy: [{ year: "desc" }, { month: "desc" }],
+            select: { id: true, amount: true, status: true, month: true, year: true, dueDate: true, receivedAt: true },
+          },
+        },
+      });
+      return client ? json(client) : err("Cliente no encontrado");
     }
   );
 

@@ -3,6 +3,7 @@ import { timingSafeEqual } from "crypto";
 import { registerCrmTools } from "@/src/lib/mcp/tools";
 import { registerCrmProtocol } from "@/src/lib/mcp/protocol";
 import { registerNotionTools } from "@/src/lib/mcp/notion";
+import { registerContentTools } from "@/src/lib/mcp/content-tools";
 import { verifyAccessToken, verifyPayload, type OAuthClient } from "@/src/lib/mcp/oauth";
 import { OAUTH_CORS, corsOptions } from "@/src/lib/mcp/cors";
 import { runWithMcpContext } from "@/src/lib/mcp/client-context";
@@ -19,6 +20,7 @@ const handler = createMcpHandler(
     registerCrmTools(server, organizationId);
     registerCrmProtocol(server, organizationId);
     registerNotionTools(server, organizationId);
+    registerContentTools(server, organizationId);
   },
   { serverInfo: { name: "noxthy-crm", version: "1.0.0" } },
   // basePath "" -> endpoint Streamable HTTP "/mcp" (la URL pública; el rewrite
