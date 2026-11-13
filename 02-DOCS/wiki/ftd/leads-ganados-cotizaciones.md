@@ -31,5 +31,13 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Icono Hugeicons del lead en lugar de las iniciales; 18 iconos elegibles (`deal-icons.ts`, 2 pruebas); `PATCH /api/deals` valida la clave
 - [x] Columna `Deal.icon` aplicada en la BD (`prisma/add_deal_icon.sql`); Prisma la lee: 4 leads, ninguno con icono elegido aún
 
+## Ronda 4 (rediseño a fondo del lead y fichas nuevas)
+- [x] Lead: recorrido de etapas clicable bajo el título, panel fijo de «Propiedades» a la derecha (filas etiqueta-valor), el resto en pestañas
+- [x] Probabilidad: medidor de 10 tramos sin perilla (`RangeBar`), con vista previa al pasar el cursor
+- [x] `/contacts/:id`: cifras, leads, cotizaciones, cliente de mensualidad, citas, tareas y correos de campañas (`record-summary.ts`, 3 pruebas)
+- [x] `/pipeline/clientes/:id`: cobrado, por cobrar y atrasados, historial de pagos, leads y cotizaciones del contacto; sin la bóveda
+- [x] Enlaces: nombre en la lista de contactos y «Ver ficha completa» en el panel del cliente
+- [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
