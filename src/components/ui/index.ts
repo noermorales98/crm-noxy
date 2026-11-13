@@ -15,3 +15,5 @@ export { cn } from "./cn";
 export { useDialog } from "./useDialog";
 export { Switch } from "./Switch";
 export { CheckRow } from "./CheckRow";
+export { RangeBar } from "./RangeBar";
+export { DealIconBadge, DealIconPicker, resolveDealIcon } from "./DealIcon";

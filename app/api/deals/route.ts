@@ -1,5 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { autoSync } from "@/src/lib/notion-sync";
+import { normalizeDealIcon } from "@/src/lib/deal-icons";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
@@ -103,6 +104,10 @@ export async function PATCH(req: Request) {
 
     const body = await req.json();
     const { id, stageId, followUpAt, lostReason, source, value, probability, notes, title, currency, contactId } = body;
+    const icon = body.icon === undefined ? undefined : normalizeDealIcon(body.icon);
+    if (body.icon !== undefined && body.icon !== null && body.icon !== "" && icon === null) {
+      return NextResponse.json({ error: "Icono no válido" }, { status: 400 });
+    }
 
     if (!id) return NextResponse.json({ error: "Deal id es requerido" }, { status: 400 });
 
@@ -119,6 +124,7 @@ export async function PATCH(req: Request) {
     if (lostReason !== undefined) updateData.lostReason = lostReason;
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
     if (contactId !== undefined) updateData.contactId = contactId || null;
+    if (icon !== undefined) updateData.icon = icon;
     if (body.allowedBookingTypes !== undefined) updateData.allowedBookingTypes = body.allowedBookingTypes || null;
     if (body.isArchived !== undefined) {
       updateData.isArchived = body.isArchived;

@@ -31,7 +31,7 @@ import DatePicker from "./DatePicker";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { useAi } from "@/src/hooks/useAi";
 import { useHeader } from "@/src/context/HeaderContext";
-import { Chip, PageHeader } from "@/src/components/ui";
+import { Chip, DealIconBadge, DealIconPicker, PageHeader, RangeBar } from "@/src/components/ui";
 import { sendToNotion } from "@/src/lib/notion-client";
 import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
 
@@ -439,6 +439,18 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
   // ─── Title ───────────────────────────────────────────────────────────────
 
+  async function changeIcon(icon: string) {
+    // Optimista: el icono cambia al tocar; si el servidor lo rechaza, se vuelve al anterior.
+    const previous = deal.icon;
+    setDeal((prev: any) => ({ ...prev, icon }));
+    const res = await fetch("/api/deals", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: deal.id, icon }),
+    });
+    if (!res.ok) setDeal((prev: any) => ({ ...prev, icon: previous }));
+  }
+
   async function saveTitle() {
     if (!titleValue.trim()) return;
     await patchDeal({ title: titleValue.trim() });
@@ -583,11 +595,6 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
   const currentStage = stages.find((s: any) => s.id === deal.stage?.id) || deal.stage;
 
-  // Initials avatar for the deal (from contact or deal title)
-  const avatarInitials = deal.contact
-    ? `${deal.contact.firstName?.[0] || ""}${deal.contact.lastName?.[0] || ""}`.toUpperCase() || "?"
-    : deal.title?.[0]?.toUpperCase() || "D";
-
   const TAB_ITEMS = [
     { key: "actividad", label: "Actividad", count: deal.activities.length },
     { key: "propuestas", label: "Propuestas", count: deal.proposals.length },
@@ -674,9 +681,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         <div className="px-4 pb-4 pt-2 sm:px-6">
           {editingTitle ? (
             <div className="flex items-center gap-4">
-              <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-nav-active text-base font-semibold text-[var(--nav-active-ink)]">
-                {avatarInitials}
-              </span>
+              <DealIconBadge icon={deal.icon} />
               <input
                 value={titleValue}
                 onChange={(e) => setTitleValue(e.target.value)}
@@ -694,11 +699,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
             </div>
           ) : (
             <PageHeader
-              leading={
-                <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-nav-active text-base font-semibold text-[var(--nav-active-ink)]">
-                  {avatarInitials}
-                </span>
-              }
+              leading={<DealIconPicker value={deal.icon} onChange={changeIcon} />}
               title={deal.title}
               subtitle={
                 <>
@@ -802,13 +803,13 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           </div>
 
           <div className="min-w-0">
-            <p className={FACT_LABEL}>Probabilidad <span className="font-semibold tabular-nums text-text-primary">{probability}%</span></p>
-            <input
-              type="range" min={0} max={100} step={5} value={probability}
-              onChange={(e) => setProbability(parseInt(e.target.value))}
-              aria-label="Probabilidad de cierre"
-              className="mt-3 h-1 min-h-0! w-full cursor-pointer accent-action-primary"
-            />
+            <p className={FACT_LABEL}>
+              Probabilidad
+              <span className="font-semibold tabular-nums text-text-primary">{probability}%</span>
+            </p>
+            <div className="flex h-9 items-center">
+              <RangeBar value={probability} onChange={setProbability} label="Probabilidad de cierre" valueText={`${probability} por ciento`} />
+            </div>
           </div>
 
           <div className="min-w-0">

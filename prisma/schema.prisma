@@ -450,6 +450,7 @@ model Deal {
   probability Int         @default(50)
   notes       String?     @db.Text
   notionPageId String?
+  icon        String? // clave de DEAL_ICON_KEYS (src/lib/deal-icons.ts); null = icono por defecto
   bookingToken String?    @unique @default(cuid())
   allowedBookingTypes String? @db.Text
   isArchived  Boolean     @default(false)

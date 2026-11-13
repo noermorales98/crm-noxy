@@ -26,5 +26,10 @@ Que los leads ganados cuenten como ventas en resúmenes y MCP, que una cotizaci�
 - [x] Columna `Quote.dealId` aplicada en la BD (`prisma/add_quote_deal.sql`); Prisma la lee: 7 cotizaciones sin lead y la consulta de leads ganados con cotizaciones responde
 - [ ] Revisado a ojo en pantalla (el navegador del panel no tiene sesión)
 
+## Ronda 3 (icono y probabilidad del lead)
+- [x] `RangeBar` propio en lugar del `input range` del navegador (puntero, táctil y teclado; 3 pruebas de `range-math`)
+- [x] Icono Hugeicons del lead en lugar de las iniciales; 18 iconos elegibles (`deal-icons.ts`, 2 pruebas); `PATCH /api/deals` valida la clave
+- [x] Columna `Deal.icon` aplicada en la BD (`prisma/add_deal_icon.sql`); Prisma la lee: 4 leads, ninguno con icono elegido aún
+
 ## Next
 Aplicar el SQL, desplegar, revisar visualmente lead, formularios y `/kb`, y reconectar el conector de Claude.
