@@ -476,6 +476,7 @@ model Deal {
   activities  ActivityLog[]
   proposals   Proposal[]
   payments    Payment[]
+  quotes      Quote[]
   appointments Appointment[]
 
   @@index([organizationId])
@@ -1389,6 +1390,11 @@ model Quote {
   // Cliente: contacto existente del CRM o captura directa
   contactId     String?
   contact       Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  // Lead (deal) del pipeline al que pertenece la cotización; un lead puede tener varias.
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
   clientName    String
   clientCompany String?
   clientEmail   String?
@@ -1443,6 +1449,7 @@ model Quote {
   @@index([contactId])
   @@index([senderCompanyId])
   @@index([status])
+  @@index([dealId])
 }
 
 model QuoteItem {

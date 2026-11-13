@@ -23,6 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         items: { orderBy: { order: "asc" } },
         events: { orderBy: { createdAt: "desc" } },
         contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+        deal: { select: { id: true, title: true } },
         senderCompany: { select: { id: true, name: true, website: true, smtpHost: true } },
       },
     });
@@ -51,7 +52,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     const body = await req.json();
     const {
-      contactId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
+      contactId, dealId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
       currency, validUntil, taxRate, notes, terms, items, senderCompanyId,
       splitPayment, depositPercent,
     } = body;
@@ -101,6 +102,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         where: { id: existing.id },
         data: {
           contactId: contactId || null,
+          // undefined = no tocar el vínculo; null o "" = desvincular
+          ...(dealId !== undefined && { dealId: dealId || null }),
           senderCompanyId: senderCompanyId || null,
           clientName: String(clientName).trim(),
           clientCompany: clientCompany || null,
@@ -160,6 +163,37 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("DELETE /api/quotes/[id] error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+/** Vincula la cotización a un lead (`{ dealId }`) o la desvincula (`{ dealId: null }`). Vale en cualquier estado. */
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const session = await auth();
+    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const organizationId = (session as any).currentOrganizationId;
+    if (!organizationId) return NextResponse.json({ error: "No organization context" }, { status: 400 });
+
+    const { id } = await params;
+    const existing = await findQuote(id, organizationId);
+    if (!existing) return NextResponse.json({ error: "Cotización no encontrada" }, { status: 404 });
+
+    const body = await req.json().catch(() => null);
+    if (!body || !("dealId" in body)) return NextResponse.json({ error: "dealId es requerido (o null para desvincular)" }, { status: 400 });
+    const dealId: string | null = body.dealId || null;
+    if (dealId) {
+      const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { id: true } });
+      if (!deal) return NextResponse.json({ error: "Lead inválido" }, { status: 400 });
+    }
+    const quote = await prisma.quote.update({
+      where: { id: existing.id },
+      data: { dealId },
+      select: { id: true, folio: true, dealId: true, deal: { select: { id: true, title: true } } },
+    });
+    return NextResponse.json(quote);
+  } catch (error) {
+    console.error("PATCH /api/quotes/[id] error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -7,9 +7,11 @@ import { useGlobalSearch } from "@/src/context/SearchContext";
 interface Props {
   className?: string;
   compact?: boolean;
+  /** Esquinas del sistema (rounded-control) en lugar de píldora, para barras de herramientas. */
+  square?: boolean;
 }
 
-export default function GlobalSearchTrigger({ className = "w-full", compact = false }: Props) {
+export default function GlobalSearchTrigger({ className = "w-full", compact = false, square = false }: Props) {
   const { openSearch } = useGlobalSearch();
 
   return (
@@ -17,7 +19,7 @@ export default function GlobalSearchTrigger({ className = "w-full", compact = fa
       type="button"
       onClick={openSearch}
       aria-label="Buscar en el CRM"
-      className={`relative flex items-center h-11 lg:h-9 rounded-full border border-line bg-surface-elevated px-3.5 text-left transition-colors hover:border-text-secondary/40 ${className}`}
+      className={`relative flex items-center ${square ? "h-8 min-h-0! rounded-control" : "h-11 lg:h-9 rounded-full"} border border-line bg-surface-elevated px-3.5 text-left transition-colors hover:border-text-secondary/40 ${className}`}
     >
       <HugeiconsIcon icon={Search01Icon} size={15} color="#6B7184" />
       <span className={`flex-1 ml-2 text-sm text-text-secondary-strong truncate ${compact ? "hidden sm:inline" : ""}`}>

@@ -16,9 +16,13 @@ export async function GET(req: Request) {
     const from = searchParams.get("from");
     const to = searchParams.get("to");
     const contactId = searchParams.get("contactId");
+    const dealId = searchParams.get("dealId");
+    const unlinked = searchParams.get("unlinked") === "1";
 
     const where: any = { organizationId };
     if (contactId) where.contactId = contactId;
+    if (dealId) where.dealId = dealId;
+    if (unlinked) where.dealId = null;
     if (status && (QUOTE_STATUSES as readonly string[]).includes(status)) where.status = status;
     if (from || to) {
       where.issuedAt = {};
@@ -43,6 +47,7 @@ export async function GET(req: Request) {
       orderBy: { createdAt: "desc" },
       include: {
         contact: { select: { id: true, firstName: true, lastName: true } },
+        deal: { select: { id: true, title: true } },
         _count: { select: { items: true } },
       },
     });
@@ -63,7 +68,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const {
-      contactId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
+      contactId, dealId, clientName, clientCompany, clientEmail, clientPhone, clientAddress,
       currency, validUntil, taxRate, notes, terms, items, status, senderCompanyId,
       splitPayment, depositPercent,
     } = body;
@@ -104,6 +109,12 @@ export async function POST(req: Request) {
       if (!contact) return NextResponse.json({ error: "Contacto inválido" }, { status: 400 });
     }
 
+    // Lead (deal) dentro de la organización
+    if (dealId) {
+      const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { id: true } });
+      if (!deal) return NextResponse.json({ error: "Lead inválido" }, { status: 400 });
+    }
+
     // Empresa remitente: la elegida o la default de la configuración (ambas opcionales)
     let resolvedSenderCompanyId: string | null = null;
     if (senderCompanyId) {
@@ -129,6 +140,7 @@ export async function POST(req: Request) {
         currency: currency || "MXN",
         validUntil: validUntil ? new Date(validUntil) : null,
         contactId: contactId || null,
+        dealId: dealId || null,
         senderCompanyId: resolvedSenderCompanyId,
         clientName: String(clientName).trim(),
         clientCompany: clientCompany || null,

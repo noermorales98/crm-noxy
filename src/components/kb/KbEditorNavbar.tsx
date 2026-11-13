@@ -27,6 +27,11 @@ export interface KbBreadcrumb {
 }
 
 type ViewMode = "edit" | "preview";
+
+// Escala única de la barra: botones de 32 px, un solo radio. El marco fuerza 44 px a todo botón: se anula con min-h-0!/min-w-0!.
+const TOOL =
+  "inline-flex h-8 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-control text-xs font-medium text-text-secondary outline-none transition-colors hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50";
+const TOOL_ICON = `${TOOL} w-8`;
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface Props {
@@ -107,13 +112,13 @@ export default function KbEditorNavbar({
 
   return (
     <div className="crm-safe-top relative z-30 shrink-0 border-b border-line bg-surface-elevated">
-      <div className="flex h-12 items-center gap-2 px-3 sm:h-14 sm:gap-3 sm:px-4">
+      <div className="flex h-12 items-center gap-2 px-3 sm:px-4">
         {/* Breadcrumbs / title */}
-        <div className="flex min-w-0 flex-1 items-center gap-1 text-xs text-text-secondary sm:max-w-[28%] sm:flex-none">
+        <div className="flex min-w-0 flex-1 items-center gap-0.5 text-xs text-text-secondary sm:max-w-[30%] sm:flex-none">
           <MobileSidebarToggle />
           <Link
             href="/kb"
-            className="-ml-1 flex size-11 shrink-0 items-center justify-center rounded-control hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:min-h-11 sm:min-w-11 sm:justify-center sm:font-medium lg:min-h-0 lg:min-w-0"
+            className="-ml-1 flex size-10 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-control hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:h-8 sm:px-2 sm:font-medium"
             title="Docs"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={16} className="sm:hidden" />
@@ -123,7 +128,7 @@ export default function KbEditorNavbar({
             {ancestors.map((bc) => (
               <span key={bc.id} className="flex min-w-0 items-center gap-1">
                 <HugeiconsIcon icon={ArrowRight01Icon} size={12} className="shrink-0 opacity-50" />
-                <Link href={`/kb/${bc.id}`} className="inline-flex min-h-11 items-center truncate hover:text-text-primary lg:min-h-0">
+                <Link href={`/kb/${bc.id}`} className="inline-flex h-8 items-center truncate rounded-control px-1.5 hover:bg-nav-hover hover:text-text-primary">
                   {bc.title}
                 </Link>
               </span>
@@ -139,12 +144,12 @@ export default function KbEditorNavbar({
         </div>
 
         {/* Global search — desktop */}
-        <div className="mx-auto hidden max-w-md flex-1 md:block">
-          <GlobalSearchTrigger />
+        <div className="mx-auto hidden max-w-xs flex-1 md:block">
+          <GlobalSearchTrigger square />
         </div>
 
         {/* Actions */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
           <div className="hidden sm:block">
             <KbSharePanel pageId={pageId} isFolder={isFolder} pendingSuggestions={pendingSuggestions} />
           </div>
@@ -153,159 +158,130 @@ export default function KbEditorNavbar({
             <button
               type="button"
               onClick={onOpenSuggestionsReview}
-              className="relative hidden items-center gap-1.5 rounded-lg bg-amber-50 min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 sm:flex"
+              className="hidden h-8 min-h-0! min-w-0! items-center gap-1.5 rounded-control bg-amber-50 px-2.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 sm:inline-flex"
               title="Ver sugerencias pendientes"
             >
-              <HugeiconsIcon icon={Message01Icon} size={12} />
-              <span className="hidden lg:inline">Sugerencias</span>
-              <span className="flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-semibold text-white">
+              <HugeiconsIcon icon={Message01Icon} size={14} />
+              <span className="hidden xl:inline">Sugerencias</span>
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-semibold text-white">
                 {pendingSuggestions}
               </span>
             </button>
           )}
 
-          {!isFolder && onOpenHistory && (
-            <button
-              type="button"
-              onClick={onOpenHistory}
-              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 min-w-11 justify-center px-2.5 py-1.5 lg:min-h-0 lg:min-w-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover sm:flex"
-              title="Historial de cambios"
-              aria-label="Historial de cambios"
-            >
-              <HugeiconsIcon icon={Clock01Icon} size={12} />
-              <span className="hidden lg:inline">Historial</span>
-            </button>
-          )}
-
-          {!isFolder && onSendToNotion && (
-            <button
-              type="button"
-              onClick={onSendToNotion}
-              disabled={notionLoading}
-              className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 min-w-11 justify-center px-2.5 py-1.5 lg:min-h-0 lg:min-w-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
-              title="Enviar a Notion"
-              aria-label="Enviar a Notion"
-            >
-              <HugeiconsIcon icon={CloudUploadIcon} size={12} />
-              <span className="hidden lg:inline">{notionLoading ? "Enviando…" : "Notion"}</span>
-            </button>
-          )}
-
-          <button
-            onClick={onTogglePublished}
-            className={`flex size-11 items-center justify-center gap-1.5 rounded-control text-xs font-medium transition-colors sm:h-auto sm:min-h-11 sm:w-auto sm:px-2.5 sm:py-1.5 lg:min-h-0 ${
-              isPublished
-                ? "bg-green-50 text-green-700"
-                : "bg-surface-sidebar text-text-secondary"
-            }`}
-            title={isPublished ? "Publicado" : "Borrador"}
-          >
-            {isPublished ? <HugeiconsIcon icon={Globe02Icon} size={14} /> : <HugeiconsIcon icon={LockIcon} size={14} />}
-            <span className="hidden sm:inline">{isPublished ? "Publicado" : "Borrador"}</span>
-          </button>
-
-          {hasLocalDraft && (
-            <span className="hidden rounded-lg bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 md:inline">
-              Borrador local
-            </span>
-          )}
-
-          <div
-            className={`hidden text-xs font-medium transition-all sm:block ${
-              saveStatus === "saving"
-                ? "rounded-lg bg-amber-50 px-2 py-1 text-amber-600"
-                : saveStatus === "saved"
-                  ? "rounded-lg bg-green-50 px-2 py-1 text-green-600"
-                  : saveStatus === "error"
-                    ? "rounded-lg bg-red-50 px-2 py-1 text-red-600"
-                    : "w-0 px-0 text-transparent"
-            }`}
-          >
-            {saveLabel}
-          </div>
-
           {!isFolder && (
             <>
+              <span aria-hidden="true" className="mx-1 hidden h-4 w-px bg-line sm:block" />
+              {onOpenHistory && (
+                <button type="button" onClick={onOpenHistory} className={`${TOOL_ICON} hidden sm:inline-flex`} title="Historial de cambios" aria-label="Historial de cambios">
+                  <HugeiconsIcon icon={Clock01Icon} size={16} />
+                </button>
+              )}
+              {onSendToNotion && (
+                <button type="button" onClick={onSendToNotion} disabled={notionLoading} className={`${TOOL_ICON} hidden sm:inline-flex`} title={notionLoading ? "Enviando a Notion…" : "Enviar a Notion"} aria-label="Enviar a Notion">
+                  <HugeiconsIcon icon={CloudUploadIcon} size={16} />
+                </button>
+              )}
+              {onExportPdf && (
+                <button type="button" onClick={onExportPdf} disabled={exportPdfLoading} className={`${TOOL_ICON} hidden sm:inline-flex`} title={exportPdfLoading ? "Generando PDF…" : "Descargar PDF"} aria-label="Descargar PDF">
+                  <HugeiconsIcon icon={Download01Icon} size={16} />
+                </button>
+              )}
               <div className="relative hidden sm:block" ref={themeMenuRef}>
                 <button
+                  type="button"
                   onClick={() => {
                     setThemeMenuOpen((v) => !v);
                     setUserMenuOpen(false);
                     setMoreOpen(false);
                   }}
-                  className="flex items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover"
+                  className={`${TOOL} gap-1 px-2`}
                   title="Tema de markdown"
+                  aria-haspopup="menu"
+                  aria-expanded={themeMenuOpen}
                 >
-                  <HugeiconsIcon icon={PaintBoardIcon} size={12} />
-                  <span className="hidden lg:inline">Tema</span>
+                  <HugeiconsIcon icon={PaintBoardIcon} size={16} />
                   <HugeiconsIcon icon={ArrowDown01Icon} size={10} className={`transition-transform ${themeMenuOpen ? "rotate-180" : ""}`} />
                 </button>
                 {themeMenuOpen && (
-                  <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-72 w-52 overflow-y-auto rounded-lg border border-line bg-surface-elevated py-1">
+                  <div className="crm-floating-menu absolute right-0 top-full z-50 mt-1 max-h-72 w-52 overflow-y-auto rounded-surface border border-line bg-surface-elevated p-1">
                     {KB_MARKDOWN_THEMES.map((t) => (
                       <button
                         key={t.id}
+                        type="button"
                         onClick={() => {
                           onMarkdownThemeChange?.(t.id);
                           setThemeMenuOpen(false);
                         }}
-                        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs transition-colors hover:bg-nav-hover ${
+                        className={`flex h-9 w-full min-h-0! items-center gap-2.5 rounded-control px-2.5 text-left text-xs transition-colors hover:bg-nav-hover ${
                           markdownTheme === t.id ? "bg-nav-active font-medium" : ""
                         }`}
                       >
                         <span
-                          className="h-4 w-4 shrink-0 border border-black/5"
+                          className="size-4 shrink-0 border border-black/5"
                           style={{
                             backgroundColor: t.bg,
-                            borderRadius:
-                              t.radiusScale === "pill"
-                                ? "9999px"
-                                : t.radiusScale === "sharp"
-                                  ? "3px"
-                                  : "6px",
+                            borderRadius: t.radiusScale === "pill" ? "9999px" : t.radiusScale === "sharp" ? "3px" : "6px",
                           }}
                         />
-                        <span
-                          className="h-2 w-2 shrink-0 rounded-full"
-                          style={{ backgroundColor: t.accent }}
-                        />
+                        <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: t.accent }} />
                         <span className="truncate text-text-primary">{t.label}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-
-              <div className="flex items-center gap-0.5 rounded-lg bg-surface-sidebar p-0.5">
-                {(["edit", "preview"] as ViewMode[]).map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => onModeChange(m)}
-                    title={m === "edit" ? "Editar" : "Vista previa"}
-                    className={`flex size-11 items-center justify-center rounded-control transition-colors lg:size-7 ${
-                      mode === m
-                        ? "bg-surface-elevated text-text-primary"
-                        : "text-text-secondary hover:text-text-primary"
-                    }`}
-                  >
-                    {m === "edit" ? <HugeiconsIcon icon={PencilEdit01Icon} size={13} /> : <HugeiconsIcon icon={ViewIcon} size={13} />}
-                  </button>
-                ))}
-              </div>
-
-              {onExportPdf && (
-                <button
-                  type="button"
-                  onClick={onExportPdf}
-                  disabled={exportPdfLoading}
-                  title="Descargar PDF"
-                  className="hidden items-center gap-1.5 rounded-lg bg-surface-sidebar min-h-11 px-2.5 py-1.5 lg:min-h-0 text-xs font-medium text-text-secondary transition-colors hover:bg-nav-hover disabled:opacity-50 sm:flex"
-                >
-                  <HugeiconsIcon icon={Download01Icon} size={12} />
-                  <span className="hidden lg:inline">{exportPdfLoading ? "PDF..." : "PDF"}</span>
-                </button>
-              )}
+              <span aria-hidden="true" className="mx-1 hidden h-4 w-px bg-line sm:block" />
             </>
+          )}
+
+          <button
+            type="button"
+            onClick={onTogglePublished}
+            className={`inline-flex size-10 min-h-0! min-w-0! items-center justify-center gap-1.5 rounded-control text-xs font-medium transition-colors sm:h-8 sm:w-auto sm:px-2.5 ${
+              isPublished ? "bg-success-soft text-success" : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
+            }`}
+            title={isPublished ? "Publicado" : "Borrador"}
+          >
+            {isPublished ? <HugeiconsIcon icon={Globe02Icon} size={15} /> : <HugeiconsIcon icon={LockIcon} size={15} />}
+            <span className="hidden sm:inline">{isPublished ? "Publicado" : "Borrador"}</span>
+          </button>
+
+          {hasLocalDraft && (
+            <span className="hidden rounded-control bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 md:inline">
+              Borrador local
+            </span>
+          )}
+
+          {saveLabel && (
+            <span
+              role="status"
+              className={`hidden text-xs font-medium sm:inline ${
+                saveStatus === "error" ? "text-danger" : saveStatus === "saved" ? "text-success" : "text-text-secondary"
+              }`}
+            >
+              {saveLabel}
+            </span>
+          )}
+
+          {!isFolder && (
+            <div className="hidden items-center gap-0.5 rounded-control bg-surface-sidebar p-0.5 sm:flex" role="group" aria-label="Modo del editor">
+              {(["edit", "preview"] as ViewMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => onModeChange(m)}
+                  title={m === "edit" ? "Editar" : "Vista previa"}
+                  aria-label={m === "edit" ? "Editar" : "Vista previa"}
+                  aria-pressed={mode === m}
+                  className={`flex size-7 min-h-0! min-w-0! items-center justify-center rounded-[8px] transition-colors ${
+                    mode === m ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  {m === "edit" ? <HugeiconsIcon icon={PencilEdit01Icon} size={14} /> : <HugeiconsIcon icon={ViewIcon} size={14} />}
+                </button>
+              ))}
+            </div>
           )}
 
           {/* Mobile overflow */}
@@ -316,7 +292,7 @@ export default function KbEditorNavbar({
                 setMoreOpen((v) => !v);
                 setUserMenuOpen(false);
               }}
-              className="flex size-11 items-center justify-center rounded-control lg:size-8 text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
+              className="flex size-10 min-h-0! min-w-0! items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
               aria-expanded={moreOpen}
               aria-label="Más acciones"
             >
@@ -421,7 +397,7 @@ export default function KbEditorNavbar({
                 setUserMenuOpen(!userMenuOpen);
                 setMoreOpen(false);
               }}
-              className="size-11 overflow-hidden rounded-control lg:size-8 transition-opacity hover:opacity-90"
+              className="size-9 min-h-0! min-w-0! overflow-hidden rounded-full ring-1 ring-line transition-opacity hover:opacity-90 sm:size-8"
               title={session?.user?.name || "Usuario"}
             >
               <img

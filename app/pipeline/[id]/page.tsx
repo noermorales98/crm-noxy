@@ -38,6 +38,10 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
         include: { items: true },
         orderBy: { createdAt: "desc" },
       },
+      quotes: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, folio: true, status: true, total: true, currency: true, issuedAt: true, validUntil: true },
+      },
       payments: { orderBy: { createdAt: "desc" } },
       tasks: { orderBy: { createdAt: "desc" }, take: 10 },
       appointments: {

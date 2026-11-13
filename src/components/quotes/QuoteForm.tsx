@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Delete01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
 import DatePicker from "@/src/components/DatePicker";
 import { QuoteAiAssist } from "@/src/components/quotes/QuoteAiAssist";
+import { dealToQuotePrefill } from "@/src/lib/deal-sales";
 
 interface ItemRow {
   description: string;
@@ -26,6 +27,10 @@ const emptyItem: ItemRow = { description: "", quantity: "1", unitPrice: "", disc
 export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
   const router = useRouter();
   const { addToast } = useToast();
+  // Al llegar desde un lead (/cotizaciones/nueva?dealId=…) la cotización queda ligada a él.
+  const prefillDealId = useSearchParams().get("dealId");
+  const [dealId, setDealId] = useState(mode === "create" ? (prefillDealId ?? "") : "");
+  const [dealTitle, setDealTitle] = useState("");
 
   const [contacts, setContacts] = useState<any[]>([]);
   const [companies, setCompanies] = useState<any[]>([]);
@@ -67,13 +72,45 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     fetch("/api/quote-settings")
       .then((r) => (r.ok ? r.json() : {}))
       .then((s: any) => {
-        if (s.defaultCurrency) setCurrency(s.defaultCurrency);
+        if (s.defaultCurrency && !prefillDealId) setCurrency(s.defaultCurrency);
         if (s.defaultTaxRate != null) setTaxRate(String(s.defaultTaxRate));
         if (s.defaultTerms) setTerms(s.defaultTerms);
         if (s.defaultSenderCompanyId) setSenderCompanyId(s.defaultSenderCompanyId);
       })
       .catch(() => {});
-  }, [mode]);
+  }, [mode, prefillDealId]);
+
+  // Cotización nueva desde un lead: cliente, moneda y un concepto con el valor del lead
+  useEffect(() => {
+    if (mode !== "create" || !prefillDealId) return;
+    let cancelled = false;
+    fetch(`/api/deals/${prefillDealId}`)
+      .then(async (r) => {
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "No se pudo cargar el lead");
+        return r.json();
+      })
+      .then((deal) => {
+        if (cancelled) return;
+        const prefill = dealToQuotePrefill(deal);
+        setDealId(prefill.dealId);
+        setDealTitle(deal.title);
+        setContactId(prefill.contactId);
+        setClientName(prefill.clientName);
+        setClientCompany(prefill.clientCompany);
+        setClientEmail(prefill.clientEmail);
+        setClientPhone(prefill.clientPhone);
+        setCurrency(prefill.currency);
+        setItems(prefill.items.map((it) => ({ description: it.description, quantity: String(it.quantity), unitPrice: String(it.unitPrice || ""), discount: String(it.discount) })));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setDealId("");
+        addToast(err.message || "No se pudo cargar el lead", "error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, prefillDealId, addToast]);
 
   // Cargar cotización en modo edición
   useEffect(() => {
@@ -85,6 +122,8 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
       })
       .then((q) => {
         setContactId(q.contactId || "");
+        setDealId(q.dealId || "");
+        setDealTitle(q.deal?.title || "");
         setSenderCompanyId(q.senderCompanyId || "");
         setClientName(q.clientName || "");
         setClientCompany(q.clientCompany || "");
@@ -193,6 +232,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
     try {
       const payload = {
         contactId: contactId || null,
+        dealId: dealId || null,
         senderCompanyId: senderCompanyId || null,
         clientName: clientName.trim(),
         clientCompany: clientCompany || null,
@@ -264,6 +304,18 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
           )}
         </div>
       </section>
+
+      {dealId && (
+        <p className="flex flex-wrap items-center gap-2 rounded-control border border-line bg-surface-elevated px-4 py-3 text-sm text-text-secondary">
+          Ligada al lead
+          <a href={`/pipeline/${dealId}`} className="font-semibold text-text-primary underline underline-offset-2">{dealTitle || "ver lead"}</a>
+          {mode === "create" && (
+            <button type="button" onClick={() => setDealId("")} className="ml-auto text-xs font-medium text-text-secondary hover:text-text-primary">
+              Quitar vínculo
+            </button>
+          )}
+        </p>
+      )}
 
       {/* ── Cliente ─────────────────────────────────────────────────────── */}
       <section className="bg-surface-elevated border border-line rounded-lg p-6">

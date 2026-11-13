@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { loadWonSales } from "@/src/lib/won-sales";
 
 export async function GET() {
   try {
@@ -68,6 +69,7 @@ export async function GET() {
       pipelineValue,
       revenueThisMonth,
       followUps: followUpsData,
+      wonSales: await loadWonSales(organizationId),
     });
   } catch (error) {
     console.error("GET /api/sales/metrics error:", error);

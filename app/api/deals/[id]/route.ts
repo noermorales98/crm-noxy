@@ -23,6 +23,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           orderBy: { createdAt: "desc" },
           include: { items: { orderBy: { order: "asc" } } },
         },
+        quotes: {
+          orderBy: { createdAt: "desc" },
+          select: { id: true, folio: true, status: true, total: true, currency: true, issuedAt: true, validUntil: true },
+        },
         payments: { orderBy: { createdAt: "desc" } },
         tasks: { orderBy: { createdAt: "desc" }, include: { category: true } },
         appointments: {

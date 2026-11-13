@@ -482,6 +482,11 @@ function QuoteDetailContent() {
                   Vinculado al contacto {quote.contact.firstName} {quote.contact.lastName || ""}
                 </Link>
               )}
+              {quote.deal && (
+                <Link href={`/pipeline/${quote.deal.id}`} className="block mt-2 text-xs text-action-primary hover:underline">
+                  Lead: {quote.deal.title}
+                </Link>
+              )}
             </div>
           </div>
 

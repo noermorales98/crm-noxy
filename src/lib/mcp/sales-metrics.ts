@@ -1,11 +1,13 @@
 import { prisma } from "@/src/lib/db";
+import { formatByCurrency } from "@/src/lib/deal-sales";
+import { loadWonSales } from "@/src/lib/won-sales";
 
 export async function loadSalesMetrics(organizationId: string) {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-  const [totalDeals, dealsThisMonth, allDeals, revenueData, followUpsData] = await Promise.all([
+  const [totalDeals, dealsThisMonth, allDeals, revenueData, followUpsData, wonSales] = await Promise.all([
     prisma.deal.count({ where: { organizationId } }),
     prisma.deal.count({ where: { organizationId, createdAt: { gte: startOfMonth } } }),
     prisma.deal.findMany({
@@ -27,6 +29,7 @@ export async function loadSalesMetrics(organizationId: string) {
       orderBy: { followUpAt: "asc" },
       take: 10,
     }),
+    loadWonSales(organizationId),
   ]);
 
   const wonDeals = allDeals.filter((deal) => deal.stage.isWon).length;
@@ -44,6 +47,7 @@ export async function loadSalesMetrics(organizationId: string) {
     pipelineValue: activeDeals.reduce((sum, deal) => sum + (deal.value ?? 0), 0),
     revenueThisMonth: revenueData._sum.amount ?? 0,
     followUps: followUpsData,
+    wonSales,
   };
 }
 
@@ -65,6 +69,8 @@ export function conversionReportText(
     `Tasa de cierre: ${metrics.closingRate}%.`,
     `Valor del pipeline: ${metrics.pipelineValue}.`,
     `Ingresos del mes: ${metrics.revenueThisMonth}.`,
+    `Ventas ganadas este mes: ${metrics.wonSales.month.count} (${formatByCurrency(metrics.wonSales.month.byCurrency)}). Total ganado: ${metrics.wonSales.total.count} (${formatByCurrency(metrics.wonSales.total.byCurrency)}).`,
+    `Leads ganados con cotización: ${metrics.wonSales.withQuote}; sin cotización: ${metrics.wonSales.withoutQuote}. Cotizado aceptado: ${formatByCurrency(metrics.wonSales.quotedByCurrency)}. Cobrado en cotizaciones: ${formatByCurrency(metrics.wonSales.paidByCurrency)}.`,
     `Seguimientos vencidos: ${metrics.followUpsDue}.`,
     followUps,
     "Redacta el informe con estas cifras. No inventes números.",

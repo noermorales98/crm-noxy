@@ -6,7 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, SaveIcon, Add01Icon, HandGripIcon, Delete01Icon, Settings02Icon, Layout01Icon, Copy01Icon, LinkSquare02Icon, CheckmarkCircle01Icon, GitBranchIcon, LinkSquare01Icon, PencilEdit01Icon, ToggleOffIcon, ToggleOnIcon, UserMultipleIcon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useHeader } from "@/src/context/HeaderContext";
-import { useDialog } from "@/src/components/ui";
+import { CheckRow, Switch, useDialog } from "@/src/components/ui";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import Link from "next/link";
 import FormWhatsAppRecipients from "@/src/components/FormWhatsAppRecipients";
@@ -546,17 +546,7 @@ export default function FormBuilderPage() {
                                         </div>
                                       )}
 
-                                      {/* La etiqueta entera es el área de toque (44 px); la casilla va dentro. */}
-                                      <label htmlFor={`req-${field.id}`} data-check-ignore-tap className="col-span-2 flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-text-secondary lg:min-h-8">
-                                        <input
-                                          type="checkbox"
-                                          id={`req-${field.id}`}
-                                          checked={field.isRequired}
-                                          onChange={e => updateField(index, "isRequired", e.target.checked)}
-                                          className="size-4 rounded border-line"
-                                        />
-                                        Campo obligatorio
-                                      </label>
+                                      <div className="col-span-2 -mx-3"><CheckRow checked={field.isRequired} onChange={(next) => updateField(index, "isRequired", next)} label="Campo obligatorio" /></div>
                                     </div>
                                   </div>
                                 )}
@@ -776,13 +766,7 @@ export default function FormBuilderPage() {
                           <p className="text-sm font-semibold text-text-primary">Formulario activo</p>
                           <p className="text-xs text-text-secondary">Permite recibir envíos públicos</p>
                         </div>
-                        <button
-                          onClick={() => setIsActive(v => !v)}
-                          data-check-ignore-tap
-                          className={`relative w-10 h-6 rounded-full shrink-0 after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] ${isActive ? "bg-action-primary" : "bg-nav-active"}`}
-                        >
-                          <span className={`absolute top-1 w-4 h-4 bg-surface-elevated rounded-full ${isActive ? "left-5" : "left-1"}`} />
-                        </button>
+                        <Switch checked={isActive} onChange={setIsActive} label="Formulario activo" />
                       </div>
                     </div>
                   </section>
@@ -824,15 +808,7 @@ export default function FormBuilderPage() {
                           <p className="text-sm font-semibold text-text-primary">Leyenda “Desarrollado por Noxy”</p>
                           <p className="text-xs text-text-secondary">Aparece al pie de la página pública del formulario</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setShowNoxyBrand(v => !v)}
-                          data-check-ignore-tap
-                          className={`relative w-10 h-6 rounded-full shrink-0 after:absolute after:-inset-x-1 after:-inset-y-2.5 after:content-[''] ${showNoxyBrand ? "bg-action-primary" : "bg-nav-active"}`}
-                          aria-pressed={showNoxyBrand}
-                        >
-                          <span className={`absolute top-1 w-4 h-4 bg-surface-elevated rounded-full ${showNoxyBrand ? "left-5" : "left-1"}`} />
-                        </button>
+                        <Switch checked={showNoxyBrand} onChange={setShowNoxyBrand} label="Leyenda Desarrollado por Noxy" />
                       </div>
                     </div>
                   </section>

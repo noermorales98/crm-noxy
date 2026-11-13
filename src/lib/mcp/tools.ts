@@ -8,6 +8,8 @@ import { visibleContactWhere } from "@/src/lib/visible-contacts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
 import { loadSalesMetrics } from "@/src/lib/mcp/sales-metrics";
+import { dealToQuotePrefill } from "@/src/lib/deal-sales";
+import { computeQuoteTotals, nextQuoteFolio } from "@/src/lib/quotes";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -294,6 +296,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         "Lista los leads / deals (oportunidades) del CRM con filtros por texto, etapa, pipeline, contacto o empresa. Los archivados quedan fuera salvo que pidas includeArchived.",
       inputSchema: {
         search: z.string().optional().describe("Buscar en el título del deal"),
+        status: z.enum(["open", "won", "lost"]).optional().describe("open = en curso, won = ganados (ventas), lost = perdidos"),
         includeArchived: z.boolean().default(false),
         stageId: z.string().optional(),
         pipelineId: z.string().optional(),
@@ -302,9 +305,12 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         ...pagination,
       },
     },
-    async ({ search, includeArchived, stageId, pipelineId, contactId, companyId, limit, offset }) => {
+    async ({ search, status, includeArchived, stageId, pipelineId, contactId, companyId, limit, offset }) => {
       const where: any = { organizationId: org };
       if (!includeArchived) where.isArchived = false;
+      if (status === "won") where.stage = { isWon: true };
+      if (status === "lost") where.stage = { isLost: true };
+      if (status === "open") where.stage = { isWon: false, isLost: false };
       if (search) where.title = { contains: search };
       if (stageId) where.stageId = stageId;
       if (pipelineId) where.pipelineId = pipelineId;
@@ -343,6 +349,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
           company: { select: { id: true, name: true } },
           proposals: { include: { items: { orderBy: { order: "asc" } } } },
+          quotes: { select: { id: true, folio: true, status: true, total: true, currency: true, issuedAt: true } },
           payments: { orderBy: { createdAt: "desc" } },
           activities: { orderBy: { createdAt: "desc" }, take: 20 },
           appointments: {
@@ -791,15 +798,19 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "list_quotes",
     {
-      description: "Lista las cotizaciones con su folio, cliente, estado y total.",
+      description: "Lista las cotizaciones con su folio, cliente, estado, total y el lead (deal) al que están ligadas.",
       inputSchema: {
-        status: z.enum(["BORRADOR", "ENVIADA", "ACEPTADA", "PAGADA", "VENCIDA", "RECHAZADA"]).optional(),
+        status: z.enum(["BORRADOR", "ENVIADA", "ACEPTADA", "PARCIAL", "PAGADA", "VENCIDA", "RECHAZADA"]).optional(),
+        dealId: z.string().optional().describe("Solo las cotizaciones de este lead"),
+        unlinked: z.boolean().optional().describe("true = solo las que no están ligadas a ningún lead"),
         ...pagination,
       },
     },
-    async ({ status, limit, offset }) => {
+    async ({ status, dealId, unlinked, limit, offset }) => {
       const where: any = { organizationId: org };
       if (status) where.status = status;
+      if (dealId) where.dealId = dealId;
+      if (unlinked) where.dealId = null;
       const [total, quotes] = await Promise.all([
         prisma.quote.count({ where }),
         prisma.quote.findMany({
@@ -818,6 +829,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
             issuedAt: true,
             validUntil: true,
             contact: { select: { id: true, firstName: true, lastName: true } },
+            deal: { select: { id: true, title: true } },
           },
         }),
       ]);
@@ -838,10 +850,104 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           items: { orderBy: { order: "asc" } },
           events: { orderBy: { createdAt: "desc" }, take: 20 },
           contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+          deal: { select: { id: true, title: true } },
           senderCompany: { select: { id: true, name: true } },
         },
       });
       if (!quote) return err("Cotización no encontrada");
+      return json(quote);
+    }
+  );
+
+  server.registerTool(
+    "link_quote_to_deal",
+    {
+      description: "Vincula una cotización existente a un lead (deal), o la desvincula con dealId null. No borra nada.",
+      inputSchema: {
+        quoteId: z.string().describe("ID de la cotización (list_quotes)"),
+        dealId: z.string().nullable().describe("ID del lead (list_deals); null para desvincular"),
+      },
+    },
+    async ({ quoteId, dealId }) => {
+      if (!(await owns("quote", quoteId))) return err("Cotización no encontrada");
+      if (dealId && !(await owns("deal", dealId))) return err("Lead no encontrado");
+      const quote = await prisma.quote.update({
+        where: { id: quoteId },
+        data: { dealId },
+        select: { id: true, folio: true, status: true, total: true, currency: true, deal: { select: { id: true, title: true } } },
+      });
+      return json(quote);
+    }
+  );
+
+  server.registerTool(
+    "create_quote_for_deal",
+    {
+      description:
+        "Crea una cotización en borrador ligada a un lead. Toma el cliente, la moneda y el valor del lead; sin items crea un solo concepto con el título y el valor del lead.",
+      inputSchema: {
+        dealId: z.string().describe("ID del lead (list_deals)"),
+        items: z
+          .array(
+            z.object({
+              description: z.string(),
+              quantity: z.number().positive().default(1),
+              unitPrice: z.number().min(0),
+              discount: z.number().min(0).max(100).default(0),
+            }),
+          )
+          .optional()
+          .describe("Conceptos; si se omiten, se usa el valor del lead"),
+        taxRate: z.number().min(0).max(100).optional().describe("IVA %; por defecto el de la configuración de cotizaciones"),
+        validUntil: DATE.optional(),
+        notes: z.string().optional(),
+        terms: z.string().optional(),
+      },
+    },
+    async ({ dealId, items, taxRate, validUntil, notes, terms }) => {
+      const deal = await prisma.deal.findFirst({
+        where: { id: dealId, organizationId: org },
+        select: {
+          id: true, title: true, value: true, currency: true,
+          contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+          company: { select: { name: true } },
+        },
+      });
+      if (!deal) return err("Lead no encontrado");
+      const prefill = dealToQuotePrefill(deal);
+      const settings = await prisma.quoteSettings.findUnique({
+        where: { organizationId: org },
+        select: { defaultTaxRate: true, defaultTerms: true, defaultSenderCompanyId: true },
+      });
+      const rate = taxRate ?? settings?.defaultTaxRate ?? 16;
+      const totals = computeQuoteTotals(items ?? prefill.items, rate);
+      const { folio, folioNumber } = await nextQuoteFolio(org);
+      const quote = await prisma.quote.create({
+        data: {
+          folio,
+          folioNumber,
+          status: "BORRADOR",
+          currency: prefill.currency,
+          validUntil: validUntil ? new Date(validUntil) : null,
+          dealId: deal.id,
+          contactId: prefill.contactId || null,
+          clientName: prefill.clientName,
+          clientCompany: prefill.clientCompany || null,
+          clientEmail: prefill.clientEmail || null,
+          clientPhone: prefill.clientPhone || null,
+          senderCompanyId: settings?.defaultSenderCompanyId ?? null,
+          taxRate: rate,
+          subtotal: totals.subtotal,
+          taxAmount: totals.taxAmount,
+          total: totals.total,
+          notes: notes ?? null,
+          terms: terms ?? settings?.defaultTerms ?? null,
+          organizationId: org,
+          items: { create: totals.items },
+          events: { create: { type: "CREADA", description: `Cotización ${folio} creada desde el lead «${deal.title}» (MCP)`, actor: "crm", organizationId: org } },
+        },
+        select: { id: true, folio: true, status: true, total: true, currency: true, clientName: true, deal: { select: { id: true, title: true } } },
+      });
       return json(quote);
     }
   );
@@ -1167,7 +1273,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "get_sales_metrics",
     {
-      description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes.",
+      description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes. Incluye `wonSales`: ventas ganadas (mes y total, por moneda), cuántas tienen cotización, lo cotizado aceptado y lo cobrado.",
       inputSchema: {},
     },
     async () => json(await loadSalesMetrics(org))

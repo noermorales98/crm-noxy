@@ -3,6 +3,8 @@ import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { listGoogleCalendarEvents } from "@/src/lib/google-calendar";
 import { completeWithAi } from "@/src/lib/ai-completion";
 import { normalizeModelId } from "@/src/lib/ai-models";
+import { formatByCurrency } from "@/src/lib/deal-sales";
+import { loadWonSales } from "@/src/lib/won-sales";
 
 export type DigestFrequency = "daily" | "weekly" | "monthly" | "custom";
 
@@ -174,6 +176,7 @@ export async function buildDigestContext(
     return diff >= 0 && diff <= 7;
   });
 
+  const won = await loadWonSales(orgId);
   const fmt = (d: Date) =>
     d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -195,6 +198,12 @@ export async function buildDigestContext(
       const fu = d.followUpAt ? ` | seguimiento: ${fmt(d.followUpAt)}` : "";
       return `  - "${d.title}" | ${d.stage.name} | $${d.value ?? 0} ${d.currency} | ${contact}${fu}`;
     }),
+    ``,
+    `VENTAS GANADAS ESTE MES: ${won.month.count} | ${formatByCurrency(won.month.byCurrency)}`,
+    `VENTAS GANADAS TOTAL: ${won.total.count} | ${formatByCurrency(won.total.byCurrency)} | ${won.withoutQuote} sin cotización`,
+    ...won.recent.slice(0, 3).map(
+      (d) => `  - "${d.title}" | $${d.value} ${d.currency}${d.quotes.length ? ` | cotización ${d.quotes.join(", ")}` : " | sin cotización"}`,
+    ),
     ``,
     `CLIENTES ACTIVOS: ${clients.length}`,
     `MRR USD: $${mrrUSD.toLocaleString()} | MRR MXN: $${mrrMXN.toLocaleString()}`,

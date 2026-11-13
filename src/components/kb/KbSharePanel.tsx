@@ -133,14 +133,14 @@ export default function KbSharePanel({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-control text-sm font-medium transition-colors lg:min-h-0 lg:min-w-0 lg:text-xs ${
+        className={`inline-flex h-10 min-h-0! min-w-0! items-center justify-center gap-1.5 rounded-control px-2.5 text-sm font-medium transition-colors sm:h-8 sm:text-xs ${
           share?.isEnabled
             ? "bg-blue-50 text-blue-700"
             : "bg-surface-sidebar text-text-secondary hover:bg-nav-hover"
         }`}
         title="Compartir"
       >
-        <HugeiconsIcon icon={Share08Icon} size={12} />
+        <HugeiconsIcon icon={Share08Icon} size={14} />
         <span className="hidden sm:inline">Compartir</span>
         {pendingSuggestions > 0 && (
           <span className="ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center">

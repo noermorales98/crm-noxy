@@ -64,13 +64,8 @@ export function quotePublicUrl(token: string): string {
   return `${getPublicBaseUrl()}/cotizar/${token}`;
 }
 
-export function formatMoney(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("es-MX", { style: "currency", currency }).format(amount);
-  } catch {
-    return `${currency} ${amount.toFixed(2)}`;
-  }
-}
+export { formatMoney } from "@/src/lib/quote-format";
+import { formatMoney } from "@/src/lib/quote-format";
 
 // ─── Remitente (empresa del CRM) ─────────────────────────────────────────────
 
