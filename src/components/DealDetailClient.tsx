@@ -59,7 +59,7 @@ const ACTIVITY_TYPES = [
 const SOURCE_LABELS: Record<string, string> = {
   WHATSAPP: "WhatsApp", REFERIDO: "Referido", LINKEDIN: "LinkedIn",
   VISITA: "Visita", EMAIL_FRIO: "Email frío", FORMULARIO: "Formulario",
-  INSTAGRAM: "Instagram", OTRO: "Otro",
+  INSTAGRAM: "Instagram", TIKTOK: "TikTok", FACEBOOK: "Facebook", OTRO: "Otro",
 };
 
 const PROPOSAL_STATUS: Record<string, { label: string; cls: string }> = {
@@ -1324,6 +1324,27 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 <dt className={PROP_LABEL}>Origen</dt>
                 <dd className={PROP_VALUE}>
                   <span className="truncate text-sm text-text-primary">{deal.source ? SOURCE_LABELS[deal.source] || deal.source : "Sin origen"}</span>
+                </dd>
+              </div>
+
+              <div className={PROP_ROW}>
+                <dt className={PROP_LABEL}>Referido por</dt>
+                <dd className={PROP_VALUE}>
+                  {deal.referredByContact && !deal.referredByClientId ? (
+                    <span className="truncate text-sm text-text-primary">{deal.referredByContact.firstName} {deal.referredByContact.lastName || ""}</span>
+                  ) : (
+                    <select
+                      value={deal.referredByClientId ?? ""}
+                      onChange={(e) => patchDeal({ referredByClientId: e.target.value || null })}
+                      aria-label="Cliente que refirió este lead"
+                      className="min-h-11 min-w-0 max-w-full truncate bg-transparent text-sm text-text-primary outline-none lg:min-h-0"
+                    >
+                      <option value="">Nadie / sin registrar</option>
+                      {(deal.referrerClients ?? []).map((c: { id: string; name: string }) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  )}
                 </dd>
               </div>
 

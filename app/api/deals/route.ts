@@ -1,4 +1,5 @@
 import { NextResponse, after } from "next/server";
+import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { autoSync } from "@/src/lib/notion-sync";
 import { normalizeDealIcon } from "@/src/lib/deal-icons";
 import { prisma } from "@/src/lib/db";
@@ -124,6 +125,21 @@ export async function PATCH(req: Request) {
     if (lostReason !== undefined) updateData.lostReason = lostReason;
     if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
     if (contactId !== undefined) updateData.contactId = contactId || null;
+    // «Referido por»: un cliente o un contacto de la misma organización (o null para quitarlo)
+    if (body.referredByClientId !== undefined) {
+      if (body.referredByClientId) {
+        const ok = await prisma.client.findFirst({ where: { id: body.referredByClientId, organizationId }, select: { id: true } });
+        if (!ok) return NextResponse.json({ error: "Cliente referidor no válido" }, { status: 404 });
+      }
+      updateData.referredByClientId = body.referredByClientId || null;
+    }
+    if (body.referredByContactId !== undefined) {
+      if (body.referredByContactId) {
+        const ok = await prisma.contact.findFirst({ where: { id: body.referredByContactId, organizationId }, select: { id: true } });
+        if (!ok) return NextResponse.json({ error: "Contacto referidor no válido" }, { status: 404 });
+      }
+      updateData.referredByContactId = body.referredByContactId || null;
+    }
     if (icon !== undefined) updateData.icon = icon;
     if (body.allowedBookingTypes !== undefined) updateData.allowedBookingTypes = body.allowedBookingTypes || null;
     if (body.isArchived !== undefined) {
@@ -165,7 +181,12 @@ export async function PATCH(req: Request) {
     });
 
     after(() => autoSync(organizationId, "deal", deal.id));
-    return NextResponse.json(deal);
+    // Etapa ganada → proyecto + tareas base (idempotente: no duplica entre etapas ganadas)
+    let wonProject = null;
+    if (deal.stage.isWon) {
+      wonProject = await ensureProjectForWonDeal({ dealId: deal.id, organizationId, actorUserId: session.user?.id });
+    }
+    return NextResponse.json({ ...deal, wonProject });
   } catch (error) {
     console.error("PATCH /api/deals error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

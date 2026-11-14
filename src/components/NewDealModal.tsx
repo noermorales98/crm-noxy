@@ -13,6 +13,8 @@ const SOURCE_OPTIONS = [
   { value: "EMAIL_FRIO", label: "Email frío" },
   { value: "FORMULARIO", label: "Formulario" },
   { value: "INSTAGRAM", label: "Instagram" },
+  { value: "TIKTOK", label: "TikTok" },
+  { value: "FACEBOOK", label: "Facebook" },
   { value: "OTRO", label: "Otro" },
 ];
 

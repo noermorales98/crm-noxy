@@ -4,6 +4,7 @@ import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
+import { dealTitleForLead, pickLeadStage, resolveLeadSource } from "@/src/lib/form-lead";
 
 // Handle preflight CORS for cross-origin iframes
 export async function OPTIONS() {
@@ -153,6 +154,48 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       link: "/contacts",
       entityId: newContact.id,
     });
+
+    // 2a. Todo envío crea también un deal en la etapa «Lead» (con fuente y, si el
+    // formulario lo pregunta, quién refirió). Nunca debe romper el envío del formulario.
+    try {
+      const fieldValues = form.fields
+        .map((field) => {
+          const raw = submissionData[field.name];
+          const value = Array.isArray(raw) ? raw.join(", ") : raw == null ? "" : String(raw);
+          return { label: field.label, value };
+        })
+        .filter((f) => f.value.trim());
+      const { source, referredByText } = resolveLeadSource({
+        explicit: submissionData["__source"] ?? submissionData["utm_source"],
+        fields: fieldValues,
+      });
+      const pipelines = await prisma.pipeline.findMany({
+        where: { organizationId: form.organizationId },
+        select: { id: true, createdAt: true, stages: { select: { id: true, name: true, order: true, isWon: true, isLost: true } } },
+      });
+      const target = pickLeadStage(pipelines);
+      if (target) {
+        const fullNameForDeal = `${firstName}${lastName ? " " + lastName : ""}`;
+        await prisma.deal.create({
+          data: {
+            title: dealTitleForLead({ fullName: fullNameForDeal, formName: form.name }),
+            source,
+            notes: [
+              variant ? `Variante: ${variant.name}` : null,
+              referredByText ? `Referido por (texto del formulario): ${referredByText}` : null,
+              noteBody,
+            ].filter(Boolean).join("\n"),
+            organizationId: form.organizationId,
+            pipelineId: target.pipelineId,
+            stageId: target.stageId,
+            contactId: newContact.id,
+            companyId: form.companyId,
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Form lead → deal error:", err);
+    }
 
     // 2b. If form is linked to an appointment type and __appointment_slot was submitted, book the appointment
     const appointmentSlot = submissionData["__appointment_slot"];

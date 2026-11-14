@@ -40,6 +40,8 @@ const SOURCE_COLORS: Record<string, string> = {
   EMAIL_FRIO: "bg-surface-sidebar text-text-secondary",
   FORMULARIO: "bg-teal-50 text-teal-700",
   INSTAGRAM: "bg-pink-50 text-pink-700",
+  TIKTOK: "bg-cyan-50 text-cyan-700",
+  FACEBOOK: "bg-indigo-50 text-indigo-700",
   OTRO: "bg-surface-sidebar text-text-secondary",
 };
 
@@ -51,6 +53,8 @@ const SOURCE_LABELS: Record<string, string> = {
   EMAIL_FRIO: "Email frío",
   FORMULARIO: "Formulario",
   INSTAGRAM: "Instagram",
+  TIKTOK: "TikTok",
+  FACEBOOK: "Facebook",
   OTRO: "Otro",
 };
 
@@ -205,6 +209,8 @@ const SOURCE_OPTIONS = [
   { value: "EMAIL_FRIO", label: "Email frío" },
   { value: "FORMULARIO", label: "Formulario" },
   { value: "INSTAGRAM", label: "Instagram" },
+  { value: "TIKTOK", label: "TikTok" },
+  { value: "FACEBOOK", label: "Facebook" },
   { value: "OTRO", label: "Otro" },
 ];
 

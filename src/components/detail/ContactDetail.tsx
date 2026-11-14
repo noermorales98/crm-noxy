@@ -9,6 +9,7 @@ import { PropertiesCard, RecordShell } from "@/src/components/detail/RecordShell
 import { formatByCurrency, type Money } from "@/src/lib/deal-sales";
 import { formatMoney } from "@/src/lib/quote-format";
 import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
+import { LinkDealDialog } from "@/src/components/LinkDealDialog";
 
 type Contact = {
   id: string;
@@ -45,6 +46,7 @@ const ROW_LINK = "flex min-w-0 flex-1 items-center gap-3 text-left";
 export default function ContactDetail({ contact, summary }: { contact: Contact; summary: Summary }) {
   const router = useRouter();
   const [showAppointment, setShowAppointment] = useState(false);
+  const [showLinkDeal, setShowLinkDeal] = useState(false);
   const name = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
   const phone = contact.phone?.replace(/[\s\-().]/g, "") ?? "";
   const quickActions = [
@@ -74,7 +76,7 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
       ]}
       main={
         <>
-          <Block title="Leads" action={{ label: "Ver pipeline", href: "/pipeline" }}>
+          <Block title="Leads" action={{ label: "Enlazar lead", onClick: () => setShowLinkDeal(true) }}>
             <DataList
               label="Leads del contacto"
               rows={contact.deals}
@@ -203,6 +205,13 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
       onClose={() => setShowAppointment(false)}
       prefill={{ contactId: contact.id, guestName: name, guestEmail: contact.email ?? "", guestPhone: contact.phone ?? "" }}
       onCreated={() => router.refresh()}
+    />
+    <LinkDealDialog
+      open={showLinkDeal}
+      onClose={() => setShowLinkDeal(false)}
+      contactId={contact.id}
+      contactName={name}
+      onLinked={() => router.refresh()}
     />
     </>
   );

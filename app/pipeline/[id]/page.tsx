@@ -24,6 +24,8 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
         },
       },
       contact: true,
+      referredByClient: { select: { id: true, name: true } },
+      referredByContact: { select: { id: true, firstName: true, lastName: true } },
       organization: {
         include: {
           companies: { select: { id: true, name: true }, take: 50 },
@@ -53,7 +55,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ id:
 
   if (!deal) notFound();
 
+  const referrerClients = await prisma.client.findMany({
+    where: { organizationId, isActive: true },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+
   return (
-    <DealDetailClient deal={JSON.parse(JSON.stringify(deal))} />
+    <DealDetailClient deal={JSON.parse(JSON.stringify({ ...deal, referrerClients }))} />
   );
 }

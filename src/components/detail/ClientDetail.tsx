@@ -31,6 +31,9 @@ type Client = {
 type Deal = { id: string; title: string; value: number | null; currency: string; updatedAt: string; stage: { name: string; isWon: boolean; isLost: boolean } };
 type Quote = { id: string; folio: string; status: string; total: number; currency: string; issuedAt: string };
 type Summary = { count: number; received: number; pending: number; late: number };
+type Referral = { id: string; title: string; value: number | null; currency: string; stage: { name: string; isWon: boolean; isLost: boolean } };
+type ProjectRow = { id: string; name: string; createdAt: string };
+type TaskRow = { id: string; title: string; dueDate: string | null };
 type Appointment = { id: string; title: string | null; startTime: string; status: string; appointmentType: { name: string } | null };
 
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -43,7 +46,7 @@ const day = (value: string | null) =>
   value ? new Date(value).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }) : "Sin fecha";
 const ROW_LINK = "flex min-w-0 flex-1 items-center gap-3 text-left";
 
-export default function ClientDetail({ client, deals, quotes, appointments, summary }: { client: Client; deals: Deal[]; quotes: Quote[]; appointments: Appointment[]; summary: Summary }) {
+export default function ClientDetail({ client, deals, quotes, appointments, summary, referrals = [], projects = [], tasks = [] }: { client: Client; deals: Deal[]; quotes: Quote[]; appointments: Appointment[]; summary: Summary; referrals?: Referral[]; projects?: ProjectRow[]; tasks?: TaskRow[] }) {
   const router = useRouter();
   const [showAppointment, setShowAppointment] = useState(false);
   const now = new Date();
@@ -78,6 +81,7 @@ export default function ClientDetail({ client, deals, quotes, appointments, summ
         { label: "Cobrado", value: formatMoney(summary.received, client.currency) },
         { label: "Por cobrar", value: formatMoney(summary.pending, client.currency), flag: summary.late > 0 ? `${summary.late} atrasado${summary.late === 1 ? "" : "s"}` : undefined },
         { label: "Pagos registrados", value: summary.count },
+        { label: "Referidos que trajo", value: referrals.length, flag: referrals.some((r) => r.stage.isWon) ? `${referrals.filter((r) => r.stage.isWon).length} ganado${referrals.filter((r) => r.stage.isWon).length === 1 ? "" : "s"}` : undefined },
       ]}
       main={
         <>
@@ -95,8 +99,60 @@ export default function ClientDetail({ client, deals, quotes, appointments, summ
                       {payment.receivedAt ? `Recibido el ${day(payment.receivedAt)}` : payment.dueDate ? `Vence el ${day(payment.dueDate)}` : "Sin fecha de vencimiento"}
                     </span>
                   </span>
-                  {isLate(payment) ? <Chip tone="late">Atrasado</Chip> : <Chip tone={PAYMENT_TONE[payment.status] ?? "neutral"}>{PAYMENT_LABEL[payment.status] ?? payment.status}</Chip>}
+                  {isLate(payment) ? <Chip tone="late">Vencido</Chip> : <Chip tone={PAYMENT_TONE[payment.status] ?? "neutral"}>{PAYMENT_LABEL[payment.status] ?? payment.status}</Chip>}
                   <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">{formatMoney(payment.amount, payment.currency || client.currency)}</span>
+                </>
+              )}
+            />
+          </Block>
+
+          <Block title="Referidos que trajo">
+            <DataList
+              label="Leads referidos por este cliente"
+              rows={referrals}
+              getKey={(deal) => deal.id}
+              empty={<EmptyState title="Sin referidos registrados" body="En un lead, elige a este cliente en «Referido por» y aparecerá aquí." />}
+              renderRow={(deal) => (
+                <Link href={`/pipeline/${deal.id}`} className={ROW_LINK}>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-text-primary">{deal.title}</span>
+                    <span className="block text-xs text-text-secondary">{deal.stage.name}</span>
+                  </span>
+                  {deal.stage.isWon && <Chip tone="done">Ganado</Chip>}
+                  {deal.stage.isLost && <Chip tone="late">Perdido</Chip>}
+                  <span className="w-28 shrink-0 text-right text-sm font-semibold tabular-nums text-text-primary">{formatMoney(deal.value ?? 0, deal.currency)}</span>
+                </Link>
+              )}
+            />
+          </Block>
+
+          <Block title="Proyectos" action={{ label: "Ver proyectos", href: "/projects" }}>
+            <DataList
+              label="Proyectos del cliente"
+              rows={projects}
+              getKey={(project) => project.id}
+              empty={<EmptyState title="Sin proyectos" body="Se crean solos al ganar un lead, o a mano desde Proyectos." />}
+              renderRow={(project) => (
+                <Link href={`/projects/${project.id}`} className={ROW_LINK}>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-text-primary">{project.name}</span>
+                    <span className="block text-xs text-text-secondary">Creado el {day(project.createdAt)}</span>
+                  </span>
+                </Link>
+              )}
+            />
+          </Block>
+
+          <Block title="Tareas abiertas" action={{ label: "Ver tareas", href: "/tasks" }}>
+            <DataList
+              label="Tareas abiertas del cliente"
+              rows={tasks}
+              getKey={(task) => task.id}
+              empty={<EmptyState title="Sin tareas abiertas" body="Las tareas de sus proyectos y de su contacto aparecen aquí." />}
+              renderRow={(task) => (
+                <>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{task.title}</span>
+                  <span className="shrink-0 text-xs text-text-secondary">{task.dueDate ? day(task.dueDate) : "Sin fecha"}</span>
                 </>
               )}
             />

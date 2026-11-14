@@ -124,6 +124,7 @@ model Organization {
   campaigns             EmailCampaign[]
   forms                 Form[]
   projects              Project[]
+  projectTemplates      ProjectTemplate[]
   availabilitySchedules AvailabilitySchedule[]
   blockedTimes          BlockedTime[]
   extendedAvailability  ExtendedAvailability[]
@@ -212,6 +213,10 @@ model Project {
   emailAccountCompanyId String?
   emailAccountCompany   Company? @relation("ProjectEmailAccount", fields: [emailAccountCompanyId], references: [id], onDelete: SetNull)
 
+  // Deal ganado que originó este proyecto (idempotencia de «Ganado → proyecto»)
+  dealId String?
+  deal   Deal?   @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
   publicToken String?  @unique
   isPublic    Boolean  @default(false)
 
@@ -219,6 +224,7 @@ model Project {
   @@index([companyId])
   @@index([contactId])
   @@index([clientId])
+  @@index([dealId])
   @@index([emailAccountCompanyId])
 }
 
@@ -310,6 +316,24 @@ model Company {
   @@index([organizationId])
 }
 
+// Plantilla de proyecto por servicio: tareas base que se crean al ganar un deal.
+// tasks = JSON [{ "title": string, "offsetDays": number, "description"?: string }]
+model ProjectTemplate {
+  id          String   @id @default(cuid())
+  service     String
+  description String?  @db.Text
+  tasks       String   @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, service])
+  @@index([organizationId])
+}
+
 model Contact {
   id        String   @id @default(cuid())
   firstName String
@@ -331,6 +355,7 @@ model Contact {
   appointments Appointment[]
   clients      Client[]
   quotes       Quote[]
+  referredDeals Deal[] @relation("DealReferredByContact")
 
   source String? // E.g., "Manual", "Form: Contact Us"
 
@@ -387,6 +412,8 @@ enum LeadSource {
   EMAIL_FRIO
   FORMULARIO
   INSTAGRAM
+  TIKTOK
+  FACEBOOK
   OTRO
 }
 
@@ -473,6 +500,14 @@ model Deal {
   contactId String?
   contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
+  // Quién refirió este lead (un contacto o un cliente recurrente)
+  referredByContactId String?
+  referredByContact   Contact? @relation("DealReferredByContact", fields: [referredByContactId], references: [id], onDelete: SetNull)
+
+  referredByClientId String?
+  referredByClient   Client? @relation("DealReferredByClient", fields: [referredByClientId], references: [id], onDelete: SetNull)
+
+  projects    Project[]
   tasks       Task[]
   activities  ActivityLog[]
   proposals   Proposal[]
@@ -485,6 +520,8 @@ model Deal {
   @@index([pipelineId])
   @@index([companyId])
   @@index([contactId])
+  @@index([referredByContactId])
+  @@index([referredByClientId])
 }
 
 model ActivityLog {
@@ -551,6 +588,7 @@ model Payment {
   notes                String?       @db.Text
   dueDate              DateTime?
   receivedAt           DateTime?
+  dueAlertSentAt       DateTime?
   stripePaymentLinkId  String?
   stripePaymentLinkUrl String?
   createdAt            DateTime      @default(now())
@@ -1041,6 +1079,7 @@ model Client {
   payments     ClientPayment[]
   vaultEntries ClientVaultEntry[]
   projects     Project[]
+  referredDeals Deal[] @relation("DealReferredByClient")
 
   @@index([organizationId])
   @@index([companyId])
@@ -1077,6 +1116,7 @@ model ClientPayment {
   notes      String?       @db.Text
   dueDate    DateTime?
   receivedAt DateTime?
+  dueAlertSentAt DateTime?
   createdAt  DateTime      @default(now())
 
   clientId String

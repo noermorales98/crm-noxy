@@ -57,6 +57,32 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       })
     : [];
 
+  // Perfil unificado: referidos que trajo, proyectos y tareas abiertas.
+  const [referrals, projects, tasks] = await Promise.all([
+    prisma.deal.findMany({
+      where: { organizationId, referredByClientId: client.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true, isWon: true, isLost: true } } },
+    }),
+    prisma.project.findMany({
+      where: { organizationId, clientId: client.id },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { id: true, name: true, createdAt: true },
+    }),
+    prisma.task.findMany({
+      where: {
+        organizationId,
+        isCompleted: false,
+        OR: [{ project: { clientId: client.id } }, ...(client.contact ? [{ contactId: client.contact.id }] : [])],
+      },
+      orderBy: [{ dueDate: "asc" }, { createdAt: "desc" }],
+      take: 10,
+      select: { id: true, title: true, dueDate: true },
+    }),
+  ]);
+
   const summary = summarizeClientPayments(client.payments);
   return (
     <ClientDetail
@@ -64,6 +90,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       deals={JSON.parse(JSON.stringify(related[0]))}
       quotes={JSON.parse(JSON.stringify(related[1]))}
       appointments={JSON.parse(JSON.stringify(appointments))}
+      referrals={JSON.parse(JSON.stringify(referrals))}
+      projects={JSON.parse(JSON.stringify(projects))}
+      tasks={JSON.parse(JSON.stringify(tasks))}
       summary={summary}
     />
   );

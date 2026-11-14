@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Los filtros `where`/`data` de Prisma se construyen dinámicamente según los
 // argumentos dados; el proyecto ya usa `any` en sus route handlers.
+import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
@@ -374,7 +375,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         value: z.number().optional().describe("Valor monetario"),
         currency: z.string().optional().describe("Moneda, p. ej. USD, MXN (default USD)"),
         source: z
-          .enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "OTRO"])
+          .enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "TIKTOK", "FACEBOOK", "OTRO"])
           .optional(),
         contactId: z.string().optional(),
         companyId: z.string().optional(),
@@ -417,17 +418,21 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         stageId: z.string().optional().describe("ID de la nueva etapa (mover de etapa)"),
         approvalToken: z.string().optional().describe("Token que devuelve la página de confirmación humana"),
         source: z
-          .enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "OTRO"])
+          .enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "TIKTOK", "FACEBOOK", "OTRO"])
           .nullable()
           .optional(),
         probability: z.number().int().min(0).max(100).optional(),
         notes: z.string().nullable().optional(),
         followUpAt: DATE.nullable().optional(),
         lostReason: z.string().nullable().optional(),
+        referredByClientId: z.string().nullable().optional().describe("ID del cliente que refirió este lead"),
+        referredByContactId: z.string().nullable().optional().describe("ID del contacto que refirió este lead"),
       },
     },
     async ({ id, stageId, approvalToken, ...fields }) => {
       if (!(await owns("deal", id))) return err("Deal no encontrado");
+      if (fields.referredByClientId && !(await owns("client", fields.referredByClientId))) return err("Cliente referidor no encontrado");
+      if (fields.referredByContactId && !(await owns("contact", fields.referredByContactId))) return err("Contacto referidor no encontrado");
       const data: any = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
       if (stageId) {
         const stage = await prisma.stage.findUnique({ where: { id: stageId }, include: { pipeline: true } });
@@ -446,6 +451,10 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         data,
         include: { stage: { select: { name: true, isWon: true, isLost: true } } },
       });
+      if (stageId && deal.stage.isWon) {
+        const wonProject = await ensureProjectForWonDeal({ dealId: id, organizationId: org, actorUserId: await defaultUserId() });
+        return json({ ...deal, wonProject });
+      }
       return json(deal);
     }
   );
