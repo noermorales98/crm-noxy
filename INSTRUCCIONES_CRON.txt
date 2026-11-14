@@ -1,0 +1,11 @@
+Noxy CRM — conexión de cron y bot
+
+1. En Vercel, Settings > Environment Variables, conserva CRON_SECRET (valor largo y aleatorio). No lo copies al repositorio. Despliega la versión de main antes de ejecutar nuevos jobs.
+2. En cron-job.org, reutiliza el job GET /api/cron/followups que ya exista, cada 15 minutos. Su nueva lógica crea tareas a 24 h, 3 y 7 días y mueve leads sin actividad a Perdido a los 14 días. El cierre automático solo aplica a leads creados desde el 14 de noviembre de 2026; configura CRM_AUTOMATION_START_AT en Vercel para cambiar el inicio. Usa Authorization: Bearer <CRON_SECRET>. No crees un segundo job para esto.
+3. Reutiliza GET /api/cron/digest, cada 15 minutos. En el CRM, Ajustes > Resumen diario, activa frecuencia diaria y hora 09:00 en la zona America/Cancun. El job comprueba la hora y evita duplicados.
+4. Reutiliza GET /api/cron/payment-alerts si ya existe. Si no, crea uno cada hora en cron-job.org con el mismo header. Avisa al dueño dos días antes; no envía mensajes a clientes.
+5. Pulsa Run now en cada job. Respuesta HTTP 200 indica ejecución. HTTP 401 indica secreto incorrecto. Comprueba tareas, digest y alertas en el CRM; el digest solo se envía a la hora configurada.
+6. Para el bot, define NOXY_BOT_TOKEN y NOXY_BOT_ORGANIZATION_ID en Vercel Production. Usa un token distinto de CRON_SECRET. El bot envía Authorization: Bearer <NOXY_BOT_TOKEN>. Rutas: GET /api/bot/daily, GET /api/bot/weekly-videos, POST /api/bot/lead, POST /api/bot/task y POST /api/bot/payment-received. El bot no envía WhatsApp a clientes; los textos sugeridos requieren aprobación humana.
+7. Aplica prisma/sql/videos.up.sql a la misma base MySQL de producción ANTES de usar /videos o los endpoints de videos. Guarda respaldo. prisma/sql/videos.down.sql revierte el esquema, pero elimina los registros de videos creados: exporta esos datos antes de revertir.
+
+URL canónica actual: https://crm-noxy.vercel.app

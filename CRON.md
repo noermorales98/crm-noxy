@@ -116,3 +116,7 @@ https://crm-noxy.vercel.app/api/cron/content-reminders
 `content-reminders` envía por WhatsApp (CallMeBot) las piezas del calendario de contenido que tengan **recordatorio activado** y cuyo día de aviso (fecha de la pieza − días de anticipación) sea hoy, en la hora configurada por cliente en el panel WhatsApp. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.
 
 Los números salen del panel WhatsApp de cada cliente en Gestión de contenido, no de Ajustes → CallMeBot. En cada pieza puedes activar el recordatorio y elegir “el mismo día” o N días antes.
+
+## Automatizaciones CRM y bot
+
+Las instrucciones de conexión y reutilización están en `INSTRUCCIONES_CRON.txt`.

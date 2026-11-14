@@ -1,4 +1,5 @@
 import { NextResponse, after } from "next/server";
+import { ensureDeliveryReferrals, ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { autoSync } from "@/src/lib/notion-sync";
 import { normalizeDealIcon } from "@/src/lib/deal-icons";
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
       },
     });
 
+    await ensureLeadFollowups(deal.id, organizationId);
     after(() => autoSync(organizationId, "deal", deal.id));
     return NextResponse.json(deal, { status: 201 });
   } catch (error) {
@@ -185,6 +187,10 @@ export async function PATCH(req: Request) {
     let wonProject = null;
     if (deal.stage.isWon) {
       wonProject = await ensureProjectForWonDeal({ dealId: deal.id, organizationId, actorUserId: session.user?.id });
+    }
+    if (deal.stage.name.toLowerCase() === "entregado") {
+      const project = await prisma.project.findFirst({where:{organizationId,dealId:deal.id},select:{id:true}});
+      if(project) await ensureDeliveryReferrals(project.id, organizationId);
     }
     return NextResponse.json({ ...deal, wonProject });
   } catch (error) {

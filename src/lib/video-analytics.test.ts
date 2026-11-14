@@ -1,0 +1,3 @@
+import test from 'node:test'; import assert from 'node:assert/strict'; // @ts-ignore Node test runner requires the explicit .ts extension.
+import {engagement,weeklyComparison} from './video-analytics.ts';
+test('engagement no divide entre cero y ordena extremos',()=>{assert.equal(engagement({reach:0,shares:3,saves:2}),null);assert.equal(engagement({reach:100,shares:3,saves:2}),5);const row=(title:string,shares:number)=>({title,reach:100,shares,saves:0,predictorScore:0,views:10,hookType:'pregunta',format:'reel',durationSeconds:20,publishedAt:new Date()});const result=weeklyComparison([row('A',10),row('B',5),row('C',1)]);assert.equal(result.best[0].title,'A');assert.equal(result.worst[0].title,'C');});

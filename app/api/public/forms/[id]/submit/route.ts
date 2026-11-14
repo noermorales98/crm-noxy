@@ -4,6 +4,7 @@ import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
+import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { dealTitleForLead, pickLeadStage, resolveLeadSource } from "@/src/lib/form-lead";
 
 // Handle preflight CORS for cross-origin iframes
@@ -176,7 +177,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       const target = pickLeadStage(pipelines);
       if (target) {
         const fullNameForDeal = `${firstName}${lastName ? " " + lastName : ""}`;
-        await prisma.deal.create({
+        const createdDeal = await prisma.deal.create({
           data: {
             title: dealTitleForLead({ fullName: fullNameForDeal, formName: form.name }),
             source,
@@ -192,6 +193,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             companyId: form.companyId,
           },
         });
+        await ensureLeadFollowups(createdDeal.id, form.organizationId);
       }
     } catch (err) {
       console.error("Form lead → deal error:", err);

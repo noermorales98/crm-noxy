@@ -151,6 +151,7 @@ model Organization {
   mcpIntegrations       McpIntegration[]
   notionConfig          NotionConfig?
   contentItems          ContentItem[]
+  videos                Video[]
 }
 
 enum Sexo {
@@ -1080,6 +1081,7 @@ model Client {
   vaultEntries ClientVaultEntry[]
   projects     Project[]
   referredDeals Deal[] @relation("DealReferredByClient")
+  videos Video[]
 
   @@index([organizationId])
   @@index([companyId])
@@ -1551,6 +1553,7 @@ model ContentClient {
 
   phones ContentPhone[]
   items  ContentItem[]
+  videos Video[]
 
   @@index([organizationId])
 }
@@ -1597,6 +1600,7 @@ model ContentItem {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   editorNotes    ContentItemEditorNote[]
+  videos         Video[]
 
   @@index([clientId])
   @@index([organizationId])
@@ -1649,4 +1653,41 @@ model NotionConfig {
 
   organizationId String       @unique
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// Rendimiento de videos; sin borrar piezas del calendario ni clientes.
+model Video {
+  id String @id @default(cuid())
+  title String
+  publishedAt DateTime?
+  platform String
+  hook String? @db.Text
+  hookType String?
+  format String?
+  durationSeconds Int?
+  aiTool String?
+  prompt String? @db.Text
+  reach Int?
+  views Int?
+  retention3s Float?
+  shares Int?
+  saves Int?
+  comments Int?
+  leadsGenerated Int?
+  predictorScore Float?
+  notes String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  organizationId String
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId String?
+  client Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  contentClientId String?
+  contentClient ContentClient? @relation(fields: [contentClientId], references: [id], onDelete: SetNull)
+  contentItemId String?
+  contentItem ContentItem? @relation(fields: [contentItemId], references: [id], onDelete: SetNull)
+  @@index([organizationId, publishedAt])
+  @@index([clientId])
+  @@index([contentClientId])
+  @@index([contentItemId])
 }
