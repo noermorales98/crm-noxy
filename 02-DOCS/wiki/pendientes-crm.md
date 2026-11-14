@@ -22,6 +22,7 @@ Detalle técnico de la Fase 1: `02-DOCS/wiki/ftd/fase1-crm-seguimiento-referidos
 - [ ] Elegir un cliente en «Referido por» dentro de un lead y comprobar que aparece en la ficha del cliente («Referidos que trajo»).
 - [ ] Probar la alerta de cobro con un pago pendiente que venza en 2 días.
 - [ ] Probar el script `down` (`prisma/sql/fase1_crm.down.sql`) en una copia de la base antes de necesitarlo de verdad.
+- [ ] Probar «Enlazar lead» en la ficha de un contacto (`/contacts/<id>`): enlazar uno existente y crear uno nuevo.
 - [ ] Levantar la app y revisar en navegador: ficha del cliente, selector «Referido por», etiquetas TikTok/Facebook.
 
 ## 3. Mejoras menores de la Fase 1 que quedaron fuera
