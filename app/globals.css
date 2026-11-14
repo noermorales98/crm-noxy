@@ -783,3 +783,32 @@ body {
     height: 20px;
   }
 }
+
+/* Popups en móvil: la cápsula de navegación inferior (z-55) tapaba los modales, así que aquí dejan de
+   ser popups y ocupan la pantalla completa, con scroll. Alcanza a todo overlay centrado (o en hoja
+   inferior) `fixed inset-0`. Quedan fuera los avisos de confirmación (z-[80], z-[100], z-[9999]), que
+   ya van por encima de la barra y son pequeños a propósito, y los cajones laterales (justify-end). */
+@media (max-width: 1023.98px) {
+  .fixed.inset-0.flex.justify-center:is(.items-center, .items-end):not(.z-\[80\], .z-\[100\], .z-\[9999\]),
+  .fixed.inset-0.flex.justify-end.items-end.sm\:items-center:not(.z-\[80\], .z-\[100\], .z-\[9999\]) {
+    z-index: 70;
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
+    background-color: var(--color-surface-elevated);
+  }
+
+  .fixed.inset-0.flex.justify-center:is(.items-center, .items-end):not(.z-\[80\], .z-\[100\], .z-\[9999\]) > :not(.absolute, .fixed),
+  .fixed.inset-0.flex.justify-end.items-end.sm\:items-center:not(.z-\[80\], .z-\[100\], .z-\[9999\]) > :not(.absolute, .fixed) {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+}
