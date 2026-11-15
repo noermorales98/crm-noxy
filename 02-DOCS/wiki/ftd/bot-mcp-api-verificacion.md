@@ -22,7 +22,7 @@ Explicar los códigos 401 y 400 observados y asegurar que el bot pueda crear lea
 - [x] MCP lead acepta referente y pago rechaza estados distintos de Pendiente.
 - [x] Pruebas de esquemas de entrada y aprobación MCP.
 - [x] Build local con `DATABASE_URL` configurada y revisión de tipos en los archivos modificados.
-- [ ] Verificación de rutas en producción tras publicar.
+- [x] Verificación de rutas de lectura y validación en producción tras publicar.
 
 ## Evidencia
 
@@ -30,6 +30,8 @@ Las pruebas iniciales de producción dieron 200 en `/api/bot/daily` y `/api/bot/
 
 Después del cambio, `node --test src/lib/bot-input.test.ts src/lib/mcp/approval.test.ts` pasó 5/5. La suite completa pasó 301/305; los cuatro fallos son los mismos contratos de marca anteriores. `npm run build` terminó con código 0 al usar la URL de base de datos del entorno local.
 
+El despliegue `3ec0ab5` quedó Ready. En `www.noxthy.co`, el token válido obtuvo 200 para videos de dos semanas. `weeks=53` devolvió 400; un lead con referente inexistente y una tarea con deal inexistente devolvieron 400; un pago inexistente devolvió 404; la consulta diaria sin token devolvió 401. No se crearon datos de prueba en producción.
+
 ## Siguiente paso
 
-Publicar en main, confirmar despliegue Ready y verificar las respuestas de las rutas sin crear datos falsos en producción.
+El bot debe usar su conexión OAuth MCP para invocar las tools, o el token HTTP para las rutas documentadas. La invocación de escritura desde Grok sigue siendo una comprobación operativa pendiente de ese cliente.
