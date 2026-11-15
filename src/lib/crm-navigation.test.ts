@@ -22,9 +22,18 @@ import {
   isSettingsRoute,
   sectionTitleFor,
   isCollapseShortcut,
+  modeGroups,
+  modeForPath,
   visibleSettingsItems,
   // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 } from "./crm-navigation.ts";
+
+test("Videos y viralidad aparece en Contenido y abre su ruta", () => {
+  const links = modeGroups("content", "OWNER", ALL_PERMISSIONS).flatMap(group => group.items.map(item => item.href));
+  assert.ok(links.includes("/contenido/videos"));
+  assert.equal(modeForPath("/contenido/videos"), "content");
+  assert.equal(sectionTitleFor("/contenido/videos"), "Videos y viralidad");
+});
 
 // Modelo de navegación del shell (spec: Behaviour «Navegación»; ronda 2: áreas con submenú).
 type Item = { kind?: string; href: string; label: string; permission: string; badge?: string; section?: string };

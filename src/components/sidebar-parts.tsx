@@ -58,6 +58,7 @@ export const NAV_ICONS: Record<string, typeof Home01Icon> = {
   "/assistant": AiChatIcon,
   "/boveda": LockPasswordIcon,
   "/contenido/general": MegaphoneIcon,
+  "/contenido/videos": BarChartIcon,
   "/settings": Settings01Icon,
 };
 

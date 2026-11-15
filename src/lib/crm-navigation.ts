@@ -100,7 +100,7 @@ const SECTION_ROUTES: Record<ContextualSection, readonly string[]> = {
   kb: ["/kb"],
   vault: ["/boveda"],
   assistant: ["/assistant"],
-  content: ["/contenido"],
+  content: ["/contenido", "/videos"],
 };
 
 const SECTION_LABEL: Record<ContextualSection, string> = {
@@ -249,6 +249,7 @@ const contentItems: NavItem[] = [
   { href: "/contenido", label: "Resumen", permission: "content" },
   { href: "/contenido/clientes", label: "Clientes", permission: "content" },
   { href: CONTENT_HOME, label: "Calendario", permission: "content" },
+  { href: "/contenido/videos", label: "Videos y viralidad", permission: "content" },
   { href: "/contenido/recordatorios", label: "Recordatorios", permission: "content" },
 ];
 
@@ -375,6 +376,7 @@ const TAB_SHORT_LABEL: Record<string, string> = {
   "/contenido": "Contenido",
   "/contenido/clientes": "Marcas",
   "/contenido/general": "Calendario",
+  "/contenido/videos": "Videos",
   "/contenido/recordatorios": "Avisos",
   "/assistant": "Asistente",
 };
