@@ -84,15 +84,20 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       title: z.string().trim().min(1).max(200),
       notes: z.string().max(5000).optional(),
       contactId: z.string().optional(),
+      referredByContactId: z.string().optional(),
+      referredByClientId: z.string().optional(),
       source: z.enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "TIKTOK", "FACEBOOK", "OTRO"]).default("OTRO"),
     },
-  }, async ({ title, notes, contactId, source }) => {
+  }, async ({ title, notes, contactId, referredByContactId, referredByClientId, source }) => {
     if (contactId && !(await owns("contact", contactId))) return err("Contacto inválido");
+    if (referredByContactId && referredByClientId) return err("Indica solo un tipo de referente");
+    if (referredByContactId && !(await owns("contact", referredByContactId))) return err("Contacto referente inválido");
+    if (referredByClientId && !(await owns("client", referredByClientId))) return err("Cliente referente inválido");
     const pipelines = await prisma.pipeline.findMany({ where: { organizationId: org }, orderBy: { createdAt: "asc" }, include: { stages: true } });
     const pipeline = pipelines.find(p => p.name === "Noxy Digital") ?? pipelines[0];
     const stage = pipeline?.stages.find(s => s.name.toLowerCase() === "lead");
     if (!pipeline || !stage) return err("No hay pipeline con etapa Lead");
-    const deal = await prisma.deal.create({ data: { title: title.trim(), notes, contactId, source, organizationId: org, pipelineId: pipeline.id, stageId: stage.id } });
+    const deal = await prisma.deal.create({ data: { title: title.trim(), notes, contactId, referredByContactId, referredByClientId, source, organizationId: org, pipelineId: pipeline.id, stageId: stage.id } });
     let followupTasksCreated = 0;
     try { followupTasksCreated = await ensureLeadFollowups(deal.id, org); }
     catch (error) { console.error("MCP create_lead followups:", error); }
@@ -108,6 +113,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
     const found = payment ?? monthly;
     if (!found) return err("Pago no encontrado en esta organización");
     if (found.status === "RECIBIDO") return json({ id: paymentId, status: "RECIBIDO", alreadyReceived: true });
+    if (found.status !== "PENDIENTE") return err("Solo un pago pendiente puede marcarse como recibido");
     const action = canonicalAction("mark_payment_received", { org, paymentId, kind: payment ? "deal" : "monthly", status: found.status, amount: found.amount, currency: found.currency });
     const gated = gateWrite(action, `Marcar como recibido el pago ${paymentId} por ${found.amount} ${found.currency}.`, approvalToken);
     if (!gated.ok) return gated.result;
