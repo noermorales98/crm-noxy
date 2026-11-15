@@ -4,7 +4,7 @@ status: approved
 ---
 # Automatizaciones CRM, videos y bot
 
-El operador recibe tareas de seguimiento a 24 horas, 3 y 7 días por lead, puede ver leads sin respuesta tras 14 días y consulta un resumen diario a las 9:00 de Cancún. Al entregar, se crean tareas de referidos. Registra métricas de videos, importa CSV de Metricool con mapeo configurable y compara mejores y peores semanalmente. Un bot autenticado consulta resúmenes y crea leads o tareas y registra pagos. La API nunca envía mensajes a clientes: cualquier texto es borrador para aprobación del operador.
+El operador recibe tareas de seguimiento a 24 horas, 3 y 7 días por lead, puede ver leads sin respuesta tras 14 días y consulta un resumen diario a las 9:00 de Cancún. Al entregar, se crean tareas de referidos. Registra métricas de videos, importa CSV de Metricool con mapeo configurable y compara mejores y peores semanalmente. Un bot autenticado consulta resúmenes y crea leads o tareas y registra pagos. Usa el servidor MCP existente del CRM, además de las rutas HTTP publicadas. La API nunca envía mensajes a clientes: cualquier texto es borrador para aprobación del operador.
 
 Referencia esperada: respuestas JSON de rutas con organización aislada, sin secretos expuestos. SQL reversible; no se borran datos. La fase 5 queda fuera. Evidencia: pruebas de funciones, TypeScript, build y pruebas de rutas cuando sea posible. No se agregan dependencias.
 

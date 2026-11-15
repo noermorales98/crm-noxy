@@ -2,6 +2,9 @@
 // Los filtros `where`/`data` de Prisma se construyen dinámicamente según los
 // argumentos dados; el proyecto ya usa `any` en sus route handlers.
 import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
+import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
+import { buildDigestContext } from "@/src/lib/digest";
+import { weeklyComparison, weeklyText } from "@/src/lib/video-analytics";
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
@@ -54,6 +57,67 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       }));
     return member?.userId ?? null;
   }
+
+  // ─── Bot Noxy: consultas y acciones del CRM ────────────────────────────────
+  server.registerTool("get_daily_summary", {
+    description: "Resumen diario del CRM para el operador: tareas, deals y cobros. Solo lectura; no envía WhatsApp.",
+    inputSchema: {},
+  }, async () => {
+    const userId = await defaultUserId();
+    if (!userId) return err("No hay dueño de la organización");
+    return json({ text: await buildDigestContext(org, userId) });
+  });
+
+  server.registerTool("get_weekly_video_report", {
+    description: "Reporte semanal de videos: mejor y peor 20 %, hook, formato, duración, hora, predictor y vistas. Solo lectura.",
+    inputSchema: { weeks: z.number().int().min(1).max(52).default(1) },
+  }, async ({ weeks }) => {
+    const since = new Date(Date.now() - weeks * 7 * 86400000);
+    const videos = await prisma.video.findMany({ where: { organizationId: org, publishedAt: { gte: since } } });
+    const comparison = weeklyComparison(videos);
+    return json({ ...comparison, text: weeklyText(comparison) });
+  });
+
+  server.registerTool("create_lead", {
+    description: "Crea un lead en la etapa Lead del pipeline Noxy Digital y sus tres tareas de seguimiento. No envía mensajes.",
+    inputSchema: {
+      title: z.string().trim().min(1).max(200),
+      notes: z.string().max(5000).optional(),
+      contactId: z.string().optional(),
+      source: z.enum(["WHATSAPP", "REFERIDO", "LINKEDIN", "VISITA", "EMAIL_FRIO", "FORMULARIO", "INSTAGRAM", "TIKTOK", "FACEBOOK", "OTRO"]).default("OTRO"),
+    },
+  }, async ({ title, notes, contactId, source }) => {
+    if (contactId && !(await owns("contact", contactId))) return err("Contacto inválido");
+    const pipelines = await prisma.pipeline.findMany({ where: { organizationId: org }, orderBy: { createdAt: "asc" }, include: { stages: true } });
+    const pipeline = pipelines.find(p => p.name === "Noxy Digital") ?? pipelines[0];
+    const stage = pipeline?.stages.find(s => s.name.toLowerCase() === "lead");
+    if (!pipeline || !stage) return err("No hay pipeline con etapa Lead");
+    const deal = await prisma.deal.create({ data: { title: title.trim(), notes, contactId, source, organizationId: org, pipelineId: pipeline.id, stageId: stage.id } });
+    let followupTasksCreated = 0;
+    try { followupTasksCreated = await ensureLeadFollowups(deal.id, org); }
+    catch (error) { console.error("MCP create_lead followups:", error); }
+    return json({ id: deal.id, title: deal.title, followupTasksCreated });
+  });
+
+  server.registerTool("mark_payment_received", {
+    description: "Marca un pago de deal o mensualidad como recibido. Requiere aprobación humana mediante approvalToken; no envía mensajes.",
+    inputSchema: { paymentId: z.string(), approvalToken: z.string().optional() },
+  }, async ({ paymentId, approvalToken }) => {
+    const payment = await prisma.payment.findFirst({ where: { id: paymentId, organizationId: org }, select: { id: true, status: true, amount: true, currency: true } });
+    const monthly = payment ? null : await prisma.clientPayment.findFirst({ where: { id: paymentId, organizationId: org }, select: { id: true, status: true, amount: true, currency: true } });
+    const found = payment ?? monthly;
+    if (!found) return err("Pago no encontrado en esta organización");
+    if (found.status === "RECIBIDO") return json({ id: paymentId, status: "RECIBIDO", alreadyReceived: true });
+    const action = canonicalAction("mark_payment_received", { org, paymentId, kind: payment ? "deal" : "monthly", status: found.status, amount: found.amount, currency: found.currency });
+    const gated = gateWrite(action, `Marcar como recibido el pago ${paymentId} por ${found.amount} ${found.currency}.`, approvalToken);
+    if (!gated.ok) return gated.result;
+    const where = { id: paymentId, organizationId: org, status: found.status, amount: found.amount, currency: found.currency };
+    const changed = payment
+      ? await prisma.payment.updateMany({ where, data: { status: "RECIBIDO", receivedAt: new Date() } })
+      : await prisma.clientPayment.updateMany({ where, data: { status: "RECIBIDO", receivedAt: new Date() } });
+    if (changed.count !== 1) return err("El pago cambió desde la aprobación; vuelve a revisar y aprobar.");
+    return json({ id: paymentId, status: "RECIBIDO" });
+  });
 
   // ─── Contactos ────────────────────────────────────────────────────────────
 

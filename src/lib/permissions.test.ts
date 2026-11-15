@@ -44,6 +44,7 @@ test("route access maps pages and APIs to modules", () => {
   assert.deepEqual(resolveRouteAccess("/api/cron/content-reminders"), { kind: "public" });
   assert.deepEqual(resolveRouteAccess("/login"), { kind: "public" });
   assert.equal(isPublicApiPath("/api/auth/register"), true);
+  assert.equal(isPublicApiPath("/api/bot/daily"), true);
 });
 
 test("first allowed path follows module order", () => {

@@ -94,6 +94,7 @@ const PUBLIC_API_PREFIXES = [
   "/api/webhooks",
   "/api/oauth",
   "/api/mcp",
+  "/api/bot", // la ruta valida NOXY_BOT_TOKEN; el middleware no dispone de sesión del bot
 ];
 
 export function isPublicApiPath(pathname: string): boolean {

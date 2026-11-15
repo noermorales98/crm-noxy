@@ -9,3 +9,5 @@ Noxy CRM — conexión de cron y bot
 7. Migración de videos APLICADA el 14 de noviembre de 2026 con Prisma a la base u627288392_noxybd. Verificación: tabla Video presente, 25 columnas, 4 claves foráneas y 0 registros iniciales. prisma/sql/videos.down.sql revierte el esquema, pero elimina los registros de videos creados: exporta esos datos antes de revertir.
 
 URL canónica actual: https://crm-noxy.vercel.app
+
+8. Integración MCP (preferida para Grok Bot): conecta el bot a https://noxthy.co/mcp usando OAuth 2.1 del CRM o MCP_API_KEY ya configurada. Tools: get_daily_summary, get_weekly_video_report, create_lead, create_task (ya existente), mark_payment_received. Para marcar pago, la tool devuelve un enlace de aprobación humana y exige approvalToken. Ninguna tool envía WhatsApp a clientes. Las rutas HTTP /api/bot/* siguen disponibles para clientes que no soporten MCP.
