@@ -78,9 +78,15 @@ function VideoTable({ title, rows, empty }: { title: string; rows: VideoRow[]; e
   </section>;
 }
 
-function AllVideosTable({ rows, onImport, onEdit }: { rows: StoredVideo[]; onImport: () => void; onEdit: (video: StoredVideo) => void }) {
+function AllVideosTable({ rows, onImport, onEdit, selectedIds, onToggle, onToggleAll, onClearSelection, onDelete, deleting, confirmingDelete }: {
+  rows: StoredVideo[]; onImport: () => void; onEdit: (video: StoredVideo) => void;
+  selectedIds: Set<string>; onToggle: (id: string, checked: boolean) => void; onToggleAll: (checked: boolean) => void;
+  onClearSelection: () => void; onDelete: () => void; deleting: boolean;
+  confirmingDelete: boolean;
+}) {
   const columns = [
-    { key: "title", header: "Video", render: (row: StoredVideo) => <button type="button" onClick={() => onEdit(row)} title="Editar" className="-mx-1 block max-w-[26rem] truncate rounded-control px-1 text-left font-medium text-text-primary hover:bg-nav-hover hover:underline">{row.title}</button> },
+    { key: "select", header: "", render: (row: StoredVideo) => <input type="checkbox" checked={selectedIds.has(row.id)} onChange={event => onToggle(row.id, event.target.checked)} aria-label={`Seleccionar ${row.title}`} className="size-4 accent-[#3545D6]" /> },
+    { key: "title", header: "Video", render: (row: StoredVideo) => <button type="button" onClick={() => onEdit(row)} title="Editar" className="-mx-1 block max-w-[24rem] truncate rounded-control px-1 text-left font-medium text-text-primary hover:bg-nav-hover hover:underline">{row.title}</button> },
     { key: "date", header: "Fecha", render: (row: StoredVideo) => <span className="whitespace-nowrap tabular-nums text-text-secondary">{shortDate(row.publishedAt)}</span> },
     { key: "platform", header: "Plataforma", render: (row: StoredVideo) => <span className="text-text-secondary">{row.platform}</span> },
     { key: "reach", header: "Alcance", align: "right" as const, render: (row: StoredVideo) => <span className="tabular-nums">{number(row.reach)}</span> },
@@ -90,8 +96,19 @@ function AllVideosTable({ rows, onImport, onEdit }: { rows: StoredVideo[]; onImp
     { key: "engagement", header: "Interacción", align: "right" as const, render: (row: StoredVideo) => <span className="font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span> },
     { key: "actions", header: "", align: "right" as const, render: (row: StoredVideo) => <button type="button" onClick={() => onEdit(row)} aria-label={`Editar ${row.title}`} title="Editar" className="inline-flex size-9 items-center justify-center rounded-control text-text-secondary opacity-60 transition-opacity hover:bg-nav-hover hover:text-text-primary hover:opacity-100 focus-visible:opacity-100"><HugeiconsIcon icon={PencilEdit02Icon} size={16} /></button> },
   ];
-  return <section className="mb-5 overflow-hidden rounded-surface border border-line bg-surface-elevated"><header className="flex min-h-14 items-center justify-between gap-3 border-b border-line px-4 sm:px-5"><h2 className="text-base font-semibold text-text-primary">Videos registrados</h2><Chip>{rows.length}</Chip></header><DataTable label="Videos registrados" rows={rows} columns={columns} getKey={row => row.id}
-    mobileRow={row => <div className="min-w-0 flex-1 py-2"><div className="flex items-start justify-between gap-3"><button type="button" onClick={() => onEdit(row)} className="min-w-0 truncate text-left font-medium text-text-primary">{row.title}</button><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 truncate text-xs tabular-nums text-text-secondary">{[shortDate(row.publishedAt), row.platform, row.reach != null ? `${number(row.reach)} alcance` : null, row.views != null ? `${number(row.views)} vistas` : null].filter(Boolean).join(" · ")}</p></div>}
+  const allSelected = rows.length > 0 && selectedIds.size === rows.length;
+  return <section className="mb-5 overflow-hidden rounded-surface border border-line bg-surface-elevated"><header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line px-4 sm:px-5"><h2 className="text-base font-semibold text-text-primary">Videos registrados</h2>
+    {selectedIds.size > 0 ? (
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <span className="tabular-nums text-text-secondary">{selectedIds.size} de {rows.length} seleccionados</span>
+        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-secondary"><input type="checkbox" checked={allSelected} onChange={event => onToggleAll(event.target.checked)} className="size-4 accent-[#3545D6]" />Todos</label>
+        <button type="button" onClick={onClearSelection} className="min-h-9 rounded-control px-3 text-xs font-semibold text-text-secondary hover:bg-surface-sidebar">Limpiar</button>
+        {confirmingDelete
+          ? <button type="button" disabled={deleting} onClick={onDelete} className="crm-press min-h-9 rounded-control bg-danger px-3 text-xs font-semibold text-white disabled:opacity-50">{deleting ? "Eliminando…" : `Confirmar: eliminar ${selectedIds.size}`}</button>
+          : <button type="button" onClick={onDelete} className="crm-press min-h-9 rounded-control px-3 text-xs font-semibold text-danger hover:bg-danger-soft">Eliminar</button>}
+      </div>
+    ) : <Chip>{rows.length}</Chip>}</header><DataTable label="Videos registrados" rows={rows} columns={columns} getKey={row => row.id}
+    mobileRow={row => <div className="flex min-w-0 flex-1 items-start gap-3 py-2"><input type="checkbox" checked={selectedIds.has(row.id)} onChange={event => onToggle(row.id, event.target.checked)} aria-label={`Seleccionar ${row.title}`} className="mt-1 size-4 shrink-0 accent-[#3545D6]" /><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><button type="button" onClick={() => onEdit(row)} className="min-w-0 truncate text-left font-medium text-text-primary">{row.title}</button><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 truncate text-xs tabular-nums text-text-secondary">{[shortDate(row.publishedAt), row.platform, row.reach != null ? `${number(row.reach)} alcance` : null, row.views != null ? `${number(row.views)} vistas` : null].filter(Boolean).join(" · ")}</p></div></div>}
     empty={<EmptyState title="Aún no hay videos registrados" body="Importa un CSV o PDF de Metricool, añade uno manual o trae las piezas ya programadas del calendario." action={<button type="button" onClick={onImport} className="crm-press min-h-11 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground">Importar</button>} />}
   /></section>;
 }
@@ -139,6 +156,13 @@ export default function VideosPage() {
   const calendarRef = useRef<HTMLDivElement>(null);
   useDialog(calendarRef, showCalendar, () => setShowCalendar(false));
 
+  // Selección y borrado de videos
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingSingleDelete, setConfirmingSingleDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true); setLoadError(false);
     try {
@@ -146,6 +170,7 @@ export default function VideosPage() {
       if (!weeklyResponse.ok || !videosResponse.ok) throw new Error("No se pudo cargar el reporte");
       const [weekly, allVideos] = await Promise.all([weeklyResponse.json(), videosResponse.json()]);
       setSummary(weekly); setVideos(allVideos);
+      setSelectedIds(prev => new Set([...prev].filter(id => allVideos.some((video: StoredVideo) => video.id === id))));
     } catch { setLoadError(true); }
     finally { setLoading(false); }
   }, [weeks]);
@@ -191,6 +216,7 @@ export default function VideosPage() {
 
   function openForm(video: StoredVideo | null) {
     setEditing(video);
+    setConfirmingSingleDelete(false);
     setForm(video ? {
       title: video.title, platform: video.platform,
       publishedAt: video.publishedAt ? video.publishedAt.slice(0, 10) : "",
@@ -228,6 +254,52 @@ export default function VideosPage() {
       }
     } catch { setResult({ error: "No se pudo guardar. Inténtalo de nuevo." }); }
     finally { setSaving(false); }
+  }
+
+  function toggleSelect(id: string, checked: boolean) {
+    setConfirmingDelete(false);
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll(checked: boolean) {
+    setConfirmingDelete(false);
+    setSelectedIds(checked ? new Set(videos.map(video => video.id)) : new Set());
+  }
+
+  function clearSelection() {
+    setConfirmingDelete(false);
+    setSelectedIds(new Set());
+  }
+
+  async function deleteVideos(ids: string[]) {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const response = ids.length === 1
+        ? await fetch(`/api/videos/${ids[0]}`, { method: "DELETE" })
+        : await fetch("/api/videos", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+      if (response.ok) {
+        if (editing && ids.includes(editing.id)) setShowForm(false);
+        clearSelection();
+        setConfirmingSingleDelete(false);
+        await load();
+      } else {
+        setDeleteError("No se pudo eliminar. Inténtalo de nuevo.");
+      }
+    } catch {
+      setDeleteError("No se pudo eliminar. Inténtalo de nuevo.");
+    } finally { setDeleting(false); }
+  }
+
+  function requestBatchDelete() {
+    if (!confirmingDelete) { setConfirmingDelete(true); return; }
+    void deleteVideos([...selectedIds]);
   }
 
   async function openCalendar() {
@@ -279,7 +351,10 @@ export default function VideosPage() {
     <FilterBar segments={<Segmented label="Periodo" value={String(weeks)} onChange={value => setWeeks(Number(value))} options={[{ value: "1", label: "7 días" }, { value: "4", label: "4 semanas" }, { value: "12", label: "12 semanas" }]} />} />
     {loading ? <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated"><Skeleton shape="rows" count={5} label="Cargando videos" /></div> : loadError ? <div className="rounded-surface border border-line bg-surface-elevated"><ErrorState title="No se pudo cargar el reporte" onRetry={() => void load()} /></div> : <>
       <div className="mb-5 flex flex-wrap gap-x-6 gap-y-1 text-sm text-text-secondary"><span><strong className="font-semibold tabular-nums text-text-primary">{summary?.total ?? 0}</strong> videos</span><span><strong className="font-semibold tabular-nums text-text-primary">{summary?.ranked ?? 0}</strong> con alcance medido</span></div>
-      <AllVideosTable rows={videos} onEdit={openForm} onImport={() => { setResult(null); setShowImport(true); }} />
+      {deleteError && <p role="alert" className="mb-3 text-sm text-danger">{deleteError}</p>}
+      <AllVideosTable rows={videos} onEdit={openForm} onImport={() => { setResult(null); setShowImport(true); }}
+        selectedIds={selectedIds} onToggle={toggleSelect} onToggleAll={toggleSelectAll} onClearSelection={clearSelection}
+        onDelete={requestBatchDelete} deleting={deleting} confirmingDelete={confirmingDelete} />
       <div className="space-y-5"><VideoTable title="Mejor 20 %" rows={withKeys(summary?.best ?? [], "best")} empty="Aún no hay videos destacados" /><VideoTable title="Peor 20 %" rows={withKeys(summary?.worst ?? [], "worst")} empty="Aún no hay videos para comparar" /></div>
       <p className="mt-4 text-xs text-text-secondary">Interacción = (compartidos + guardados) ÷ alcance. Las horas se muestran en UTC.</p>
     </>}
@@ -378,7 +453,12 @@ export default function VideosPage() {
         </section>
         {result?.error && <p role="alert" className="text-sm text-danger">{result.error}</p>}
       </div>
-      <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-4"><button type="button" onClick={() => setShowForm(false)} className="min-h-11 rounded-control px-4 text-sm font-semibold text-text-secondary hover:bg-surface-sidebar">Cancelar</button><button type="button" disabled={saving || !form.title.trim() || !form.platform.trim()} onClick={() => void saveForm()} className="min-h-11 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground disabled:opacity-50">{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar video"}</button></div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-4">
+        <div>{editing && (confirmingSingleDelete
+          ? <button type="button" disabled={deleting} onClick={() => void deleteVideos([editing.id])} className="crm-press min-h-11 rounded-control bg-danger px-4 text-sm font-semibold text-white disabled:opacity-50">{deleting ? "Eliminando…" : "Confirmar eliminación"}</button>
+          : <button type="button" onClick={() => setConfirmingSingleDelete(true)} className="min-h-11 rounded-control px-4 text-sm font-semibold text-danger hover:bg-danger-soft">Eliminar video</button>)}</div>
+        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => setShowForm(false)} className="min-h-11 rounded-control px-4 text-sm font-semibold text-text-secondary hover:bg-surface-sidebar">Cancelar</button><button type="button" disabled={saving || !form.title.trim() || !form.platform.trim()} onClick={() => void saveForm()} className="min-h-11 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground disabled:opacity-50">{saving ? "Guardando…" : editing ? "Guardar cambios" : "Agregar video"}</button></div>
+      </div>
     </div></div>}
 
     {showCalendar && <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-obsidian/35 p-4"><div ref={calendarRef} role="dialog" aria-modal="true" aria-labelledby="video-calendar-title" className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-surface bg-surface-elevated shadow-[0_8px_8px_rgba(11,11,24,0.10)]">
