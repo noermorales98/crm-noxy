@@ -20,7 +20,8 @@ export async function GET(req: Request) {
     },
     include: {
       appointmentType: { select: { name: true, duration: true, color: true } },
-      contact: { select: { firstName: true, lastName: true, email: true } }
+      contact: { select: { firstName: true, lastName: true, email: true } },
+      deal: { select: { id: true, title: true } }
     },
     orderBy: { startTime: "asc" }
   });

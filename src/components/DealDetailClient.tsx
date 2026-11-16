@@ -24,6 +24,7 @@ import {
   UserGroup03Icon,
   WhatsappIcon,
   Link01Icon,
+  Unlink01Icon,
   Calendar02Icon,
 } from "@hugeicons/core-free-icons";
 import DownloadProposalButton from "./DownloadProposalButton";
@@ -35,6 +36,7 @@ import { Chip, DealIconBadge, DealIconPicker, PageHeader, RangeBar } from "@/src
 import { sendToNotion } from "@/src/lib/notion-client";
 import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
 import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
+import { LinkAppointmentDialog } from "@/src/components/LinkAppointmentDialog";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -226,6 +228,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   const [appointmentTypes, setAppointmentTypes] = useState<any[]>([]);
   const [dealAppointments, setDealAppointments] = useState<any[]>(deal.appointments || []);
   const [showManualAppointment, setShowManualAppointment] = useState(false);
+  const [showLinkAppointment, setShowLinkAppointment] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [bookingStep, setBookingStep] = useState<"type" | "date" | "slots" | "confirm">("type");
   const [selectedApptType, setSelectedApptType] = useState<any>(null);
@@ -421,6 +424,16 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     } finally {
       setSavingBooking(false);
     }
+  }
+
+  async function unlinkAppointment(apptId: string) {
+    if (!confirm("¿Desvincular esta cita del lead? La cita no se borra ni se cancela.")) return;
+    const res = await fetch(`/api/appointments/${apptId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dealId: null }),
+    });
+    if (res.ok) setDealAppointments((prev) => prev.filter((a) => a.id !== apptId));
   }
 
   async function cancelAppointment(apptId: string) {
@@ -1001,6 +1014,15 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     Cita manual
                   </button>
                   <button
+                    type="button"
+                    onClick={() => setShowLinkAppointment(true)}
+                    className="min-h-11 lg:min-h-9 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-control transition-colors"
+                    title="Vincular una cita que ya existe"
+                  >
+                    <HugeiconsIcon icon={Link01Icon} size={13} />
+                    Vincular existente
+                  </button>
+                  <button
                     onClick={startBooking}
                     className="min-h-11 lg:min-h-9 flex items-center gap-1 text-xs font-semibold text-text-secondary hover:text-text-primary px-2.5 py-1.5 bg-surface-sidebar hover:bg-nav-active rounded-control transition-colors"
                     title="Elegir un horario libre según tu disponibilidad"
@@ -1151,6 +1173,9 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                           <p className="text-xs text-text-secondary mt-0.5 truncate">{[appt.title?.trim() ? appt.appointmentType?.name : null, appt.guestName !== appt.title ? appt.guestName : null, appt.guestEmail].filter(Boolean).join(" · ") || "Horario apartado"}</p>
                           {appt.notes && <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">{appt.notes}</p>}
                         </div>
+                        <button type="button" onClick={() => unlinkAppointment(appt.id)} aria-label="Desvincular cita" title="Desvincular del lead" className="shrink-0 flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary opacity-0 group-hover/appt:opacity-100 hover:text-text-primary hover:bg-nav-hover rounded-lg transition-all">
+                          <HugeiconsIcon icon={Unlink01Icon} size={13} />
+                        </button>
                         {isUpcoming && (
                           <button onClick={() => cancelAppointment(appt.id)} disabled={cancellingApptId === appt.id} className="shrink-0 flex size-11 items-center justify-center lg:size-auto lg:p-1.5 text-text-secondary opacity-0 group-hover/appt:opacity-100 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-50">
                             <HugeiconsIcon icon={Cancel01Icon} size={13} />
@@ -1327,6 +1352,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 </dd>
               </div>
 
+
               <div className={PROP_ROW}>
                 <dt className={PROP_LABEL}>Referido por</dt>
                 <dd className={PROP_VALUE}>
@@ -1471,6 +1497,16 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         }}
         onCreated={(appt) => {
           setDealAppointments((prev) => [...prev, appt].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
+          setActiveTab("citas");
+        }}
+      />
+
+      <LinkAppointmentDialog
+        open={showLinkAppointment}
+        onClose={() => setShowLinkAppointment(false)}
+        target={{ kind: "deal", id: deal.id }}
+        onLinked={(appt) => {
+          setDealAppointments((prev) => [...prev.filter((a) => a.id !== appt.id), appt].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()));
           setActiveTab("citas");
         }}
       />

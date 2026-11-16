@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
 import { buildManualAppointment, resolveTimezone, utcToZonedParts } from "@/src/lib/manual-appointment";
+import { contactAfterDealLink, readLinkChange } from "@/src/lib/appointment-links";
 
 const STATUSES = ["CONFIRMED", "COMPLETED", "CANCELLED"];
 
@@ -85,6 +86,21 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     });
   }
 
+  // Vínculos: `dealId` / `contactId` con un id vinculan, con null desvinculan; ambos deben ser de la organización.
+  const dealChange = readLinkChange(body, "dealId");
+  let contactChange = readLinkChange(body, "contactId");
+  if (typeof dealChange === "string") {
+    const deal = await prisma.deal.findFirst({ where: { id: dealChange, organizationId }, select: { id: true, contactId: true } });
+    if (!deal) return NextResponse.json({ error: "Lead no encontrado" }, { status: 400 });
+    contactChange = contactAfterDealLink({ requestedContact: contactChange, currentContactId: existing.contactId, dealContactId: deal.contactId });
+  }
+  if (typeof contactChange === "string") {
+    const contact = await prisma.contact.findFirst({ where: { id: contactChange, organizationId }, select: { id: true } });
+    if (!contact) return NextResponse.json({ error: "Contacto no encontrado" }, { status: 400 });
+  }
+  if (dealChange !== undefined) data.dealId = dealChange;
+  if (contactChange !== undefined) data.contactId = contactChange;
+
   if (Object.keys(data).length === 0) return NextResponse.json({ error: "No se envió ningún cambio." }, { status: 400 });
 
   const updated = await prisma.appointment.update({
@@ -93,6 +109,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     include: {
       appointmentType: { select: { id: true, name: true, duration: true, color: true } },
       contact: { select: { firstName: true, lastName: true, email: true } },
+      deal: { select: { id: true, title: true } },
     },
   });
 

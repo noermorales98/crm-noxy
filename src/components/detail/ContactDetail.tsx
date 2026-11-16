@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CallIcon, Mail01Icon, Message01Icon, WhatsappIcon } from "@hugeicons/core-free-icons";
+import { CallIcon, Mail01Icon, Message01Icon, Unlink01Icon, WhatsappIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Block, Chip, DataList, DealIconBadge, EmptyState, type ChipTone } from "@/src/components/ui";
 import { PropertiesCard, RecordShell } from "@/src/components/detail/RecordShell";
 import { formatByCurrency, type Money } from "@/src/lib/deal-sales";
 import { formatMoney } from "@/src/lib/quote-format";
 import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
 import { LinkDealDialog } from "@/src/components/LinkDealDialog";
+import { LinkAppointmentDialog } from "@/src/components/LinkAppointmentDialog";
 
 type Contact = {
   id: string;
@@ -47,8 +49,18 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
   const router = useRouter();
   const [showAppointment, setShowAppointment] = useState(false);
   const [showLinkDeal, setShowLinkDeal] = useState(false);
+  const [showLinkAppointment, setShowLinkAppointment] = useState(false);
   const name = [contact.firstName, contact.lastName].filter(Boolean).join(" ");
   const phone = contact.phone?.replace(/[\s\-().]/g, "") ?? "";
+  const unlinkAppointment = async (appointmentId: string) => {
+    if (!confirm("¿Desvincular esta cita del contacto? La cita no se borra ni se cancela.")) return;
+    const res = await fetch(`/api/appointments/${appointmentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contactId: null }),
+    });
+    if (res.ok) router.refresh();
+  };
   const quickActions = [
     ...(phone ? [
       { href: `tel:${contact.phone}`, label: "Llamar", icon: CallIcon },
@@ -133,12 +145,12 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
             </Block>
           )}
 
-          <Block title="Citas" action={{ label: "Nueva cita", onClick: () => setShowAppointment(true) }}>
+          <Block title="Citas" action={[{ label: "Vincular existente", onClick: () => setShowLinkAppointment(true) }, { label: "Nueva cita", onClick: () => setShowAppointment(true) }]}>
             <DataList
               label="Citas del contacto"
               rows={contact.appointments}
               getKey={(appointment) => appointment.id}
-              empty={<EmptyState title="Sin citas" body="Crea una con «Nueva cita»; las citas de este contacto se listan aquí." />}
+              empty={<EmptyState title="Sin citas" body="Crea una con «Nueva cita» o vincula una que ya exista; las citas de este contacto se listan aquí." />}
               renderRow={(appointment) => (
                 <>
                   <span className="min-w-0 flex-1">
@@ -146,6 +158,9 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
                     <span className="block text-xs text-text-secondary">{dayTime(appointment.startTime)}</span>
                   </span>
                   <Chip tone={appointment.status === "CANCELLED" ? "late" : "neutral"}>{appointment.status === "CANCELLED" ? "Cancelada" : "Confirmada"}</Chip>
+                  <button type="button" onClick={() => unlinkAppointment(appointment.id)} aria-label="Desvincular cita" title="Desvincular del contacto" className="flex size-9 shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary">
+                    <HugeiconsIcon icon={Unlink01Icon} size={15} />
+                  </button>
                 </>
               )}
             />
@@ -211,6 +226,12 @@ export default function ContactDetail({ contact, summary }: { contact: Contact; 
       onClose={() => setShowLinkDeal(false)}
       contactId={contact.id}
       contactName={name}
+      onLinked={() => router.refresh()}
+    />
+    <LinkAppointmentDialog
+      open={showLinkAppointment}
+      onClose={() => setShowLinkAppointment(false)}
+      target={{ kind: "contact", id: contact.id }}
       onLinked={() => router.refresh()}
     />
     </>
