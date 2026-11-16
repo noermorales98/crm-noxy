@@ -49,7 +49,10 @@ Detalle técnico de la Fase 1: `02-DOCS/wiki/ftd/fase1-crm-seguimiento-referidos
 ### Fase 3: métricas de videos
 - [ ] Tabla `videos` ligada a cliente/marca y a la pieza de contenido, con todos los campos pedidos (hook, tipo de hook, formato, duración, herramienta de IA, prompt, alcance, vistas, retención a 3 s, compartidos, guardados, comentarios, leads, puntaje predictor, notas).
 - [ ] Cálculo (compartidos + guardados) / alcance.
-- [ ] Importar CSV de Metricool con mapeo de columnas configurable (API de Metricool como opción futura).
+- [x] Importar CSV de Metricool con mapeo de columnas configurable (API de Metricool como opción futura).
+- [x] Importar PDF de Metricool: el CRM extrae el texto (pdf-parse) y la IA (OpenRouter) lo convierte en filas; vista previa antes de guardar.
+- [x] Alta y edición manual de videos desde /contenido/videos, con vínculo opcional a cliente/pieza del calendario.
+- [x] Añadir desde el calendario: las piezas video/reel programadas en /contenido/general se dan de alta como videos vinculados con un clic.
 - [ ] Vista semanal: tu 20 % mejor contra el 20 % peor por tipo de hook, formato, duración y hora.
 - [ ] Comparar puntaje predictor contra resultado real.
 - [ ] Endpoint con el resumen semanal en texto para el bot.
