@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Calendar01Icon, Cancel01Icon, PencilEdit02Icon, Upload01Icon } from "@hugeicons/core-free-icons";
+import { Calendar01Icon, Cancel01Icon, CheckmarkBadge01Icon, PencilEdit02Icon, Upload01Icon } from "@hugeicons/core-free-icons";
 import { useHeader } from "@/src/context/HeaderContext";
 import { Chip, DataTable, EmptyState, ErrorState, FilterBar, PageHeader, Segmented, Skeleton, useDialog } from "@/src/components/ui";
 import { input as inputCls } from "@/src/lib/crm-ui";
@@ -36,10 +36,22 @@ const DEFAULT_MAPPING = {
   views: "Vistas", shares: "Compartidos", saves: "Guardados",
 };
 const PLATFORMS = ["TikTok", "Instagram", "Facebook", "YouTube", "Otra"];
-const number = (value: number | null) => value == null ? "—" : new Intl.NumberFormat("es-MX").format(value);
-const hour = (value: number | null) => value == null ? "—" : `${String(value).padStart(2, "0")}:00 UTC`;
-const dateOf = (iso: string | null) => iso ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(iso)) : "—";
-const shortDate = (iso: string | null) => iso ? new Intl.DateTimeFormat("es-MX", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(iso)) : "—";
+const number = (value: number | null) => value == null ? "-" : new Intl.NumberFormat("es-MX").format(value);
+const hour = (value: number | null) => value == null ? "-" : `${String(value).padStart(2, "0")}:00 UTC`;
+const dateOf = (iso: string | null) => iso ? new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(iso)) : "-";
+const shortDate = (iso: string | null) => iso ? new Intl.DateTimeFormat("es-MX", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(iso)) : "-";
+
+/** Checkbox de fila pequeño y limpio (14 px): input real para accesibilidad, glifo de Hugeicons marcado. */
+function RowCheckbox({ checked, onChange, label }: { checked: boolean; onChange: (checked: boolean) => void; label: string }) {
+  return (
+    <label className="flex size-7 cursor-pointer items-center justify-center" title={label}>
+      <input type="checkbox" checked={checked} onChange={event => onChange(event.target.checked)} aria-label={label} className="sr-only" />
+      <span aria-hidden className={`flex size-3.5 items-center justify-center rounded-[3px] border transition-colors duration-150 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus ${checked ? "border-transparent bg-action-primary" : "border-line bg-surface-elevated hover:border-text-secondary"}`}>
+        {checked && <HugeiconsIcon icon={CheckmarkBadge01Icon} size={10} className="text-white" />}
+      </span>
+    </label>
+  );
+}
 
 async function fileToBase64(file: File): Promise<string> {
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -57,10 +69,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function VideoTable({ title, rows, empty }: { title: string; rows: VideoRow[]; empty: string }) {
   const columns = [
     { key: "title", header: "Video", render: (row: VideoRow) => <span className="block max-w-[24rem] truncate font-semibold text-text-primary" title={row.title}>{row.title}</span> },
-    { key: "engagement", header: "Interacción", align: "right" as const, render: (row: VideoRow) => <span className="font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span> },
-    { key: "hook", header: "Hook", render: (row: VideoRow) => <span className="text-text-secondary">{row.hookType || "—"}</span> },
-    { key: "format", header: "Formato", render: (row: VideoRow) => <span className="text-text-secondary">{row.format || "—"}</span> },
-    { key: "duration", header: "Duración", align: "right" as const, render: (row: VideoRow) => <span className="tabular-nums text-text-secondary">{row.durationSeconds == null ? "—" : `${number(row.durationSeconds)} s`}</span> },
+    { key: "engagement", header: "Interacción", align: "right" as const, render: (row: VideoRow) => <span className="font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "-" : `${row.engagementPct.toFixed(2)} %`}</span> },
+    { key: "hook", header: "Hook", render: (row: VideoRow) => <span className="text-text-secondary">{row.hookType || "-"}</span> },
+    { key: "format", header: "Formato", render: (row: VideoRow) => <span className="text-text-secondary">{row.format || "-"}</span> },
+    { key: "duration", header: "Duración", align: "right" as const, render: (row: VideoRow) => <span className="tabular-nums text-text-secondary">{row.durationSeconds == null ? "-" : `${number(row.durationSeconds)} s`}</span> },
     { key: "hour", header: "Hora", render: (row: VideoRow) => <span className="whitespace-nowrap tabular-nums text-text-secondary">{hour(row.hour)}</span> },
     { key: "predictor", header: "Predictor", align: "right" as const, render: (row: VideoRow) => <span className="tabular-nums text-text-secondary">{number(row.predictorScore)}</span> },
     { key: "views", header: "Vistas", align: "right" as const, render: (row: VideoRow) => <span className="tabular-nums text-text-secondary">{number(row.views)}</span> },
@@ -72,20 +84,18 @@ function VideoTable({ title, rows, empty }: { title: string; rows: VideoRow[]; e
     </header>
     <DataTable
       label={title} columns={columns} rows={rows} getKey={row => row.key}
-      mobileRow={row => <div className="min-w-0 flex-1 py-2"><div className="flex items-start justify-between gap-3"><p className="min-w-0 truncate font-semibold text-text-primary">{row.title}</p><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 text-xs text-text-secondary">{[row.hookType, row.format, row.durationSeconds == null ? null : `${row.durationSeconds} s`, `${number(row.views)} vistas`].filter(Boolean).join(" · ")}</p></div>}
+      mobileRow={row => <div className="min-w-0 flex-1 py-2"><div className="flex items-start justify-between gap-3"><p className="min-w-0 truncate font-semibold text-text-primary">{row.title}</p><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "-" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 text-xs text-text-secondary">{[row.hookType, row.format, row.durationSeconds == null ? null : `${row.durationSeconds} s`, `${number(row.views)} vistas`].filter(Boolean).join(" · ")}</p></div>}
       empty={<EmptyState title={empty} body="Importa un CSV o PDF de Metricool, añade un video manual o tráelo desde el calendario." />}
     />
   </section>;
 }
 
-function AllVideosTable({ rows, onImport, onEdit, selectedIds, onToggle, onToggleAll, onClearSelection, onDelete, deleting, confirmingDelete }: {
+function AllVideosTable({ rows, onImport, onEdit, selectedIds, onToggle }: {
   rows: StoredVideo[]; onImport: () => void; onEdit: (video: StoredVideo) => void;
-  selectedIds: Set<string>; onToggle: (id: string, checked: boolean) => void; onToggleAll: (checked: boolean) => void;
-  onClearSelection: () => void; onDelete: () => void; deleting: boolean;
-  confirmingDelete: boolean;
+  selectedIds: Set<string>; onToggle: (id: string, checked: boolean) => void;
 }) {
   const columns = [
-    { key: "select", header: "", render: (row: StoredVideo) => <input type="checkbox" checked={selectedIds.has(row.id)} onChange={event => onToggle(row.id, event.target.checked)} aria-label={`Seleccionar ${row.title}`} className="size-4 accent-[#3545D6]" /> },
+    { key: "select", header: "", render: (row: StoredVideo) => <RowCheckbox checked={selectedIds.has(row.id)} onChange={checked => onToggle(row.id, checked)} label={`Seleccionar ${row.title}`} /> },
     { key: "title", header: "Video", render: (row: StoredVideo) => <button type="button" onClick={() => onEdit(row)} title="Editar" className="-mx-1 block max-w-[24rem] truncate rounded-control px-1 text-left font-medium text-text-primary hover:bg-nav-hover hover:underline">{row.title}</button> },
     { key: "date", header: "Fecha", render: (row: StoredVideo) => <span className="whitespace-nowrap tabular-nums text-text-secondary">{shortDate(row.publishedAt)}</span> },
     { key: "platform", header: "Plataforma", render: (row: StoredVideo) => <span className="text-text-secondary">{row.platform}</span> },
@@ -93,24 +103,42 @@ function AllVideosTable({ rows, onImport, onEdit, selectedIds, onToggle, onToggl
     { key: "views", header: "Vistas", align: "right" as const, render: (row: StoredVideo) => <span className="tabular-nums">{number(row.views)}</span> },
     { key: "shares", header: "Comp.", align: "right" as const, render: (row: StoredVideo) => <span className="tabular-nums">{number(row.shares)}</span> },
     { key: "saves", header: "Guard.", align: "right" as const, render: (row: StoredVideo) => <span className="tabular-nums">{number(row.saves)}</span> },
-    { key: "engagement", header: "Interacción", align: "right" as const, render: (row: StoredVideo) => <span className="font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span> },
+    { key: "engagement", header: "Interacción", align: "right" as const, render: (row: StoredVideo) => <span className="font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "-" : `${row.engagementPct.toFixed(2)} %`}</span> },
     { key: "actions", header: "", align: "right" as const, render: (row: StoredVideo) => <button type="button" onClick={() => onEdit(row)} aria-label={`Editar ${row.title}`} title="Editar" className="inline-flex size-9 items-center justify-center rounded-control text-text-secondary opacity-60 transition-opacity hover:bg-nav-hover hover:text-text-primary hover:opacity-100 focus-visible:opacity-100"><HugeiconsIcon icon={PencilEdit02Icon} size={16} /></button> },
   ];
-  const allSelected = rows.length > 0 && selectedIds.size === rows.length;
-  return <section className="mb-5 overflow-hidden rounded-surface border border-line bg-surface-elevated"><header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-line px-4 sm:px-5"><h2 className="text-base font-semibold text-text-primary">Videos registrados</h2>
-    {selectedIds.size > 0 ? (
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <span className="tabular-nums text-text-secondary">{selectedIds.size} de {rows.length} seleccionados</span>
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-text-secondary"><input type="checkbox" checked={allSelected} onChange={event => onToggleAll(event.target.checked)} className="size-4 accent-[#3545D6]" />Todos</label>
-        <button type="button" onClick={onClearSelection} className="min-h-9 rounded-control px-3 text-xs font-semibold text-text-secondary hover:bg-surface-sidebar">Limpiar</button>
-        {confirmingDelete
-          ? <button type="button" disabled={deleting} onClick={onDelete} className="crm-press min-h-9 rounded-control bg-danger px-3 text-xs font-semibold text-white disabled:opacity-50">{deleting ? "Eliminando…" : `Confirmar: eliminar ${selectedIds.size}`}</button>
-          : <button type="button" onClick={onDelete} className="crm-press min-h-9 rounded-control px-3 text-xs font-semibold text-danger hover:bg-danger-soft">Eliminar</button>}
-      </div>
-    ) : <Chip>{rows.length}</Chip>}</header><DataTable label="Videos registrados" rows={rows} columns={columns} getKey={row => row.id}
-    mobileRow={row => <div className="flex min-w-0 flex-1 items-start gap-3 py-2"><input type="checkbox" checked={selectedIds.has(row.id)} onChange={event => onToggle(row.id, event.target.checked)} aria-label={`Seleccionar ${row.title}`} className="mt-1 size-4 shrink-0 accent-[#3545D6]" /><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><button type="button" onClick={() => onEdit(row)} className="min-w-0 truncate text-left font-medium text-text-primary">{row.title}</button><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "—" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 truncate text-xs tabular-nums text-text-secondary">{[shortDate(row.publishedAt), row.platform, row.reach != null ? `${number(row.reach)} alcance` : null, row.views != null ? `${number(row.views)} vistas` : null].filter(Boolean).join(" · ")}</p></div></div>}
+  return <section className="mb-5 overflow-hidden rounded-surface border border-line bg-surface-elevated"><header className="flex min-h-14 items-center justify-between gap-3 border-b border-line px-4 sm:px-5"><h2 className="text-base font-semibold text-text-primary">Videos registrados</h2><Chip>{rows.length}</Chip></header><DataTable label="Videos registrados" rows={rows} columns={columns} getKey={row => row.id}
+    mobileRow={row => <div className="flex min-w-0 flex-1 items-start gap-2 py-2"><span className="mt-0.5 shrink-0"><RowCheckbox checked={selectedIds.has(row.id)} onChange={checked => onToggle(row.id, checked)} label={`Seleccionar ${row.title}`} /></span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><button type="button" onClick={() => onEdit(row)} className="min-w-0 truncate text-left font-medium text-text-primary">{row.title}</button><span className="shrink-0 font-semibold tabular-nums text-text-primary">{row.engagementPct == null ? "-" : `${row.engagementPct.toFixed(2)} %`}</span></div><p className="mt-1 truncate text-xs tabular-nums text-text-secondary">{shortDate(row.publishedAt)} · {row.platform}</p>{(row.reach != null || row.views != null) && <p className="truncate text-xs tabular-nums text-text-secondary">{[row.reach != null ? `${number(row.reach)} alcance` : null, row.views != null ? `${number(row.views)} vistas` : null].filter(Boolean).join(" · ")}</p>}</div></div>}
     empty={<EmptyState title="Aún no hay videos registrados" body="Importa un CSV o PDF de Metricool, añade uno manual o trae las piezas ya programadas del calendario." action={<button type="button" onClick={onImport} className="crm-press min-h-11 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground">Importar</button>} />}
   /></section>;
+}
+
+/** Barra flotante de selección: aparece al marcar filas y concentra las acciones de lote. */
+function SelectionBar({ count, total, allSelected, onToggleAll, onClear, onDelete, deleting, confirmingDelete }: {
+  count: number; total: number; allSelected: boolean;
+  onToggleAll: (checked: boolean) => void; onClear: () => void; onDelete: () => void;
+  deleting: boolean; confirmingDelete: boolean;
+}) {
+  return <div className="pointer-events-none fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-40 flex justify-center px-4 lg:bottom-6">
+    <div role="toolbar" aria-label="Acciones de selección" className="pointer-events-auto flex items-center gap-1 rounded-full border border-line bg-surface-elevated py-1.5 pl-3 pr-1.5 shadow-[0_8px_24px_rgba(11,11,24,0.16)]">
+      <label className="flex cursor-pointer items-center gap-2 pr-2 text-xs font-medium text-text-secondary">
+        <RowCheckbox checked={allSelected} onChange={onToggleAll} label="Seleccionar todos" />
+        <span className="tabular-nums">{count === total ? `${count} seleccionados` : `${count} de ${total}`}</span>
+      </label>
+      <span aria-hidden className="h-4 w-px bg-line" />
+      {confirmingDelete ? (
+        <button type="button" disabled={deleting} onClick={onDelete} className="crm-press min-h-8 rounded-full bg-danger px-3 text-xs font-semibold text-white transition-transform active:scale-[0.97] disabled:opacity-50">
+          {deleting ? "Eliminando…" : `Confirmar (${count})`}
+        </button>
+      ) : (
+        <button type="button" onClick={onDelete} className="crm-press min-h-8 rounded-full px-3 text-xs font-semibold text-danger transition-transform hover:bg-danger-soft active:scale-[0.97]">
+          Eliminar
+        </button>
+      )}
+      <button type="button" onClick={onClear} aria-label="Limpiar selección" title="Limpiar selección" className="flex size-8 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-sidebar hover:text-text-primary">
+        <HugeiconsIcon icon={Cancel01Icon} size={14} />
+      </button>
+    </div>
+  </div>;
 }
 
 const EMPTY_FORM = {
@@ -353,8 +381,9 @@ export default function VideosPage() {
       <div className="mb-5 flex flex-wrap gap-x-6 gap-y-1 text-sm text-text-secondary"><span><strong className="font-semibold tabular-nums text-text-primary">{summary?.total ?? 0}</strong> videos</span><span><strong className="font-semibold tabular-nums text-text-primary">{summary?.ranked ?? 0}</strong> con alcance medido</span></div>
       {deleteError && <p role="alert" className="mb-3 text-sm text-danger">{deleteError}</p>}
       <AllVideosTable rows={videos} onEdit={openForm} onImport={() => { setResult(null); setShowImport(true); }}
-        selectedIds={selectedIds} onToggle={toggleSelect} onToggleAll={toggleSelectAll} onClearSelection={clearSelection}
-        onDelete={requestBatchDelete} deleting={deleting} confirmingDelete={confirmingDelete} />
+        selectedIds={selectedIds} onToggle={toggleSelect} />
+      {selectedIds.size > 0 && <SelectionBar count={selectedIds.size} total={videos.length} allSelected={videos.length > 0 && selectedIds.size === videos.length}
+        onToggleAll={toggleSelectAll} onClear={clearSelection} onDelete={requestBatchDelete} deleting={deleting} confirmingDelete={confirmingDelete} />}
       <div className="space-y-5"><VideoTable title="Mejor 20 %" rows={withKeys(summary?.best ?? [], "best")} empty="Aún no hay videos destacados" /><VideoTable title="Peor 20 %" rows={withKeys(summary?.worst ?? [], "worst")} empty="Aún no hay videos para comparar" /></div>
       <p className="mt-4 text-xs text-text-secondary">Interacción = (compartidos + guardados) ÷ alcance. Las horas se muestran en UTC.</p>
     </>}
