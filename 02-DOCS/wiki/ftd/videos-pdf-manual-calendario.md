@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: videos-metricas-fase3
-status: in-progress
+status: done
+merged: 2026-11-15
+merged_by: Noeli
 ---
 
 # Videos: importar PDF de Metricool, alta manual y enlace al calendario
@@ -43,4 +45,4 @@ métricas predictoras automáticas.
 - (pendiente)
 
 ## Next
-Terminar checklist y reportar con evidencia; luego Noeli decide merge a main (PR o directo).
+Fusionado en main el 2026-11-15 (a13bbc5).
