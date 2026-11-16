@@ -36,6 +36,7 @@ import { Chip, DealIconBadge, DealIconPicker, PageHeader, RangeBar } from "@/src
 import { sendToNotion } from "@/src/lib/notion-client";
 import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
 import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
+import { effectiveDealValue } from "@/src/lib/deal-sales";
 import { LinkAppointmentDialog } from "@/src/components/LinkAppointmentDialog";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -178,6 +179,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
   // Value
   const [editingValue, setEditingValue] = useState(false);
+  const effectiveValue = effectiveDealValue({ value: deal.value ?? null, currency: deal.currency, quotes: deal.quotes ?? [] });
   const [valueInput, setValueInput] = useState(String(deal.value ?? ""));
   const [currency, setCurrency] = useState(deal.currency || "USD");
   const valueRef = useRef<HTMLInputElement>(null);
@@ -994,7 +996,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           )}
 
           {/* ── TAB: Cotizaciones ── */}
-          {activeTab === "cotizaciones" && <DealQuotesPanel dealId={deal.id} initialQuotes={deal.quotes ?? []} />}
+          {activeTab === "cotizaciones" && <DealQuotesPanel dealId={deal.id} initialQuotes={deal.quotes ?? []} onQuotesChange={(quotes) => setDeal((prev: any) => ({ ...prev, quotes }))} />}
 
           {/* ── TAB: Citas ── */}
           {activeTab === "citas" && (
@@ -1223,11 +1225,16 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => { setEditingValue(true); setValueInput(String(deal.value ?? "")); setTimeout(() => valueRef.current?.select(), 50); }}
+                      onClick={() => { setEditingValue(true); setValueInput(deal.value ? String(deal.value) : ""); setTimeout(() => valueRef.current?.select(), 50); }}
                       className="group/val flex h-8 min-h-0! min-w-0! items-center gap-1.5 text-sm font-semibold tabular-nums text-text-primary"
                       title="Editar valor"
                     >
-                      {fmt(deal.value, deal.currency)}
+                      {fmt(effectiveValue.amount, effectiveValue.currency)}
+                      {effectiveValue.source === "quotes" && (
+                        <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-[11px] font-semibold text-text-secondary" title="Suma de las cotizaciones aceptadas, parciales o pagadas. Escribe un valor para fijarlo a mano.">
+                          De cotizaciones
+                        </span>
+                      )}
                       <HugeiconsIcon icon={Edit01Icon} size={12} className="text-text-secondary opacity-0 transition-opacity group-hover/val:opacity-100" />
                     </button>
                   )}

@@ -1,5 +1,5 @@
 import { prisma } from "@/src/lib/db";
-import { summarizeWonSales, type WonSalesSummary } from "@/src/lib/deal-sales";
+import { effectiveDealValue, summarizeWonSales, type WonSalesSummary } from "@/src/lib/deal-sales";
 
 export type WonSalesReport = WonSalesSummary & {
   recent: { id: string; title: string; value: number; currency: string; wonAt: Date; quotes: string[] }[];
@@ -21,13 +21,16 @@ export async function loadWonSales(organizationId: string): Promise<WonSalesRepo
   });
   return {
     ...summarizeWonSales(deals),
-    recent: deals.slice(0, 5).map((deal) => ({
-      id: deal.id,
-      title: deal.title,
-      value: deal.value ?? 0,
-      currency: deal.currency,
-      wonAt: deal.updatedAt,
-      quotes: deal.quotes.map((quote) => quote.folio),
-    })),
+    recent: deals.slice(0, 5).map((deal) => {
+      const effective = effectiveDealValue(deal);
+      return {
+        id: deal.id,
+        title: deal.title,
+        value: effective.amount,
+        currency: effective.currency,
+        wonAt: deal.updatedAt,
+        quotes: deal.quotes.map((quote) => quote.folio),
+      };
+    }),
   };
 }

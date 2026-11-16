@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Cancel01Icon, Link01Icon } from "@hugeicons/core-free-icons";
@@ -18,8 +18,17 @@ const STATUS_TONE: Record<string, ChipTone> = { ACEPTADA: "done", PARCIAL: "hot"
 type Candidate = DealQuote & { clientName: string; deal: { id: string; title: string } | null };
 
 /** Cotizaciones de un lead: lista, crear una nueva desde el lead o vincular una existente. */
-export function DealQuotesPanel({ dealId, initialQuotes }: { dealId: string; initialQuotes: DealQuote[] }) {
+export function DealQuotesPanel({ dealId, initialQuotes, onQuotesChange }: { dealId: string; initialQuotes: DealQuote[]; onQuotesChange?: (quotes: DealQuote[]) => void }) {
   const [quotes, setQuotes] = useState<DealQuote[]>(initialQuotes);
+  // Avisa al lead cuando la lista cambia (no en el primer render) para que recalcule su valor.
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    onQuotesChange?.(quotes);
+  }, [quotes]); // eslint-disable-line react-hooks/exhaustive-deps
   const [pickerOpen, setPickerOpen] = useState(false);
   const [candidates, setCandidates] = useState<Candidate[] | null>(null);
   const [search, setSearch] = useState("");

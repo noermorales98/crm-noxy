@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error: node --test carga el .ts directo
-import { dealToQuotePrefill, formatByCurrency, summarizeWonSales } from "./deal-sales.ts";
+import { dealToQuotePrefill, effectiveDealValue, formatByCurrency, summarizeWonSales } from "./deal-sales.ts";
 
 test("formatByCurrency lists each currency or says there is nothing", () => {
   assert.equal(formatByCurrency({ USD: 3000, MXN: 5000.5 }), "USD $3,000 | MXN $5,000.5");
@@ -49,4 +49,43 @@ test("summarizeWonSales groups value by currency, splits month vs total and coun
   assert.equal(summary.withoutQuote, 1);
   assert.deepEqual(summary.quotedByCurrency, { USD: 3480 }, "only accepted/partial/paid quotes count");
   assert.deepEqual(summary.paidByCurrency, { USD: 1160 });
+});
+
+const q = (status: string, total: number, currency = "MXN") => ({ status, total, currency });
+
+test("effectiveDealValue: el valor capturado a mano manda sobre las cotizaciones", () => {
+  assert.deepEqual(effectiveDealValue({ value: 5000, currency: "MXN", quotes: [q("PAGADA", 20000)] }), { amount: 5000, currency: "MXN", source: "manual" });
+});
+
+test("effectiveDealValue: sin valor suma las cotizaciones aceptadas, parciales y pagadas", () => {
+  const quotes = [q("ACEPTADA", 10000), q("PARCIAL", 5000), q("PAGADA", 2500), q("BORRADOR", 99999), q("RECHAZADA", 777), q("VENCIDA", 123)];
+  assert.deepEqual(effectiveDealValue({ value: null, currency: "MXN", quotes }), { amount: 17500, currency: "MXN", source: "quotes" });
+});
+
+test("effectiveDealValue: un valor en 0 cuenta como vacío", () => {
+  assert.equal(effectiveDealValue({ value: 0, currency: "MXN", quotes: [q("ACEPTADA", 800)] }).amount, 800);
+});
+
+test("effectiveDealValue: sin cotizaciones que cuenten no inventa valor", () => {
+  assert.deepEqual(effectiveDealValue({ value: null, currency: "USD", quotes: [q("BORRADOR", 500)] }), { amount: 0, currency: "USD", source: "none" });
+  assert.deepEqual(effectiveDealValue({ value: null, currency: "USD", quotes: [] }), { amount: 0, currency: "USD", source: "none" });
+});
+
+test("effectiveDealValue: no mezcla monedas; prefiere la del lead", () => {
+  const quotes = [q("ACEPTADA", 1000, "USD"), q("ACEPTADA", 20000, "MXN")];
+  assert.deepEqual(effectiveDealValue({ value: null, currency: "MXN", quotes }), { amount: 20000, currency: "MXN", source: "quotes" });
+  assert.deepEqual(effectiveDealValue({ value: null, currency: "EUR", quotes }), { amount: 1000, currency: "USD", source: "quotes" });
+});
+
+test("summarizeWonSales usa el valor calculado cuando el lead no tiene valor", () => {
+  const now = new Date("2026-11-15T12:00:00Z");
+  const summary = summarizeWonSales(
+    [
+      { value: null, currency: "MXN", updatedAt: new Date("2026-11-10T00:00:00Z"), quotes: [q("PARCIAL", 6000)] },
+      { value: 4000, currency: "MXN", updatedAt: new Date("2026-11-11T00:00:00Z"), quotes: [] },
+    ],
+    now,
+  );
+  assert.deepEqual(summary.total.byCurrency, { MXN: 10000 });
+  assert.deepEqual(summary.month.byCurrency, { MXN: 10000 });
 });
