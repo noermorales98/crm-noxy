@@ -1,3 +1,4 @@
+import { effectiveDealValue } from "@/src/lib/deal-sales";
 import { NextResponse, after } from "next/server";
 import { ensureDeliveryReferrals, ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
@@ -33,6 +34,7 @@ export async function GET() {
                   take: 1,
                   select: { createdAt: true, type: true },
                 },
+                quotes: { select: { status: true, total: true, currency: true } },
               },
             },
           },
@@ -40,7 +42,19 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(pipelines);
+    // El tablero muestra el valor efectivo: el fijado a mano o, si no hay, el de sus cotizaciones.
+    const withEffectiveValue = pipelines.map((pipeline) => ({
+      ...pipeline,
+      stages: pipeline.stages.map((stage) => ({
+        ...stage,
+        deals: stage.deals.map(({ quotes, ...deal }) => {
+          const effective = effectiveDealValue({ value: deal.value, currency: deal.currency, quotes });
+          return { ...deal, value: effective.amount, currency: effective.currency, valueSource: effective.source };
+        }),
+      })),
+    }));
+
+    return NextResponse.json(withEffectiveValue);
   } catch (error) {
     console.error("GET /api/deals error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

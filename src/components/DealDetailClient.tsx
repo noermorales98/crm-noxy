@@ -180,6 +180,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   // Value
   const [editingValue, setEditingValue] = useState(false);
   const effectiveValue = effectiveDealValue({ value: deal.value ?? null, currency: deal.currency, quotes: deal.quotes ?? [] });
+  const quotesValue = effectiveDealValue({ value: null, currency: deal.currency, quotes: deal.quotes ?? [] });
   const [valueInput, setValueInput] = useState(String(deal.value ?? ""));
   const [currency, setCurrency] = useState(deal.currency || "USD");
   const valueRef = useRef<HTMLInputElement>(null);
@@ -477,6 +478,15 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
   }
 
   // ─── Value ───────────────────────────────────────────────────────────────
+
+  /** Fija como valor del lead el total de sus cotizaciones (aceptadas, parciales o pagadas). */
+  async function pinQuotesValue() {
+    if (quotesValue.amount <= 0) return;
+    await patchDeal({ value: quotesValue.amount, currency: quotesValue.currency });
+    setDeal((prev: any) => ({ ...prev, value: quotesValue.amount, currency: quotesValue.currency }));
+    setCurrency(quotesValue.currency);
+    setEditingValue(false);
+  }
 
   async function saveValue() {
     const val = parseFloat(valueInput) || 0;
@@ -1221,6 +1231,11 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       <button type="button" onClick={saveValue} aria-label="Guardar valor" className="flex size-6 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary hover:bg-nav-hover hover:text-text-primary">
                         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
                       </button>
+                      {quotesValue.amount > 0 && (
+                        <button type="button" onClick={pinQuotesValue} title="Guardar como valor del lead el total de sus cotizaciones" className="ml-1 h-6 min-h-0! min-w-0! shrink-0 rounded-control px-2 text-xs font-semibold text-action-primary hover:bg-nav-hover">
+                          Usar cotizaciones ({fmt(quotesValue.amount, quotesValue.currency)})
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <button
@@ -1236,6 +1251,11 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         </span>
                       )}
                       <HugeiconsIcon icon={Edit01Icon} size={12} className="text-text-secondary opacity-0 transition-opacity group-hover/val:opacity-100" />
+                    </button>
+                  )}
+                  {!editingValue && effectiveValue.source === "quotes" && (
+                    <button type="button" onClick={pinQuotesValue} title="Dejar este valor fijo en el lead (ya no cambiará si cambian las cotizaciones)" className="ml-2 h-6 min-h-0! min-w-0! rounded-control border border-line px-2 text-xs font-semibold text-text-primary hover:bg-nav-hover">
+                      Fijar
                     </button>
                   )}
                 </dd>
