@@ -353,9 +353,10 @@ export function describeAiError(message: string | null | undefined): { status: n
   const status = Number(/Error de IA:\s*(\d{3})/.exec(text)?.[1]);
   if (status === 401 || status === 403) return { status: 502, message: "El proveedor de IA rechazó la clave del CRM. Revisa la clave en la configuración." };
   if (status === 402) return { status: 502, message: "La cuenta del proveedor de IA no tiene créditos." };
-  if (status === 404) return { status: 502, message: "El modelo de IA elegido no está disponible. Prueba con otro en Ajustes › Modelos de IA." };
+  if (status === 404 || status === 410) return { status: 502, message: "Ese modelo de IA ya no está disponible (fue retirado por el proveedor). Elige otro de la lista." };
   if (status === 429) return { status: 503, message: "El proveedor de IA está saturado en este momento. Espera un minuto e inténtalo de nuevo." };
   if (status >= 500) return { status: 503, message: "El proveedor de IA no respondió bien. Inténtalo de nuevo en un momento." };
+  if (text.includes("sin espacio para responder")) return { status: 502, message: "El modelo gastó todo su límite razonando y no alcanzó a responder. Prueba con otro modelo (uno más rápido) o vuelve a intentar." };
   if (text.includes("no generó contenido")) return { status: 502, message: "La IA no devolvió nada. Inténtalo de nuevo." };
   return { status: 502, message: "La IA no pudo generar sugerencias. Inténtalo de nuevo." };
 }

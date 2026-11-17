@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { completeWithAi, getAvailableAiModels, resolveRequestedModelId } from "@/src/lib/ai-completion";
+import { listNvidiaModelIds } from "@/src/lib/ai-keys";
+import { isNvidiaChatModelId, providerModelName, providerOfModelId } from "@/src/lib/ai-provider";
 import { prisma } from "@/src/lib/db";
 import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
 import { utcToZonedParts } from "@/src/lib/manual-appointment";
@@ -57,7 +59,14 @@ export async function generateSuggestions(
   const chosenModelId = requestedModelId?.trim() || null;
   if (chosenModelId) {
     const available = await getAvailableAiModels(organizationId);
-    if (!available.some((m) => m.id === chosenModelId)) return { ok: false, status: 400, message: "Ese modelo de IA no está disponible. Elige otro de la lista." };
+    let allowed = available.some((m) => m.id === chosenModelId);
+    // Un modelo de NVIDIA vigente hoy en su lista también vale aunque no esté en el catálogo del CRM.
+    if (!allowed && providerOfModelId(chosenModelId) === "nvidia") {
+      const live = await listNvidiaModelIds(organizationId);
+      const name = providerModelName(chosenModelId);
+      allowed = Boolean(live?.includes(name)) && isNvidiaChatModelId(name);
+    }
+    if (!allowed) return { ok: false, status: 400, message: "Ese modelo de IA no está disponible. Elige otro de la lista." };
   }
   if (generating.has(appointmentId)) return { ok: false, status: 409, message: "Ya se están generando sugerencias para esta cita. Espera a que termine." };
   const recent = Math.max(lastSuccess.get(appointmentId) ?? 0, known[0]?.createdAt.getTime() ?? 0);
@@ -89,7 +98,7 @@ export async function generateSuggestions(
   let raw: string;
   try {
     const modelId = chosenModelId ?? (await resolveRequestedModelId(organizationId, userId, null));
-    raw = await completeWithAi({ orgId: organizationId, modelId, systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 1800, maxOutputChars: 9000 });
+    raw = await completeWithAi({ orgId: organizationId, modelId, systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 8000, maxOutputChars: 9000 });
   } catch (error) {
     // La causa real queda en el log del servidor; al usuario se le da una explicación entendible, sin texto del proveedor.
     console.error("[suggestions] fallo de la IA:", error instanceof Error ? error.message : error);

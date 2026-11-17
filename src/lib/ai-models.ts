@@ -190,16 +190,33 @@ export const AI_MODELS: AiModel[] = [
     tags: ["Sin filtros"],
   },
 
-  // ── NVIDIA (build.nvidia.com; usa NVIDIA_API_KEY) ─────────────────────────
-  // El id lleva el prefijo `nvidia:` para distinguirlo de OpenRouter. Se pueden añadir más en Ajustes › Modelos de IA
-  // con ese mismo prefijo (p. ej. `nvidia:meta/llama-3.3-70b-instruct`).
+  // ── NVIDIA (build.nvidia.com; la clave se guarda en Ajustes › Modelos de IA) ──
+  // El id lleva el prefijo `nvidia:` para distinguirlo de OpenRouter. Los modelos de NVIDIA se retiran con frecuencia
+  // (el DeepSeek V4.1 Flash dejó de existir el 2026-11-16): al elegir modelo, el CRM lee la lista vigente de NVIDIA y
+  // oculta de aquí los que ya no existan. Probados con una llamada real el 2026-11-17.
   {
-    id: "nvidia:deepseek-ai/deepseek-v4.1-flash",
-    name: "DeepSeek V4.1 Flash",
+    id: "nvidia:nvidia/nemotron-3-ultra-550b-a55b",
+    name: "Nemotron 3 Ultra 550B",
     provider: "nvidia",
     group: "NVIDIA",
-    description: "Rápido; gratis con tu clave de NVIDIA",
+    description: "Muy potente; gratis con tu clave de NVIDIA",
+    tags: ["Potente"],
+  },
+  {
+    id: "nvidia:nvidia/nemotron-3.5-lightning-30b-a3b",
+    name: "Nemotron 3.5 Lightning 30B",
+    provider: "nvidia",
+    group: "NVIDIA",
+    description: "Muy rápido; gratis con tu clave de NVIDIA",
     tags: ["Rápido"],
+  },
+  {
+    id: "nvidia:mistralai/mistral-large-4-1t-a52b",
+    name: "Mistral Large 4",
+    provider: "nvidia",
+    group: "NVIDIA",
+    description: "Uso general; gratis con tu clave de NVIDIA",
+    tags: ["General"],
   },
 ];
 

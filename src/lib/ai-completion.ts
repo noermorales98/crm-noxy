@@ -110,10 +110,11 @@ async function completeChat(
       throw new Error(lastError);
     }
 
-    const data = (await res.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[] };
+    const data = (await res.json().catch(() => ({}))) as { choices?: { message?: { content?: string | null }; finish_reason?: string }[] };
     const message = data.choices?.[0]?.message?.content?.trim();
     if (!message) {
-      lastError = "La IA no generó contenido";
+      // Los modelos que razonan gastan tokens «pensando»: si se agota el límite, la respuesta llega vacía.
+      lastError = data.choices?.[0]?.finish_reason === "length" ? "La IA se quedó sin espacio para responder" : "La IA no generó contenido";
       if (i < keys.length - 1) continue;
       throw new Error(lastError);
     }

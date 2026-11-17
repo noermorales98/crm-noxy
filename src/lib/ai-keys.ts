@@ -46,6 +46,7 @@ export async function describeProviderKeys(organizationId: string): Promise<Prov
 
 export async function saveProviderKey(organizationId: string, provider: ChatProvider, key: string): Promise<void> {
   const apiKey = encryptSecret(key, appSecretKey());
+  forgetNvidiaModels(organizationId);
   await prisma.aiProviderKey.upsert({
     where: { organizationId_provider: { organizationId, provider } },
     create: { organizationId, provider, apiKey },
@@ -54,6 +55,7 @@ export async function saveProviderKey(organizationId: string, provider: ChatProv
 }
 
 export async function deleteProviderKey(organizationId: string, provider: ChatProvider): Promise<void> {
+  forgetNvidiaModels(organizationId);
   await prisma.aiProviderKey.deleteMany({ where: { organizationId, provider } });
 }
 
@@ -70,3 +72,34 @@ export async function checkNvidiaKey(key: string): Promise<"valid" | "invalid" |
     return "unreachable";
   }
 }
+
+const MODELS_TTL_MS = 10 * 60_000;
+const modelsCache = new Map<string, { at: number; ids: string[] }>();
+
+/**
+ * Ids de los modelos que NVIDIA ofrece HOY con la clave de la organización (sin prefijo), o `null` si no hay clave o no se
+ * pudo consultar. Se guarda 10 minutos para no pedirla en cada carga de pantalla. Nunca devuelve la clave.
+ */
+export async function listNvidiaModelIds(organizationId: string): Promise<string[] | null> {
+  const cached = modelsCache.get(organizationId);
+  if (cached && Date.now() - cached.at < MODELS_TTL_MS) return cached.ids;
+  const { keys } = await resolveProviderKeys(organizationId, "nvidia");
+  if (!keys.length) return null;
+  try {
+    const res = await fetch("https://integrate.api.nvidia.com/v1/models", {
+      headers: { Authorization: `Bearer ${keys[0]}`, Accept: "application/json" },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json().catch(() => null)) as { data?: { id?: unknown }[] } | null;
+    const ids = (body?.data ?? []).map((m) => m.id).filter((id): id is string => typeof id === "string");
+    if (!ids.length) return null;
+    modelsCache.set(organizationId, { at: Date.now(), ids });
+    return ids;
+  } catch {
+    return null;
+  }
+}
+
+/** Al guardar o quitar la clave, la lista guardada ya no vale. */
+export const forgetNvidiaModels = (organizationId: string) => void modelsCache.delete(organizationId);

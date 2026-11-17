@@ -54,3 +54,26 @@ export function parseProviderApiKey(provider: ChatProvider, input: unknown): { o
 
 /** De dónde sale la clave en uso: la guardada en la base (tiene prioridad), la variable de entorno del servidor, o ninguna. */
 export type KeySource = "db" | "env" | "none";
+
+/** ¿Es un modelo de chat? La lista de NVIDIA incluye también modelos de embeddings, reordenado, seguridad, visión, etc. */
+export const isNvidiaChatModelId = (id: string): boolean =>
+  /\//.test(id) && !/(embed|rerank|guard|clip|parse|safety|reward|retriev|nvclip|-vl\b|vision|ocr|asr|tts|riva|pii|detector|calibration|cosmos|synthetic|video|image|diffusion|audio|speech|molmim|genmol|diffdock)/i.test(id);
+
+type ListedModel = { id: string; name: string; group: string; provider: string; configured: boolean };
+
+/**
+ * Lista vigente de modelos de NVIDIA (ids tal como los devuelve su API, sin prefijo) mezclada con el catálogo del CRM:
+ * los de NVIDIA del catálogo que ya no existan se quitan, y los vigentes que el catálogo no tenga se añaden al final.
+ * Los modelos de otros proveedores no se tocan.
+ */
+export function mergeNvidiaModels(catalog: ListedModel[], liveIds: string[]): ListedModel[] {
+  const live = new Set(liveIds.filter(isNvidiaChatModelId));
+  const kept = catalog.filter((m) => m.provider !== "nvidia" || live.has(providerModelName(m.id)));
+  const have = new Set(kept.map((m) => m.id));
+  const extra = [...live]
+    .map((id) => `${NVIDIA_PREFIX}${id}`)
+    .filter((id) => !have.has(id))
+    .sort()
+    .map((id) => ({ id, name: providerModelName(id).split("/").pop() ?? id, group: "NVIDIA (disponibles ahora)", provider: "nvidia", configured: true }));
+  return [...kept, ...extra];
+}

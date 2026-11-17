@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error: node --test carga el .ts directo
-import { CHAT_ENDPOINTS, missingKeyMessage, providerHeaders, providerKeys, providerModelName, parseProviderApiKey, providerOfModelId, shouldTryNextKey } from "./ai-provider.ts";
+import { CHAT_ENDPOINTS, isNvidiaChatModelId, mergeNvidiaModels, missingKeyMessage, providerHeaders, providerKeys, providerModelName, parseProviderApiKey, providerOfModelId, shouldTryNextKey } from "./ai-provider.ts";
 
 test("el prefijo nvidia: manda el modelo a NVIDIA y se quita antes de enviarlo; lo demás es OpenRouter", () => {
   assert.equal(providerOfModelId("nvidia:deepseek-ai/deepseek-v4.1-flash"), "nvidia");
@@ -57,4 +57,27 @@ test("clave de NVIDIA: forma válida, recorte de espacios y errores claros", () 
   assert.equal(parseProviderApiKey("nvidia", "nvapi-corta").ok, false);
   assert.equal(parseProviderApiKey("nvidia", "nvapi-abcdefghij klmnopqrst").ok, false, "con espacios en medio no");
   assert.equal(parseProviderApiKey("nvidia", `nvapi-${"a".repeat(600)}`).ok, false);
+});
+
+test("lista de NVIDIA: solo modelos de chat, no embeddings, reordenado, seguridad ni visión", () => {
+  assert.equal(isNvidiaChatModelId("nvidia/nemotron-3-ultra-550b-a55b"), true);
+  assert.equal(isNvidiaChatModelId("mistralai/mistral-large-4-1t-a52b"), true);
+  for (const id of ["nvidia/nv-embed-v1", "nvidia/rerank-qa-mistral-4b", "nvidia/llama-guard-4", "nvidia/nvclip", "meta/llama-3.2-11b-vision-instruct", "sin-barra", "nvidia/ai-synthetic-video-detector", "nvidia/cosmos-reason2-8b", "nvidia/ising-calibration-1.5-31b"]) {
+    assert.equal(isNvidiaChatModelId(id), false, id);
+  }
+});
+
+const cat = (id: string, provider = "nvidia") => ({ id, name: id, group: provider === "nvidia" ? "NVIDIA" : "Otros", provider, configured: true });
+
+test("mezcla con la lista vigente: quita del catálogo los retirados, añade los nuevos y no toca otros proveedores", () => {
+  const catalog = [cat("nvidia:deepseek-ai/deepseek-v4.1-flash"), cat("nvidia:mistralai/mistral-large-4-1t-a52b"), cat("google/gemma-4-31b-it:free", "openrouter")];
+  const out = mergeNvidiaModels(catalog, ["mistralai/mistral-large-4-1t-a52b", "google/gemma-4-31b-it", "nvidia/nv-embed-v1"]);
+  const ids = out.map((m: { id: string }) => m.id);
+  assert.ok(!ids.includes("nvidia:deepseek-ai/deepseek-v4.1-flash"), "el retirado desaparece");
+  assert.ok(ids.includes("nvidia:mistralai/mistral-large-4-1t-a52b"));
+  assert.ok(ids.includes("google/gemma-4-31b-it:free"), "OpenRouter intacto");
+  assert.ok(ids.includes("nvidia:google/gemma-4-31b-it"), "el vigente nuevo se añade con prefijo");
+  assert.ok(!ids.some((i: string) => i.includes("nv-embed")), "los que no son de chat no entran");
+  assert.equal(out.find((m: { id: string }) => m.id === "nvidia:google/gemma-4-31b-it")?.name, "gemma-4-31b-it");
+  assert.equal(out.filter((m: { id: string }) => m.id === "nvidia:mistralai/mistral-large-4-1t-a52b").length, 1, "sin duplicados");
 });

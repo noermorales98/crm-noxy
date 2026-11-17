@@ -247,12 +247,14 @@ test("fallos de la IA: causa entendible, sin texto del proveedor y sin confundir
   assert.match(describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message, /rechazó la clave/);
   assert.ok(!describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message.includes("SECRETO"));
   assert.match(describeAiError("Error de IA: 402 sin créditos").message, /créditos/);
-  assert.match(describeAiError("Error de IA: 404 model not found").message, /no está disponible/);
+  assert.match(describeAiError("Error de IA: 404 model not found").message, /ya no está disponible/);
+  assert.match(describeAiError("Error de IA: 410 Gone end of life").message, /retirado/);
   const limited = describeAiError("Error de IA: 429 rate limited upstream");
   assert.notEqual(limited.status, 429, "el 429 del proveedor no se devuelve como 429 para no confundirlo con la espera de la cita");
   assert.match(limited.message, /saturado/);
   assert.equal(describeAiError("Error de IA: 503 boom").status, 503);
   assert.match(describeAiError("La IA no generó contenido").message, /no devolvió nada/);
+  assert.match(describeAiError("La IA se quedó sin espacio para responder").message, /razonando/);
   assert.match(describeAiError(null).message, /no pudo generar/);
   assert.match(describeAiError("algo raro").message, /no pudo generar/);
 });
