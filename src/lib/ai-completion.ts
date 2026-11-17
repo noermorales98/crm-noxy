@@ -1,5 +1,15 @@
 import { AI_MODELS, DEFAULT_MODEL_ID, getModelById, normalizeModelId, type AiModel } from "@/src/lib/ai-models";
 import { prisma } from "@/src/lib/db";
+import { resolveProviderKeys } from "@/src/lib/ai-keys";
+import {
+  CHAT_ENDPOINTS,
+  missingKeyMessage,
+  providerHeaders,
+  providerModelName,
+  providerOfModelId,
+  shouldTryNextKey,
+  type ChatProvider,
+} from "@/src/lib/ai-provider";
 
 export async function getAvailableAiModels(orgId: string): Promise<AiModel[]> {
   const [customs, org] = await Promise.all([
@@ -24,7 +34,7 @@ export async function getAvailableAiModels(orgId: string): Promise<AiModel[]> {
   const customModels: AiModel[] = customs.map((m) => ({
     id: m.modelId,
     name: m.name,
-    provider: "openrouter",
+    provider: providerOfModelId(m.modelId),
     group: m.group || "Personalizados",
     description: m.description || "",
     tags: JSON.parse(m.tags || "[]"),
@@ -54,19 +64,26 @@ export async function resolveRequestedModelId(
   return normalizeModelId(schedule?.aiModelId);
 }
 
-async function completeOpenRouter(
-  modelId: string,
+/** Un proveedor colgado no deja la petición abierta: por debajo del límite de 60 s de las rutas. */
+const CALL_TIMEOUT_MS = 50_000;
+
+/**
+ * Una petición de completado al proveedor del modelo (OpenRouter o NVIDIA, ambos con interfaz compatible con OpenAI).
+ * Con varias cuentas (OpenRouter admite dos) se prueba la siguiente si la primera falla por clave, créditos, límite o servidor.
+ * Errores con el formato «Error de IA: <estado> …» para que `describeAiError` los explique sin mostrar el texto del proveedor.
+ */
+async function completeChat(
+  provider: ChatProvider,
+  keys: string[],
+  modelName: string,
   systemPrompt: string,
   userPrompt: string,
-  maxTokens = 600
+  maxTokens = 600,
 ): Promise<string> {
-  const primaryKey = process.env.OPENROUTER_API_KEY;
-  const secondaryKey = process.env.OPENROUTER_API_KEY_SECONDARY;
-  const keys = [primaryKey, secondaryKey].filter(Boolean) as string[];
-  if (keys.length === 0) throw new Error("OPENROUTER_API_KEY no configurada");
+  if (keys.length === 0) throw new Error(missingKeyMessage(provider));
 
   const body = JSON.stringify({
-    model: modelId,
+    model: modelName,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -75,29 +92,31 @@ async function completeOpenRouter(
     max_tokens: maxTokens,
   });
 
-  let lastError = "Error de OpenRouter";
-  for (const apiKey of keys) {
-    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://noxthy.co",
-        "X-Title": "CRM Noxy",
-      },
-      body,
-    });
+  let lastError = "Error de IA";
+  for (let i = 0; i < keys.length; i++) {
+    let res: Response;
+    try {
+      res = await fetch(CHAT_ENDPOINTS[provider], { method: "POST", headers: providerHeaders(provider, keys[i]), body, signal: AbortSignal.timeout(CALL_TIMEOUT_MS) });
+    } catch {
+      lastError = "Error de IA: 503 sin conexión con el proveedor";
+      if (i < keys.length - 1) continue;
+      throw new Error(lastError);
+    }
 
     if (!res.ok) {
       const err = await res.text().catch(() => "");
       lastError = `Error de IA: ${res.status} ${err.slice(0, 200)}`;
-      if (res.status === 429 && keys.length > 1) continue;
+      if (shouldTryNextKey(res.status) && i < keys.length - 1) continue;
       throw new Error(lastError);
     }
 
-    const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    const data = (await res.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[] };
     const message = data.choices?.[0]?.message?.content?.trim();
-    if (!message) throw new Error("La IA no generó contenido");
+    if (!message) {
+      lastError = "La IA no generó contenido";
+      if (i < keys.length - 1) continue;
+      throw new Error(lastError);
+    }
     return message;
   }
 
@@ -113,8 +132,12 @@ export async function completeWithAi(options: {
   maxOutputChars?: number;
 }): Promise<string> {
   const model = await resolveAiModelForOrg(options.orgId, options.modelId);
-  const text = await completeOpenRouter(
-    model.id,
+  const provider = providerOfModelId(model.id);
+  const { keys } = await resolveProviderKeys(options.orgId, provider);
+  const text = await completeChat(
+    provider,
+    keys,
+    providerModelName(model.id),
     options.systemPrompt,
     options.userPrompt,
     options.maxTokens,

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AI_MODELS } from "@/src/lib/ai-models";
 import { useHeader } from "@/src/context/HeaderContext";
 import { PageHeader } from "@/src/components/ui";
+import { AiProviderKeys } from "@/src/components/settings/AiProviderKeys";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Cancel01Icon, Delete02Icon, PencilEdit01Icon, ReloadIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 
@@ -170,6 +171,8 @@ export default function AiModelsPage() {
             </button>
           }
         />
+
+        <AiProviderKeys />
 
         {/* Add / Edit form */}
         {showForm && (

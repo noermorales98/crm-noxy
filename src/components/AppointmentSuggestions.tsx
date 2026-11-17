@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chip, type ChipTone } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
+import { input as inputCls } from "@/src/lib/crm-ui";
 
 type Suggestion = {
   id: string;
@@ -22,6 +23,25 @@ const smallBtn =
 const primaryBtn =
   "crm-press inline-flex min-h-11 items-center rounded-control bg-action-primary px-4 text-xs font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-9";
 
+type ModelOption = { id: string; name: string; group: string; provider: string; configured: boolean };
+const MODEL_STORAGE_KEY = "noxy.suggestions.model";
+
+const readStoredModel = () => {
+  try {
+    return localStorage.getItem(MODEL_STORAGE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+const storeModel = (id: string) => {
+  try {
+    if (id) localStorage.setItem(MODEL_STORAGE_KEY, id);
+    else localStorage.removeItem(MODEL_STORAGE_KEY);
+  } catch {
+    // sin almacenamiento: el modelo elegido solo dura esta visita
+  }
+};
+
 const text = (value: unknown) => (typeof value === "string" && value ? value : null);
 
 function facts(s: Suggestion): string[] {
@@ -38,6 +58,10 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
   const [items, setItems] = useState<Suggestion[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [models, setModels] = useState<ModelOption[]>([]);
+  const [modelId, setModelId] = useState("");
+  // Fallo de la IA que se puede resolver cambiando de modelo: se muestra con el motivo y un botón para reintentar.
+  const [failure, setFailure] = useState<string | null>(null);
   const inFlight = useRef(false); // un doble clic rápido no envía dos veces
   const loadSeq = useRef(0); // una carga vieja no pisa a una más reciente
 
@@ -61,15 +85,48 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     void load();
   }, [load]);
 
+  // Modelos disponibles para elegir; si el recordado ya no existe (se ocultó o se quitó), se vuelve al predeterminado.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/ai/models")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list: ModelOption[]) => {
+        if (cancelled || !Array.isArray(list)) return;
+        setModels(list);
+        const stored = readStoredModel();
+        setModelId(list.some((m) => m.id === stored) ? stored : "");
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const chooseModel = (id: string) => {
+    setModelId(id);
+    storeModel(id);
+  };
+
   const generate = async () => {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy("generate");
+    setFailure(null);
     try {
-      const res = await fetch(`/api/appointments/${appointmentId}/suggestions`, { method: "POST" });
+      const res = await fetch(`/api/appointments/${appointmentId}/suggestions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(modelId ? { modelId } : {}),
+      });
       const data = (await res.json().catch(() => ({}))) as { error?: string; created?: number; total?: number };
-      if (!res.ok) addToast(data.error ?? "No se pudieron generar sugerencias.", "error");
-      else addToast(data.created ? `${data.created} sugerencias nuevas.` : data.total ? "No hay sugerencias nuevas: la IA repitió las que ya tienes." : "La IA no encontró nada que sugerir en las notas.", "success");
+      if (!res.ok) {
+        const message = data.error ?? "No se pudieron generar sugerencias.";
+        // Un fallo del proveedor o del modelo (502/503) se resuelve cambiando de modelo: queda a la vista con el motivo.
+        if (res.status === 502 || res.status === 503) setFailure(message);
+        else addToast(message, "error");
+      } else {
+        addToast(data.created ? `${data.created} sugerencias nuevas.` : data.total ? "No hay sugerencias nuevas: la IA repitió las que ya tienes." : "La IA no encontró nada que sugerir en las notas.", "success");
+      }
       await load();
     } catch {
       addToast("Error de red.", "error");
@@ -109,6 +166,39 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
         </button>
       </header>
       <p className="text-xs text-text-secondary">La IA lee las notas de esta cita y propone acciones. No se crea nada hasta que tú lo agregues.</p>
+
+      {models.length > 0 && (
+        <label className="flex flex-col gap-1 text-xs font-semibold text-text-primary sm:max-w-sm">
+          Modelo de IA
+          <select value={modelId} onChange={(e) => chooseModel(e.target.value)} disabled={busy === "generate"} className={`${inputCls} font-normal`}>
+            <option value="">Predeterminado (el de tu resumen diario)</option>
+            {Array.from(new Set(models.map((m) => m.group))).map((group) => (
+              <optgroup key={group} label={group}>
+                {models
+                  .filter((m) => m.group === group)
+                  .map((m) => (
+                    <option key={m.id} value={m.id} disabled={!m.configured}>
+                      {m.name}
+                      {m.configured ? "" : " — sin clave configurada"}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {failure && (
+        <div role="alert" className="space-y-2 rounded-control border border-danger/40 bg-danger-soft p-3 text-sm text-danger">
+          <p>{failure}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs">Prueba con otro modelo de la lista y vuelve a intentar.</span>
+            <button type="button" className={smallBtn} onClick={generate} disabled={busy === "generate"}>
+              Reintentar con este modelo
+            </button>
+          </div>
+        </div>
+      )}
 
       {items === null ? (
         <p className="text-sm text-text-secondary">Cargando…</p>

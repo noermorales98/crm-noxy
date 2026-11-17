@@ -348,6 +348,7 @@ export function planAcceptance(
  */
 export function describeAiError(message: string | null | undefined): { status: number; message: string } {
   const text = message ?? "";
+  if (text.includes("NVIDIA_API_KEY")) return { status: 503, message: "Este modelo usa NVIDIA y aún no hay una clave. Agrégala en Ajustes › Modelos de IA o elige otro modelo." };
   if (text.includes("OPENROUTER_API_KEY")) return { status: 503, message: "La IA no está configurada en este CRM (falta la clave del proveedor)." };
   const status = Number(/Error de IA:\s*(\d{3})/.exec(text)?.[1]);
   if (status === 401 || status === 403) return { status: 502, message: "El proveedor de IA rechazó la clave del CRM. Revisa la clave en la configuración." };

@@ -23,13 +23,16 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
 }
 
 /** «Generar sugerencias»: la IA lee las notas de la cita y propone acciones. No crea nada en el CRM. */
-export async function POST(_req: Request, context: { params: Promise<{ id: string }> }) {
+export async function POST(req: Request, context: { params: Promise<{ id: string }> }) {
   const access = await scope();
   if (!access) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // Generar gasta créditos de IA: lo mismo que el asistente, solo con su permiso (el dueño y los administradores siempre lo tienen).
   if (!access.canUseAi) return NextResponse.json({ error: "No tienes permiso para usar la IA. Pídeselo a un administrador." }, { status: 403 });
   const { id } = await context.params;
-  const result = await generateSuggestions(access.organizationId, access.userId, id);
+  // Cuerpo opcional: `{ modelId }` para generar con un modelo concreto en vez del predeterminado.
+  const body = await req.json().catch(() => null);
+  const modelId = typeof body?.modelId === "string" ? body.modelId : null;
+  const result = await generateSuggestions(access.organizationId, access.userId, id, modelId);
   if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
   return NextResponse.json({ created: result.created, total: result.total });
 }

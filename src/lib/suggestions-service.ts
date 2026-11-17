@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { completeWithAi, resolveRequestedModelId } from "@/src/lib/ai-completion";
+import { completeWithAi, getAvailableAiModels, resolveRequestedModelId } from "@/src/lib/ai-completion";
 import { prisma } from "@/src/lib/db";
 import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
 import { utcToZonedParts } from "@/src/lib/manual-appointment";
@@ -30,6 +30,7 @@ export async function generateSuggestions(
   organizationId: string,
   userId: string,
   appointmentId: string,
+  requestedModelId?: string | null,
 ): Promise<{ ok: true; created: number; total: number } | Failure> {
   const appointment = await prisma.appointment.findFirst({
     where: { id: appointmentId, organizationId },
@@ -52,6 +53,12 @@ export async function generateSuggestions(
     select: { type: true, title: true, status: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
+  // Un modelo elegido a mano debe estar entre los disponibles de la organización (no se acepta un id cualquiera).
+  const chosenModelId = requestedModelId?.trim() || null;
+  if (chosenModelId) {
+    const available = await getAvailableAiModels(organizationId);
+    if (!available.some((m) => m.id === chosenModelId)) return { ok: false, status: 400, message: "Ese modelo de IA no está disponible. Elige otro de la lista." };
+  }
   if (generating.has(appointmentId)) return { ok: false, status: 409, message: "Ya se están generando sugerencias para esta cita. Espera a que termine." };
   const recent = Math.max(lastSuccess.get(appointmentId) ?? 0, known[0]?.createdAt.getTime() ?? 0);
   const waitMs = COOLDOWN_MS - (Date.now() - recent);
@@ -81,7 +88,7 @@ export async function generateSuggestions(
 
   let raw: string;
   try {
-    const modelId = await resolveRequestedModelId(organizationId, userId, null);
+    const modelId = chosenModelId ?? (await resolveRequestedModelId(organizationId, userId, null));
     raw = await completeWithAi({ orgId: organizationId, modelId, systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 1800, maxOutputChars: 9000 });
   } catch (error) {
     // La causa real queda en el log del servidor; al usuario se le da una explicación entendible, sin texto del proveedor.

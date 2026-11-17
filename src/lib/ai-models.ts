@@ -1,4 +1,4 @@
-export type ModelProvider = "openrouter";
+export type ModelProvider = "openrouter" | "nvidia";
 
 export interface AiModel {
   id: string;
@@ -188,6 +188,18 @@ export const AI_MODELS: AiModel[] = [
     group: "Venice",
     description: "Sin censura, respuestas directas",
     tags: ["Sin filtros"],
+  },
+
+  // ── NVIDIA (build.nvidia.com; usa NVIDIA_API_KEY) ─────────────────────────
+  // El id lleva el prefijo `nvidia:` para distinguirlo de OpenRouter. Se pueden añadir más en Ajustes › Modelos de IA
+  // con ese mismo prefijo (p. ej. `nvidia:meta/llama-3.3-70b-instruct`).
+  {
+    id: "nvidia:deepseek-ai/deepseek-v4.1-flash",
+    name: "DeepSeek V4.1 Flash",
+    provider: "nvidia",
+    group: "NVIDIA",
+    description: "Rápido; gratis con tu clave de NVIDIA",
+    tags: ["Rápido"],
   },
 ];
 

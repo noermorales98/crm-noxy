@@ -1,3 +1,5 @@
+import { resolveProviderKeys } from "@/src/lib/ai-keys";
+import { CHAT_ENDPOINTS, PROVIDER_LABEL, providerHeaders, providerModelName, providerOfModelId, type ChatProvider } from "@/src/lib/ai-provider";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
@@ -127,7 +129,7 @@ export async function POST(req: Request) {
 
   const crmContext = await buildCrmContext(session.user.id!, orgId);
 
-  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext);
+  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId);
 }
 
 // ── OpenRouter ───────────────────────────────────────────────────────────────
@@ -136,16 +138,11 @@ type OrSuccess = { ok: true; body: ReadableStream<Uint8Array> };
 type OrFailure = { ok: false; status: number; headers: Headers; errBody: string };
 type OrResult = OrSuccess | OrFailure;
 
-async function callOpenRouter(apiKey: string, modelId: string, messages: unknown[]): Promise<OrResult> {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+async function callOpenRouter(apiKey: string, modelId: string, messages: unknown[], provider: ChatProvider = "openrouter"): Promise<OrResult> {
+  const res = await fetch(CHAT_ENDPOINTS[provider], {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://noxthy.co",
-      "X-Title": "CRM Noxy",
-    },
-    body: JSON.stringify({ model: modelId, messages, stream: true }),
+    headers: providerHeaders(provider, apiKey),
+    body: JSON.stringify({ model: providerModelName(modelId), messages, stream: true }),
   });
 
   if (!res.ok || !res.body) {
@@ -155,8 +152,8 @@ async function callOpenRouter(apiKey: string, modelId: string, messages: unknown
   return { ok: true, body: res.body };
 }
 
-function openRouterErrorStream(failure: OrFailure): Response {
-  console.error("[openrouter] HTTP error:", failure.status, failure.errBody);
+function openRouterErrorStream(failure: OrFailure, provider: ChatProvider = "openrouter"): Response {
+  console.error(`[${provider}] HTTP error:`, failure.status, failure.errBody);
 
   let errMsg = `HTTP ${failure.status}`;
   try {
@@ -166,7 +163,7 @@ function openRouterErrorStream(failure: OrFailure): Response {
   } catch {}
 
   if (failure.status === 401) errMsg += " (API key inválida)";
-  if (failure.status === 402) errMsg += " (se necesitan créditos en tu cuenta de OpenRouter)";
+  if (failure.status === 402) errMsg += ` (se necesitan créditos en tu cuenta de ${PROVIDER_LABEL[provider]})`;
   if (failure.status === 429) {
     const retryAfter = failure.headers.get("Retry-After");
     const resetRequests = failure.headers.get("X-RateLimit-Reset-Requests");
@@ -206,11 +203,17 @@ async function streamOpenRouter(
   conversationId: string,
   preferKey: "1" | "2",
   pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
+  orgId: string,
 ) {
+  const provider = providerOfModelId(modelId);
   const primaryKey = process.env.OPENROUTER_API_KEY;
   const secondaryKey = process.env.OPENROUTER_API_KEY_SECONDARY;
+  const nvidiaKey = provider === "nvidia" ? (await resolveProviderKeys(orgId, "nvidia")).keys[0] : undefined;
 
-  if (!primaryKey && !secondaryKey) {
+  if (provider === "nvidia" && !nvidiaKey) {
+    return errorStream("Falta la clave de NVIDIA. Agrégala en Ajustes › Modelos de IA o elige otro modelo.");
+  }
+  if (provider === "openrouter" && !primaryKey && !secondaryKey) {
     return errorStream("Falta OPENROUTER_API_KEY en el servidor. Agrégala al .env.local y reinicia.");
   }
 
@@ -224,6 +227,12 @@ async function streamOpenRouter(
     ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: trimmed },
   ];
+
+  if (provider === "nvidia") {
+    const r = await callOpenRouter(nvidiaKey!, modelId, messages, "nvidia");
+    if (r.ok) return buildStream(r.body, conversationId, "sse");
+    return openRouterErrorStream(r, "nvidia");
+  }
 
   if (preferKey === "2" && secondaryKey) {
     // User prefers key 2 — try secondary first

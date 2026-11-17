@@ -241,6 +241,9 @@ test("agregar contacto: necesita nombre; recomendación no crea nada; tipo desco
 test("fallos de la IA: causa entendible, sin texto del proveedor y sin confundirse con la espera propia (429)", () => {
   assert.equal(describeAiError("OPENROUTER_API_KEY no configurada").status, 503);
   assert.match(describeAiError("OPENROUTER_API_KEY no configurada").message, /no está configurada/);
+  assert.match(describeAiError("NVIDIA_API_KEY no configurada").message, /Ajustes › Modelos de IA/);
+  assert.match(describeAiError("NVIDIA_API_KEY no configurada").message, /NVIDIA/);
+  assert.equal(describeAiError("NVIDIA_API_KEY no configurada").status, 503);
   assert.match(describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message, /rechazó la clave/);
   assert.ok(!describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message.includes("SECRETO"));
   assert.match(describeAiError("Error de IA: 402 sin créditos").message, /créditos/);

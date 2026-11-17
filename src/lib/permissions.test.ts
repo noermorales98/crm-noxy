@@ -64,3 +64,8 @@ test("Granola: citas y estado en CRM, conexión MCP en Ajustes, cron público co
   assert.deepEqual(resolveRouteAccess("/api/appointments/x/suggestions/y"), { kind: "module", module: "crm" });
   assert.deepEqual(resolveRouteAccess("/appointments/x"), { kind: "module", module: "crm" });
 });
+
+test("IA: claves en Ajustes (módulo settings) y lista de modelos con el asistente", () => {
+  assert.deepEqual(resolveRouteAccess("/api/settings/ai-keys"), { kind: "module", module: "settings" });
+  assert.deepEqual(resolveRouteAccess("/api/ai/models"), { kind: "module", module: "assistant" });
+});

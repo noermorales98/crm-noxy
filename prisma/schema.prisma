@@ -153,6 +153,7 @@ model Organization {
   granolaConfig         GranolaConfig?
   granolaNotes          GranolaNote[]
   appointmentSuggestions AppointmentSuggestion[]
+  aiProviderKeys        AiProviderKey[]
   contentItems          ContentItem[]
   videos                Video[]
 }
@@ -1785,4 +1786,19 @@ model AppointmentSuggestion {
 
   @@unique([appointmentId, fingerprint])
   @@index([organizationId, appointmentId, status])
+}
+
+
+/// Clave de un proveedor de IA de la organización (hoy NVIDIA), guardada cifrada (AES-256-GCM) y nunca devuelta al navegador.
+/// Si no hay fila, se usa la variable de entorno del servidor como respaldo.
+model AiProviderKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  provider       String // nvidia
+  apiKey         String       @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, provider])
 }
