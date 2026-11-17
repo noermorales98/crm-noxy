@@ -48,11 +48,13 @@ No corregido (queda en la cola): pruebas de rutas y del servicio con base de dat
 - Sugerencias de la IA (tarea, cita de seguimiento, contacto, recomendación): se generan con `completeWithAi`, se validan en `meeting-suggestions.ts` y quedan PENDIENTES; solo se crea algo en el CRM al agregarlas, una sola vez (cierre atómico en transacción). Las descartadas y agregadas no reaparecen (huella única por cita).
 - Las notas privadas de Granola no se envían a la IA.
 - Evidencia: 398 pruebas (11 nuevas del módulo de sugerencias y 3 de permisos), build correcto con las rutas nuevas, lint limpio en lo nuevo, 20 errores de TypeScript = base. Las mismas 7 pruebas ajenas siguen fallando.
+- Panel de revisión (tier 2) de esta ampliación: 3 refutadores, sin bloqueantes. Corregido: inyección de prompt por nombre de invitado (datos delimitados en una línea), gasto de IA (permiso del asistente + espera de 15 s), reaparición de descartadas (la IA recibe lo ya decidido; huella de cita por fecha; huellas con cualquier alfabeto), cita vencida al agregar, rescate de JSON cortado, imágenes externas y enlaces no http(s) en notas, mensajes y doble clic en la interfaz. La lógica de «qué se crea y qué hereda» se extrajo a `planAcceptance` y el filtro de privacidad a `pickNotesForAi`, ambos con pruebas.
+- No corregido: `PATCH /api/appointments/:id` sigue devolviendo `cancelToken` (ya era así); el resumen de Granola puede reflejar notas privadas (limitación del origen); no hay pruebas con base de datos para «agregar una sola vez» ni aislamiento (Q10).
 - Sin verificar: la IA real (no hay clave ni base migrada en esta sesión), la pantalla en el navegador y la creación en base de datos.
 
 ## Decision queue
 - [blocking] Q1 — Aprobar la integración: riesgo tier 2 (esquema y credenciales); un humano debe aprobar antes de integrar y ejecutar `prisma/sql/granola.up.sql` en la BD, evidencia: `rsc risk` tier 2, tarea 1
-- [blocking] Q10 — Escribir pruebas de integración con base de datos real para aislamiento entre organizaciones, una sola tarea por paso, vínculo manual intacto e idempotencia de la sincronización; hoy solo hay pruebas de funciones puras, evidencia: informe del refutador de pruebas, tareas 6 y 7
+- [blocking] Q10 — Escribir pruebas de integración con base de datos real para aislamiento entre organizaciones, una sola tarea por paso, vínculo manual intacto, idempotencia de la sincronización y «agregar una sugerencia una sola vez» (dos peticiones simultáneas → una crea, otra 409); hoy solo hay pruebas de funciones puras, evidencia: informe del refutador de pruebas, tareas 6 y 7
 - [blocking] Q2 — Probar de punta a punta contra Granola real (clave API y OAuth por MCP) con la BD migrada; las pruebas solo usan datos sintéticos y fuentes falsas, evidencia: tareas 4 y 5
 - [review-after] Q3 — La spec se ampló dos veces tras aprobarse en autopiloto (MCP; notas manuales y Notion), registrado en `## Revisions` de la spec, tarea spec
 - [review-after] Q4 — Los pasos se detectan del resumen por encabezados y casillas porque ninguna vía de Granola trae un campo de acciones, `granola-parse.ts`, tarea 2
@@ -62,7 +64,9 @@ No corregido (queda en la cola): pruebas de rutas y del servicio con base de dat
 - [review-after] Q11 — Definir `GRANOLA_MCP_REDIRECT_URI` en producción (sin ella se deriva del origen de la petición), `granola-service.ts`, tarea 7
 - [review-after] Q12 — La importación de Notion no limita su ritmo (~3 peticiones/s) y es secuencial por bloque; páginas grandes pueden tardar o recibir 429, `granola-service.ts`, tarea 6
 - [review-after] Q13 — Una recomendación aceptada no crea nada (solo queda marcada); si se quería convertirla en tarea, es un cambio de una línea, `suggestions-service.ts`, ampliación 2
-- [review-after] Q14 — Cualquier miembro con acceso a citas puede generar sugerencias (gasta créditos de IA) y agregarlas; el texto de las notas, sin las privadas, se envía a OpenRouter, `suggestions-service.ts`, ampliación 2
+- [review-after] Q14 — Generar sugerencias exige el permiso del asistente; agregarlas, solo acceso a citas. El texto de las notas, sin el campo privado, se envía a OpenRouter, `suggestions-service.ts`, ampliación 2
+- [review-after] Q17 — `PATCH /api/appointments/:id` devuelve `cancelToken` a cualquier miembro (preexistente); conviene quitarlo, `app/api/appointments/[id]/route.ts`, ampliación 2
+- [review-after] Q18 — El resumen de Granola puede reflejar notas privadas del dueño; no hay indicador por sesión para excluirla de la IA, ampliación 2
 - [review-after] Q15 — Las citas de seguimiento sugeridas se crean sin tipo de cita (horario apartado) y no se puede editar una sugerencia antes de agregarla, ampliación 2
 - [review-after] Q16 — Revisar con modelos reales la calidad de las sugerencias y del prompt; solo se probó la validación de lo que devuelve la IA, ampliación 2
 - [review-after] Q8 — El cron `/api/cron/granola` debe darse de alta en cron-job.org (cada 30 min), `CRON.md`, tarea 7
