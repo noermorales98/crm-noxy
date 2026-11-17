@@ -42,8 +42,8 @@ Operadores de Noxy (Cancún) que hacen llamadas con leads y clientes, graban con
 - Un administrador de la organización conecta Granola de una de dos formas: pegando una clave API en Ajustes, o por MCP iniciando sesión en Granola (autorización OAuth). Puede probar la conexión y desconectarla.
 - Cualquier miembro con acceso a citas pulsa "Sincronizar ahora" y revisa el estado de la última sincronización.
 - Abrir una cita y ver el resumen, las notas, los pasos y las tareas de su sesión de Granola.
-- En una cita, escribir una nota en markdown, editarla y borrarla; o pegar el enlace de una página de Notion para importarla (y volver a importarla para actualizarla).
-- Ver la lista de sesiones sin asignar y vincular cada una a una cita, o desvincularla.
+- En una cita, escribir una nota en markdown, editarla y borrarla; o, siendo dueño o administrador, pegar el enlace de una página de Notion para importarla (y volver a importarla para actualizarla).
+- Siendo dueño o administrador, ver la lista de sesiones sin asignar y vincular cada una a una cita; cualquier miembro puede desvincular una sesión de una cita.
 - Convertir un paso en tarea del CRM, ligada al lead o contacto de la cita.
 
 ## What result they get
@@ -65,6 +65,11 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - **Conectar por MCP:** el botón lleva al usuario a Granola para autorizar; al volver, el CRM queda conectado y lo muestra como "Conectado por MCP". Si la autorización se cancela o falla, no queda conexión a medias. Si el acceso caduca o se revoca, el estado pide "Reconectar" sin romper las citas.
 - **Nota manual:** el usuario escribe markdown en la cita; se guarda como resumen de esa cita y de ahí se detectan los pasos con las mismas reglas. Solo las notas manuales o de Notion se pueden editar o borrar; las de Granola se actualizan solo desde Granola.
 - **Notion:** con la conexión de Notion ya guardada en Ajustes, un enlace o id de página se convierte a markdown y se guarda en la cita. Reimportar la misma página actualiza esa nota sin duplicarla. Si la página no existe o no está compartida con la integración, se explica el motivo.
+- **Sincronización completa o por tramos:** la ventana de búsqueda solo avanza cuando se trajo todo. Si hubo tope, una respuesta cortada, límite de ritmo o sesiones que no se pudieron guardar, la siguiente corrida continúa desde el mismo punto sin repetir lo ya guardado. Una sola sincronización corre a la vez por organización.
+- **Actualización por fecha de cambio:** se piden las sesiones actualizadas desde la última corrida, aunque la reunión sea antigua.
+- **Sesiones sin asignar:** si su cita se crea después, la siguiente sincronización las empareja; un vínculo hecho a mano, incluida una desvinculación, nunca se deshace.
+- **Privacidad:** las notas privadas de Granola y la lista de sesiones sin asignar solo las ven el dueño y los administradores; importar de Notion usa el acceso de toda la organización, por eso también es solo de ellos.
+- **Notion muy larga:** una página de más de 300 bloques se rechaza con un mensaje y no toca la nota que ya existiera.
 - **Misma experiencia:** sin importar la vía, las sesiones, el emparejamiento, los pasos y las tareas se comportan igual.
 - **Sincronizar:** manual y por cron periódico. Trae sesiones nuevas o actualizadas desde la última sincronización. Es idempotente: sincronizar dos veces no duplica nada.
 - **Vincular automático:** una sesión se asigna a una cita si coincide el horario (con tolerancia) y al menos un correo de asistente con el del invitado de la cita. Si hay más de una candidata o ninguna, queda "sin asignar".
@@ -90,6 +95,10 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - Given una nota de Granola, When se intenta editar o borrar a mano, Then se rechaza.
 - Given el enlace de una página de Notion accesible, When se importa dos veces, Then la cita tiene una sola nota de esa página, actualizada.
 - Given que Notion no está conectado o la página no es accesible, When se intenta importar, Then se explica el motivo y no se crea nada.
+- Given una sincronización que no cubrió todas las sesiones (tope, respuesta cortada o fallo al guardar una), When termina, Then la ventana no avanza y la siguiente continúa sin perder ninguna.
+- Given dos sincronizaciones a la vez en la misma organización, When se lanzan, Then solo una corre y la otra avisa que hay una en curso.
+- Given un miembro que no es dueño ni administrador, When abre una cita, Then no ve notas privadas ni sesiones sin asignar y no puede importar de Notion.
+- Given una sesión sin asignar cuya cita se crea después, When se sincroniza, Then queda asignada si coincide horario y correo.
 - Given un usuario de la organización B, When pide sesiones de la organización A, Then no recibe ninguna.
 - Given cualquier respuesta de la API de conexión, When se inspecciona, Then no contiene la clave.
 - Given el cron configurado, When corre, Then sincroniza sin intervención y un fallo de Granola no afecta a otras funciones del CRM.
@@ -104,9 +113,11 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - **suposición tomada** — el MCP actúa como la cuenta de quien autoriza, con la ventana de historia de su plan (el plan gratis solo da 30 días) y un límite aproximado de 100 peticiones por minuto. *Riesgo:* historias anteriores a esa ventana no se traen.
 - **suposición tomada** — los pasos no vienen como campo en ninguna de las dos vías; se detectan en el resumen por encabezados como "Siguientes pasos" o "Action items" y por casillas `- [ ]`. *Riesgo:* resúmenes sin esa estructura muestran cero pasos.
 - **suposición tomada** — Notion se integra por importación de una página por enlace, usando el token de Notion que ya guarda el CRM, y no como sincronización automática. *Base:* es lo que cabe sin base de datos de reuniones definida. *Riesgo:* si se quería sincronizar una base completa, es otra iteración. La página debe estar compartida con la integración de Notion.
+- **suposición tomada** — el cron recorre las organizaciones en serie y cada sincronización trae hasta 40 sesiones por corrida; con muchas organizaciones o historial grande, tarda varias corridas en ponerse al día. *Base:* el límite de 60 s por ejecución y de ~5 peticiones por segundo. *Riesgo:* a mayor escala hay que repartir el cron.
 - **decisión diferida** — buscar dentro de los resúmenes desde la búsqueda global del CRM.
 - **área no formulable** — cómo tratar reuniones con varios clientes en la misma sesión.
 
 ## Revisions
+- 2026-11-17 — Tras el panel de revisión (tier 2): sincronización por tramos con ventana que solo avanza si se cubrió todo, bloqueo por organización, privacidad de notas privadas y sesiones sin asignar, e importación de Notion solo para administradores.
 - 2026-11-17 — El dueño pidió además notas manuales en markdown e importar desde Notion (por enlace). Se añaden sus comportamientos y criterios.
 - 2026-11-17 — El dueño pidió también conectar por MCP. Se retira "solo clave API" de fuera de alcance y se añaden la vía MCP (OAuth), sus criterios y supuestos. La spec ya estaba aprobada en autopiloto; esta ampliación se registra como `review-after`.

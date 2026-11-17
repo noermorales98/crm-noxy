@@ -143,3 +143,4 @@ Why        — Orden explícita del dueño; el cambio vive en tokens, así todas
 - Pasos de reunión: se extraen del resumen (ninguna vía ofrece un campo de acciones).
 - Token y claves cifrados con `secret-box` (AES-256-GCM), como Notion.
 - Notas manuales (markdown) e importación de una página de Notion por enlace comparten el modelo de sesión (`GranolaNote`, campo `source`: GRANOLA | MANUAL | NOTION) para reutilizar vínculo, pasos y tareas. El nombre del modelo se conserva por no renombrar código ya escrito.
+- Tras el panel tier 2: la ventana de sincronización solo avanza si se cubrió todo; bloqueo por organización; notas privadas, sesiones sin asignar e importación de Notion limitadas a dueño/administradores (decisión de privacidad: el token de Notion y la cuenta de Granola son de toda la organización).

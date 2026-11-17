@@ -30,13 +30,28 @@ Modo: autopiloto. Riesgo (`rsc risk`): **tier 2** (migración de esquema). Revis
 - `tsc --noEmit`: 20 errores, todos en pruebas anteriores; ninguno en archivos de Granola.
 - `eslint` sobre los archivos nuevos: limpio. `npm run build`: correcto, con las 9 rutas nuevas.
 
+## Revisión del panel (tier 2)
+Tres refutadores (seguridad, corrección, pruebas) revisaron la función. Corregido:
+- Bloqueante: la ventana de sincronización avanzaba aunque quedaran sesiones sin traer → ahora solo avanza si la corrida se cubrió por completo.
+- MCP: filtraba por fecha de reunión, no de cambio → usa `updated_after`; acceso revocado caía como error genérico → ahora pide reconectar; respuesta cortada se guardaba como definitiva → se descarta; cursor repetido y tope de 200.
+- Concurrencia: bloqueo por organización (`syncingAt`); cada sesión se guarda con sus pasos en una transacción; un fallo no aborta las demás.
+- Seguridad: notas privadas, sesiones sin asignar e importar de Notion solo para administradores; la conexión anterior no se destruye hasta confirmar la nueva; el callback no toca nada con un `state` ajeno y compara en tiempo constante.
+- Notion: página de más de 300 bloques se rechaza (antes se recortaba y podía borrar pasos); sangría de texto anidado (bug hallado por una prueba nueva).
+- Pasos: las posiciones ya no se repiten tras quitar pendientes. Sesiones sin asignar se reempatan cuando su cita se crea después.
+- Pruebas: +callback, +reglas de tarea/edición, +borde de tolerancia, +ventana de 30 días, +espera tras 429, +topes y bucles de paginación, +clasificación de errores.
+
+No corregido (queda en la cola): pruebas de rutas y del servicio con base de datos real (aislamiento entre organizaciones, una tarea por paso, vínculo manual, idempotencia de punta a punta); límite de ritmo de Notion al importar; `redirect_uri` sin variable en producción; orden y presupuesto de tiempo del cron con muchas organizaciones.
+
 ## Decision queue
 - [blocking] Q1 — Aprobar la integración: riesgo tier 2 (esquema y credenciales); un humano debe aprobar antes de integrar y ejecutar `prisma/sql/granola.up.sql` en la BD, evidencia: `rsc risk` tier 2, tarea 1
+- [blocking] Q10 — Escribir pruebas de integración con base de datos real para aislamiento entre organizaciones, una sola tarea por paso, vínculo manual intacto e idempotencia de la sincronización; hoy solo hay pruebas de funciones puras, evidencia: informe del refutador de pruebas, tareas 6 y 7
 - [blocking] Q2 — Probar de punta a punta contra Granola real (clave API y OAuth por MCP) con la BD migrada; las pruebas solo usan datos sintéticos y fuentes falsas, evidencia: tareas 4 y 5
 - [review-after] Q3 — La spec se ampló dos veces tras aprobarse en autopiloto (MCP; notas manuales y Notion), registrado en `## Revisions` de la spec, tarea spec
 - [review-after] Q4 — Los pasos se detectan del resumen por encabezados y casillas porque ninguna vía de Granola trae un campo de acciones, `granola-parse.ts`, tarea 2
 - [review-after] Q5 — El MCP no documenta parámetros ni formato; se usaron los del esquema real de las herramientas y una respuesta real, `granola-mcp.ts`, tarea 5
 - [review-after] Q6 — Notion se integra por importación de una página por enlace, no por sincronización de una base, tarea 6
 - [review-after] Q7 — El modelo conserva el nombre `GranolaNote` aunque guarda también notas manuales y de Notion (campo `source`), `prisma/schema.prisma`, tarea 1
+- [review-after] Q11 — Definir `GRANOLA_MCP_REDIRECT_URI` en producción (sin ella se deriva del origen de la petición), `granola-service.ts`, tarea 7
+- [review-after] Q12 — La importación de Notion no limita su ritmo (~3 peticiones/s) y es secuencial por bloque; páginas grandes pueden tardar o recibir 429, `granola-service.ts`, tarea 6
 - [review-after] Q8 — El cron `/api/cron/granola` debe darse de alta en cron-job.org (cada 30 min), `CRON.md`, tarea 7
 - [review-after] Q9 — Referencia visual de la sección «Reunión» sin aprobar por el dueño; revisar la pantalla real, tarea 8
