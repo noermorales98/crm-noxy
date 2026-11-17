@@ -137,3 +137,12 @@ Context   — El dueño pidió uniformidad (sidebar con los mismos bordes que el
 Options    — (a) mantener el tope de 16px de DESIGN.md; (b) subir los tokens y actualizar el contrato.
 Decision   — (b). control 14px, superficie 20px, ningún radio sobre 24px (DESIGN.md y las pruebas de tokens actualizadas); `lg:rounded-tl-surface` fuera de la hoja; fila activa, modo activo y cuenta del sidebar con `border-line`; `DataTable` con encabezado tintado fijo, hover por fila y primera columna en peso medio.
 Why        — Orden explícita del dueño; el cambio vive en tokens, así todas las superficies quedan uniformes.
+
+## 2026-11-17 — granola-citas
+- Spec `granola-citas` aprobada en autopiloto. Dos vías de conexión: clave API (REST) y MCP (OAuth con registro dinámico), sobre un mismo motor de sincronización.
+- Pasos de reunión: se extraen del resumen (ninguna vía ofrece un campo de acciones).
+- Token y claves cifrados con `secret-box` (AES-256-GCM), como Notion.
+- Notas manuales (markdown) e importación de una página de Notion por enlace comparten el modelo de sesión (`GranolaNote`, campo `source`: GRANOLA | MANUAL | NOTION) para reutilizar vínculo, pasos y tareas. El nombre del modelo se conserva por no renombrar código ya escrito.
+- Tras el panel tier 2: la ventana de sincronización solo avanza si se cubrió todo; bloqueo por organización; notas privadas, sesiones sin asignar e importación de Notion limitadas a dueño/administradores (decisión de privacidad: el token de Notion y la cuenta de Granola son de toda la organización).
+- Ampliación 2: página `/appointments/:id`, markdown con `KbMarkdown` y sugerencias de IA (TASK, APPOINTMENT, CONTACT, SUGGESTION). La IA solo propone; cada sugerencia se crea al aceptarla, una vez, y las descartadas no reaparecen (huella por tipo y título). Las notas privadas de Granola nunca van a la IA.
+- Tras el panel de la ampliación 2: generar exige el permiso del asistente; la IA recibe lo ya decidido; datos de terceros delimitados en el prompt; una cita sugerida vencida no se agenda.
