@@ -22,6 +22,7 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot) |
 | `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
 | `GET /api/cron/content-reminders` | **Cada 15 min** | Avisa por WhatsApp las piezas con recordatorio activo cuyo día de aviso es hoy (mismo día o N días antes; Gestión de contenido) |
+| `GET /api/cron/granola` | **Cada 30 min** | Sincroniza las reuniones de Granola (resumen, notas y pasos) y las guarda en la cita que coincide; no crea tareas ni envía mensajes |
 | `GET /api/cron/payment-alerts` | **Cada hora** | Avisa por WhatsApp los cobros (pagos de deals y mensualidades) que vencen en 2 días o menos; una sola vez por cobro |
 
 **Producción:**
@@ -111,6 +112,7 @@ https://www.noxthy.co/api/cron/appointment-reminders
 https://crm-noxy.vercel.app/api/cron/digest
 https://crm-noxy.vercel.app/api/cron/google-calendar-reminders
 https://crm-noxy.vercel.app/api/cron/content-reminders
+https://crm-noxy.vercel.app/api/cron/granola
 ```
 
 `content-reminders` envía por WhatsApp (CallMeBot) las piezas del calendario de contenido que tengan **recordatorio activado** y cuyo día de aviso (fecha de la pieza − días de anticipación) sea hoy, en la hora configurada por cliente en el panel WhatsApp. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.

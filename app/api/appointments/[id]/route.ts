@@ -7,6 +7,28 @@ import { contactAfterDealLink, readLinkChange } from "@/src/lib/appointment-link
 
 const STATUSES = ["CONFIRMED", "COMPLETED", "CANCELLED"];
 
+/** Detalle de una cita de la organización, con su tipo, contacto y lead. */
+export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user || !session.currentOrganizationId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { id } = await context.params;
+  const appointment = await prisma.appointment.findFirst({
+    where: { id, organizationId: session.currentOrganizationId },
+    include: {
+      appointmentType: { select: { id: true, name: true, duration: true, color: true, location: true } },
+      contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+      deal: { select: { id: true, title: true } },
+    },
+  });
+  if (!appointment) return NextResponse.json({ error: "Cita no encontrada" }, { status: 404 });
+  // El token de cancelación es de la reserva pública: no se expone en la página interna.
+  const { cancelToken: _cancelToken, ...safe } = appointment;
+  void _cancelToken;
+  return NextResponse.json(safe);
+}
+
 /**
  * Cambia el estado (`{ status }`) o edita/reprograma la cita (fecha, hora, duración, título, tipo, persona, notas).
  * Los campos que no se envían se conservan. Al cambiar de fecha u hora se reinician los recordatorios.

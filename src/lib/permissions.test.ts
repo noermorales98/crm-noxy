@@ -51,3 +51,16 @@ test("first allowed path follows module order", () => {
   assert.equal(firstAllowedPath("MEMBER", { content: true }), "/contenido/general");
   assert.equal(firstAllowedPath("OWNER", ALL_PERMISSIONS), "/");
 });
+
+test("Granola: citas y estado en CRM, conexión MCP en Ajustes, cron público con secreto propio", () => {
+  assert.deepEqual(resolveRouteAccess("/api/granola/sync"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/api/granola/config"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/api/granola/notes/abc"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/api/granola/mcp/connect"), { kind: "module", module: "settings" });
+  assert.deepEqual(resolveRouteAccess("/api/granola/mcp/callback"), { kind: "module", module: "settings" });
+  assert.deepEqual(resolveRouteAccess("/api/appointments/x/granola"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/api/cron/granola"), { kind: "public" });
+  assert.deepEqual(resolveRouteAccess("/api/appointments/x/suggestions"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/api/appointments/x/suggestions/y"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/appointments/x"), { kind: "module", module: "crm" });
+});

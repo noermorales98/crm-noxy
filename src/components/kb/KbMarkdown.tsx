@@ -40,7 +40,7 @@ function InlineMdIcon({ name, color }: { name: string; color: string }) {
   );
 }
 
-function buildComponents(themeId: KbMarkdownThemeId, accent: string) {
+function buildComponents(allowImages: boolean, themeId: KbMarkdownThemeId, accent: string) {
   let hrIndex = 0;
   const theme = getMarkdownTheme(themeId);
 
@@ -88,9 +88,9 @@ function buildComponents(themeId: KbMarkdownThemeId, accent: string) {
         {children}
       </a>
     ),
-    img: ({ src, alt, ...p }: ComponentProps<"img">) => (
-      <img src={src} alt={alt} {...p} />
-    ),
+    // Con `allowImages` en falso (notas de terceros) no se pide ninguna imagen externa: se muestra el texto alternativo.
+    img: ({ src, alt, ...p }: ComponentProps<"img">) =>
+      allowImages ? <img src={src} alt={alt} {...p} /> : <span className="text-text-secondary">{alt ? `[imagen: ${alt}]` : "[imagen]"}</span>,
   };
 }
 
@@ -99,6 +99,8 @@ interface KbMarkdownProps {
   theme?: KbMarkdownThemeId | string | null;
   themeTokens?: KbMarkdownThemeTokens;
   className?: string;
+  /** `false` = no cargar imágenes (contenido de terceros, como las notas de reuniones). Por defecto sí, como en /kb. */
+  allowImages?: boolean;
 }
 
 export default function KbMarkdown({
@@ -106,12 +108,13 @@ export default function KbMarkdown({
   theme = "minimal",
   themeTokens,
   className = "",
+  allowImages = true,
 }: KbMarkdownProps) {
   const resolved = themeTokens ?? getMarkdownTheme(theme);
   const rendered = useMemo(() => withoutLongDashLines(content), [content]);
   const components = useMemo(
-    () => buildComponents(resolved.id, resolved.accent),
-    [resolved.id, resolved.accent, content]
+    () => buildComponents(allowImages, resolved.id, resolved.accent),
+    [allowImages, resolved.id, resolved.accent, content]
   );
 
   return (

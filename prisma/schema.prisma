@@ -150,6 +150,9 @@ model Organization {
   contentClients        ContentClient[]
   mcpIntegrations       McpIntegration[]
   notionConfig          NotionConfig?
+  granolaConfig         GranolaConfig?
+  granolaNotes          GranolaNote[]
+  appointmentSuggestions AppointmentSuggestion[]
   contentItems          ContentItem[]
   videos                Video[]
 }
@@ -640,6 +643,8 @@ model Task {
   appointmentId String?
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
 
+  granolaActionItem GranolaActionItem?
+
   @@index([organizationId])
   @@index([assignedToId])
   @@index([dealId])
@@ -951,6 +956,8 @@ model Appointment {
   reminderSent5m    Boolean         @default(false)
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
+  granolaNotes      GranolaNote[]
+  suggestions       AppointmentSuggestion[]
   tasks             Task[]
 
   @@index([appointmentTypeId])
@@ -1690,4 +1697,92 @@ model Video {
   @@index([clientId])
   @@index([contentClientId])
   @@index([contentItemId])
+}
+
+
+/// Conexión de Granola de la organización (una sola, por clave API o por MCP). Las credenciales van cifradas
+/// (AES-256-GCM) y nunca se devuelven al navegador.
+model GranolaConfig {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mode           String // API_KEY | MCP
+  apiKey         String?      @db.Text
+  mcpClientInfo  String?      @db.Text // registro dinámico del cliente OAuth (JSON cifrado)
+  mcpTokens      String?      @db.Text // tokens OAuth (JSON cifrado)
+  mcpVerifier    String?      @db.Text // PKCE en curso (cifrado)
+  mcpState       String? // `state` de la autorización en curso
+  status         String       @default("CONNECTED") // CONNECTED | PENDING | NEEDS_RECONNECT | ERROR
+  lastSyncAt     DateTime?
+  lastSyncCount  Int          @default(0)
+  lastSyncError  String?      @db.Text
+  syncingAt      DateTime? // bloqueo: una sola sincronización a la vez por organización
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+/// Nota de reunión de una cita. `source`: GRANOLA (sincronizada), MANUAL (escrita en markdown) o NOTION (página importada).
+/// `appointmentId` nulo = sin asignar; `linkSource` MANUAL nunca lo deshace la sincronización.
+model GranolaNote {
+  id               String       @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  granolaId        String // id de Granola, `manual:<id>` o `notion:<id de página>`
+  source           String       @default("GRANOLA")
+  title            String?
+  url              String?      @db.Text
+  startedAt        DateTime?
+  endedAt          DateTime?
+  attendees        String?      @db.Text // JSON: [{ name, email }]
+  summary          String?      @db.LongText
+  privateNotes     String?      @db.LongText
+  granolaUpdatedAt DateTime?
+  appointmentId    String?
+  appointment      Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  linkSource       String? // AUTO | MANUAL
+  items            GranolaActionItem[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([organizationId, granolaId])
+  @@index([organizationId, appointmentId])
+  @@index([startedAt])
+}
+
+/// Paso detectado en el resumen. Al convertirlo se crea una `Task` y queda ligado (una sola vez por paso).
+model GranolaActionItem {
+  id          String      @id @default(cuid())
+  noteId      String
+  note        GranolaNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  text        String      @db.Text
+  position    Int         @default(0)
+  taskId      String?     @unique
+  task        Task?       @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  convertedAt DateTime?
+
+  @@index([noteId])
+}
+
+
+/// Sugerencia de la IA para una cita. No crea nada por sí sola: el usuario la agrega (ACCEPTED) o la descarta (DISMISSED).
+/// `fingerprint` (tipo + clave) evita repetir una sugerencia ya agregada o descartada.
+model AppointmentSuggestion {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  appointmentId  String
+  appointment    Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  type           String // TASK | APPOINTMENT | CONTACT | SUGGESTION
+  title          String
+  detail         String?      @db.Text
+  payload        String       @db.Text // JSON ya validado
+  fingerprint    String
+  status         String       @default("PENDING") // PENDING | ACCEPTED | DISMISSED
+  resultType     String? // Task | Appointment | Contact
+  resultId       String?
+  createdAt      DateTime     @default(now())
+  resolvedAt     DateTime?
+
+  @@unique([appointmentId, fingerprint])
+  @@index([organizationId, appointmentId, status])
 }

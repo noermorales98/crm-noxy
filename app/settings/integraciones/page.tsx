@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GranolaSettings } from "@/src/components/settings/GranolaSettings";
 import { McpIntegrations } from "@/src/components/settings/McpIntegrations";
 import { NotionSettings } from "@/src/components/settings/NotionSettings";
 import { SettingsScreen } from "@/src/components/settings/SettingsScreen";
@@ -134,6 +135,7 @@ export default function SettingsIntegrationsPage() {
             
         </div>
       </Block>
+        <GranolaSettings />
         <NotionSettings />
         <McpIntegrations />
       </div>

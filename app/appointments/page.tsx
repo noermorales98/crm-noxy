@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -8,6 +10,7 @@ import {
   CheckmarkCircle01Icon,
   Delete02Icon,
   Mail01Icon,
+  Note01Icon,
   PencilEdit01Icon,
   CallIcon,
   Undo02Icon,
@@ -57,6 +60,7 @@ export default function AppointmentsPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState } = useHeader();
+  const router = useRouter();
 
   // «Ahora» se fija al cargar los datos: las pestañas y los avisos «Por cerrar» se calculan contra ese instante.
   const now = useMemo(() => new Date(), [appointments]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -151,10 +155,12 @@ export default function AppointmentsPage() {
   // Todas las acciones viven en un menú; las destructivas (cancelar, eliminar) van al final, en rojo y con confirmación.
   const menuFor = (appt: AppointmentRow): ActionMenuItem[] => {
     const edit: ActionMenuItem = { key: "edit", label: "Editar o reprogramar", icon: PencilEdit01Icon, onSelect: () => setEditing(appt) };
+    const notes: ActionMenuItem = { key: "meeting", label: "Abrir cita, notas y sugerencias", icon: Note01Icon, onSelect: () => router.push(`/appointments/${appt.id}`) };
     const remove: ActionMenuItem = { key: "delete", label: "Eliminar", icon: Delete02Icon, tone: "danger", onSelect: () => void deleteAppointment(appt) };
     if (appt.status === "CONFIRMED") {
       return [
         edit,
+        notes,
         { key: "complete", label: "Marcar como completada", icon: CheckmarkCircle01Icon, onSelect: () => void updateStatus(appt.id, "COMPLETED", "Cita completada.") },
         { key: "cancel", label: "Cancelar cita", icon: Cancel01Icon, tone: "danger", onSelect: () => void cancelAppointment(appt) },
         remove,
@@ -162,6 +168,7 @@ export default function AppointmentsPage() {
     }
     return [
       edit,
+      notes,
       {
         key: "reopen",
         label: appt.status === "CANCELLED" ? "Reactivar cita" : "Reabrir cita",
@@ -187,7 +194,7 @@ export default function AppointmentsPage() {
 
         <div className={`min-w-0 flex-1 ${appt.status === "CANCELLED" ? "opacity-60" : ""}`}>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <p className="truncate text-sm font-semibold text-text-primary">{title}</p>
+            <Link href={`/appointments/${appt.id}`} className="truncate text-sm font-semibold text-text-primary hover:underline focus-visible:underline">{title}</Link>
             {!appt.appointmentType && <Chip>Apartado</Chip>}
             {appt.status === "CONFIRMED" && isOver ? <Chip tone="hot">Por cerrar</Chip> : <Chip tone={STATUS_TONES[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Chip>}
           </div>
