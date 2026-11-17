@@ -42,6 +42,14 @@ Tres refutadores (seguridad, corrección, pruebas) revisaron la función. Correg
 
 No corregido (queda en la cola): pruebas de rutas y del servicio con base de datos real (aislamiento entre organizaciones, una tarea por paso, vínculo manual, idempotencia de punta a punta); límite de ritmo de Notion al importar; `redirect_uri` sin variable en producción; orden y presupuesto de tiempo del cron con muchas organizaciones.
 
+## Ampliación 2 — página de la cita y sugerencias de la IA
+- Página `/appointments/:id` (datos de la cita, sugerencias y notas) y el título en la lista enlaza a ella; el diálogo anterior se sustituyó por el panel `AppointmentMeetingPanel`.
+- Las notas se leen con `KbMarkdown`, el mismo componente de `/kb`.
+- Sugerencias de la IA (tarea, cita de seguimiento, contacto, recomendación): se generan con `completeWithAi`, se validan en `meeting-suggestions.ts` y quedan PENDIENTES; solo se crea algo en el CRM al agregarlas, una sola vez (cierre atómico en transacción). Las descartadas y agregadas no reaparecen (huella única por cita).
+- Las notas privadas de Granola no se envían a la IA.
+- Evidencia: 398 pruebas (11 nuevas del módulo de sugerencias y 3 de permisos), build correcto con las rutas nuevas, lint limpio en lo nuevo, 20 errores de TypeScript = base. Las mismas 7 pruebas ajenas siguen fallando.
+- Sin verificar: la IA real (no hay clave ni base migrada en esta sesión), la pantalla en el navegador y la creación en base de datos.
+
 ## Decision queue
 - [blocking] Q1 — Aprobar la integración: riesgo tier 2 (esquema y credenciales); un humano debe aprobar antes de integrar y ejecutar `prisma/sql/granola.up.sql` en la BD, evidencia: `rsc risk` tier 2, tarea 1
 - [blocking] Q10 — Escribir pruebas de integración con base de datos real para aislamiento entre organizaciones, una sola tarea por paso, vínculo manual intacto e idempotencia de la sincronización; hoy solo hay pruebas de funciones puras, evidencia: informe del refutador de pruebas, tareas 6 y 7
@@ -53,5 +61,9 @@ No corregido (queda en la cola): pruebas de rutas y del servicio con base de dat
 - [review-after] Q7 — El modelo conserva el nombre `GranolaNote` aunque guarda también notas manuales y de Notion (campo `source`), `prisma/schema.prisma`, tarea 1
 - [review-after] Q11 — Definir `GRANOLA_MCP_REDIRECT_URI` en producción (sin ella se deriva del origen de la petición), `granola-service.ts`, tarea 7
 - [review-after] Q12 — La importación de Notion no limita su ritmo (~3 peticiones/s) y es secuencial por bloque; páginas grandes pueden tardar o recibir 429, `granola-service.ts`, tarea 6
+- [review-after] Q13 — Una recomendación aceptada no crea nada (solo queda marcada); si se quería convertirla en tarea, es un cambio de una línea, `suggestions-service.ts`, ampliación 2
+- [review-after] Q14 — Cualquier miembro con acceso a citas puede generar sugerencias (gasta créditos de IA) y agregarlas; el texto de las notas, sin las privadas, se envía a OpenRouter, `suggestions-service.ts`, ampliación 2
+- [review-after] Q15 — Las citas de seguimiento sugeridas se crean sin tipo de cita (horario apartado) y no se puede editar una sugerencia antes de agregarla, ampliación 2
+- [review-after] Q16 — Revisar con modelos reales la calidad de las sugerencias y del prompt; solo se probó la validación de lo que devuelve la IA, ampliación 2
 - [review-after] Q8 — El cron `/api/cron/granola` debe darse de alta en cron-job.org (cada 30 min), `CRON.md`, tarea 7
 - [review-after] Q9 — Referencia visual de la sección «Reunión» sin aprobar por el dueño; revisar la pantalla real, tarea 8

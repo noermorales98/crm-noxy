@@ -23,10 +23,14 @@ Pegar manualmente el enlace de la nota de Granola en el campo de notas de la cit
 - El CRM trae las sesiones de Granola de la organización y las guarda dentro de la cita correspondiente.
 - Desde una cita se ven resumen, notas, pasos y tareas de la reunión.
 - Los pasos se pueden convertir en tareas del CRM con un clic.
+- La cita tiene su propia página (`/appointments/:id`), a la que se llega con un clic en su título, donde las notas se leen en markdown con el mismo aspecto que los documentos de `/kb`.
+- La IA lee las notas de la cita (de Granola, de Notion o escritas a mano) y propone sugerencias: tareas, citas de seguimiento, contactos nuevos y recomendaciones. Cada una se muestra en una lista y el usuario decide si la agrega o la descarta.
 - Una cita también puede recibir notas escritas a mano en markdown o una página de Notion traída por su enlace, y se ven igual que las de Granola (resumen, pasos, tareas).
 
 ## Non-goals / out of scope
-- Crear tareas automáticamente sin aprobación.
+- Crear tareas, citas o contactos sin que el usuario lo apruebe uno por uno: la IA solo propone.
+- Editar el contenido de una sugerencia antes de agregarla (por ahora se agrega tal cual o se descarta).
+- Enviar mensajes a las personas que aparecen en una sugerencia o invitarlas a la cita.
 - Enviar mensajes o correos a clientes con el contenido de la reunión.
 - Escribir de vuelta en Granola (editar notas, títulos, carpetas).
 - Guardar la transcripción completa palabra por palabra (solo resumen, notas y pasos).
@@ -70,6 +74,11 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - **Sesiones sin asignar:** si su cita se crea después, la siguiente sincronización las empareja; un vínculo hecho a mano, incluida una desvinculación, nunca se deshace.
 - **Privacidad:** las notas privadas de Granola y la lista de sesiones sin asignar solo las ven el dueño y los administradores; importar de Notion usa el acceso de toda la organización, por eso también es solo de ellos.
 - **Notion muy larga:** una página de más de 300 bloques se rechaza con un mensaje y no toca la nota que ya existiera.
+- **Página de la cita:** `/appointments/:id` muestra datos de la cita (fecha, persona, estado, lead y contacto), las notas en markdown (estilo `/kb`), la acción de escribir o importar notas y el panel de sugerencias. El título de la cita en la lista enlaza a ella.
+- **Sugerencias de la IA:** un botón genera sugerencias a partir de las notas de la cita. Cada sugerencia es de uno de cuatro tipos: *tarea*, *cita de seguimiento* (fecha y hora), *contacto nuevo* o *recomendación*. Quedan pendientes hasta que el usuario las agrega o las descarta; generar de nuevo no repite las que ya se agregaron o descartaron ni borra las pendientes que siguen vigentes.
+- **Agregar una sugerencia:** una *tarea* crea una Tarea ligada al lead y contacto de la cita; una *cita de seguimiento* crea una cita con la misma persona y los mismos vínculos; un *contacto nuevo* crea el contacto (si ya existe uno con ese correo, se enlaza en lugar de duplicarlo); una *recomendación* queda marcada como aceptada, sin crear nada. Cada sugerencia se agrega una sola vez.
+- **Descartar:** la sugerencia deja de mostrarse como pendiente y no vuelve a proponerse.
+- **Lo que lee la IA:** solo el resumen y las notas de la cita; nunca las notas privadas de Granola. Fechas relativas («el jueves») se resuelven con la fecha de la reunión y la zona de la organización. Si la IA devuelve algo inválido (fecha inexistente, correo mal formado), esa sugerencia se descarta en silencio y las demás se conservan.
 - **Misma experiencia:** sin importar la vía, las sesiones, el emparejamiento, los pasos y las tareas se comportan igual.
 - **Sincronizar:** manual y por cron periódico. Trae sesiones nuevas o actualizadas desde la última sincronización. Es idempotente: sincronizar dos veces no duplica nada.
 - **Vincular automático:** una sesión se asigna a una cita si coincide el horario (con tolerancia) y al menos un correo de asistente con el del invitado de la cita. Si hay más de una candidata o ninguna, queda "sin asignar".
@@ -99,6 +108,15 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - Given dos sincronizaciones a la vez en la misma organización, When se lanzan, Then solo una corre y la otra avisa que hay una en curso.
 - Given un miembro que no es dueño ni administrador, When abre una cita, Then no ve notas privadas ni sesiones sin asignar y no puede importar de Notion.
 - Given una sesión sin asignar cuya cita se crea después, When se sincroniza, Then queda asignada si coincide horario y correo.
+- Given una cita con notas que mencionan pasos, una reunión de seguimiento y una persona nueva, When el usuario pulsa «Generar sugerencias», Then aparece una lista pendiente con tareas, citas, contactos y recomendaciones, y no se crea nada en el CRM.
+- Given una sugerencia de tarea pendiente, When el usuario la agrega, Then existe una Tarea ligada al lead y contacto de la cita y la sugerencia queda aceptada; agregarla otra vez no crea otra.
+- Given una sugerencia de cita de seguimiento con fecha y hora válidas, When se agrega, Then existe una cita nueva con la misma persona y vínculos.
+- Given una sugerencia de contacto cuyo correo ya existe en la organización, When se agrega, Then no se duplica y se enlaza al existente.
+- Given una sugerencia descartada, When se vuelve a generar, Then no reaparece.
+- Given una respuesta de la IA con una fecha inválida o un correo mal formado, When se procesa, Then esa sugerencia se omite y las válidas se conservan.
+- Given una cita con notas privadas de Granola, When se generan sugerencias, Then el texto enviado a la IA no las contiene.
+- Given una nota en markdown con títulos, listas, tablas y código, When se abre la página de la cita, Then se ve con el estilo de los documentos de `/kb`.
+- Given la lista de citas, When el usuario hace clic en el título de una cita, Then se abre `/appointments/:id` de esa cita.
 - Given un usuario de la organización B, When pide sesiones de la organización A, Then no recibe ninguna.
 - Given cualquier respuesta de la API de conexión, When se inspecciona, Then no contiene la clave.
 - Given el cron configurado, When corre, Then sincroniza sin intervención y un fallo de Granola no afecta a otras funciones del CRM.
@@ -114,10 +132,15 @@ Pruebas de las funciones de emparejamiento (horario + correo), de cifrado y de c
 - **suposición tomada** — los pasos no vienen como campo en ninguna de las dos vías; se detectan en el resumen por encabezados como "Siguientes pasos" o "Action items" y por casillas `- [ ]`. *Riesgo:* resúmenes sin esa estructura muestran cero pasos.
 - **suposición tomada** — Notion se integra por importación de una página por enlace, usando el token de Notion que ya guarda el CRM, y no como sincronización automática. *Base:* es lo que cabe sin base de datos de reuniones definida. *Riesgo:* si se quería sincronizar una base completa, es otra iteración. La página debe estar compartida con la integración de Notion.
 - **suposición tomada** — el cron recorre las organizaciones en serie y cada sincronización trae hasta 40 sesiones por corrida; con muchas organizaciones o historial grande, tarda varias corridas en ponerse al día. *Base:* el límite de 60 s por ejecución y de ~5 peticiones por segundo. *Riesgo:* a mayor escala hay que repartir el cron.
+- **suposición tomada** — una *recomendación* aceptada no crea nada: queda como registro de que el usuario la tomó. *Base:* no hay un objeto del CRM natural para «consejos». *Riesgo:* si se esperaba que cada recomendación se vuelva una tarea, se cambia con una línea.
+- **suposición tomada** — la IA usa el modelo por defecto de la organización (el mismo del digest y de otras funciones) y cualquier miembro con acceso a citas puede generar sugerencias. *Riesgo:* consume créditos de IA; si hace falta, se limita a administradores.
+- **suposición tomada** — el texto de las notas se envía a OpenRouter igual que otras funciones de IA del CRM, salvo las notas privadas de Granola. *Riesgo:* las notas pueden contener datos de clientes; es una decisión de privacidad del dueño.
+- **suposición tomada** — las citas de seguimiento sugeridas se crean sin tipo de cita (horario apartado), con la persona de la cita original. *Riesgo:* si se quieren con un tipo de agenda, hay que elegirlo al agregar.
 - **decisión diferida** — buscar dentro de los resúmenes desde la búsqueda global del CRM.
 - **área no formulable** — cómo tratar reuniones con varios clientes en la misma sesión.
 
 ## Revisions
+- 2026-11-17 — El dueño pidió página propia de la cita, markdown estilo `/kb` y sugerencias de la IA (tareas, citas, contactos, recomendaciones) que él decide agregar o descartar. Se añaden sus comportamientos y criterios; se retira de la lista de «fuera de alcance» la creación de tareas desde pasos solo si hay aprobación uno por uno.
 - 2026-11-17 — Tras el panel de revisión (tier 2): sincronización por tramos con ventana que solo avanza si se cubrió todo, bloqueo por organización, privacidad de notas privadas y sesiones sin asignar, e importación de Notion solo para administradores.
 - 2026-11-17 — El dueño pidió además notas manuales en markdown e importar desde Notion (por enlace). Se añaden sus comportamientos y criterios.
 - 2026-11-17 — El dueño pidió también conectar por MCP. Se retira "solo clave API" de fuera de alcance y se añaden la vía MCP (OAuth), sus criterios y supuestos. La spec ya estaba aprobada en autopiloto; esta ampliación se registra como `review-after`.
