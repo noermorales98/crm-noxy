@@ -52,8 +52,14 @@ No corregido (queda en la cola): pruebas de rutas y del servicio con base de dat
 - No corregido: `PATCH /api/appointments/:id` sigue devolviendo `cancelToken` (ya era así); el resumen de Granola puede reflejar notas privadas (limitación del origen); no hay pruebas con base de datos para «agregar una sola vez» ni aislamiento (Q10).
 - Sin verificar: la IA real (no hay clave ni base migrada en esta sesión), la pantalla en el navegador y la creación en base de datos.
 
+## Integración (2026-11-17)
+- El dueño aprobó la integración (riesgo tier 2) y ordenó ejecutar el SQL y subir a `main`.
+- `prisma/sql/granola.up.sql` ejecutado en la base real: 4 tablas creadas (`GranolaConfig`, `GranolaNote`, `GranolaActionItem`, `AppointmentSuggestion`); lectura de cada modelo correcta; las 5 citas existentes intactas.
+- Commits en `main`: `e2e00a3` (código y SQL) y `f952a79` (documentación del método).
+- La verificación quedó en FAIL de puerta estricta por criterios sin prueba observable; el dueño aceptó integrar con esos huecos (ver el registro de verificación).
+- Pendiente del dueño en producción: definir `GRANOLA_MCP_REDIRECT_URI`, dar de alta el cron `/api/cron/granola` (cada 30 min) y conectar Granola desde Ajustes › Integraciones.
+
 ## Decision queue
-- [blocking] Q1 — Aprobar la integración: riesgo tier 2 (esquema y credenciales); un humano debe aprobar antes de integrar y ejecutar `prisma/sql/granola.up.sql` en la BD, evidencia: `rsc risk` tier 2, tarea 1
 - [blocking] Q10 — Escribir pruebas de integración con base de datos real para aislamiento entre organizaciones, una sola tarea por paso, vínculo manual intacto, idempotencia de la sincronización y «agregar una sugerencia una sola vez» (dos peticiones simultáneas → una crea, otra 409); hoy solo hay pruebas de funciones puras, evidencia: informe del refutador de pruebas, tareas 6 y 7
 - [blocking] Q2 — Probar de punta a punta contra Granola real (clave API y OAuth por MCP) con la BD migrada; las pruebas solo usan datos sintéticos y fuentes falsas, evidencia: tareas 4 y 5
 - [review-after] Q3 — La spec se ampló dos veces tras aprobarse en autopiloto (MCP; notas manuales y Notion), registrado en `## Revisions` de la spec, tarea spec
