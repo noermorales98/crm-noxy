@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error: node --test carga el .ts directo
-import { buildSuggestionsPrompt, extractSuggestionsJson, fingerprintOf, normalizeSuggestions, pickNotesForAi, planAcceptance, readStoredPayload, storedText, validDate, validTime } from "./meeting-suggestions.ts";
+import { buildSuggestionsPrompt, describeAiError, extractSuggestionsJson, fingerprintOf, normalizeSuggestions, pickNotesForAi, planAcceptance, readStoredPayload, storedText, validDate, validTime } from "./meeting-suggestions.ts";
 
 const TODAY = "2026-11-17";
 
@@ -236,4 +236,20 @@ test("agregar contacto: necesita nombre; recomendación no crea nada; tipo desco
   assert.equal(planAcceptance({ type: "CONTACT", title: "x", payload: {} }, appt, "UTC", TODAY).kind, "INVALID");
   assert.equal(planAcceptance({ type: "SUGGESTION", title: "Cuidado con el precio", payload: {} }, appt, "UTC", TODAY).kind, "SUGGESTION");
   assert.equal(planAcceptance({ type: "OTRO", title: "x", payload: {} }, appt, "UTC", TODAY).kind, "SUGGESTION");
+});
+
+test("fallos de la IA: causa entendible, sin texto del proveedor y sin confundirse con la espera propia (429)", () => {
+  assert.equal(describeAiError("OPENROUTER_API_KEY no configurada").status, 503);
+  assert.match(describeAiError("OPENROUTER_API_KEY no configurada").message, /no está configurada/);
+  assert.match(describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message, /rechazó la clave/);
+  assert.ok(!describeAiError("Error de IA: 401 {\"error\":\"invalid key sk-or-SECRETO\"}").message.includes("SECRETO"));
+  assert.match(describeAiError("Error de IA: 402 sin créditos").message, /créditos/);
+  assert.match(describeAiError("Error de IA: 404 model not found").message, /no está disponible/);
+  const limited = describeAiError("Error de IA: 429 rate limited upstream");
+  assert.notEqual(limited.status, 429, "el 429 del proveedor no se devuelve como 429 para no confundirlo con la espera de la cita");
+  assert.match(limited.message, /saturado/);
+  assert.equal(describeAiError("Error de IA: 503 boom").status, 503);
+  assert.match(describeAiError("La IA no generó contenido").message, /no devolvió nada/);
+  assert.match(describeAiError(null).message, /no pudo generar/);
+  assert.match(describeAiError("algo raro").message, /no pudo generar/);
 });

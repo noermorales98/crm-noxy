@@ -341,3 +341,20 @@ export function planAcceptance(
   }
   return { kind: "SUGGESTION" };
 }
+
+/**
+ * Mensaje para el usuario según el fallo de la IA. `ai-completion` lanza «Error de IA: <estado> …»; el texto del
+ * proveedor nunca se muestra, solo una causa entendible. Un 429 del proveedor no se confunde con la espera propia.
+ */
+export function describeAiError(message: string | null | undefined): { status: number; message: string } {
+  const text = message ?? "";
+  if (text.includes("OPENROUTER_API_KEY")) return { status: 503, message: "La IA no está configurada en este CRM (falta la clave del proveedor)." };
+  const status = Number(/Error de IA:\s*(\d{3})/.exec(text)?.[1]);
+  if (status === 401 || status === 403) return { status: 502, message: "El proveedor de IA rechazó la clave del CRM. Revisa la clave en la configuración." };
+  if (status === 402) return { status: 502, message: "La cuenta del proveedor de IA no tiene créditos." };
+  if (status === 404) return { status: 502, message: "El modelo de IA elegido no está disponible. Prueba con otro en Ajustes › Modelos de IA." };
+  if (status === 429) return { status: 503, message: "El proveedor de IA está saturado en este momento. Espera un minuto e inténtalo de nuevo." };
+  if (status >= 500) return { status: 503, message: "El proveedor de IA no respondió bien. Inténtalo de nuevo en un momento." };
+  if (text.includes("no generó contenido")) return { status: 502, message: "La IA no devolvió nada. Inténtalo de nuevo." };
+  return { status: 502, message: "La IA no pudo generar sugerencias. Inténtalo de nuevo." };
+}

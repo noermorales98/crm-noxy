@@ -6,6 +6,7 @@ import { utcToZonedParts } from "@/src/lib/manual-appointment";
 import {
   SUGGESTIONS_SYSTEM_PROMPT,
   buildSuggestionsPrompt,
+  describeAiError,
   extractSuggestionsJson,
   normalizeSuggestions,
   pickNotesForAi,
@@ -16,9 +17,13 @@ import {
 type Failure = { ok: false; status: number; message: string };
 
 const DEFAULT_TZ = "America/Cancun";
-/** Espera mínima entre dos generaciones de la misma cita: cuida el gasto de IA ante clics repetidos. */
-const COOLDOWN_MS = 15_000;
-const lastRun = new Map<string, number>();
+/**
+ * Cuida el gasto de IA sin castigar los fallos: la espera solo corre desde la última generación que SÍ terminó
+ * (un fallo se puede reintentar al momento) y una generación en curso bloquea a otra de la misma cita.
+ */
+const COOLDOWN_MS = 8_000;
+const lastSuccess = new Map<string, number>();
+const generating = new Set<string>();
 
 /** Genera sugerencias con la IA a partir de las notas de la cita. No crea nada en el CRM: solo guarda propuestas pendientes. */
 export async function generateSuggestions(
@@ -47,19 +52,27 @@ export async function generateSuggestions(
     select: { type: true, title: true, status: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
-  const now = Date.now();
-  const recent = Math.max(lastRun.get(appointmentId) ?? 0, known[0]?.createdAt.getTime() ?? 0);
-  if (now - recent < COOLDOWN_MS) return { ok: false, status: 429, message: "Espera unos segundos antes de generar de nuevo." };
-  lastRun.set(appointmentId, now);
+  if (generating.has(appointmentId)) return { ok: false, status: 409, message: "Ya se están generando sugerencias para esta cita. Espera a que termine." };
+  const recent = Math.max(lastSuccess.get(appointmentId) ?? 0, known[0]?.createdAt.getTime() ?? 0);
+  const waitMs = COOLDOWN_MS - (Date.now() - recent);
+  if (waitMs > 0) return { ok: false, status: 429, message: `Acabas de generar sugerencias: espera ${Math.ceil(waitMs / 1000)} s para volver a hacerlo.` };
+  generating.add(appointmentId);
+  try {
+    return await runGeneration(appointment);
+  } finally {
+    generating.delete(appointmentId);
+  }
+
+  async function runGeneration(appt: NonNullable<typeof appointment>): Promise<{ ok: true; created: number; total: number } | Failure> {
 
   const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: { timezone: true } });
   const timezone = org?.timezone || DEFAULT_TZ;
   const today = utcToZonedParts(new Date(), timezone).date;
 
   const prompt = buildSuggestionsPrompt({
-    appointmentTitle: appointment.title?.trim() || appointment.appointmentType?.name || "Cita",
-    guestName: appointment.guestName,
-    meetingDate: utcToZonedParts(appointment.startTime, timezone).date,
+    appointmentTitle: appt.title?.trim() || appt.appointmentType?.name || "Cita",
+    guestName: appt.guestName,
+    meetingDate: utcToZonedParts(appt.startTime, timezone).date,
     today,
     timezone,
     notes: withText,
@@ -71,8 +84,10 @@ export async function generateSuggestions(
     const modelId = await resolveRequestedModelId(organizationId, userId, null);
     raw = await completeWithAi({ orgId: organizationId, modelId, systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 1800, maxOutputChars: 9000 });
   } catch (error) {
-    const missingKey = error instanceof Error && error.message.includes("OPENROUTER_API_KEY");
-    return { ok: false, status: 502, message: missingKey ? "La IA no está configurada en este CRM." : "La IA no pudo generar sugerencias. Intenta de nuevo." };
+    // La causa real queda en el log del servidor; al usuario se le da una explicación entendible, sin texto del proveedor.
+    console.error("[suggestions] fallo de la IA:", error instanceof Error ? error.message : error);
+    const described = describeAiError(error instanceof Error ? error.message : null);
+    return { ok: false, status: described.status, message: described.message };
   }
 
   const parsed = extractSuggestionsJson(raw);
@@ -94,7 +109,9 @@ export async function generateSuggestions(
         skipDuplicates: true,
       })
     : { count: 0 };
+  lastSuccess.set(appointmentId, Date.now());
   return { ok: true, created: created.count, total: suggestions.length };
+  }
 }
 
 export async function listSuggestions(organizationId: string, appointmentId: string) {
