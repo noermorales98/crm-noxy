@@ -1,5 +1,49 @@
 import { prisma } from "@/src/lib/db";
+import { parseLeadPersonFromNotes } from "@/src/lib/lead-person";
 import { buildTaskDrafts, DEFAULT_TEMPLATES, parseTemplateTasks, pickService } from "@/src/lib/project-templates";
+
+export type WonContactResult =
+  | { created: false; reason: "already-linked" | "not-won" | "not-found" | "no-person"; contactId?: string }
+  | { created: true; contactId: string };
+
+/**
+ * Deal ganado sin contacto → crea Contact desde Nombre/Email/Teléfono en notes y lo enlaza.
+ * Idempotente. No lanza.
+ */
+export async function ensureContactForWonDeal(input: {
+  dealId: string;
+  organizationId: string;
+}): Promise<WonContactResult> {
+  try {
+    const deal = await prisma.deal.findFirst({
+      where: { id: input.dealId, organizationId: input.organizationId },
+      include: { stage: true },
+    });
+    if (!deal) return { created: false, reason: "not-found" };
+    if (!deal.stage.isWon) return { created: false, reason: "not-won" };
+    if (deal.contactId) return { created: false, reason: "already-linked", contactId: deal.contactId };
+
+    const person = parseLeadPersonFromNotes(deal.notes, deal.title);
+    if (!person) return { created: false, reason: "no-person" };
+
+    const contact = await prisma.contact.create({
+      data: {
+        firstName: person.firstName,
+        lastName: person.lastName,
+        email: person.email,
+        phone: person.phone,
+        organizationId: input.organizationId,
+        companyId: deal.companyId,
+        source: deal.source ? String(deal.source) : "Deal ganado",
+      },
+    });
+    await prisma.deal.update({ where: { id: deal.id }, data: { contactId: contact.id } });
+    return { created: true, contactId: contact.id };
+  } catch (error) {
+    console.error("ensureContactForWonDeal error:", error);
+    return { created: false, reason: "not-found" };
+  }
+}
 
 export type WonProjectResult =
   | { created: false; reason: "already-exists" | "not-won" | "no-assignee" | "not-found"; projectId?: string }

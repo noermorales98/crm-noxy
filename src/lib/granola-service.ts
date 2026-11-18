@@ -9,6 +9,7 @@ import { isEditableNote } from "@/src/lib/granola-rules";
 import { resolveNotionEnv } from "@/src/lib/mcp/notion-credentials";
 import { notionFetch } from "@/src/lib/notion-api";
 import { blocksToMarkdown, notionPageTitle, parseNotionPageId, type NotionBlock } from "@/src/lib/notion-page-md";
+import { extractMarkdownTitle } from "@/src/lib/markdown-title";
 import { randomUUID } from "node:crypto";
 
 const seal = (value: unknown) => encryptSecret(JSON.stringify(value), appSecretKey());
@@ -252,24 +253,37 @@ export function parseMarkdownInput(value: unknown): { ok: true; markdown: string
   return { ok: true, markdown: value };
 }
 
+/** Aplica `# Título` del markdown al título de la nota y limpia esa línea del cuerpo. */
+function resolveNoteContent(input: { title?: unknown; markdown: string }, fallbackTitle: string) {
+  const extracted = extractMarkdownTitle(input.markdown);
+  const fromHash = extracted.title;
+  const fromField = typeof input.title === "string" && input.title.trim() ? input.title.trim() : null;
+  return {
+    title: cleanTitle(fromHash ?? fromField, fallbackTitle),
+    // Siempre el body tras quitar `# …` (puede quedar vacío si la nota era solo el título).
+    markdown: extracted.body,
+  };
+}
+
 /** Crea una nota escrita a mano en una cita. */
 export async function createManualNote(organizationId: string, appointmentId: string, input: { title?: unknown; markdown: string }): Promise<NoteWrite> {
   const appointment = await prisma.appointment.findFirst({ where: { id: appointmentId, organizationId }, select: { id: true, startTime: true, endTime: true } });
   if (!appointment) return { ok: false, status: 404, message: "Cita no encontrada" };
+  const resolved = resolveNoteContent(input, "Nota de la reunión");
   const note = await prisma.granolaNote.create({
     data: {
       organizationId,
       granolaId: `manual:${randomUUID()}`,
       source: "MANUAL",
-      title: cleanTitle(input.title, "Nota de la reunión"),
+      title: resolved.title,
       startedAt: appointment.startTime,
       endedAt: appointment.endTime,
-      summary: input.markdown,
+      summary: resolved.markdown,
       appointmentId: appointment.id,
       linkSource: "MANUAL",
     },
   });
-  await applyActionItems(prisma, note.id, input.markdown, []);
+  await applyActionItems(prisma, note.id, resolved.markdown, []);
   return { ok: true, noteId: note.id, appointmentId: appointment.id };
 }
 
@@ -278,11 +292,16 @@ export async function updateEditableNote(organizationId: string, noteId: string,
   const note = await prisma.granolaNote.findFirst({ where: { id: noteId, organizationId }, include: { items: { select: ITEM_SELECT } } });
   if (!note) return { ok: false, status: 404, message: "Nota no encontrada" };
   if (!isEditableNote(note.source)) return { ok: false, status: 403, message: "Las notas de Granola no se editan aquí: cámbialas en Granola." };
-  await prisma.granolaNote.update({
-    where: { id: note.id },
-    data: { ...(input.title !== undefined ? { title: cleanTitle(input.title, note.title ?? "Nota de la reunión") } : {}), ...(input.markdown !== undefined ? { summary: input.markdown } : {}) },
-  });
-  if (input.markdown !== undefined) await applyActionItems(prisma, note.id, input.markdown, note.items);
+  const data: { title?: string; summary?: string } = {};
+  if (input.markdown !== undefined) {
+    const resolved = resolveNoteContent({ title: input.title, markdown: input.markdown }, note.title ?? "Nota de la reunión");
+    data.title = resolved.title;
+    data.summary = resolved.markdown;
+  } else if (input.title !== undefined) {
+    data.title = cleanTitle(input.title, note.title ?? "Nota de la reunión");
+  }
+  await prisma.granolaNote.update({ where: { id: note.id }, data });
+  if (data.summary !== undefined) await applyActionItems(prisma, note.id, data.summary, note.items);
   return { ok: true, noteId: note.id, appointmentId: note.appointmentId };
 }
 
