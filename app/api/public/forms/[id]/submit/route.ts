@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
 import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { dealTitleForLead, pickLeadStage, resolveLeadSource } from "@/src/lib/form-lead";
+import { formatLeadPersonNotes } from "@/src/lib/lead-person";
 
 // Handle preflight CORS for cross-origin iframes
 export async function OPTIONS() {
@@ -125,39 +126,11 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     }
 
     const noteBody = customNotes.length > 0 ? `Form Details:\n${customNotes.join("\n")}` : "No additional fields provided.";
+    const fullName = `${firstName}${lastName ? " " + lastName : ""}`;
+    const leadPerson = { firstName, lastName, email, phone };
 
-    // 2. Create the Lead Contact in the CRM immediately
-    // Assigned automatically to the Form's Organization and Target Company.
-    const newContact = await prisma.contact.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone,
-        organizationId: form.organizationId,
-        companyId: form.companyId,
-        source: variant ? `${form.name} › ${variant.name}` : `Form: ${form.name}`,
-        sourceFormId: form.id,
-        sourceVariantId: variant?.id ?? null
-      }
-    });
-
-    // In-app notification for form lead
-    createNotification({
-      organizationId: form.organizationId,
-      type: "NEW_FORM_LEAD",
-      title: `Nuevo lead en ${form.name}${variant ? ` › ${variant.name}` : ""}`,
-      body: [
-        `${firstName}${lastName ? " " + lastName : ""}`,
-        email,
-        phone,
-      ].filter(Boolean).join(" · "),
-      link: "/contacts",
-      entityId: newContact.id,
-    });
-
-    // 2a. Todo envío crea también un deal en la etapa «Lead» (con fuente y, si el
-    // formulario lo pregunta, quién refirió). Nunca debe romper el envío del formulario.
+    // 2. Deal en pipeline sin Contact: el contacto se crea solo al ganar el deal.
+    let createdDealId: string | null = null;
     try {
       const fieldValues = form.fields
         .map((field) => {
@@ -176,28 +149,42 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       });
       const target = pickLeadStage(pipelines);
       if (target) {
-        const fullNameForDeal = `${firstName}${lastName ? " " + lastName : ""}`;
         const createdDeal = await prisma.deal.create({
           data: {
-            title: dealTitleForLead({ fullName: fullNameForDeal, formName: form.name }),
+            title: dealTitleForLead({ fullName, formName: form.name }),
             source,
-            notes: [
-              variant ? `Variante: ${variant.name}` : null,
-              referredByText ? `Referido por (texto del formulario): ${referredByText}` : null,
-              noteBody,
-            ].filter(Boolean).join("\n"),
+            notes: formatLeadPersonNotes(
+              leadPerson,
+              [
+                variant ? `Variante: ${variant.name}` : null,
+                referredByText ? `Referido por (texto del formulario): ${referredByText}` : null,
+                noteBody,
+              ]
+                .filter(Boolean)
+                .join("\n"),
+            ),
             organizationId: form.organizationId,
             pipelineId: target.pipelineId,
             stageId: target.stageId,
-            contactId: newContact.id,
+            contactId: null,
             companyId: form.companyId,
           },
         });
+        createdDealId = createdDeal.id;
         await ensureLeadFollowups(createdDeal.id, form.organizationId);
       }
     } catch (err) {
       console.error("Form lead → deal error:", err);
     }
+
+    createNotification({
+      organizationId: form.organizationId,
+      type: "NEW_FORM_LEAD",
+      title: `Nuevo lead en ${form.name}${variant ? ` › ${variant.name}` : ""}`,
+      body: [fullName, email, phone].filter(Boolean).join(" · "),
+      link: createdDealId ? `/pipeline/${createdDealId}` : "/pipeline",
+      entityId: createdDealId ?? form.id,
+    });
 
     // 2b. If form is linked to an appointment type and __appointment_slot was submitted, book the appointment
     const appointmentSlot = submissionData["__appointment_slot"];
@@ -222,12 +209,13 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           data: {
             appointmentTypeId: apptType.id,
             organizationId: form.organizationId,
-            contactId: newContact.id,
+            contactId: null,
+            dealId: createdDealId,
             startTime: start,
             endTime: end,
             timezone: submissionData["__timezone"] || "America/Mexico_City",
             status: "CONFIRMED",
-            guestName: `${firstName}${lastName ? " " + lastName : ""}`,
+            guestName: fullName,
             guestEmail: email || "",
             guestPhone: phone || null,
             notes: customNotes.length > 0 ? customNotes.join("\n") : null,
@@ -252,14 +240,14 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           description: [variantLine, noteBody].filter(Boolean).join("\n"),
           isCompleted: false,
           organizationId: form.organizationId,
-          contactId: newContact.id,
+          contactId: null,
+          dealId: createdDealId,
           formId: form.id,
           assignedToId: owner.userId,
           ...(form.projectId ? { projectId: form.projectId } : {}),
         }
       });
 
-      const fullName = `${firstName}${lastName ? " " + lastName : ""}`;
       const appointmentSlotForNotif = submissionData["__appointment_slot"];
       const appointmentLine = appointmentSlotForNotif
         ? `\n📅 Cita agendada: ${new Date(appointmentSlotForNotif).toLocaleString("es-MX", { dateStyle: "full", timeStyle: "short" })}`
@@ -354,18 +342,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
       );
     }
 
-    // 4. Trigger Welcome Email if configured
+    // 4. Welcome email: sin Contact aún (EmailLog exige contactId), se envía directo por SMTP.
     if (form.welcomeEmail && email) {
-      // Enqueue the email log
-      const log = await prisma.emailLog.create({
-        data: {
-          campaignId: form.welcomeEmail.id,
-          contactId: newContact.id,
-          status: "PENDING"
-        }
-      });
-      
-      // Attempt to send immediately since it's just 1 email
       const company = (form as any).company;
       if (company?.smtpHost && company?.smtpUser && company?.smtpPass) {
         try {
@@ -382,22 +360,9 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             subject: form.welcomeEmail.subject,
             html: form.welcomeEmail.body,
           });
-
-          await prisma.emailLog.update({
-            where: { id: log.id },
-            data: { status: "SENT", sentAt: new Date() }
-          });
-        } catch (err: any) {
-          await prisma.emailLog.update({
-            where: { id: log.id },
-            data: { status: "FAILED", errorReason: err.message || "Failed to deliver welcome email" }
-          });
+        } catch (err) {
+          console.error("Welcome email error:", err);
         }
-      } else {
-        await prisma.emailLog.update({
-          where: { id: log.id },
-          data: { status: "FAILED", errorReason: "Company SMTP credentials not configured." }
-        });
       }
     }
 

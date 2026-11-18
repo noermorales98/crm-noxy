@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chip, type ChipTone } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
-import { input as inputCls } from "@/src/lib/crm-ui";
 
 type Suggestion = {
   id: string;
@@ -188,40 +187,47 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
   const pending = (items ?? []).filter((s) => s.status === "PENDING");
   const decided = (items ?? []).filter((s) => s.status !== "PENDING");
 
+  const selectedModelName = modelId ? models.find((m) => m.id === modelId)?.name : null;
+
   return (
     <section aria-label="Sugerencias de la IA" className="space-y-3 rounded-control border border-line p-4">
       <header className="flex flex-wrap items-center gap-2">
         <h2 className="min-w-0 flex-1 text-sm font-semibold text-text-primary">Sugerencias de la IA</h2>
+        {models.length > 0 && (
+          <label className="inline-flex max-w-[11rem] items-center gap-1 text-[11px] text-text-secondary">
+            <span className="sr-only">Modelo de IA</span>
+            <select
+              value={modelId}
+              onChange={(e) => chooseModel(e.target.value)}
+              disabled={busy === "generate"}
+              title={selectedModelName ?? "Predeterminado"}
+              className="min-h-8 max-w-full truncate rounded-control border border-line bg-transparent px-1.5 py-0.5 text-[11px] font-normal text-text-secondary outline-none hover:border-line-strong focus-visible:ring-1 focus-visible:ring-focus"
+            >
+              <option value="">Predeterminado</option>
+              {Array.from(new Set(models.map((m) => m.group))).map((group) => (
+                <optgroup key={group} label={group}>
+                  {models
+                    .filter((m) => m.group === group)
+                    .map((m) => (
+                      <option key={m.id} value={m.id} disabled={!m.configured}>
+                        {m.name}
+                        {m.configured ? "" : " — sin clave"}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        )}
         <button type="button" className={primaryBtn} onClick={generate} disabled={busy === "generate"}>
-          {busy === "generate" ? "Leyendo las notas…" : items && items.length ? "Generar de nuevo" : "Generar sugerencias"}
+          {busy === "generate" ? "Leyendo…" : items && items.length ? "Generar de nuevo" : "Generar"}
         </button>
       </header>
-      <p className="text-xs text-text-secondary">La IA lee las notas de esta cita y propone acciones solas cuando entra o cambia una nota. No se crea nada hasta que tú lo agregues.</p>
+      <p className="text-xs text-text-secondary">Lee las notas y propone acciones. Nada se crea hasta que tú lo agregues.</p>
       {watching && (
         <p role="status" className="text-xs font-medium text-action-primary">
-          La IA está leyendo las notas… las sugerencias aparecerán aquí en unos segundos.
+          La IA está leyendo las notas…
         </p>
-      )}
-
-      {models.length > 0 && (
-        <label className="flex flex-col gap-1 text-xs font-semibold text-text-primary sm:max-w-sm">
-          Modelo de IA
-          <select value={modelId} onChange={(e) => chooseModel(e.target.value)} disabled={busy === "generate"} className={`${inputCls} font-normal`}>
-            <option value="">Predeterminado (el de tu resumen diario)</option>
-            {Array.from(new Set(models.map((m) => m.group))).map((group) => (
-              <optgroup key={group} label={group}>
-                {models
-                  .filter((m) => m.group === group)
-                  .map((m) => (
-                    <option key={m.id} value={m.id} disabled={!m.configured}>
-                      {m.name}
-                      {m.configured ? "" : " — sin clave configurada"}
-                    </option>
-                  ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
       )}
 
       {failure && (

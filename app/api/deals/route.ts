@@ -1,7 +1,7 @@
 import { effectiveDealValue } from "@/src/lib/deal-sales";
 import { NextResponse, after } from "next/server";
+import { ensureContactForWonDeal, ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { ensureDeliveryReferrals, ensureLeadFollowups } from "@/src/lib/lead-followup-service";
-import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { autoSync } from "@/src/lib/notion-sync";
 import { normalizeDealIcon } from "@/src/lib/deal-icons";
 import { prisma } from "@/src/lib/db";
@@ -197,9 +197,10 @@ export async function PATCH(req: Request) {
     });
 
     after(() => autoSync(organizationId, "deal", deal.id));
-    // Etapa ganada → proyecto + tareas base (idempotente: no duplica entre etapas ganadas)
+    // Etapa ganada → contacto (si faltaba) + proyecto + tareas base
     let wonProject = null;
     if (deal.stage.isWon) {
+      await ensureContactForWonDeal({ dealId: deal.id, organizationId });
       wonProject = await ensureProjectForWonDeal({ dealId: deal.id, organizationId, actorUserId: session.user?.id });
     }
     if (deal.stage.name.toLowerCase() === "entregado") {

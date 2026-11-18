@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Los filtros `where`/`data` de Prisma se construyen dinámicamente según los
 // argumentos dados; el proyecto ya usa `any` en sus route handlers.
-import { ensureProjectForWonDeal } from "@/src/lib/deal-won";
+import { ensureContactForWonDeal, ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { buildDigestContext } from "@/src/lib/digest";
 import { weeklyComparison, weeklyText } from "@/src/lib/video-analytics";
@@ -522,6 +522,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         include: { stage: { select: { name: true, isWon: true, isLost: true } } },
       });
       if (stageId && deal.stage.isWon) {
+        await ensureContactForWonDeal({ dealId: id, organizationId: org });
         const wonProject = await ensureProjectForWonDeal({ dealId: id, organizationId: org, actorUserId: await defaultUserId() });
         return json({ ...deal, wonProject });
       }

@@ -31,10 +31,10 @@ const STATUS_TONES: Record<string, ChipTone> = { CONFIRMED: "neutral", COMPLETED
 const STATUS_LABELS: Record<string, string> = { CONFIRMED: "Confirmada", COMPLETED: "Completada", CANCELLED: "Cancelada" };
 
 const TABS: { key: AppointmentTab; label: string }[] = [
+  { key: "all", label: "Todas" },
   { key: "upcoming", label: "Próximas" },
   { key: "past", label: "Anteriores" },
   { key: "cancelled", label: "Canceladas" },
-  { key: "all", label: "Todas" },
 ];
 
 const EMPTY: Record<AppointmentTab, { title: string; body: string }> = {
@@ -52,7 +52,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [tab, setTab] = useState<AppointmentTab>("upcoming");
+  const [tab, setTab] = useState<AppointmentTab>("all");
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState<AppointmentRow | null>(null);
   // Solo la primera carga (sin datos todavía) muestra el esqueleto; una recarga no hace parpadear la cabecera.
