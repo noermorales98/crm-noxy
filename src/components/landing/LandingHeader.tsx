@@ -37,12 +37,14 @@ export default function LandingHeader() {
             <a href="#control" className="hover:underline hover:underline-offset-4">Control</a>
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/login"
-              className={`${BTN} hidden md:inline-flex ${solid ? "border border-line bg-surface-elevated text-text-primary hover:bg-surface-app" : "border border-white/35 bg-transparent text-white hover:bg-white/10"}`}
-            >
-              Iniciar sesión
-            </Link>
+            <div className="hidden md:block">
+              <Link
+                href="/login"
+                className={`${BTN} ${solid ? "border border-line bg-surface-elevated text-text-primary hover:bg-surface-app" : "border border-white/35 bg-transparent text-white hover:bg-white/10"}`}
+              >
+                Iniciar sesión
+              </Link>
+            </div>
             <a href="#demo" className={`${BTN} ${solid ? "bg-brand-obsidian text-white hover:bg-brand-obsidian/85" : "bg-white text-brand-obsidian hover:bg-white/90"}`}>
               <Icon icon={Calendar03Icon} size={18} />
               Pide una demo

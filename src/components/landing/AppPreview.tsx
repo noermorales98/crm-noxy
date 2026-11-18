@@ -21,6 +21,8 @@ import {
   InboxIcon,
   Invoice01Icon,
   LockPasswordIcon,
+  Menu01Icon,
+  MoreHorizontalCircle01Icon,
   Notification01Icon,
   Search01Icon,
   SparklesIcon,
@@ -428,6 +430,17 @@ const FRAMES: { mode: ModeId; view: ItemId; t: number }[] = [
   ...[0, 1, 2, 3, 4].map((t) => ({ mode: "content" as ModeId, view: "calendario", t })),
 ];
 
+/** Barra inferior del CRM móvil (misma que `MOBILE_TABS`): cada pestaña lleva a una pantalla del guion. */
+const MOBILE_TABS: { view: ItemId; mode: ModeId; label: string; icon: IconSvgElement }[] = [
+  { view: "inicio", mode: "work", label: "Inicio", icon: Home01Icon },
+  { view: "contactos", mode: "work", label: "Contactos", icon: UserMultipleIcon },
+  { view: "pipeline", mode: "sales", label: "Pipeline", icon: BarChartIcon },
+  { view: "tareas", mode: "work", label: "Tareas", icon: Task01Icon },
+];
+const TAB_CLASS = "relative flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-full px-1 text-xs outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none";
+const TAB_ACTIVE = "bg-[color-mix(in_srgb,var(--color-surface-elevated)_88%,transparent)] font-semibold text-[var(--nav-active-ink)] shadow-[0_1px_4px_rgba(11,11,24,0.12)]";
+const TAB_IDLE = "font-medium text-text-secondary-strong hover:text-text-primary";
+
 const FRAME_MS = 900;
 const HOLD_MS = 14000;
 
@@ -457,10 +470,24 @@ export default function AppPreview() {
     holdTimer.current = setTimeout(() => setManual(null), HOLD_MS);
   }
 
+  const viewLabel = MODES.flatMap((m) => m.items).find((i) => i.id === shown.view)?.label ?? "Inicio";
+  const tabActive = MOBILE_TABS.some((t) => t.view === shown.view);
+
   return (
-    <div ref={ref} className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
-      <div className="flex min-h-[370px] flex-col md:min-h-[560px] md:flex-row">
-        <aside className="flex shrink-0 flex-col gap-2 border-b border-line bg-surface-sidebar p-2.5 md:w-44 md:border-b-0 md:border-r">
+    <div ref={ref} className="relative overflow-hidden rounded-surface border border-line bg-surface-elevated">
+      {/* Móvil: misma barra superior del CRM real (menú, isotipo, título, búsqueda y avisos) */}
+      <header className="flex h-14 items-center gap-1 border-b border-line bg-surface-sidebar px-2 md:hidden">
+        <span className="flex size-11 shrink-0 items-center justify-center text-text-secondary-strong"><Icon icon={Menu01Icon} size={20} /></span>
+        <span className="flex size-11 shrink-0 items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/Isotipo_Azul.svg" alt="" width={24} height={18} className="h-[18px] w-6" />
+        </span>
+        <p className="min-w-0 flex-1 truncate text-base font-semibold text-text-primary">{viewLabel}</p>
+        <span className="flex size-11 shrink-0 items-center justify-center text-text-secondary-strong"><Icon icon={Search01Icon} size={19} /></span>
+        <span className="flex size-11 shrink-0 items-center justify-center text-text-secondary-strong"><Icon icon={Notification01Icon} size={19} /></span>
+      </header>
+      <div className="flex min-h-[520px] flex-col md:min-h-[560px] md:flex-row">
+        <aside className="hidden shrink-0 flex-col gap-2 border-b border-line bg-surface-sidebar p-2.5 md:flex md:w-44 md:border-b-0 md:border-r">
           <div className="flex items-center justify-between px-1">
             <span className="flex items-center gap-1.5">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -502,10 +529,32 @@ export default function AppPreview() {
             </span>
           </div>
         </aside>
-        <div className="min-w-0 flex-1 p-3.5 sm:p-4">
+        <div className="min-w-0 flex-1 p-3.5 pb-24 sm:p-4 md:pb-4">
           <div key={shown.view} className="motion-safe:animate-[crm-enter_240ms_ease-out]">{renderView(shown.view, shown.t)}</div>
         </div>
       </div>
+      {/* Móvil: cápsula flotante de cristal con Inicio, Contactos, Pipeline, Tareas y «Más», como en el CRM real */}
+      <nav aria-label="Navegación principal" className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-4 pb-3 md:hidden">
+        <ul className="pointer-events-auto flex w-full max-w-sm items-stretch gap-0.5 rounded-full border border-white/50 bg-[color-mix(in_srgb,var(--color-surface-elevated)_58%,transparent)] p-1.5 shadow-[0_10px_32px_rgba(11,11,24,0.16),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-2xl backdrop-saturate-150 [@supports_not_(backdrop-filter:blur(1px))]:bg-surface-elevated">
+          {MOBILE_TABS.map((tab) => {
+            const on = tab.view === shown.view;
+            return (
+              <li key={tab.view} className="min-w-0 flex-1">
+                <button type="button" aria-current={on ? "page" : undefined} onClick={() => take({ mode: tab.mode, view: tab.view })} className={`${TAB_CLASS} ${on ? TAB_ACTIVE : TAB_IDLE}`}>
+                  <Icon icon={tab.icon} size={21} />
+                  <span className="max-w-full truncate">{tab.label}</span>
+                </button>
+              </li>
+            );
+          })}
+          <li className="min-w-0 flex-1">
+            <button type="button" onClick={() => take({ mode: "work", view: "citas" })} className={`${TAB_CLASS} ${tabActive ? TAB_IDLE : TAB_ACTIVE}`}>
+              <Icon icon={MoreHorizontalCircle01Icon} size={21} />
+              <span>Más</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
   );
 }
