@@ -78,6 +78,8 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
       }
       addToast(ok, "success");
       await load();
+      // Avisa a las sugerencias de la IA: al cambiar las notas se generan solas y la lista debe enterarse.
+      window.dispatchEvent(new CustomEvent("meeting-notes-changed"));
       return true;
     } catch {
       addToast("Error de red.", "error");

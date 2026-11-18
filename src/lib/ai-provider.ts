@@ -77,3 +77,18 @@ export function mergeNvidiaModels(catalog: ListedModel[], liveIds: string[]): Li
     .map((id) => ({ id, name: providerModelName(id).split("/").pop() ?? id, group: "NVIDIA (disponibles ahora)", provider: "nvidia", configured: true }));
   return [...kept, ...extra];
 }
+
+/**
+ * Modelos LIGEROS de NVIDIA para el respaldo cuando el modelo elegido falla: rápidos y de pocos parámetros activos
+ * (probados con una llamada real: responden en menos de 1 s). Nunca se usan los pesados. En orden de preferencia.
+ */
+export const LIGHT_NVIDIA_MODELS = ["nvidia:nvidia/nemotron-3.5-lightning-30b-a3b", "nvidia:nvidia/nemotron-3.5-bolt-e4b"] as const;
+
+/**
+ * Modelos de respaldo a probar tras `primaryId`: los ligeros de NVIDIA, sin repetir el principal y, si se conoce la lista
+ * vigente de NVIDIA, solo los que existan hoy (un modelo retirado no se intenta).
+ */
+export function fallbackCandidates(primaryId: string, liveIds: string[] | null): string[] {
+  const live = liveIds ? new Set(liveIds) : null;
+  return LIGHT_NVIDIA_MODELS.filter((id) => id !== primaryId && (!live || live.has(providerModelName(id))));
+}

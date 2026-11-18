@@ -211,6 +211,14 @@ export const AI_MODELS: AiModel[] = [
     tags: ["Rápido"],
   },
   {
+    id: "nvidia:nvidia/nemotron-3.5-bolt-e4b",
+    name: "Nemotron 3.5 Bolt 4B",
+    provider: "nvidia",
+    group: "NVIDIA",
+    description: "Ultraligero (4B); gratis con tu clave de NVIDIA",
+    tags: ["Rápido"],
+  },
+  {
     id: "nvidia:mistralai/mistral-large-4-1t-a52b",
     name: "Mistral Large 4",
     provider: "nvidia",

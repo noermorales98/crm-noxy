@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { granolaScope } from "@/src/lib/granola-auth";
 import { importNotionNote } from "@/src/lib/granola-service";
+import { autoGenerateSuggestions } from "@/src/lib/suggestions-service";
 
 export const maxDuration = 60;
 
@@ -14,5 +15,6 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   const body = await req.json().catch(() => null);
   const result = await importNotionNote(access.scope.organizationId, id, body?.url);
   if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
+  after(() => autoGenerateSuggestions(access.scope.organizationId, id));
   return NextResponse.json({ id: result.noteId }, { status: 201 });
 }

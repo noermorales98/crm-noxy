@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error: node --test carga el .ts directo
-import { CHAT_ENDPOINTS, isNvidiaChatModelId, mergeNvidiaModels, missingKeyMessage, providerHeaders, providerKeys, providerModelName, parseProviderApiKey, providerOfModelId, shouldTryNextKey } from "./ai-provider.ts";
+import { CHAT_ENDPOINTS, LIGHT_NVIDIA_MODELS, fallbackCandidates, isNvidiaChatModelId, mergeNvidiaModels, missingKeyMessage, providerHeaders, providerKeys, providerModelName, parseProviderApiKey, providerOfModelId, shouldTryNextKey } from "./ai-provider.ts";
 
 test("el prefijo nvidia: manda el modelo a NVIDIA y se quita antes de enviarlo; lo demás es OpenRouter", () => {
   assert.equal(providerOfModelId("nvidia:deepseek-ai/deepseek-v4.1-flash"), "nvidia");
@@ -80,4 +80,12 @@ test("mezcla con la lista vigente: quita del catálogo los retirados, añade los
   assert.ok(!ids.some((i: string) => i.includes("nv-embed")), "los que no son de chat no entran");
   assert.equal(out.find((m: { id: string }) => m.id === "nvidia:google/gemma-4-31b-it")?.name, "gemma-4-31b-it");
   assert.equal(out.filter((m: { id: string }) => m.id === "nvidia:mistralai/mistral-large-4-1t-a52b").length, 1, "sin duplicados");
+});
+
+test("respaldo: solo modelos ligeros de NVIDIA, sin repetir el principal y solo los vigentes", () => {
+  assert.deepEqual(fallbackCandidates("google/gemma-4-31b-it:free", null), [...LIGHT_NVIDIA_MODELS]);
+  assert.deepEqual(fallbackCandidates("nvidia:nvidia/nemotron-3.5-lightning-30b-a3b", null), ["nvidia:nvidia/nemotron-3.5-bolt-e4b"]);
+  assert.deepEqual(fallbackCandidates("x", ["nvidia/nemotron-3.5-bolt-e4b"]), ["nvidia:nvidia/nemotron-3.5-bolt-e4b"], "el retirado no se intenta");
+  assert.deepEqual(fallbackCandidates("x", []), [], "sin ninguno vigente, sin respaldo");
+  for (const id of LIGHT_NVIDIA_MODELS) assert.ok(!/(ultra|550b|120b|405b|large|super)/i.test(id), `${id} no debe ser un modelo pesado`);
 });

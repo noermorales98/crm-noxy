@@ -1,7 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { granolaScope } from "@/src/lib/granola-auth";
 import { deleteEditableNote, parseMarkdownInput, updateEditableNote } from "@/src/lib/granola-service";
+import { autoGenerateSuggestions } from "@/src/lib/suggestions-service";
+
+export const maxDuration = 60;
 
 /**
  * Vincula (`{ appointmentId }`) o desvincula (`{ appointmentId: null }`) una sesión a mano; esa decisión nunca la deshace
@@ -24,6 +27,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     }
     const result = await updateEditableNote(organizationId, id, { title: body.title, markdown });
     if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
+    // Si cambió el texto, la IA vuelve a leer la nota (lo ya decidido no se repite).
+    if (markdown !== undefined && result.appointmentId) after(() => autoGenerateSuggestions(organizationId, result.appointmentId!));
     return NextResponse.json({ ok: true });
   }
 
@@ -38,6 +43,8 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     appointmentId = appointment.id;
   }
   await prisma.granolaNote.update({ where: { id }, data: { appointmentId, linkSource: "MANUAL" } });
+  // Una sesión que se vincula a una cita trae notas nuevas para esa cita.
+  if (appointmentId) after(() => autoGenerateSuggestions(organizationId, appointmentId));
   return NextResponse.json({ ok: true, appointmentId });
 }
 

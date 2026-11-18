@@ -34,5 +34,5 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
   const modelId = typeof body?.modelId === "string" ? body.modelId : null;
   const result = await generateSuggestions(access.organizationId, access.userId, id, modelId);
   if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status });
-  return NextResponse.json({ created: result.created, total: result.total });
+  return NextResponse.json({ created: result.created, total: result.total, modelUsed: result.modelUsed, fellBack: result.fellBack });
 }

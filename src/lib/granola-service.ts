@@ -75,7 +75,7 @@ async function applyActionItems(db: ItemsDb, noteId: string, summary: string | n
 }
 
 export type SyncOutcome =
-  | { ok: true; synced: number; failed: number; complete: boolean; linked: number; unassigned: number }
+  | { ok: true; synced: number; failed: number; complete: boolean; linked: number; unassigned: number; appointmentIds: string[] }
   | { ok: false; code: string; message: string };
 
 const LOCK_MS = 5 * 60_000;
@@ -113,8 +113,8 @@ function parseAttendees(raw: string | null): { name: string | null; email: strin
   }
 }
 
-/** Sesiones que quedaron sin asignar porque su cita se creó después: se vuelven a intentar emparejar. Nunca toca vínculos manuales. */
-async function rematchUnassigned(organizationId: string) {
+/** Sesiones que quedaron sin asignar porque su cita se creó después: se vuelven a intentar emparejar. Nunca toca vínculos manuales. Devuelve las citas que recibieron una sesión. */
+async function rematchUnassigned(organizationId: string): Promise<string[]> {
   const orphans = await prisma.granolaNote.findMany({
     where: { organizationId, appointmentId: null, linkSource: null, startedAt: { gte: new Date(Date.now() - REMATCH_DAYS * 86_400_000) } },
     orderBy: { startedAt: "desc" },
@@ -122,10 +122,15 @@ async function rematchUnassigned(organizationId: string) {
     select: { id: true, startedAt: true, attendees: true },
   });
   const matchable = await loadMatchable(organizationId, orphans.map((o) => o.startedAt!.getTime()));
+  const matched: string[] = [];
   for (const orphan of orphans) {
     const match = matchNoteToAppointment({ startedAt: orphan.startedAt, attendees: parseAttendees(orphan.attendees) }, matchable);
-    if (match) await prisma.granolaNote.update({ where: { id: orphan.id }, data: { appointmentId: match, linkSource: "AUTO" } });
+    if (match) {
+      await prisma.granolaNote.update({ where: { id: orphan.id }, data: { appointmentId: match, linkSource: "AUTO" } });
+      matched.push(match);
+    }
   }
+  return matched;
 }
 
 /** Trae las sesiones nuevas o cambiadas, las empareja con citas y guarda resumen, notas y pasos. Idempotente y sin solaparse. */
@@ -144,10 +149,11 @@ export async function runGranolaSync(organizationId: string, redirectUrl: string
       const matchable = await loadMatchable(organizationId, notes.map((n) => n.startedAt?.getTime()).filter((t): t is number => typeof t === "number"));
 
       let failed = 0;
+      const touched: string[] = []; // citas cuyas notas cambiaron en esta corrida: candidatas a sugerencias automáticas
       for (const note of notes) {
         try {
           // Nota y pasos se guardan juntos: si algo falla, la nota no queda marcada como al día sin sus pasos.
-          await prisma.$transaction(async (tx) => {
+          const linkedTo = await prisma.$transaction(async (tx) => {
             const existing = await tx.granolaNote.findUnique({
               where: { organizationId_granolaId: { organizationId, granolaId: note.granolaId } },
               include: { items: { select: ITEM_SELECT } },
@@ -178,12 +184,14 @@ export async function runGranolaSync(organizationId: string, redirectUrl: string
               ? await tx.granolaNote.update({ where: { id: existing.id }, data })
               : await tx.granolaNote.create({ data: { ...data, organizationId, granolaId: note.granolaId } });
             await applyActionItems(tx, saved.id, note.summary, existing?.items ?? []);
+            return note.summary ? appointmentId : null;
           });
+          if (linkedTo) touched.push(linkedTo);
         } catch {
           failed++;
         }
       }
-      await rematchUnassigned(organizationId);
+      touched.push(...(await rematchUnassigned(organizationId)));
 
       // La ventana solo avanza si se cubrió todo: si hubo tope, respuesta cortada o sesiones que no se guardaron, la
       // próxima corrida vuelve a mirar desde el mismo punto (lo ya guardado se salta solo).
@@ -201,7 +209,7 @@ export async function runGranolaSync(organizationId: string, redirectUrl: string
         prisma.granolaNote.count({ where: { organizationId, appointmentId: { not: null } } }),
         prisma.granolaNote.count({ where: { organizationId, appointmentId: null } }),
       ]);
-      return { ok: true, synced: notes.length - failed, failed, complete, linked, unassigned };
+      return { ok: true, synced: notes.length - failed, failed, complete, linked, unassigned, appointmentIds: touched };
     } finally {
       await close().catch(() => {});
     }
@@ -233,7 +241,7 @@ export const sealSecret = (plain: string) => encryptSecret(plain, appSecretKey()
 const MAX_MARKDOWN = 100_000;
 const MAX_TITLE = 190;
 
-export type NoteWrite = { ok: true; noteId: string } | { ok: false; status: number; message: string };
+export type NoteWrite = { ok: true; noteId: string; appointmentId: string | null } | { ok: false; status: number; message: string };
 
 const cleanTitle = (value: unknown, fallback: string) => (typeof value === "string" && value.trim() ? value.trim().slice(0, MAX_TITLE) : fallback);
 
@@ -262,7 +270,7 @@ export async function createManualNote(organizationId: string, appointmentId: st
     },
   });
   await applyActionItems(prisma, note.id, input.markdown, []);
-  return { ok: true, noteId: note.id };
+  return { ok: true, noteId: note.id, appointmentId: appointment.id };
 }
 
 /** Edita título y/o texto de una nota manual o de Notion (las de Granola solo cambian desde Granola). */
@@ -275,7 +283,7 @@ export async function updateEditableNote(organizationId: string, noteId: string,
     data: { ...(input.title !== undefined ? { title: cleanTitle(input.title, note.title ?? "Nota de la reunión") } : {}), ...(input.markdown !== undefined ? { summary: input.markdown } : {}) },
   });
   if (input.markdown !== undefined) await applyActionItems(prisma, note.id, input.markdown, note.items);
-  return { ok: true, noteId: note.id };
+  return { ok: true, noteId: note.id, appointmentId: note.appointmentId };
 }
 
 /** Borra una nota manual o de Notion. Las tareas que salieron de sus pasos se conservan. */
@@ -284,7 +292,7 @@ export async function deleteEditableNote(organizationId: string, noteId: string)
   if (!note) return { ok: false, status: 404, message: "Nota no encontrada" };
   if (!isEditableNote(note.source)) return { ok: false, status: 403, message: "Las notas de Granola no se borran aquí." };
   await prisma.granolaNote.delete({ where: { id: note.id } });
-  return { ok: true, noteId: note.id };
+  return { ok: true, noteId: note.id, appointmentId: null };
 }
 
 const MAX_BLOCKS = 300;
@@ -349,5 +357,5 @@ export async function importNotionNote(organizationId: string, appointmentId: st
     ? await prisma.granolaNote.update({ where: { id: existing.id }, data })
     : await prisma.granolaNote.create({ data: { ...data, organizationId, granolaId, source: "NOTION" } });
   await applyActionItems(prisma, note.id, markdown, existing?.items ?? []);
-  return { ok: true, noteId: note.id };
+  return { ok: true, noteId: note.id, appointmentId: appointment.id };
 }

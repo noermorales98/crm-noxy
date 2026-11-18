@@ -9,6 +9,8 @@ const PUBLIC_PREFIXES = ["/login", "/book/", "/form/", "/schedule/", "/docs/", "
 function isPublicRoute(pathname: string): boolean {
   // Isolated local sample data; this route never reads authenticated CRM data.
   if (pathname === "/design-preview") return true;
+  // Landing pública: sin menú ni sesión del CRM.
+  if (pathname === "/demo") return true;
   if (pathname === "/login") return true;
   if (pathname === "/mcp/approve" || pathname.startsWith("/mcp/approve/")) return true;
   return PUBLIC_PREFIXES.some((prefix) => prefix.endsWith("/") && pathname.startsWith(prefix));

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { completeWithAi, getAvailableAiModels, resolveRequestedModelId } from "@/src/lib/ai-completion";
-import { listNvidiaModelIds } from "@/src/lib/ai-keys";
-import { isNvidiaChatModelId, providerModelName, providerOfModelId } from "@/src/lib/ai-provider";
+import { listNvidiaModelIds, resolveProviderKeys } from "@/src/lib/ai-keys";
+import { fallbackCandidates, isNvidiaChatModelId, providerModelName, providerOfModelId } from "@/src/lib/ai-provider";
 import { prisma } from "@/src/lib/db";
 import { syncAppointmentToCalendar } from "@/src/lib/google-calendar";
 import { utcToZonedParts } from "@/src/lib/manual-appointment";
@@ -28,12 +28,19 @@ const lastSuccess = new Map<string, number>();
 const generating = new Set<string>();
 
 /** Genera sugerencias con la IA a partir de las notas de la cita. No crea nada en el CRM: solo guarda propuestas pendientes. */
+export type GenerateResult = { ok: true; created: number; total: number; modelUsed: string; fellBack: boolean } | Failure;
+
+/**
+ * Genera sugerencias con la IA. `userId` nulo = generación automática (sin usuario): usa el modelo predeterminado.
+ * Si el modelo falla (proveedor caído o saturado, modelo retirado, respuesta vacía o ilegible) se prueba con un modelo
+ * LIGERO de NVIDIA, siempre que haya clave de NVIDIA; nunca con uno pesado.
+ */
 export async function generateSuggestions(
   organizationId: string,
-  userId: string,
+  userId: string | null,
   appointmentId: string,
   requestedModelId?: string | null,
-): Promise<{ ok: true; created: number; total: number } | Failure> {
+): Promise<GenerateResult> {
   const appointment = await prisma.appointment.findFirst({
     where: { id: appointmentId, organizationId },
     select: { id: true, title: true, guestName: true, startTime: true, appointmentType: { select: { name: true } } },
@@ -79,7 +86,7 @@ export async function generateSuggestions(
     generating.delete(appointmentId);
   }
 
-  async function runGeneration(appt: NonNullable<typeof appointment>): Promise<{ ok: true; created: number; total: number } | Failure> {
+  async function runGeneration(appt: NonNullable<typeof appointment>): Promise<GenerateResult> {
 
   const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: { timezone: true } });
   const timezone = org?.timezone || DEFAULT_TZ;
@@ -95,39 +102,71 @@ export async function generateSuggestions(
     decided: known.map((k) => ({ type: k.type, title: k.title, status: k.status })),
   });
 
-  let raw: string;
+  // Candidatos en orden: el elegido (o el predeterminado) y, si hay clave de NVIDIA, sus modelos ligeros de respaldo.
+  const primary = chosenModelId ?? (await resolveRequestedModelId(organizationId, userId ?? "", null));
+  const hasNvidiaKey = (await resolveProviderKeys(organizationId, "nvidia")).keys.length > 0;
+  const candidates = [primary, ...(hasNvidiaKey ? fallbackCandidates(primary, await listNvidiaModelIds(organizationId)) : [])];
+
+  let failure: Failure = { ok: false, status: 502, message: "La IA no pudo generar sugerencias. Inténtalo de nuevo." };
+  for (let i = 0; i < candidates.length; i++) {
+    let raw: string;
+    try {
+      raw = await completeWithAi({ orgId: organizationId, modelId: candidates[i], systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 8000, maxOutputChars: 9000 });
+    } catch (error) {
+      // La causa real queda en el log del servidor; al usuario se le da una explicación entendible, sin texto del proveedor.
+      console.error("[suggestions] fallo de la IA:", error instanceof Error ? error.message : error);
+      const described = describeAiError(error instanceof Error ? error.message : null);
+      failure = { ok: false, status: described.status, message: described.message };
+      continue;
+    }
+
+    const parsed = extractSuggestionsJson(raw);
+    if (parsed === null) {
+      failure = { ok: false, status: 502, message: "La IA devolvió una respuesta que no se pudo leer. Intenta de nuevo." };
+      continue;
+    }
+    const suggestions = normalizeSuggestions(parsed, today);
+
+    // Lo ya agregado o descartado no se vuelve a proponer; las pendientes se conservan. La huella única evita duplicados.
+    const created = suggestions.length
+      ? await prisma.appointmentSuggestion.createMany({
+          data: suggestions.map((s) => ({
+            organizationId,
+            appointmentId,
+            type: s.type,
+            title: s.title,
+            detail: s.detail,
+            payload: JSON.stringify(s.payload),
+            fingerprint: s.fingerprint,
+          })),
+          skipDuplicates: true,
+        })
+      : { count: 0 };
+    lastSuccess.set(appointmentId, Date.now());
+    return { ok: true, created: created.count, total: suggestions.length, modelUsed: candidates[i], fellBack: i > 0 };
+  }
+  return failure;
+  }
+}
+
+/**
+ * Generación AUTOMÁTICA al entrar o cambiar una nota de la cita. Nunca lanza ni interrumpe a quien la dispara: si la IA
+ * falla (incluido el respaldo) solo queda en el log y la persona puede pulsar «Generar sugerencias» a mano.
+ */
+export async function autoGenerateSuggestions(organizationId: string, appointmentId: string): Promise<void> {
   try {
-    const modelId = chosenModelId ?? (await resolveRequestedModelId(organizationId, userId, null));
-    raw = await completeWithAi({ orgId: organizationId, modelId, systemPrompt: SUGGESTIONS_SYSTEM_PROMPT, userPrompt: prompt, maxTokens: 8000, maxOutputChars: 9000 });
+    const result = await generateSuggestions(organizationId, null, appointmentId);
+    if (!result.ok && result.status !== 422 && result.status !== 429 && result.status !== 409) {
+      console.warn("[suggestions] generación automática sin éxito:", result.status, result.message);
+    }
   } catch (error) {
-    // La causa real queda en el log del servidor; al usuario se le da una explicación entendible, sin texto del proveedor.
-    console.error("[suggestions] fallo de la IA:", error instanceof Error ? error.message : error);
-    const described = describeAiError(error instanceof Error ? error.message : null);
-    return { ok: false, status: described.status, message: described.message };
+    console.warn("[suggestions] generación automática falló:", error instanceof Error ? error.name : "error");
   }
+}
 
-  const parsed = extractSuggestionsJson(raw);
-  if (parsed === null) return { ok: false, status: 502, message: "La IA devolvió una respuesta que no se pudo leer. Intenta de nuevo." };
-  const suggestions = normalizeSuggestions(parsed, today);
-
-  // Lo ya agregado o descartado no se vuelve a proponer; las pendientes se conservan. La huella única evita duplicados.
-  const created = suggestions.length
-    ? await prisma.appointmentSuggestion.createMany({
-        data: suggestions.map((s) => ({
-          organizationId,
-          appointmentId,
-          type: s.type,
-          title: s.title,
-          detail: s.detail,
-          payload: JSON.stringify(s.payload),
-          fingerprint: s.fingerprint,
-        })),
-        skipDuplicates: true,
-      })
-    : { count: 0 };
-  lastSuccess.set(appointmentId, Date.now());
-  return { ok: true, created: created.count, total: suggestions.length };
-  }
+/** Varias citas, de una en una y con tope por ejecución (cada llamada tarda unos segundos; las demás se hacen en el siguiente evento). */
+export async function autoGenerateForAppointments(organizationId: string, appointmentIds: string[], max = 3): Promise<void> {
+  for (const id of Array.from(new Set(appointmentIds)).slice(0, max)) await autoGenerateSuggestions(organizationId, id);
 }
 
 export async function listSuggestions(organizationId: string, appointmentId: string) {

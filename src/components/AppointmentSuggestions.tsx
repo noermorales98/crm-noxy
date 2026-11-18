@@ -62,6 +62,9 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
   const [modelId, setModelId] = useState("");
   // Fallo de la IA que se puede resolver cambiando de modelo: se muestra con el motivo y un botón para reintentar.
   const [failure, setFailure] = useState<string | null>(null);
+  // Tras cambiar las notas la IA genera sola: se consulta cada pocos segundos (máx. 1 minuto) hasta que lleguen.
+  const [watching, setWatching] = useState(false);
+  const baseline = useRef(0);
   const inFlight = useRef(false); // un doble clic rápido no envía dos veces
   const loadSeq = useRef(0); // una carga vieja no pisa a una más reciente
 
@@ -102,6 +105,33 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     };
   }, []);
 
+  useEffect(() => {
+    const onNotesChanged = () => {
+      baseline.current = items?.length ?? 0;
+      setWatching(true);
+    };
+    window.addEventListener("meeting-notes-changed", onNotesChanged);
+    return () => window.removeEventListener("meeting-notes-changed", onNotesChanged);
+  }, [items]);
+
+  useEffect(() => {
+    if (!watching) return;
+    let ticks = 0;
+    const timer = setInterval(() => {
+      ticks += 1;
+      void load();
+      if (ticks >= 10) setWatching(false);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [watching, load]);
+
+  useEffect(() => {
+    if (watching && items && items.length > baseline.current) {
+      addToast(`La IA agregó ${items.length - baseline.current} sugerencias nuevas.`, "success");
+      setWatching(false);
+    }
+  }, [items, watching, addToast]);
+
   const chooseModel = (id: string) => {
     setModelId(id);
     storeModel(id);
@@ -118,13 +148,14 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(modelId ? { modelId } : {}),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; created?: number; total?: number };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; created?: number; total?: number; fellBack?: boolean };
       if (!res.ok) {
         const message = data.error ?? "No se pudieron generar sugerencias.";
         // Un fallo del proveedor o del modelo (502/503) se resuelve cambiando de modelo: queda a la vista con el motivo.
         if (res.status === 502 || res.status === 503) setFailure(message);
         else addToast(message, "error");
       } else {
+        if (data.fellBack) addToast("El modelo elegido falló y se usó un modelo ligero de NVIDIA.", "info");
         addToast(data.created ? `${data.created} sugerencias nuevas.` : data.total ? "No hay sugerencias nuevas: la IA repitió las que ya tienes." : "La IA no encontró nada que sugerir en las notas.", "success");
       }
       await load();
@@ -165,7 +196,12 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
           {busy === "generate" ? "Leyendo las notas…" : items && items.length ? "Generar de nuevo" : "Generar sugerencias"}
         </button>
       </header>
-      <p className="text-xs text-text-secondary">La IA lee las notas de esta cita y propone acciones. No se crea nada hasta que tú lo agregues.</p>
+      <p className="text-xs text-text-secondary">La IA lee las notas de esta cita y propone acciones solas cuando entra o cambia una nota. No se crea nada hasta que tú lo agregues.</p>
+      {watching && (
+        <p role="status" className="text-xs font-medium text-action-primary">
+          La IA está leyendo las notas… las sugerencias aparecerán aquí en unos segundos.
+        </p>
+      )}
 
       {models.length > 0 && (
         <label className="flex flex-col gap-1 text-xs font-semibold text-text-primary sm:max-w-sm">

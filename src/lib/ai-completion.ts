@@ -46,7 +46,11 @@ export async function getAvailableAiModels(orgId: string): Promise<AiModel[]> {
 export async function resolveAiModelForOrg(orgId: string, modelId: string): Promise<AiModel> {
   const id = normalizeModelId(modelId);
   const available = await getAvailableAiModels(orgId);
-  return available.find((m) => m.id === id) ?? getModelById(DEFAULT_MODEL_ID);
+  const found = available.find((m) => m.id === id);
+  if (found) return found;
+  // Un modelo de NVIDIA vigente que no está en el catálogo (viene de la lista en vivo) se respeta tal cual.
+  if (providerOfModelId(id) === "nvidia") return { id, name: providerModelName(id), provider: "nvidia", group: "NVIDIA", description: "" };
+  return getModelById(DEFAULT_MODEL_ID);
 }
 
 export async function resolveRequestedModelId(

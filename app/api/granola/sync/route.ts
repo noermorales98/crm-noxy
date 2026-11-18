@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { granolaScope } from "@/src/lib/granola-auth";
 import { granolaRedirectUrl, runGranolaSync } from "@/src/lib/granola-service";
+import { autoGenerateForAppointments } from "@/src/lib/suggestions-service";
 
 export const maxDuration = 60;
 
@@ -13,5 +14,8 @@ export async function POST(req: Request) {
     const status = result.code === "NOT_CONNECTED" || result.code === "BUSY" ? 409 : 502;
     return NextResponse.json({ error: result.message, code: result.code }, { status });
   }
-  return NextResponse.json(result);
+  // Las citas cuyas notas llegaron o cambiaron reciben sugerencias solas, después de responder.
+  const { appointmentIds, ...summary } = result;
+  if (appointmentIds.length) after(() => autoGenerateForAppointments(access.scope.organizationId, appointmentIds));
+  return NextResponse.json(summary);
 }
