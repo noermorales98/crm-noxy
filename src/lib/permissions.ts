@@ -103,8 +103,8 @@ export function isPublicApiPath(pathname: string): boolean {
 
 export function isPublicPagePath(pathname: string): boolean {
   // Public demonstration contains only bundled sample records, never tenant data.
-  // Landing pública del CRM (sin datos de ninguna organización).
-  if (pathname === "/demo") return true;
+  // Landing pública en `/` (y `/demo` por enlaces viejos). El panel en `/` se decide en la page con sesión.
+  if (pathname === "/" || pathname === "/demo") return true;
   if (pathname === "/design-preview" || pathname === "/Isotipo_Azul.svg" || /^\/fonts\/open-sauce-two\/open-sauce-two-latin-(400|500|600)-normal\.woff2$/.test(pathname)) return true;
   if (pathname === "/login" || pathname === "/register") return true;
   return PUBLIC_PAGE_PREFIXES.some((prefix) => prefix.endsWith("/") && pathname.startsWith(prefix));
@@ -182,7 +182,6 @@ export function resolveRouteAccess(pathname: string): RouteAccess {
   if (isPublicPagePath(pathname)) return { kind: "public" };
   if (pathname === "/profile" || pathname.startsWith("/profile/")) return { kind: "auth" };
   if (pathname === "/settings/equipo" || pathname.startsWith("/settings/equipo/")) return { kind: "team" };
-  if (pathname === "/") return { kind: "module", module: "crm" };
 
   const pageModule = matchPrefix(pathname, PAGE_MODULE_PREFIXES);
   if (pageModule) return { kind: "module", module: pageModule };

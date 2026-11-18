@@ -35,7 +35,8 @@ test("only the isolated sample route and its explicit brand assets are public", 
   assert.equal(isPublicPagePath("/fonts/open-sauce-two/open-sauce-two-latin-400-normal.woff2"), true);
   assert.equal(isPublicPagePath("/fonts/secret.txt"), false);
   assert.deepEqual(resolveRouteAccess("/api/tasks"), { kind: "module", module: "crm" });
-  assert.deepEqual(resolveRouteAccess("/"), { kind: "module", module: "crm" });
+  assert.deepEqual(resolveRouteAccess("/"), { kind: "public" });
+  assert.equal(isPublicPagePath("/"), true);
 });
 
 test("sample cache keeps locally created records and rejects malformed dates", () => {

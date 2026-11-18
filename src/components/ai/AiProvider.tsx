@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { AiFloatingBubble } from './AiFloatingBubble';
 
@@ -89,9 +90,12 @@ const BUBBLE_PATH_PREFIXES = [
 
 function ConditionalBubble() {
   const pathname = usePathname();
-  const show = BUBBLE_PATH_PREFIXES.some((prefix) =>
-    prefix === "/" ? pathname === "/" : pathname.startsWith(prefix)
-  );
+  const { status } = useSession();
+  // `/` es landing pública o panel: la burbuja solo con sesión (antes la landing era `/demo`).
+  const show = BUBBLE_PATH_PREFIXES.some((prefix) => {
+    if (prefix === "/") return pathname === "/" && status === "authenticated";
+    return pathname.startsWith(prefix);
+  });
   if (!show) return null;
   return <AiFloatingBubble />;
 }
