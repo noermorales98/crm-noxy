@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: feat/landing-en-raiz
-status: in-progress
+status: done
+merged: 2026-11-18
+pr: #9
 ---
 # Landing en la raíz
 
@@ -29,4 +31,4 @@ La landing que hoy vive en `/demo` debe servir en `/` para visitas sin sesión. 
 - Revisión tier 1: halló burbuja IA, test editorial, flash shell; corregidos (AiProvider + HomeDashboardShell + editorial-data.test)
 
 ## Next
-Verificar visualmente `/` desde el worktree (sin sesión y con sesión).
+Fusionado en main el 2026-11-18 (fb97e52).

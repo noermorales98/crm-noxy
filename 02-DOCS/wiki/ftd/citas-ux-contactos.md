@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: feat/citas-ux-contactos
-status: in-progress
+status: done
+merged: 2026-11-18
+pr: #8
 ---
 # Citas minimalistas y contacto solo al ganar
 
@@ -27,4 +29,4 @@ Simplificar `/appointments/[id]` (modelo compacto, preview markdown, título des
 - Revisión tier 1: should-fix título vacío corregido (`resolveNoteContent` + preview)
 
 ## Next
-Commit/PR si se pide; smoke visual en el worktree.
+Fusionado en main el 2026-11-18 (02e2b13).
