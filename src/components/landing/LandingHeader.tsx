@@ -26,7 +26,7 @@ export default function LandingHeader() {
       <div ref={sentinel} aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-16" />
       <header className={`fixed inset-x-0 top-0 z-30 border-b transition-colors duration-300 ${solid ? "border-line bg-surface-elevated/90 text-text-primary backdrop-blur" : "border-transparent bg-transparent text-white"}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link href="/demo" className="flex items-center gap-2.5 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          <Link href="/" className="flex items-center gap-2.5 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/Isotipo_Azul.svg" alt="" width={26} height={26} className={solid ? "" : "brightness-0 invert"} />
             <span className="text-base font-semibold tracking-tight">Noxy CRM</span>
@@ -35,12 +35,19 @@ export default function LandingHeader() {
             <a href="#funciones" className="hover:opacity-100 hover:underline-offset-4 hover:underline">Funciones</a>
             <a href="#flujo" className="hover:underline hover:underline-offset-4">Cómo trabaja</a>
             <a href="#control" className="hover:underline hover:underline-offset-4">Control</a>
-            <Link href="/login" className="hover:underline hover:underline-offset-4">Iniciar sesión</Link>
           </nav>
-          <a href="#demo" className={`${BTN} ${solid ? "bg-brand-obsidian text-white hover:bg-brand-obsidian/85" : "bg-white text-brand-obsidian hover:bg-white/90"}`}>
-            <Icon icon={Calendar03Icon} size={18} />
-            Pide una demo
-          </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/login"
+              className={`${BTN} hidden md:inline-flex ${solid ? "border border-line bg-surface-elevated text-text-primary hover:bg-surface-app" : "border border-white/35 bg-transparent text-white hover:bg-white/10"}`}
+            >
+              Iniciar sesión
+            </Link>
+            <a href="#demo" className={`${BTN} ${solid ? "bg-brand-obsidian text-white hover:bg-brand-obsidian/85" : "bg-white text-brand-obsidian hover:bg-white/90"}`}>
+              <Icon icon={Calendar03Icon} size={18} />
+              Pide una demo
+            </a>
+          </div>
         </div>
       </header>
     </>

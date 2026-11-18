@@ -204,8 +204,14 @@ next-env.d.ts
 .cursor/commands/tasks.md
 .cursor/commands/verify.md
 
-# Skill de diseño instalada con `npx skills add Leonxlnx/taste-skill`; se versiona solo skills-lock.json
+# Skills de diseño instaladas en el proyecto; se versiona solo skills-lock.json
+.agents/
 .claude/skills/design-taste-frontend/
+.claude/skills/impeccable/
+.claude/agents/impeccable-*.md
+.cursor/skills/impeccable/
+.cursor/agents/impeccable-*.md
+.taste/
 
 # rsc local state (hooks, seals, logs) and managed skill links — machine-local
 .claude/skills/security-audit

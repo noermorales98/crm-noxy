@@ -70,7 +70,8 @@ test("IA: claves en Ajustes (módulo settings) y lista de modelos con el asisten
   assert.deepEqual(resolveRouteAccess("/api/ai/models"), { kind: "module", module: "assistant" });
 });
 
-test("la landing /demo y su API son públicas; el panel sigue protegido", () => {
+test("la landing en / y /demo son públicas; el panel CRM se decide en la page", () => {
+  assert.deepEqual(resolveRouteAccess("/"), { kind: "public" });
   assert.deepEqual(resolveRouteAccess("/demo"), { kind: "public" });
   assert.deepEqual(resolveRouteAccess("/api/public/demo"), { kind: "public" });
   assert.notDeepEqual(resolveRouteAccess("/demo/otra"), { kind: "public" }, "solo /demo exacto es público");
