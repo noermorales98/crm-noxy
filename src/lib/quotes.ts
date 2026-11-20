@@ -2,6 +2,7 @@ import { prisma } from "@/src/lib/db";
 import { sendEmail } from "@/src/lib/email";
 import { getPublicBaseUrl } from "@/src/lib/url";
 import nodemailer from "nodemailer";
+import { resolveLogoSrc } from "@/src/lib/noxy-isotipo";
 import Stripe from "stripe";
 
 export const QUOTE_STATUSES = ["BORRADOR", "ENVIADA", "ACEPTADA", "PARCIAL", "PAGADA", "VENCIDA", "RECHAZADA"] as const;
@@ -95,7 +96,7 @@ export function resolveQuoteSender(
 ) {
   return {
     businessName: company?.name || settings?.businessName || null,
-    logoUrl: settings?.logoUrl || null,
+    logoUrl: resolveLogoSrc(settings?.logoUrl),
     taxId: settings?.taxId || null,
     address: settings?.address || null,
     phone: settings?.phone || null,

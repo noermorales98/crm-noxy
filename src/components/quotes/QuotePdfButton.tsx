@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Download01Icon } from "@hugeicons/core-free-icons";
+import { resolveLogoSrc } from "@/src/lib/noxy-isotipo";
 
 interface PdfItem {
   description: string;
@@ -52,11 +53,38 @@ interface Props {
   sender: PdfSender | null;
 }
 
+/** Rasteriza un SVG a PNG cuadrado (jsPDF no soporta SVG y el logo del PDF es cuadrado). */
+async function rasterizeSvg(blob: Blob): Promise<string> {
+  const objectUrl = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = objectUrl;
+    });
+    const size = 256;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas no disponible");
+    const ratio = (img.naturalWidth || 264) / (img.naturalHeight || 198);
+    const w = ratio >= 1 ? size : size * ratio;
+    const h = ratio >= 1 ? size / ratio : size;
+    ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+    return canvas.toDataURL("image/png");
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 async function loadImageDataUrl(url: string): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(resolveLogoSrc(url) ?? url);
     if (!res.ok) return null;
     const blob = await res.blob();
+    if (blob.type.includes("svg")) return { dataUrl: await rasterizeSvg(blob), format: "PNG" };
     const format = blob.type.includes("png") ? "PNG" : "JPEG";
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();

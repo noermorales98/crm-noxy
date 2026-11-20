@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useHeader } from "@/src/context/HeaderContext";
-import { PageHeader, Skeleton } from "@/src/components/ui";
+import { PageHeader, Segmented, Skeleton } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BankIcon, Building04Icon, Settings01Icon, DollarCircleIcon } from "@hugeicons/core-free-icons";
 import { input as inputCls, btnPrimary } from "@/src/lib/crm-ui";
+import {
+  NOXY_ISOTIPO_DEFAULT_COLOR,
+  isValidHexColor,
+  noxyIsotipoMarker,
+  parseNoxyIsotipoColor,
+  resolveLogoSrc,
+} from "@/src/lib/noxy-isotipo";
 
 const EMPTY = {
   businessName: "", logoUrl: "", taxId: "", address: "", phone: "", email: "", website: "",
@@ -21,6 +28,9 @@ function ConfiguracionContent() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const noxyColor = parseNoxyIsotipoColor(form.logoUrl);
+  const [lastNoxyColor, setLastNoxyColor] = useState(NOXY_ISOTIPO_DEFAULT_COLOR);
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
 
   // Claves de Stripe (nunca se muestran completas)
   const [stripeSecretMasked, setStripeSecretMasked] = useState<string | null>(null);
@@ -170,13 +180,80 @@ function ConfiguracionContent() {
                 </div>
                 {field("Nombre / Razón social", "businessName")}
                 {field("RFC o identificador fiscal", "taxId")}
-                {field("Logo (URL de imagen)", "logoUrl", { placeholder: "https://…/logo.png", span: true })}
-                {form.logoUrl && (
-                  <div className="md:col-span-2 flex items-center gap-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={form.logoUrl} alt="Logo" className="h-12 max-w-[180px] object-contain rounded border border-line bg-surface-elevated p-1" />
-                  </div>
-                )}
+                <div className="md:col-span-2 flex flex-col gap-3">
+                  <label className="text-xs font-semibold text-text-secondary">Logo</label>
+                  <Segmented
+                    label="Tipo de logo"
+                    value={noxyColor ? "noxy" : "custom"}
+                    onChange={(v) =>
+                      setForm((prev) => ({ ...prev, logoUrl: v === "noxy" ? noxyIsotipoMarker(lastNoxyColor) : "" }))
+                    }
+                    options={[
+                      { value: "custom", label: "Logo personalizado" },
+                      { value: "noxy", label: "Isotipo de Noxy" },
+                    ]}
+                  />
+                  {noxyColor ? (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                        Color
+                        <input
+                          type="color"
+                          value={noxyColor.toLowerCase()}
+                          onChange={(e) => {
+                            setLastNoxyColor(e.target.value);
+                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(e.target.value) }));
+                          }}
+                          className="h-9 w-12 cursor-pointer rounded border border-line bg-transparent p-0.5"
+                        />
+                      </label>
+                      <input
+                        aria-label="Color en hexadecimal"
+                        value={hexDraft ?? noxyColor}
+                        onChange={(e) => {
+                          const value = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
+                          setHexDraft(value);
+                          if (isValidHexColor(value)) {
+                            setLastNoxyColor(value);
+                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(value) }));
+                          }
+                        }}
+                        onBlur={() => setHexDraft(null)}
+                        maxLength={7}
+                        className={`${inputCls} w-28 font-mono`}
+                      />
+                      {noxyColor !== NOXY_ISOTIPO_DEFAULT_COLOR && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLastNoxyColor(NOXY_ISOTIPO_DEFAULT_COLOR);
+                            setHexDraft(null);
+                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(NOXY_ISOTIPO_DEFAULT_COLOR) }));
+                          }}
+                          className="crm-press min-h-11 rounded-control px-3 text-xs font-medium text-text-secondary hover:bg-nav-hover lg:min-h-9"
+                        >
+                          Restablecer color
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      value={form.logoUrl}
+                      onChange={set("logoUrl")}
+                      placeholder="https://…/logo.png"
+                      aria-label="Logo (URL de imagen)"
+                      className={inputCls}
+                    />
+                  )}
+                  {form.logoUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={resolveLogoSrc(form.logoUrl) ?? ""}
+                      alt="Logo"
+                      className="h-12 max-w-[180px] self-start object-contain rounded border border-line bg-surface-elevated p-1"
+                    />
+                  )}
+                </div>
                 {field("Dirección", "address", { span: true })}
                 {field("Teléfono", "phone", { type: "tel" })}
                 {field("Correo", "email", { type: "email" })}
