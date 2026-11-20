@@ -121,8 +121,9 @@ export async function sendQuoteEmail(opts: {
   to: string;
   subject: string;
   html: string;
+  attachments?: { filename: string; content: Buffer; contentType?: string }[];
 }): Promise<boolean> {
-  const { company, to, subject, html } = opts;
+  const { company, to, subject, html, attachments } = opts;
 
   if (company?.smtpHost && company.smtpUser && company.smtpPass) {
     try {
@@ -137,6 +138,7 @@ export async function sendQuoteEmail(opts: {
         to,
         subject,
         html,
+        attachments,
       });
       console.log(`Quote email sent via company SMTP (${company.name}): ${info.messageId}`);
       return true;
@@ -147,7 +149,7 @@ export async function sendQuoteEmail(opts: {
   }
 
   // Fallback: SMTP global por variables de entorno
-  return sendEmail({ to, subject, html });
+  return sendEmail({ to, subject, html, attachments });
 }
 
 // ─── Stripe ───────────────────────────────────────────────────────────────────

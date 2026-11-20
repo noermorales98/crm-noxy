@@ -9,6 +9,7 @@ import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, PencilEdit01Icon, Delete01Icon, Link01Icon, DollarCircleIcon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
+import { QuoteSendDialog } from "@/src/components/quotes/QuoteSendDialog";
 import QuotePdfButton from "@/src/components/quotes/QuotePdfButton";
 import { QuoteStatusBadge, formatQuoteMoney } from "@/src/components/quotes/shared";
 
@@ -41,6 +42,7 @@ function QuoteDetailContent() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
 
   const fetchQuote = useCallback(async () => {
     try {
@@ -85,19 +87,15 @@ function QuoteDetailContent() {
     }
   };
 
-  const handleSend = () =>
-    runAction("send", async () => {
-      const res = await fetch(`/api/quotes/${quote.id}/send`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) return addToast(data.error || "Error al enviar", "error");
-      addToast(
-        data.emailSent
-          ? `Cotización enviada a ${quote.clientEmail}${data.viaCompany ? " (SMTP de la empresa)" : ""}.`
-          : "Marcada como enviada, pero el correo no pudo enviarse. Revisa el SMTP de la empresa remitente (sección Empresas) o las variables SMTP del entorno.",
-        data.emailSent ? "success" : "info"
-      );
-      fetchQuote();
-    });
+  const handleSent = (result: { emailSent: boolean; viaCompany: boolean; to: string }) => {
+    addToast(
+      result.emailSent
+        ? `Cotización enviada a ${result.to}${result.viaCompany ? " (SMTP de la empresa)" : ""}.`
+        : "Marcada como enviada, pero el correo no pudo enviarse. Revisa el SMTP de la empresa remitente (sección Empresas) o las variables SMTP del entorno.",
+      result.emailSent ? "success" : "info"
+    );
+    fetchQuote();
+  };
 
   const handleCopyLink = () => {
     const url = `${window.location.origin}/cotizar/${quote.publicToken}`;
@@ -276,12 +274,11 @@ function QuoteDetailContent() {
             )}
             {canSend && (
               <button
-                onClick={handleSend}
-                disabled={actionLoading === "send"}
+                onClick={() => setSendOpen(true)}
                 className="crm-press flex min-h-11 items-center gap-2 px-3.5 py-2 text-sm font-medium lg:min-h-9 text-text-primary rounded-lg hover:bg-nav-hover transition-colors disabled:opacity-50"
               >
                 <HugeiconsIcon icon={SentIcon} size={15} />
-                {actionLoading === "send" ? "Enviando…" : quote.status === "BORRADOR" ? "Enviar al cliente" : "Reenviar"}
+                {quote.status === "BORRADOR" ? "Enviar al cliente" : "Reenviar"}
               </button>
             )}
             <QuotePdfButton quote={quote} sender={pdfSender} />
@@ -529,6 +526,7 @@ function QuoteDetailContent() {
           </div>
         </div>
       </div>
+      <QuoteSendDialog open={sendOpen} onClose={() => setSendOpen(false)} quote={quote} onSent={handleSent} />
     </main>
   );
 }

@@ -1,87 +1,122 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
-import { quotePublicUrl, formatMoney, effectiveQuoteStatus, sendQuoteEmail } from "@/src/lib/quotes";
+import { quotePublicUrl, effectiveQuoteStatus, sendQuoteEmail } from "@/src/lib/quotes";
+import {
+  QUOTE_ATTACHMENT_MAX_BYTES,
+  QUOTE_ATTACHMENT_MAX_FILES,
+  QUOTE_ATTACHMENT_MAX_TOTAL_BYTES,
+  defaultQuoteMessage,
+  defaultQuoteSubject,
+  renderQuoteEmailHtml,
+} from "@/src/lib/quote-email";
 
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+type Ctx = { params: Promise<{ id: string }> };
+
+/** Carga la cotización y resuelve remitente y reglas de envío. Devuelve error ya formateado si no se puede enviar. */
+async function loadSendContext(params: Ctx["params"]) {
+  const session = await auth();
+  if (!session?.user) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+  const organizationId = (session as any).currentOrganizationId;
+  if (!organizationId) return { error: NextResponse.json({ error: "No organization context" }, { status: 400 }) };
+
+  const { id } = await params;
+  const quote = await prisma.quote.findFirst({
+    where: { organizationId, OR: [{ id }, { folio: id }] },
+    include: { items: { orderBy: { order: "asc" } }, senderCompany: true },
+  });
+  if (!quote) return { error: NextResponse.json({ error: "Cotización no encontrada" }, { status: 404 }) };
+
+  const current = effectiveQuoteStatus(quote);
+  if (current === "PAGADA" || current === "RECHAZADA" || current === "VENCIDA") {
+    return { error: NextResponse.json({ error: `No se puede enviar una cotización en estado ${current.toLowerCase()}` }, { status: 409 }) };
+  }
+  if (!quote.clientEmail) {
+    return { error: NextResponse.json({ error: "La cotización no tiene correo de cliente. Edítala para agregarlo." }, { status: 400 }) };
+  }
+
+  const settings = await prisma.quoteSettings.findUnique({
+    where: { organizationId },
+    include: { defaultSenderCompany: true },
+  });
+  // Empresa emisora del correo: la de la cotización o la default configurada
+  const emailCompany = quote.senderCompany ?? settings?.defaultSenderCompany ?? null;
+  const businessName = emailCompany?.name || settings?.businessName || "Noxy CRM";
+  return { organizationId, quote, emailCompany, businessName, publicUrl: quotePublicUrl(quote.publicToken) };
+}
+
+/** Borrador del correo: destinatario, asunto, mensaje y HTML para la vista previa. */
+export async function GET(_req: Request, { params }: Ctx) {
   try {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const organizationId = (session as any).currentOrganizationId;
-    if (!organizationId) return NextResponse.json({ error: "No organization context" }, { status: 400 });
-
-    const { id } = await params;
-    const quote = await prisma.quote.findFirst({
-      where: { organizationId, OR: [{ id }, { folio: id }] },
-      include: { items: { orderBy: { order: "asc" } }, senderCompany: true },
+    const ctx = await loadSendContext(params);
+    if ("error" in ctx && ctx.error) return ctx.error;
+    const { quote, businessName, publicUrl, emailCompany } = ctx as Exclude<typeof ctx, { error: NextResponse }>;
+    const message = defaultQuoteMessage(quote);
+    return NextResponse.json({
+      to: quote.clientEmail,
+      subject: defaultQuoteSubject(quote.folio, businessName),
+      message,
+      businessName,
+      publicUrl,
+      fromName: emailCompany?.name ?? businessName,
+      html: renderQuoteEmailHtml({ quote, businessName, publicUrl, message }),
+      limits: { maxFiles: QUOTE_ATTACHMENT_MAX_FILES, maxFileBytes: QUOTE_ATTACHMENT_MAX_BYTES, maxTotalBytes: QUOTE_ATTACHMENT_MAX_TOTAL_BYTES },
     });
-    if (!quote) return NextResponse.json({ error: "Cotización no encontrada" }, { status: 404 });
+  } catch (error) {
+    console.error("GET /api/quotes/[id]/send error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
 
-    const current = effectiveQuoteStatus(quote);
-    if (current === "PAGADA" || current === "RECHAZADA" || current === "VENCIDA") {
-      return NextResponse.json({ error: `No se puede enviar una cotización en estado ${current.toLowerCase()}` }, { status: 409 });
+/** Envía la cotización. Acepta multipart (subject, message, files[]) o sin cuerpo (usa el borrador por defecto). */
+export async function POST(req: Request, { params }: Ctx) {
+  try {
+    const ctx = await loadSendContext(params);
+    if ("error" in ctx && ctx.error) return ctx.error;
+    const { organizationId, quote, businessName, publicUrl, emailCompany } = ctx as Exclude<typeof ctx, { error: NextResponse }>;
+
+    let subject = defaultQuoteSubject(quote.folio, businessName);
+    let message = defaultQuoteMessage(quote);
+    const attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
+
+    if ((req.headers.get("content-type") || "").includes("multipart/form-data")) {
+      const form = await req.formData();
+      const subjectField = form.get("subject");
+      const messageField = form.get("message");
+      if (typeof subjectField === "string") subject = subjectField.trim();
+      if (typeof messageField === "string") message = messageField;
+      if (!subject) return NextResponse.json({ error: "El asunto no puede estar vacío" }, { status: 400 });
+      if (subject.length > 300) return NextResponse.json({ error: "El asunto es demasiado largo" }, { status: 400 });
+      if (message.length > 10000) return NextResponse.json({ error: "El mensaje es demasiado largo" }, { status: 400 });
+
+      const files = form.getAll("files").filter((f): f is File => typeof f !== "string" && f.size > 0);
+      if (files.length > QUOTE_ATTACHMENT_MAX_FILES) {
+        return NextResponse.json({ error: `Máximo ${QUOTE_ATTACHMENT_MAX_FILES} archivos adjuntos` }, { status: 400 });
+      }
+      let total = 0;
+      for (const file of files) {
+        if (file.size > QUOTE_ATTACHMENT_MAX_BYTES) {
+          return NextResponse.json({ error: `«${file.name}» supera el límite de ${QUOTE_ATTACHMENT_MAX_BYTES / 1024 / 1024} MB` }, { status: 400 });
+        }
+        total += file.size;
+        if (total > QUOTE_ATTACHMENT_MAX_TOTAL_BYTES) {
+          return NextResponse.json({ error: `Los adjuntos superan ${QUOTE_ATTACHMENT_MAX_TOTAL_BYTES / 1024 / 1024} MB en total` }, { status: 400 });
+        }
+        attachments.push({
+          filename: file.name.replace(/[\\/\r\n]/g, "_") || "adjunto",
+          content: Buffer.from(await file.arrayBuffer()),
+          contentType: file.type || undefined,
+        });
+      }
     }
-    if (!quote.clientEmail) {
-      return NextResponse.json({ error: "La cotización no tiene correo de cliente. Edítala para agregarlo." }, { status: 400 });
-    }
 
-    const publicUrl = quotePublicUrl(quote.publicToken);
-    const settings = await prisma.quoteSettings.findUnique({
-      where: { organizationId },
-      include: { defaultSenderCompany: true },
-    });
-    // Empresa emisora del correo: la de la cotización o la default configurada
-    const emailCompany = quote.senderCompany ?? settings?.defaultSenderCompany ?? null;
-    const businessName = emailCompany?.name || settings?.businessName || "Noxy CRM";
-
-    const itemRows = quote.items
-      .map(
-        (it) => `<tr>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">${it.description}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:center;">${it.quantity}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatMoney(it.unitPrice, quote.currency)}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f0f0f0;text-align:right;">${formatMoney(it.total, quote.currency)}</td>
-        </tr>`
-      )
-      .join("");
-
-    const html = `
-      <div style="font-family:-apple-system,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
-        <h2 style="margin:0 0 4px;">Cotización ${quote.folio}</h2>
-        <p style="color:#6b7280;margin:0 0 20px;">${businessName}</p>
-        <p>Hola ${quote.clientName},</p>
-        <p>Te compartimos la cotización <strong>${quote.folio}</strong> por un total de
-        <strong>${formatMoney(quote.total, quote.currency)}</strong>${quote.validUntil ? `, vigente hasta el <strong>${new Date(quote.validUntil).toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}</strong>` : ""}.</p>
-        <table style="width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;">
-          <thead>
-            <tr style="color:#6b7280;font-size:11px;text-transform:uppercase;">
-              <th style="text-align:left;padding-bottom:6px;">Descripción</th>
-              <th style="text-align:center;padding-bottom:6px;">Cant.</th>
-              <th style="text-align:right;padding-bottom:6px;">P. unitario</th>
-              <th style="text-align:right;padding-bottom:6px;">Total</th>
-            </tr>
-          </thead>
-          <tbody>${itemRows}</tbody>
-        </table>
-        <p style="text-align:right;font-size:14px;">
-          Subtotal: ${formatMoney(quote.subtotal, quote.currency)}<br/>
-          Impuestos (${quote.taxRate}%): ${formatMoney(quote.taxAmount, quote.currency)}<br/>
-          <strong>Total: ${formatMoney(quote.total, quote.currency)}</strong>
-        </p>
-        <div style="text-align:center;margin:28px 0;">
-          <a href="${publicUrl}" style="background:#1f2937;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;">
-            Ver cotización y pagar
-          </a>
-        </div>
-        <p style="font-size:12px;color:#9ca3af;">Si el botón no funciona, copia este enlace: ${publicUrl}</p>
-      </div>
-    `;
-
+    const html = renderQuoteEmailHtml({ quote, businessName, publicUrl, message });
     const sent = await sendQuoteEmail({
       company: emailCompany,
-      to: quote.clientEmail,
-      subject: `Cotización ${quote.folio} — ${businessName}`,
+      to: quote.clientEmail!,
+      subject,
       html,
+      attachments: attachments.length ? attachments : undefined,
     });
 
     const viaCompany = !!(emailCompany?.smtpHost && emailCompany.smtpUser && emailCompany.smtpPass);
@@ -93,7 +128,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           create: {
             type: "ENVIADA",
             description: sent
-              ? `Enviada por correo a ${quote.clientEmail}${viaCompany ? ` (SMTP de ${emailCompany!.name})` : ""}`
+              ? `Enviada por correo a ${quote.clientEmail}${viaCompany ? ` (SMTP de ${emailCompany!.name})` : ""}${attachments.length ? ` con ${attachments.length} adjunto(s)` : ""}`
               : `Marcada como enviada (el correo a ${quote.clientEmail} no pudo enviarse — ${
                   viaCompany
                     ? `revisa el SMTP de ${emailCompany!.name}`
