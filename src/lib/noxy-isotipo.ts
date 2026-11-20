@@ -1,7 +1,7 @@
 /**
  * Isotipo de Noxy como logo de cotizaciones, con color editable.
  * En BD (QuoteSettings.logoUrl, VARCHAR(191)) solo se guarda un marcador corto:
- * `noxy-isotipo:#RRGGBB`. Quien necesita la imagen lo resuelve con `resolveLogoSrc`.
+ * `noxy-isotipo:#ENLACE|#PDF`. Quien necesita la imagen lo resuelve con `resolveLogoSrc`.
  * Módulo puro (sin alias ni dependencias) para usarlo en navegador, servidor y tests.
  */
 
@@ -17,16 +17,28 @@ export function isValidHexColor(value: string): boolean {
   return HEX.test(value);
 }
 
-/** Marcador que se guarda en logoUrl. Un color inválido cae al color por defecto. */
-export function noxyIsotipoMarker(color: string = NOXY_ISOTIPO_DEFAULT_COLOR): string {
-  return `${PREFIX}${isValidHexColor(color) ? color.toUpperCase() : NOXY_ISOTIPO_DEFAULT_COLOR}`;
+export type NoxyIsotipoColors = { link: string; pdf: string };
+export type NoxyIsotipoTarget = "link" | "pdf";
+
+const normalize = (value: string | undefined, fallback: string) =>
+  value !== undefined && isValidHexColor(value) ? value.toUpperCase() : fallback;
+
+/**
+ * Marcador que se guarda en logoUrl: `noxy-isotipo:#ENLACE` o `noxy-isotipo:#ENLACE|#PDF`.
+ * Si el color del PDF no se da (o es igual) se guarda uno solo, que aplica a ambos.
+ */
+export function noxyIsotipoMarker(link: string = NOXY_ISOTIPO_DEFAULT_COLOR, pdf: string = link): string {
+  const l = normalize(link, NOXY_ISOTIPO_DEFAULT_COLOR);
+  const p = normalize(pdf, l);
+  return p === l ? `${PREFIX}${l}` : `${PREFIX}${l}|${p}`;
 }
 
-/** Color del isotipo si logoUrl es el marcador; null si es un logo personalizado o está vacío. */
-export function parseNoxyIsotipoColor(logoUrl: string | null | undefined): string | null {
+/** Colores del isotipo (enlace y PDF) si logoUrl es el marcador; null si es un logo personalizado o está vacío. */
+export function parseNoxyIsotipo(logoUrl: string | null | undefined): NoxyIsotipoColors | null {
   if (!logoUrl || !logoUrl.startsWith(PREFIX)) return null;
-  const color = logoUrl.slice(PREFIX.length);
-  return isValidHexColor(color) ? color.toUpperCase() : NOXY_ISOTIPO_DEFAULT_COLOR;
+  const [rawLink, rawPdf] = logoUrl.slice(PREFIX.length).split("|");
+  const link = normalize(rawLink, NOXY_ISOTIPO_DEFAULT_COLOR);
+  return { link, pdf: normalize(rawPdf, link) };
 }
 
 export function noxyIsotipoSvg(color: string = NOXY_ISOTIPO_DEFAULT_COLOR): string {
@@ -38,9 +50,9 @@ export function noxyIsotipoDataUri(color: string = NOXY_ISOTIPO_DEFAULT_COLOR): 
   return `data:image/svg+xml;utf8,${encodeURIComponent(noxyIsotipoSvg(color))}`;
 }
 
-/** Valor listo para `<img src>` / fetch: el isotipo como data URI si es el marcador; el resto, tal cual. */
-export function resolveLogoSrc(logoUrl: string | null | undefined): string | null {
+/** Valor listo para `<img src>` / fetch: el isotipo como data URI (con el color del destino) si es el marcador; el resto, tal cual. */
+export function resolveLogoSrc(logoUrl: string | null | undefined, target: NoxyIsotipoTarget = "link"): string | null {
   if (!logoUrl) return null;
-  const color = parseNoxyIsotipoColor(logoUrl);
-  return color ? noxyIsotipoDataUri(color) : logoUrl;
+  const colors = parseNoxyIsotipo(logoUrl);
+  return colors ? noxyIsotipoDataUri(colors[target]) : logoUrl;
 }

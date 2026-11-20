@@ -11,7 +11,7 @@ import {
   NOXY_ISOTIPO_DEFAULT_COLOR,
   isValidHexColor,
   noxyIsotipoMarker,
-  parseNoxyIsotipoColor,
+  parseNoxyIsotipo,
   resolveLogoSrc,
 } from "@/src/lib/noxy-isotipo";
 
@@ -21,6 +21,58 @@ const EMPTY = {
   defaultTaxRate: "16", defaultCurrency: "MXN", defaultTerms: "", defaultSenderCompanyId: "",
 };
 
+/** Selector de color (picker + hex + restablecer) con vista previa del isotipo sobre el fondo donde se usará. */
+function IsotipoColorField({
+  label, hint, color, previewBg, previewSrc, onChange,
+}: {
+  label: string; hint: string; color: string; previewBg: string; previewSrc: string | null; onChange: (color: string) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-semibold text-text-secondary">{label}</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          type="color"
+          aria-label={label}
+          value={color.toLowerCase()}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-12 cursor-pointer rounded border border-line bg-transparent p-0.5"
+        />
+        <input
+          aria-label={`${label} (hexadecimal)`}
+          value={draft ?? color}
+          onChange={(e) => {
+            const value = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
+            setDraft(value);
+            if (isValidHexColor(value)) onChange(value);
+          }}
+          onBlur={() => setDraft(null)}
+          maxLength={7}
+          style={{ width: "7.5rem" }}
+          className={`${inputCls} shrink-0 font-mono`}
+        />
+        {color !== NOXY_ISOTIPO_DEFAULT_COLOR && (
+          <button
+            type="button"
+            onClick={() => { setDraft(null); onChange(NOXY_ISOTIPO_DEFAULT_COLOR); }}
+            className="crm-press min-h-11 rounded-control px-3 text-xs font-medium text-text-secondary hover:bg-nav-hover lg:min-h-9"
+          >
+            Restablecer
+          </button>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="flex h-14 w-24 items-center justify-center rounded border border-line" style={{ background: previewBg }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {previewSrc && <img src={previewSrc} alt="" className="h-8 w-auto" />}
+        </span>
+        <span className="text-xs text-text-secondary">{hint}</span>
+      </div>
+    </div>
+  );
+}
+
 function ConfiguracionContent() {
   const { addToast } = useToast();
   const { setConfig, resetState } = useHeader();
@@ -28,9 +80,14 @@ function ConfiguracionContent() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const noxyColor = parseNoxyIsotipoColor(form.logoUrl);
-  const [lastNoxyColor, setLastNoxyColor] = useState(NOXY_ISOTIPO_DEFAULT_COLOR);
-  const [hexDraft, setHexDraft] = useState<string | null>(null);
+  const noxyColors = parseNoxyIsotipo(form.logoUrl);
+  // Últimos colores elegidos, para recuperarlos si se alterna entre logo personalizado e isotipo
+  const [lastColors, setLastColors] = useState({ link: NOXY_ISOTIPO_DEFAULT_COLOR, pdf: NOXY_ISOTIPO_DEFAULT_COLOR });
+  const updateColors = (patch: Partial<{ link: string; pdf: string }>) => {
+    const next = { ...(noxyColors ?? lastColors), ...patch };
+    setLastColors(next);
+    setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(next.link, next.pdf) }));
+  };
 
   // Claves de Stripe (nunca se muestran completas)
   const [stripeSecretMasked, setStripeSecretMasked] = useState<string | null>(null);
@@ -184,74 +241,57 @@ function ConfiguracionContent() {
                   <label className="text-xs font-semibold text-text-secondary">Logo</label>
                   <Segmented
                     label="Tipo de logo"
-                    value={noxyColor ? "noxy" : "custom"}
+                    value={noxyColors ? "noxy" : "custom"}
                     onChange={(v) =>
-                      setForm((prev) => ({ ...prev, logoUrl: v === "noxy" ? noxyIsotipoMarker(lastNoxyColor) : "" }))
+                      setForm((prev) => ({
+                        ...prev,
+                        logoUrl: v === "noxy" ? noxyIsotipoMarker(lastColors.link, lastColors.pdf) : "",
+                      }))
                     }
                     options={[
                       { value: "custom", label: "Logo personalizado" },
                       { value: "noxy", label: "Isotipo de Noxy" },
                     ]}
                   />
-                  {noxyColor ? (
-                    <div className="flex flex-wrap items-center gap-3">
-                      <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
-                        Color
-                        <input
-                          type="color"
-                          value={noxyColor.toLowerCase()}
-                          onChange={(e) => {
-                            setLastNoxyColor(e.target.value);
-                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(e.target.value) }));
-                          }}
-                          className="h-9 w-12 cursor-pointer rounded border border-line bg-transparent p-0.5"
+                  {noxyColors ? (
+                    <div className="flex flex-col gap-4">
+                      <div className="flex flex-wrap items-start gap-x-8 gap-y-4">
+                        <IsotipoColorField
+                          label="Color en el enlace de la cotización"
+                          hint="Se ve sobre fondo claro."
+                          color={noxyColors.link}
+                          previewBg="#FFFFFF"
+                          previewSrc={resolveLogoSrc(form.logoUrl, "link")}
+                          onChange={(color) => updateColors({ link: color })}
                         />
-                      </label>
-                      <input
-                        aria-label="Color en hexadecimal"
-                        value={hexDraft ?? noxyColor}
-                        onChange={(e) => {
-                          const value = e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`;
-                          setHexDraft(value);
-                          if (isValidHexColor(value)) {
-                            setLastNoxyColor(value);
-                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(value) }));
-                          }
-                        }}
-                        onBlur={() => setHexDraft(null)}
-                        maxLength={7}
-                        className={`${inputCls} w-28 font-mono`}
-                      />
-                      {noxyColor !== NOXY_ISOTIPO_DEFAULT_COLOR && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLastNoxyColor(NOXY_ISOTIPO_DEFAULT_COLOR);
-                            setHexDraft(null);
-                            setForm((prev) => ({ ...prev, logoUrl: noxyIsotipoMarker(NOXY_ISOTIPO_DEFAULT_COLOR) }));
-                          }}
-                          className="crm-press min-h-11 rounded-control px-3 text-xs font-medium text-text-secondary hover:bg-nav-hover lg:min-h-9"
-                        >
-                          Restablecer color
-                        </button>
-                      )}
+                        <IsotipoColorField
+                          label="Color en el PDF descargable"
+                          hint="Se ve sobre el encabezado oscuro."
+                          color={noxyColors.pdf}
+                          previewBg="#1E1E1E"
+                          previewSrc={resolveLogoSrc(form.logoUrl, "pdf")}
+                          onChange={(color) => updateColors({ pdf: color })}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    <input
-                      value={form.logoUrl}
-                      onChange={set("logoUrl")}
-                      placeholder="https://…/logo.png"
-                      aria-label="Logo (URL de imagen)"
-                      className={inputCls}
-                    />
-                  )}
-                  {form.logoUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={resolveLogoSrc(form.logoUrl) ?? ""}
-                      alt="Logo"
-                      className="h-12 max-w-[180px] self-start object-contain rounded border border-line bg-surface-elevated p-1"
-                    />
+                    <>
+                      <input
+                        value={form.logoUrl}
+                        onChange={set("logoUrl")}
+                        placeholder="https://…/logo.png"
+                        aria-label="Logo (URL de imagen)"
+                        className={inputCls}
+                      />
+                      {form.logoUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={form.logoUrl}
+                          alt="Logo"
+                          className="h-12 max-w-[180px] self-start object-contain rounded border border-line bg-surface-elevated p-1"
+                        />
+                      )}
+                    </>
                   )}
                 </div>
                 {field("Dirección", "address", { span: true })}

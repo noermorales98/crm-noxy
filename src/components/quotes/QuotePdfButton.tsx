@@ -81,7 +81,7 @@ async function rasterizeSvg(blob: Blob): Promise<string> {
 
 async function loadImageDataUrl(url: string): Promise<{ dataUrl: string; format: "PNG" | "JPEG" } | null> {
   try {
-    const res = await fetch(resolveLogoSrc(url) ?? url);
+    const res = await fetch(resolveLogoSrc(url, "pdf") ?? url);
     if (!res.ok) return null;
     const blob = await res.blob();
     if (blob.type.includes("svg")) return { dataUrl: await rasterizeSvg(blob), format: "PNG" };
