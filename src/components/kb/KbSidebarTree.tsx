@@ -10,12 +10,10 @@ import { FolderAddIcon } from "@hugeicons/core-free-icons";
 import PageIcon from "@/src/components/kb/PageIcon";
 import { useKbContext, type KbNode } from "@/src/context/KbContext";
 import { fromDroppableId, toDroppableId } from "@/src/lib/kb-tree-dnd";
+import { rowClass } from "@/src/components/sidebar-parts";
 
 const ICON_SIZE = 16;
 const ICON_COLOR = "#0B0B18";
-const itemActive = "bg-nav-active text-text-primary font-medium";
-const itemHover = "hover:bg-nav-hover";
-const itemIdle = "text-text-primary";
 
 function DeleteModal({
   name,
@@ -157,7 +155,7 @@ function KbTreeNode({
     }
   };
 
-  const rowPad = 4 + depth * 12;
+  const rowPad = 12 + depth * 14;
 
   return (
     <>
@@ -179,19 +177,9 @@ function KbTreeNode({
             <div
               ref={rowRef}
               {...provided.dragHandleProps}
-              className={`group flex items-center gap-1 rounded-lg transition-colors cursor-pointer relative ${
-                snapshot.isDragging
-                  ? "bg-white shadow-md ring-1 ring-border-subtle"
-                  : isActive
-                    ? itemActive
-                    : `${itemIdle} ${itemHover}`
-              }`}
-              style={{
-                paddingLeft: `${rowPad}px`,
-                paddingRight: "6px",
-                paddingTop: "4px",
-                paddingBottom: "4px",
-              }}
+              // Misma fila que el resto de la barra (caja de 44 px, pastilla de 36 px, texto y activo iguales); solo cambia la sangría por nivel.
+              className={`${rowClass(isActive)} group cursor-pointer ${snapshot.isDragging ? "rounded-control bg-surface-elevated shadow-md ring-1 ring-border-subtle" : ""}`}
+              style={{ paddingLeft: `${rowPad}px`, paddingRight: "12px", gap: "6px" }}
             >
               <button
                 onClick={handleToggle}
@@ -202,7 +190,7 @@ function KbTreeNode({
                 {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </button>
 
-              <Link href={`/kb/${page.id}`} onClick={onNavigate} className="flex items-center gap-2 flex-1 min-w-0">
+              <Link href={`/kb/${page.id}`} onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-2.5">
                 <PageIcon
                   emoji={page.emoji}
                   iconColor={page.iconColor}
@@ -211,7 +199,7 @@ function KbTreeNode({
                   size={ICON_SIZE}
                   block
                 />
-                <span className="truncate text-sm font-medium">{page.title || "Sin título"}</span>
+                <span className="truncate">{page.title || "Sin título"}</span>
               </Link>
 
               <div
@@ -294,7 +282,7 @@ function KbDroppableList({
   onNavigate?: () => void;
 }) {
   const droppableId = toDroppableId(parentId);
-  const emptyPad = 20 + depth * 14;
+  const emptyPad = 34 + depth * 14;
 
   return (
     <Droppable droppableId={droppableId}>
@@ -308,11 +296,11 @@ function KbDroppableList({
         >
           {isLoading ? (
             <div
-              className="h-6 mr-2 rounded bg-nav-hover animate-pulse"
-              style={{ marginLeft: `${8 + depth * 14}px` }}
+              className="mx-3 h-9 rounded-control bg-nav-hover animate-pulse"
+              style={{ marginLeft: `${12 + depth * 14}px` }}
             />
           ) : items.length === 0 && !snapshot.isDraggingOver ? (
-            <p className="text-xs text-text-secondary italic py-1" style={{ paddingLeft: `${emptyPad}px` }}>
+            <p className="py-2 text-xs italic text-text-secondary" style={{ paddingLeft: `${emptyPad}px` }}>
               Vacío
             </p>
           ) : (
@@ -423,9 +411,9 @@ export default function KbSidebarTree({ onNavigate }: { onNavigate?: () => void 
     <div className="flex flex-col">
       <div className="max-h-[60dvh] overflow-y-auto py-1">
         {kb.rootLoading && kb.rootPages.length === 0 ? (
-          <div className="flex flex-col gap-1.5 px-2 pt-2">
+          <div className="flex flex-col gap-1 px-3 pt-1">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 rounded-lg bg-nav-hover animate-pulse" />
+              <div key={i} className="h-9 rounded-control bg-nav-hover animate-pulse" />
             ))}
           </div>
         ) : kb.rootPages.length === 0 ? (

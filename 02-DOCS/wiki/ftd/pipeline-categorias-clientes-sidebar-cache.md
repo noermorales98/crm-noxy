@@ -25,3 +25,7 @@ Nada se vio en navegador. La caché del router puede mostrar datos de hasta 30 s
 
 ## Ajuste de la barra lateral (5 secciones)
 Las pestañas medían 44 px (móvil) o 36 px (escritorio) con huecos fijos y, con 5, no cabían. Ahora la fila es una rejilla de 5 columnas iguales (`auto-cols-fr`), cada pestaña de 36 px centrada: caben siempre. El nombre de la sección activa se muestra justo debajo de las pestañas (no cabe dentro de la pestaña sin cortar «Conocimiento e IA»). Sin probar en navegador.
+
+## Ajustes finales (Docs y tablero único)
+- **Docs en la barra lateral:** las filas del árbol usan la misma clase que el resto de la barra (`rowClass`: caja de 44 px, pastilla de 36 px, `text-sm`, activo en semibold, esquinas `rounded-control`); solo cambia la sangría por nivel. Antes tenían relleno de 4 px, esquinas y peso propios.
+- **/pipeline, un solo tablero:** `src/lib/pipeline-board.ts` junta las etapas de todos los pipelines en un conjunto de columnas (abiertas, luego ganadas, al final perdidas; las del mismo nombre y tipo se juntan, p. ej. «Perdido»). Cada tarjeta lleva una etiqueta con su categoría cuando se ven varias. Arrastrar manda el deal a la etapa de su propio pipeline con ese nombre; si su pipeline no la tiene, no se mueve. Los filtros por categoría siguen. 5 pruebas. Sin probar en navegador.

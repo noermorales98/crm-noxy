@@ -32,6 +32,7 @@ import {
   useDialog,
 } from "@/src/components/ui";
 import { visiblePipelines } from "@/src/lib/pipeline-categories";
+import { addStageFor, buildBoardColumns, dealsForColumn, dropStageFor, type BoardColumn as BoardColumnDef } from "@/src/lib/pipeline-board";
 import { readCache, writeCache } from "@/src/lib/client-cache";
 
 const DEALS_CACHE_KEY = "pipeline:deals";
@@ -69,7 +70,7 @@ const secondaryAction =
 const primaryAction =
   "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
 
-function DealCard({ deal, index }: { deal: any; index: number }) {
+function DealCard({ deal, index, category }: { deal: any; index: number; category?: string }) {
   const router = useRouter();
   const isOverdue = deal.followUpAt && new Date(deal.followUpAt) < new Date();
   const open = () => router.push(`/pipeline/${deal.id}`);
@@ -109,6 +110,7 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
             </p>
 
             <div className="flex flex-wrap items-center gap-1.5">
+              {category && <Chip tone="neutral">{category}</Chip>}
               {deal.source && (
                 <span className={`inline-flex h-6 items-center rounded-full px-2 text-xs font-semibold ${SOURCE_COLORS[deal.source] || SOURCE_COLORS.OTRO}`}>
                   {SOURCE_LABELS[deal.source] || deal.source}
@@ -158,13 +160,16 @@ function DealCard({ deal, index }: { deal: any; index: number }) {
 }
 
 function KanbanColumn({
-  stage,
+  column,
   deals,
+  categoryOf,
   onAddDeal,
 }: {
-  stage: any;
+  column: BoardColumnDef;
   deals: any[];
-  onAddDeal: (stageId: string) => void;
+  /** Nombre de la categoría (pipeline) de cada deal; solo se muestra cuando el tablero junta varias. */
+  categoryOf?: (deal: any) => string | undefined;
+  onAddDeal: (column: BoardColumnDef) => void;
 }) {
   const totalMXN = deals.filter((d) => d.currency === "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
   const totalUSD = deals.filter((d) => d.currency !== "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
@@ -172,14 +177,14 @@ function KanbanColumn({
 
   return (
     <BoardColumn
-      title={stage.name}
+      title={column.name}
       count={deals.length}
       sum={sum}
-      accent={stage.color || "#6B7280"}
+      accent={column.color || "#6B7280"}
       footer={
         <button
           type="button"
-          onClick={() => onAddDeal(stage.id)}
+          onClick={() => onAddDeal(column)}
           className="flex min-h-11 w-full items-center gap-1.5 rounded-control px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary lg:min-h-9"
         >
           <HugeiconsIcon icon={Add01Icon} size={14} />
@@ -187,7 +192,7 @@ function KanbanColumn({
         </button>
       }
     >
-      <Droppable droppableId={stage.id}>
+      <Droppable droppableId={column.key}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
@@ -197,7 +202,7 @@ function KanbanColumn({
             }`}
           >
             {deals.map((deal, index) => (
-              <DealCard key={deal.id} deal={deal} index={index} />
+              <DealCard key={deal.id} deal={deal} index={index} category={categoryOf?.(deal)} />
             ))}
             {provided.placeholder}
           </div>
@@ -484,7 +489,11 @@ export default function PipelinePage() {
     const { draggableId, destination, source } = result;
     if (!destination || destination.droppableId === source.droppableId) return;
 
-    const newStageId = destination.droppableId;
+    // Las columnas juntan varios pipelines: el deal va a la etapa de SU pipeline con ese nombre; si no la tiene, no se mueve.
+    const column = buildBoardColumns(pipelines).find((c) => c.key === destination.droppableId);
+    const deal = pipelines.flatMap((p: any) => p.stages.flatMap((s: any) => s.deals)).find((d: any) => d.id === draggableId);
+    const newStageId = column && deal ? dropStageFor(column, deal.pipelineId) : null;
+    if (!newStageId) return;
 
     setPipelines((prev) =>
       prev.map((pipeline) => ({
@@ -492,18 +501,9 @@ export default function PipelinePage() {
         stages: pipeline.stages.map((stage: any) => ({
           ...stage,
           deals:
-            stage.id === source.droppableId
-              ? stage.deals.filter((d: any) => d.id !== draggableId)
-              : stage.id === newStageId
-              ? [
-                  ...stage.deals.slice(0, destination.index),
-                  prev
-                    .flatMap((p: any) => p.stages)
-                    .flatMap((s: any) => s.deals)
-                    .find((d: any) => d.id === draggableId),
-                  ...stage.deals.slice(destination.index),
-                ].filter(Boolean)
-              : stage.deals,
+            stage.id === newStageId
+              ? [{ ...deal, stageId: newStageId }, ...stage.deals.filter((d: any) => d.id !== draggableId)]
+              : stage.deals.filter((d: any) => d.id !== draggableId),
         })),
       }))
     );
@@ -623,6 +623,12 @@ export default function PipelinePage() {
     setShowDealModal(true);
   };
 
+  // Un solo tablero: las columnas de todos los pipelines (o del elegido) juntas.
+  const boardColumns = buildBoardColumns(shownPipelines);
+  const pipelineNames = new Map(pipelines.map((p: any) => [p.id, p.name]));
+  const categoryOf = showHeadings ? (deal: any) => pipelineNames.get(deal.pipelineId) : undefined;
+  const addDealIn = (column: BoardColumnDef) => openNewDeal(addStageFor(column, shownPipelines.length === 1 ? shownPipelines[0].id : null));
+
   return (
     <>
       <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
@@ -728,23 +734,11 @@ export default function PipelinePage() {
                 </div>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <div className="flex flex-col gap-6">
-                    {shownPipelines.map((pipeline: any) => (
-                      <section key={pipeline.id} aria-label={pipeline.name}>
-                        {showHeadings && (
-                          <h2 className="mb-2 text-sm font-semibold text-text-primary">
-                            {pipeline.name}
-                            <span className="ml-2 font-normal text-text-secondary">{pipeline.stages.reduce((n: number, s: any) => n + s.deals.length, 0)} deals</span>
-                          </h2>
-                        )}
-                        <Board label={`Tablero ${pipeline.name ?? "del pipeline"}`}>
-                          {pipeline.stages.map((stage: any) => (
-                            <KanbanColumn key={stage.id} stage={stage} deals={stage.deals} onAddDeal={openNewDeal} />
-                          ))}
-                        </Board>
-                      </section>
+                  <Board label={shownPipelines.length > 1 ? "Tablero del pipeline (todas las categorías)" : `Tablero ${shownPipelines[0]?.name ?? "del pipeline"}`}>
+                    {boardColumns.map((column) => (
+                      <KanbanColumn key={column.key} column={column} deals={dealsForColumn(shownPipelines, column)} categoryOf={categoryOf} onAddDeal={addDealIn} />
                     ))}
-                  </div>
+                  </Board>
                 </DragDropContext>
               )}
             </Enter>
