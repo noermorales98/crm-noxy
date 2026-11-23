@@ -273,4 +273,17 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 ## 7. Decisiones tomadas y pendientes
 - ✅ Separación por cliente: **Opción A** (sub-cuenta = Organization). T8–T10 quedan habilitadas.
 - ✅ «Agregar correos» en el MCP = email del cliente en contacto y cotización (T6.4).
-- ⏳ Dar de alta los crons en cron-job.org y revisar si tu `DigestSchedule` está activo (T2 te dirá cuántos hay).
+- ✅ Crons dados de alta en cron-job.org (confirmado por Noeli, 2026-11-23). `DigestSchedule`: 1 activo (09:00 Cancún, WhatsApp configurado); el último envío había sido el 2026-11-13 (diagnóstico: `node scripts/digest-diagnostico.cjs`).
+
+## 8. Estado de avance (2026-11-23)
+| Tarea | Estado |
+|---|---|
+| T1 follow-up único y agrupado | ✅ hecho, en main y subido |
+| T2 resumen diario | ✅ hecho: sección de contenido, sin «ganadas total», respaldo sin IA, aviso de error en la campanita, estado y próximo envío en Configuración, diagnóstico. Falta aplicar `prisma/sql/digest-error.up.sql` |
+| T4 cierre mensual | ✅ hecho, en main y subido |
+| Avisos por cliente + «Activar mi resumen» | ✅ hecho, en main y subido |
+| T3 archivados fuera de consultas | ⏳ en curso |
+| T5 sidebar, T6 MCP, T7 Bóveda | ⏳ pendientes |
+| T8–T10 sub-cuentas y Proyectos→Clientes | ⏳ pendientes |
+| T11 landing, T12 docs | ⏳ pendientes |
+

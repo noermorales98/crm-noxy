@@ -14,7 +14,7 @@ import { sileo } from "sileo";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type NotificationType = "NEW_EMAIL" | "NEW_CONTACT" | "NEW_FORM_LEAD";
+export type NotificationType = "NEW_EMAIL" | "NEW_CONTACT" | "NEW_FORM_LEAD" | "DIGEST_ERROR";
 
 export interface AppNotification {
   id: string;

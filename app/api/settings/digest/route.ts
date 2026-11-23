@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseCustomDays } from "@/src/lib/digest";
+import { nextDigestRun } from "@/src/lib/digest-schedule";
 import { normalizeModelId } from "@/src/lib/ai-models";
 
 export async function GET() {
@@ -30,7 +31,27 @@ export async function GET() {
       }
     }
 
+    const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { timezone: true } });
+    const timezone = org?.timezone || "America/Cancun";
+    const nextRun = schedule
+      ? nextDigestRun(
+          {
+            enabled: schedule.enabled,
+            frequency: schedule.frequency as "daily" | "weekly" | "monthly" | "custom",
+            customDays,
+            weeklyDay: schedule.weeklyDay,
+            monthlyDay: schedule.monthlyDay,
+            hour: schedule.hour,
+            minute: schedule.minute,
+            lastSentAt: schedule.lastSentAt,
+          },
+          timezone,
+        )
+      : null;
+
     return NextResponse.json({
+      nextRun,
+      timezone,
       enabled: schedule?.enabled ?? false,
       frequency: schedule?.frequency ?? "daily",
       customDays,

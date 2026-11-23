@@ -1,6 +1,6 @@
 import { prisma } from "@/src/lib/db";
 
-export type NotificationType = "NEW_EMAIL" | "NEW_CONTACT" | "NEW_FORM_LEAD";
+export type NotificationType = "NEW_EMAIL" | "NEW_CONTACT" | "NEW_FORM_LEAD" | "DIGEST_ERROR";
 
 interface CreateNotificationParams {
   organizationId: string;

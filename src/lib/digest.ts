@@ -6,83 +6,10 @@ import { normalizeModelId } from "@/src/lib/ai-models";
 import { formatByCurrency } from "@/src/lib/deal-sales";
 import { loadWonSales } from "@/src/lib/won-sales";
 import { buildContentDigestLines } from "@/src/lib/content-digest";
+import { fallbackDigestMessage, isDigestDue, type DigestFrequency, type DigestScheduleConfig } from "@/src/lib/digest-schedule";
 
-export type DigestFrequency = "daily" | "weekly" | "monthly" | "custom";
-
-export type DigestScheduleConfig = {
-  enabled: boolean;
-  frequency: DigestFrequency;
-  customDays: number[];
-  weeklyDay: number;
-  monthlyDay: number;
-  hour: number;
-  minute: number;
-};
-
-type ZonedParts = {
-  year: number;
-  month: number;
-  day: number;
-  weekday: number;
-  hour: number;
-  minute: number;
-};
-
-function getZonedParts(date: Date, timezone: string): ZonedParts {
-  const fmt = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    weekday: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const parts = fmt.formatToParts(date);
-  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
-  const weekdayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  return {
-    year: parseInt(get("year"), 10),
-    month: parseInt(get("month"), 10),
-    day: parseInt(get("day"), 10),
-    weekday: weekdayMap[get("weekday")] ?? 0,
-    hour: parseInt(get("hour"), 10) % 24,
-    minute: parseInt(get("minute"), 10),
-  };
-}
-
-export function isDigestDue(
-  schedule: DigestScheduleConfig & { lastSentAt?: Date | null },
-  timezone: string,
-  now = new Date(),
-  windowMinutes = 15
-): boolean {
-  if (!schedule.enabled) return false;
-
-  const z = getZonedParts(now, timezone);
-  const scheduledMins = schedule.hour * 60 + schedule.minute;
-  const currentMins = z.hour * 60 + z.minute;
-  if (currentMins < scheduledMins || currentMins >= scheduledMins + windowMinutes) return false;
-
-  if (schedule.lastSentAt) {
-    const last = getZonedParts(schedule.lastSentAt, timezone);
-    if (last.year === z.year && last.month === z.month && last.day === z.day) return false;
-  }
-
-  switch (schedule.frequency) {
-    case "daily":
-      return true;
-    case "weekly":
-      return z.weekday === schedule.weeklyDay;
-    case "monthly":
-      return z.day === schedule.monthlyDay;
-    case "custom":
-      return schedule.customDays.includes(z.weekday);
-    default:
-      return false;
-  }
-}
+export { isDigestDue, nextDigestRun } from "@/src/lib/digest-schedule";
+export type { DigestFrequency, DigestScheduleConfig } from "@/src/lib/digest-schedule";
 
 export async function buildDigestContext(
   orgId: string,
@@ -278,7 +205,7 @@ export async function buildDigestContext(
 export async function generateDigestMessage(
   context: string,
   options: { orgId: string; modelId?: string }
-): Promise<string> {
+): Promise<{ message: string; usedFallback: boolean }> {
   const systemPrompt = `Eres un asistente de CRM. Genera un resumen ejecutivo en español para enviar por WhatsApp.
 Reglas:
 - Máximo 1500 caracteres
@@ -289,20 +216,27 @@ Reglas:
 - NO uses markdown ni asteriscos
 - Solo el texto del mensaje, sin introducción`;
 
-  return completeWithAi({
-    orgId: options.orgId,
-    modelId: normalizeModelId(options.modelId),
-    systemPrompt,
-    userPrompt: `Datos del CRM:\n\n${context}\n\nGenera el resumen para WhatsApp.`,
-    maxTokens: 600,
-  });
+  try {
+    const message = await completeWithAi({
+      orgId: options.orgId,
+      modelId: normalizeModelId(options.modelId),
+      systemPrompt,
+      userPrompt: `Datos del CRM:\n\n${context}\n\nGenera el resumen para WhatsApp.`,
+      maxTokens: 600,
+    });
+    if (message?.trim()) return { message, usedFallback: false };
+    console.error("[digest] la IA devolvió un resumen vacío; se usa el texto sin IA");
+  } catch (error) {
+    console.error("[digest] la IA falló; se usa el texto sin IA:", error instanceof Error ? error.message : error);
+  }
+  return { message: fallbackDigestMessage(context), usedFallback: true };
 }
 
 export async function runDigestForUser(
   userId: string,
   orgId: string,
   options?: { sendWhatsApp?: boolean; skipScheduleCheck?: boolean; updateLastSent?: boolean }
-): Promise<{ message: string; sent: boolean; context: string }> {
+): Promise<{ message: string; sent: boolean; context: string; usedFallback: boolean }> {
   const [schedule, user, org] = await Promise.all([
     prisma.digestSchedule.findUnique({
       where: { userId_organizationId: { userId, organizationId: orgId } },
@@ -345,7 +279,7 @@ export async function runDigestForUser(
   const includeUnreadEmails = schedule?.includeUnreadEmails ?? true;
   const aiModelId = normalizeModelId(schedule?.aiModelId);
   const context = await buildDigestContext(orgId, userId, { includeGoogleCalendar, includeUnreadEmails });
-  const message = await generateDigestMessage(context, { orgId, modelId: aiModelId });
+  const { message, usedFallback } = await generateDigestMessage(context, { orgId, modelId: aiModelId });
 
   let sent = false;
   const shouldSend = options?.sendWhatsApp !== false;
@@ -369,7 +303,7 @@ export async function runDigestForUser(
     });
   }
 
-  return { message, sent, context };
+  return { message, sent, context, usedFallback };
 }
 
 export function parseCustomDays(raw: unknown): number[] {

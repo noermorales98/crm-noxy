@@ -1147,6 +1147,7 @@ enum NotificationType {
   NEW_CONTACT
   NEW_FORM_LEAD
   APPOINTMENT_REMINDER
+  DIGEST_ERROR
 }
 
 model Notification {

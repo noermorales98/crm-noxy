@@ -17,6 +17,7 @@ const NOTIF_ICONS: Record<NotificationType, typeof UserMultipleIcon> = {
   NEW_EMAIL: InboxIcon,
   NEW_CONTACT: UserMultipleIcon,
   NEW_FORM_LEAD: BrowserIcon,
+  DIGEST_ERROR: Notification01Icon,
 };
 
 function timeAgo(date: string): string {

@@ -34,12 +34,13 @@ export async function POST(req: Request) {
       return NextResponse.json({
         message: result.message,
         sent: result.sent,
+        usedFallback: result.usedFallback,
       });
     }
 
     const context = await buildDigestContext(orgId, session.user.id, { includeGoogleCalendar, includeUnreadEmails });
-    const message = await generateDigestMessage(context, { orgId, modelId: aiModelId });
-    return NextResponse.json({ message, context });
+    const { message, usedFallback } = await generateDigestMessage(context, { orgId, modelId: aiModelId });
+    return NextResponse.json({ message, context, usedFallback });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || "Error al generar resumen" }, { status: 500 });
   }

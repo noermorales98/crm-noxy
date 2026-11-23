@@ -56,6 +56,8 @@ export default function DigestSettingsPage() {
   const [whatsappConfigured, setWhatsappConfigured] = useState(false);
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
   const [lastSentAt, setLastSentAt] = useState<string | null>(null);
+  const [nextRun, setNextRun] = useState<{ date: string; time: string; dueNow: boolean } | null>(null);
+  const [timezone, setTimezone] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -86,6 +88,8 @@ export default function DigestSettingsPage() {
         setWhatsappConfigured(d.whatsappConfigured);
         setGoogleCalendarConnected(d.googleCalendarConnected ?? false);
         setLastSentAt(d.lastSentAt);
+        setNextRun(d.nextRun ?? null);
+        setTimezone(d.timezone ?? "");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -165,6 +169,7 @@ export default function DigestSettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al generar vista previa");
       setPreview(data.message);
+      if (data.usedFallback) setSuccess("El modelo de IA no respondió: esta vista previa es el resumen sin IA.");
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -189,8 +194,11 @@ export default function DigestSettingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al enviar");
       setPreview(data.message);
-      setSuccess("Resumen enviado por WhatsApp.");
-      setLastSentAt(new Date().toISOString());
+      setSuccess(
+        data.usedFallback
+          ? "Prueba enviada por WhatsApp. El modelo de IA no respondió, así que fue el resumen sin IA."
+          : "Prueba enviada por WhatsApp.",
+      );
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -411,11 +419,21 @@ export default function DigestSettingsPage() {
               </div>
             )}
 
-            {lastSentAt && (
-              <p className="text-xs text-text-secondary">
-                Último envío: {new Date(lastSentAt).toLocaleString("es-MX")}
+            <div className="text-xs text-text-secondary space-y-0.5">
+              <p>
+                Estado:{" "}
+                <span className={enabled ? "font-semibold text-green-700" : "font-semibold text-amber-700"}>
+                  {enabled ? "activo" : "apagado"}
+                </span>
+                {enabled && nextRun && (
+                  <>
+                    {" · "}Próximo envío: {nextRun.dueNow ? "en este momento" : `${nextRun.date} a las ${nextRun.time}`}
+                    {timezone ? ` (${timezone})` : ""}
+                  </>
+                )}
               </p>
-            )}
+              {lastSentAt && <p>Último envío: {new Date(lastSentAt).toLocaleString("es-MX")}</p>}
+            </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             {success && <p className="text-sm text-green-600 font-medium">{success}</p>}
