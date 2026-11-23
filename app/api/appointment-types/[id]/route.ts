@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -23,6 +24,9 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
   }
   const { id } = await context.params;
   const { name, description, duration, color, location, slug, scheduleId, isActive, bufferAfter, maxAdvanceDays, companyId } = await req.json();
+
+  const refError = await assertOrgRefs(prisma as never, session.currentOrganizationId, { companyId, scheduleId });
+  if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
   try {
     const type = await prisma.appointmentType.updateMany({

@@ -5,6 +5,7 @@ import { ensureDeliveryReferrals, ensureLeadFollowups } from "@/src/lib/lead-fol
 import { autoSync } from "@/src/lib/notion-sync";
 import { normalizeDealIcon } from "@/src/lib/deal-icons";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 
@@ -75,6 +76,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "title y stageId son requeridos" }, { status: 400 });
     }
 
+    const refError = await assertOrgRefs(prisma as never, organizationId, { contactId, companyId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
+
     const stage = await prisma.stage.findFirst({
       where: { id: stageId, pipeline: { organizationId } },
       include: { pipeline: true },
@@ -130,6 +134,9 @@ export async function PATCH(req: Request) {
 
     const existing = await prisma.deal.findFirst({ where: { id, organizationId } });
     if (!existing) return NextResponse.json({ error: "Deal no encontrado" }, { status: 404 });
+
+    const refError = await assertOrgRefs(prisma as never, organizationId, { contactId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
     const updateData: Record<string, any> = {};
     if (title !== undefined) updateData.title = title;

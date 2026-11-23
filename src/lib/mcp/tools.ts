@@ -51,10 +51,12 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
     const member =
       (await prisma.organizationMember.findFirst({
         where: { organizationId: org, role: "OWNER" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: { userId: true },
       })) ??
       (await prisma.organizationMember.findFirst({
         where: { organizationId: org },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: { userId: true },
       }));
     return member?.userId ?? null;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 
 export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
@@ -20,6 +21,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
     if (!category) {
       return NextResponse.json({ error: "Category not found or unauthorized" }, { status: 404 });
     }
+    const refError = await assertOrgRefs(prisma as never, currentOrganizationId, { companyId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
     const updatedCategory = await prisma.taskCategory.update({
       where: { id },

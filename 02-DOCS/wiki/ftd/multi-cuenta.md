@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: multi-cuenta
-status: in-progress (paso 1 aprobado; paso 2 hecho, a la espera de SQL y dry-run)
+status: verificado (pasos 1-5); pendiente de integrar a main
 ---
 # Multi-cuenta: cada cliente es una Organization (sub-cuenta)
 
@@ -64,7 +64,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [x] P2 `--apply` ejecutado en orden: Dreams Club, Eilen Centro Terapeutico, J&H Multiservices, Noxy Digital (la empresa propia). Sin dump previo: `mysqldump` no autentica (plugin `mysql_native_password` ausente en el cliente); los informes por conversión están en `backups/` (local, ignorado por git).
 - [x] P3 `submit` ya escribía todo en `form.organizationId`; ahora además ignora enlaces a otra org (empresa, correo de bienvenida, tipo de cita, proyecto) y elige el OWNER de forma determinista (`pickNotifyOwner`: el más antiguo con WhatsApp). Pruebas en `organizations.test.ts`.
 - [x] P4 auditoría de crons: `digest` y `content-reminders` ya aislaban por organización (sin cambios); `followups` mezclaba en un mensaje los seguimientos de todas las orgs del mismo dueño y `followups`/`payment-alerts` elegían OWNER sin orden → ahora agrupan por organización, usan `pickNotifyOwner` (`src/lib/org-owner.ts`) y el mensaje lleva el nombre de la sub-cuenta.
-- [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
+- [x] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp): `src/lib/org-isolation.test.ts`. Encontró y cerró huecos reales: ids de otra org aceptados en el cuerpo de `deals` (POST/PATCH, con fuga de datos del contacto en la respuesta), `tasks`, `forms` PUT, `clients` PATCH, `quotes` PUT, `projects` (POST/PUT; el PUT escribía el nombre del contacto ajeno en la actividad), `appointment-types`, `task-categories`. Nueva `assertOrgRefs` (`src/lib/org-refs.ts`).
 
 ## Evidence
 P1: `npm test` 484 (477 pasan; los 7 fallos son previos y sin relación: contratos de diseño, fallan igual en main). 7 pruebas nuevas en `src/lib/organizations.test.ts`. `tsc` y `eslint` sin errores en lo tocado. Falta: prueba manual en navegador y con la base real (la siembra transaccional no tiene prueba automática: necesita base).
@@ -83,3 +83,17 @@ Sub-cuentas creadas (miembros: Noelí OWNER, Esthefani ADMIN): Dreams Club (63 c
 
 Unión Noxy: la sub-cuenta «Noxy Digital» (copia de la empresa propia) se borró; la empresa original conserva 5 contactos y 6 formularios y `migratedToOrgId` volvió a NULL (respaldo en `backups/deshacer-noxy-copia-*.json`).
 P4: `npm test` 495 (488 pasan; mismos 7 fallos previos). `tsc` y `eslint` limpios en lo tocado. Pendiente (no automatizable): ver llegar un aviso real con el nombre de la sub-cuenta.
+
+## Verificación de cierre (2026-11-23, rama multi-cuenta vs main 4cf0890; main no se había movido)
+- `npm test`: 503 pruebas, 496 pasan, 7 fallan. Esos 7 son EXACTAMENTE los mismos que fallan en main sin la rama (comparados por nombre): contratos de diseño ajenos a este trabajo. Gate estricto = no verde por ellos; sin regresiones.
+- `tsc --noEmit` sobre todo el proyecto (sin `*.test.ts`): 0 errores. Ojo: durante el gate encontré que mi comprobación anterior filtraba solo `app|src|auth` y no veía `scripts/`; el build lo detectó y quedó corregido.
+- `next build` (con `DATABASE_URL`/`AUTH_SECRET` ficticios; sin ellos falla al recoger datos, igual que cualquier ruta con Prisma): compila y genera 140 páginas, exit 0.
+- `eslint`: en los 9 archivos preexistentes que toca la rama, 4 errores (en main: 6); en los nuevos, 0 (el script lleva `eslint-disable no-explicit-any`, como `fase1-etapas.ts`). El lint repo-completo de main no se pudo comparar (se cae por memoria).
+- Criterios: P1–P5 con evidencia arriba; P2 además ejecutado en producción y verificado contra el origen (Dreams Club).
+
+### Capas no ejecutadas
+- **NO EJECUTADO** — `createSubAccount` (alta de sub-cuenta desde la API) contra una base real: solo cubierto por pruebas de funciones puras; el script de P2 usa la misma lógica y sí corrió en producción, pero es otro código.
+- **NO EJECUTADO** — selector en navegador y cambio de organización de extremo a extremo; el `jwt` está cubierto por prueba de contrato (lee el código), no por una sesión real.
+- **SUSTITUIDA** — aislamiento entre organizaciones: pruebas con base simulada + lectura estática de las rutas, no peticiones HTTP reales con dos sesiones. No detecta una ruta que valide mal en tiempo de ejecución.
+- **SUSTITUIDA** — mysqldump: no hay respaldo SQL de la base (el cliente no autentica); solo informes/respaldos JSON por operación.
+- **HERRAMIENTA-AUSENTE** — Vitest (el proyecto usa `node --test`); el paso de tests de `verify.sh` no aplica.

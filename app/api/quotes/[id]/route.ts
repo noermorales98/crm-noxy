@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 import { computeQuoteTotals, effectiveQuoteStatus } from "@/src/lib/quotes";
 
@@ -85,6 +86,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (split && (!Number.isFinite(deposit) || deposit <= 0 || deposit >= 100)) {
       return NextResponse.json({ error: "El porcentaje de anticipo debe ser mayor a 0 y menor a 100" }, { status: 400 });
     }
+    const refError = await assertOrgRefs(prisma as never, organizationId, { dealId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
     if (contactId) {
       const contact = await prisma.contact.findFirst({ where: { id: contactId, organizationId } });
       if (!contact) return NextResponse.json({ error: "Contacto inválido" }, { status: 400 });

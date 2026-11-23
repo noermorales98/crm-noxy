@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- script de Node: Prisma entra por createRequire, sin tipos (igual que scripts/fase1-etapas.ts) */
 // Convierte una Empresa en una sub-cuenta (Organization): COPIA sus contactos, deals y formularios. No mueve ni borra nada del original;
 // lo único que escribe en la org de origen es Company.migratedToOrgId.
 //
@@ -45,7 +46,7 @@ async function main() {
   if (!member) throw new Error("Ese usuario no es miembro de la organización de origen.");
 
   const orgId = company.organizationId;
-  const team = [];
+  const team: any[] = [];
   for (const teamEmail of teamEmails) {
     const m = await prisma.organizationMember.findFirst({ where: { organizationId: orgId, user: { email: teamEmail } } });
     if (!m) throw new Error(`${teamEmail} no es miembro de la organización de origen.`);
@@ -58,7 +59,7 @@ async function main() {
   ]);
   const contactIds = contactIdsToCopy(companyContacts.map((c: any) => c.id), deals.map((d: any) => d.contactId));
   const contacts = await prisma.contact.findMany({ where: { id: { in: contactIds }, organizationId: orgId } });
-  const usedPipelines = [...new Map(deals.filter((d: any) => d.pipeline).map((d: any) => [d.pipeline.id, d.pipeline])).values()];
+  const usedPipelines: any[] = [...new Map<string, any>(deals.filter((d: any) => d.pipeline).map((d: any) => [d.pipeline.id, d.pipeline])).values()];
   const noPipeline = deals.filter((d: any) => !d.pipeline).length;
 
   const warn: string[] = [];
