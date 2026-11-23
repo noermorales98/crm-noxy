@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: multi-cuenta
-status: in-progress (paso 1 hecho, a la espera de prueba manual)
+status: in-progress (paso 1 aprobado; paso 2 hecho, a la espera de SQL y dry-run)
 ---
 # Multi-cuenta: cada cliente es una Organization (sub-cuenta)
 
@@ -58,8 +58,9 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [x] P1 JWT valida membresía y recalcula rol/permisos — prueba: un `update()` con org ajena no cambia la sesión.
 - [x] P1 orden determinista de la org inicial.
 - [ ] P1 selector en la interfaz — prueba en navegador (tuya).
-- [ ] **Parada tras el paso 1.**
-- [ ] P2 script `--dry-run`/`--apply` con respaldo e idempotencia.
+- [x] **Parada tras el paso 1** — aprobado por Noeli.
+- [x] P2 `scripts/company-to-org.ts`: simulacro por defecto, `--apply` explícito, una transacción, informe con cómo deshacer, se niega a repetir si `migratedToOrgId` ya está. Supuestos: original intacto (P1), solo contactos/deals/formularios (P3).
+- [ ] P2 aplicar `prisma/sql/company-migrated-org.up.sql` + `prisma generate` y probar el simulacro con una empresa real — lo haces tú.
 - [ ] P3 pruebas de que el formulario escribe en la org dueña.
 - [ ] P4 auditoría de crons + regla de destinatario fijada y probada.
 - [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
@@ -69,3 +70,5 @@ P1: `npm test` 484 (477 pasan; los 7 fallos son previos y sin relación: contrat
 
 ## Next
 Aprobar o corregir esta spec y responder las 3 preguntas (la 1 y la 2 no bloquean el paso 1).
+
+P2: `npm test` 490 (483 pasan, los mismos 7 fallos previos). 6 pruebas nuevas en `src/lib/company-to-org.test.ts` (casado de pipelines, qué se copia y qué se deja fuera, simulacro antes de la transacción, sin borrados). El script NO se ha ejecutado contra la base.
