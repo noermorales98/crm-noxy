@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
@@ -28,6 +29,7 @@ export async function GET(req: Request) {
             : {
                 include: {
                   deals: {
+                    where: ACTIVE_DEALS,
                     orderBy: { createdAt: "desc" },
                     include: {
                       company: { select: { name: true } },

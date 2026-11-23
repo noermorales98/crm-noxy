@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/db";
 import { matchCrmSearchPages } from "@/src/lib/crm-search-pages";
 import { markdownContentSnippet } from "@/src/lib/kb-search-snippet";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
+import { dealArchiveFilter, wantsArchived } from "@/src/lib/deal-filters";
 
 const LIMIT = 5;
 
@@ -16,6 +17,7 @@ export async function GET(req: Request) {
   const q = searchParams.get("q")?.trim() ?? "";
   if (!q) return Response.json([]);
 
+  const includeArchived = wantsArchived(searchParams.get("includeArchived"));
   const qLower = q.toLowerCase();
 
   const [
@@ -53,7 +55,7 @@ export async function GET(req: Request) {
       select: { id: true, name: true, industry: true },
     }),
     prisma.deal.findMany({
-      where: { organizationId: orgId, title: { contains: q } },
+      where: { organizationId: orgId, ...dealArchiveFilter(includeArchived), title: { contains: q } },
       take: LIMIT,
       select: { id: true, title: true, value: true, currency: true },
     }),

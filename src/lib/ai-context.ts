@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
 
@@ -47,7 +48,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       select: { id: true, name: true, industry: true, website: true, createdAt: true },
     }),
     prisma.deal.findMany({
-      where: { organizationId: orgId },
+      where: { organizationId: orgId, ...ACTIVE_DEALS },
       orderBy: { createdAt: "desc" },
       take: 20,
       select: {

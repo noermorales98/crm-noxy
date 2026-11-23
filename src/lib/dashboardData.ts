@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
 import { listGoogleCalendarEvents } from "@/src/lib/google-calendar";
@@ -238,7 +239,7 @@ export const DATA_FETCHERS: {
   }),
   pipelineValue: async (organizationId) => {
     const deals = await prisma.deal.findMany({
-      where: { organizationId, stage: { isWon: false, isLost: false } },
+      where: { organizationId, ...ACTIVE_DEALS, stage: { isWon: false, isLost: false } },
       select: { value: true },
     });
     return { pipelineValue: deals.reduce((s, d) => s + (d.value ?? 0), 0) };
@@ -247,10 +248,10 @@ export const DATA_FETCHERS: {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const [wonDeals, totalDeals] = await Promise.all([
       prisma.deal.count({
-        where: { organizationId, stage: { isWon: true }, updatedAt: { gte: startOfMonth } },
+        where: { organizationId, ...ACTIVE_DEALS, stage: { isWon: true }, updatedAt: { gte: startOfMonth } },
       }),
       prisma.deal.count({
-        where: { organizationId, stage: { OR: [{ isWon: true }, { isLost: true }] }, updatedAt: { gte: startOfMonth } },
+        where: { organizationId, ...ACTIVE_DEALS, stage: { OR: [{ isWon: true }, { isLost: true }] }, updatedAt: { gte: startOfMonth } },
       }),
     ]);
     return { dealStats: { closingRate: totalDeals > 0 ? Math.round((wonDeals / totalDeals) * 100) : 0 } };
@@ -313,7 +314,7 @@ export const DATA_FETCHERS: {
     const stages = await prisma.stage.findMany({
       where: { pipeline: { organizationId } },
       orderBy: { order: "asc" },
-      include: { deals: { select: { value: true } } },
+      include: { deals: { where: ACTIVE_DEALS, select: { value: true } } },
     });
     return {
       dealsByStage: stages.map((s) => ({
@@ -379,7 +380,7 @@ export const DATA_FETCHERS: {
   },
   followUpDeals: async (organizationId, now) => {
     const deals = await prisma.deal.findMany({
-      where: { organizationId, followUpAt: { lt: now }, stage: { isWon: false, isLost: false } },
+      where: { organizationId, ...ACTIVE_DEALS, followUpAt: { lt: now }, stage: { isWon: false, isLost: false } },
       select: {
         id: true,
         title: true,
@@ -410,7 +411,7 @@ export const DATA_FETCHERS: {
   },
   recentDeals: async (organizationId) => {
     const deals = await prisma.deal.findMany({
-      where: { organizationId },
+      where: { organizationId, ...ACTIVE_DEALS },
       orderBy: { createdAt: "desc" },
       take: 5,
       select: {

@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { z } from "zod";
 import { ResourceTemplate, type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
@@ -67,6 +68,7 @@ export function registerCrmProtocol(server: McpServer, organizationId: string) {
         include: {
           company: { select: { id: true, name: true } },
           deals: {
+            where: ACTIVE_DEALS,
             select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } },
           },
         },

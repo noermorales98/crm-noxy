@@ -282,7 +282,7 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T2 resumen diario | ✅ hecho: sección de contenido, sin «ganadas total», respaldo sin IA, aviso de error en la campanita, estado y próximo envío en Configuración, diagnóstico. Falta aplicar `prisma/sql/digest-error.up.sql` |
 | T4 cierre mensual | ✅ hecho, en main y subido |
 | Avisos por cliente + «Activar mi resumen» | ✅ hecho, en main y subido |
-| T3 archivados fuera de consultas | ⏳ en curso |
+| T3 archivados fuera de consultas | ✅ hecho, ver nota FTD |
 | T5 sidebar, T6 MCP, T7 Bóveda | ⏳ pendientes |
 | T8–T10 sub-cuentas y Proyectos→Clientes | ⏳ pendientes |
 | T11 landing, T12 docs | ⏳ pendientes |

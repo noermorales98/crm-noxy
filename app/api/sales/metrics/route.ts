@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
@@ -23,12 +24,12 @@ export async function GET() {
       revenueData,
       followUpsData,
     ] = await Promise.all([
-      prisma.deal.count({ where: { organizationId } }),
-      prisma.deal.count({ where: { organizationId, createdAt: { gte: startOfMonth } } }),
+      prisma.deal.count({ where: { organizationId, ...ACTIVE_DEALS } }),
+      prisma.deal.count({ where: { organizationId, ...ACTIVE_DEALS, createdAt: { gte: startOfMonth } } }),
       prisma.stage.findMany({ where: { pipeline: { organizationId }, isWon: true }, select: { id: true } }),
       prisma.stage.findMany({ where: { pipeline: { organizationId }, isLost: true }, select: { id: true } }),
       prisma.deal.findMany({
-        where: { organizationId },
+        where: { organizationId, ...ACTIVE_DEALS },
         select: { value: true, stage: { select: { isWon: true, isLost: true } } },
       }),
       prisma.payment.aggregate({
@@ -38,6 +39,7 @@ export async function GET() {
       prisma.deal.findMany({
         where: {
           organizationId,
+          ...ACTIVE_DEALS,
           followUpAt: { lte: now },
           stage: { isWon: false, isLost: false },
         },

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Los filtros `where`/`data` de Prisma se construyen dinámicamente según los
 // argumentos dados; el proyecto ya usa `any` en sus route handlers.
+import { ACTIVE_DEALS, dealArchiveFilter } from "@/src/lib/deal-filters";
 import { ensureContactForWonDeal, ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { buildDigestContext } from "@/src/lib/digest";
@@ -180,6 +181,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           company: { select: { id: true, name: true, website: true, industry: true } },
           sourceForm: { select: { id: true, name: true } },
           deals: {
+            where: ACTIVE_DEALS,
             select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } },
           },
           appointments: {
@@ -298,7 +300,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         select: {
           ...COMPANY_SAFE_SELECT,
           contacts: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
-          deals: { select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } } },
+          deals: { where: ACTIVE_DEALS, select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } } },
         },
       });
       if (!company) return err("Empresa no encontrada");
@@ -1312,9 +1314,10 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       inputSchema: {
         query: z.string().describe("Texto a buscar"),
         limit: z.number().int().min(1).max(20).default(5).describe("Resultados por categoría"),
+        includeArchived: z.boolean().default(false).describe("Incluir deals archivados (por defecto no salen)"),
       },
     },
-    async ({ query, limit }) => {
+    async ({ query, limit, includeArchived }) => {
       const [contacts, companies, deals, projects, clients] = await Promise.all([
         prisma.contact.findMany({
           where: {
@@ -1339,7 +1342,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           select: { id: true, name: true, industry: true },
         }),
         prisma.deal.findMany({
-          where: { organizationId: org, title: { contains: query } },
+          where: { organizationId: org, ...dealArchiveFilter(includeArchived), title: { contains: query } },
           take: limit,
           select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } },
         }),

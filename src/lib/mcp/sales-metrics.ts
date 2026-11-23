@@ -1,3 +1,4 @@
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { prisma } from "@/src/lib/db";
 import { formatByCurrency } from "@/src/lib/deal-sales";
 import { loadWonSales } from "@/src/lib/won-sales";
@@ -8,10 +9,10 @@ export async function loadSalesMetrics(organizationId: string) {
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
   const [totalDeals, dealsThisMonth, allDeals, revenueData, followUpsData, wonSales] = await Promise.all([
-    prisma.deal.count({ where: { organizationId } }),
-    prisma.deal.count({ where: { organizationId, createdAt: { gte: startOfMonth } } }),
+    prisma.deal.count({ where: { organizationId, ...ACTIVE_DEALS } }),
+    prisma.deal.count({ where: { organizationId, ...ACTIVE_DEALS, createdAt: { gte: startOfMonth } } }),
     prisma.deal.findMany({
-      where: { organizationId },
+      where: { organizationId, ...ACTIVE_DEALS },
       select: { value: true, stage: { select: { isWon: true, isLost: true } } },
     }),
     prisma.payment.aggregate({
@@ -19,7 +20,7 @@ export async function loadSalesMetrics(organizationId: string) {
       _sum: { amount: true },
     }),
     prisma.deal.findMany({
-      where: { organizationId, followUpAt: { lte: now }, stage: { isWon: false, isLost: false } },
+      where: { organizationId, ...ACTIVE_DEALS, followUpAt: { lte: now }, stage: { isWon: false, isLost: false } },
       select: {
         id: true,
         title: true,

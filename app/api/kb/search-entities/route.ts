@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
+import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 
 const ENTITY_LABELS: Record<string, string> = {
   PROJECT: "Proyecto",
@@ -110,7 +111,7 @@ export async function GET(req: Request) {
 
   if (!type || type === "DEAL") {
     const items = await prisma.deal.findMany({
-      where: { ...where, title: q ? { contains: q } : undefined },
+      where: { ...where, ...ACTIVE_DEALS, title: q ? { contains: q } : undefined },
       select: { id: true, title: true },
       take,
     });
