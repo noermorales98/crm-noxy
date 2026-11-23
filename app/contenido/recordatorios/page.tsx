@@ -5,12 +5,12 @@ import { prisma } from "@/src/lib/db";
 import { Block, Chip, DataList, EmptyState, Enter, PageHeader } from "@/src/components/ui";
 import { pieceHref } from "@/src/components/content/ContentPieceRow";
 import { contentTypeLabel } from "@/src/lib/content-client-colors";
+import ReminderClientsPanel from "@/src/components/content/ReminderClientsPanel";
 
 const TIME_ZONE = "America/Cancun";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const hourLabel = (hour: number, minute: number) => `${pad(hour)}:${pad(minute)}`;
-const daysLabel = (days: number) => (days === 0 ? "el mismo día" : days === 1 ? "1 día antes" : `${days} días antes`);
 
 /** Día en que sale el aviso: la fecha de la pieza menos los días de anticipación. */
 function notifyDay(date: Date, daysBefore: number): Date {
@@ -31,11 +31,11 @@ export default async function ContentRemindersPage() {
   const [clients, scheduled] = await Promise.all([
     prisma.contentClient.findMany({
       where: { organizationId, isActive: true },
-      select: { id: true, name: true, color: true, reminderHour: true, reminderMinute: true, reminderDaysBefore: true, _count: { select: { phones: true } } },
+      select: { id: true, name: true, color: true, remindersEnabled: true, reminderHour: true, reminderMinute: true, reminderDaysBefore: true, _count: { select: { phones: true } } },
       orderBy: { name: "asc" },
     }),
     prisma.contentItem.findMany({
-      where: { organizationId, reminderEnabled: true, notifiedAt: null, date: { gte: today } },
+      where: { organizationId, reminderEnabled: true, notifiedAt: null, date: { gte: today }, client: { remindersEnabled: true } },
       select: { id: true, title: true, type: true, date: true, reminderDaysBefore: true, clientId: true, client: { select: { name: true, color: true, reminderHour: true, reminderMinute: true } } },
       orderBy: { date: "asc" },
       take: 100,
@@ -77,23 +77,24 @@ export default async function ContentRemindersPage() {
       </Enter>
 
       <Enter index={2}>
-        <Block title="Horario por cliente" action={{ label: "Ver clientes", href: "/contenido/clientes" }}>
-          <DataList
-            label="Horario de avisos por cliente"
-            rows={clients}
-            getKey={(client) => client.id}
-            empty={<EmptyState title="Aún no hay clientes de contenido" />}
-            renderRow={(client) => (
-              <Link href={`/contenido/general?cliente=${client.id}`} className="flex min-h-12 w-full min-w-0 items-center gap-3 rounded-control outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: client.color }} />
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">{client.name}</span>
-                <span className="shrink-0 text-xs tabular-nums text-text-secondary">
-                  {hourLabel(client.reminderHour, client.reminderMinute)} · {daysLabel(client.reminderDaysBefore)}
-                  {client._count.phones === 0 ? " · sin teléfono" : ""}
-                </span>
-              </Link>
-            )}
-          />
+        <Block title="Avisos por cliente" action={{ label: "Ver clientes", href: "/contenido/clientes" }}>
+          {clients.length === 0 ? (
+            <EmptyState title="Aún no hay clientes de contenido" />
+          ) : (
+            <ReminderClientsPanel
+              clients={clients.map((client) => ({
+                id: client.id,
+                name: client.name,
+                color: client.color,
+                remindersEnabled: client.remindersEnabled,
+                reminderHour: client.reminderHour,
+                reminderMinute: client.reminderMinute,
+                reminderDaysBefore: client.reminderDaysBefore,
+                phones: client._count.phones,
+                scheduled: scheduled.filter((item) => item.clientId === client.id).length,
+              }))}
+            />
+          )}
         </Block>
       </Enter>
     </main>

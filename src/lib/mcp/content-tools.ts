@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
 import { pushContentItem, removeContentItemEvent } from "@/src/lib/content-google-sync";
+import { applyBulkReminders } from "@/src/lib/content-reminder-bulk";
+import { parseBulkReminderInput } from "@/src/lib/content-reminder-input";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, gateWrite } from "./approval.ts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
@@ -187,10 +189,10 @@ export function registerContentTools(server: McpServer, organizationId: string) 
     async ({ clientId, ...input }) => {
       const client = await prisma.contentClient.findFirst({
         where: { id: clientId, organizationId: org },
-        select: { id: true, reminderDaysBefore: true },
+        select: { id: true, reminderDaysBefore: true, remindersEnabled: true },
       });
       if (!client) return err("Cliente de contenido no encontrado");
-      const built = buildItemCreateData(input, client.reminderDaysBefore);
+      const built = buildItemCreateData(input, client.reminderDaysBefore, client.remindersEnabled);
       if (!built.ok) return err(built.error);
       const item = await prisma.contentItem.create({
         data: { ...built.data, clientId, organizationId: org } as any,
@@ -268,6 +270,31 @@ export function registerContentTools(server: McpServer, organizationId: string) 
       }
       await prisma.contentItem.delete({ where: { id } });
       return json({ ok: true, deleted: id });
+    },
+  );
+
+  server.registerTool(
+    "set_content_reminders",
+    {
+      description:
+        "Enciende o apaga los avisos por WhatsApp de uno, varios o todos los clientes de contenido (y opcionalmente cambia su hora o días de anticipación). Al encender, se activan las piezas futuras que aún no han avisado. Los avisos llegan a los teléfonos del cliente, así que exige approvalToken de la página de confirmación humana.",
+      inputSchema: {
+        clientIds: z.union([z.literal("all"), z.array(z.string()).min(1)]).describe('IDs de clientes de contenido (list_content_clients) o "all"'),
+        enabled: z.boolean().describe("true = activar avisos, false = desactivarlos"),
+        hour: z.number().int().min(0).max(23).optional().describe("Hora del aviso (zona de la organización)"),
+        minute: z.number().int().min(0).max(59).optional(),
+        daysBefore: z.number().int().min(0).max(30).optional().describe("0 = el mismo día, 1 = un día antes…"),
+        approvalToken: z.string().optional().describe("Token que devuelve la página de confirmación humana"),
+      },
+    },
+    async ({ approvalToken, ...input }) => {
+      const parsed = parseBulkReminderInput(input);
+      if (!parsed.ok) return err(parsed.error);
+      const scope = parsed.value.clientIds === "all" ? "todos los clientes" : `${parsed.value.clientIds.length} cliente(s)`;
+      const action = canonicalAction("set_content_reminders", parsed.value);
+      const gated = gateWrite(action, `${parsed.value.enabled ? "Activar" : "Desactivar"} los avisos por WhatsApp de ${scope}.`, approvalToken);
+      if (!gated.ok) return gated.result;
+      return json(await applyBulkReminders(org, parsed.value));
     },
   );
 }

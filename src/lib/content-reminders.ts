@@ -75,6 +75,7 @@ export async function runContentReminders(now = new Date()) {
   const clients = await prisma.contentClient.findMany({
     where: {
       isActive: true,
+      remindersEnabled: true,
       phones: { some: {} },
       items: { some: { reminderEnabled: true, notifiedAt: null } },
     },

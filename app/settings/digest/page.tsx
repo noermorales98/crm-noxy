@@ -61,6 +61,7 @@ export default function DigestSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [sending, setSending] = useState(false);
+  const [activating, setActivating] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -93,6 +94,27 @@ export default function DigestSettingsPage() {
     setCustomDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()
     );
+  }
+
+  async function handleActivate() {
+    setError(null);
+    setSuccess(null);
+    setActivating(true);
+    try {
+      const res = await fetch("/api/settings/digest/activate", { method: "POST" });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(d.error ?? "No se pudo activar el resumen");
+        return;
+      }
+      setEnabled(true);
+      setHour(d.hour ?? 8);
+      setMinute(d.minute ?? 0);
+      setFrequency(d.frequency ?? "daily");
+      setSuccess(`Resumen activado: te llegará a las ${String(d.hour ?? 8).padStart(2, "0")}:${String(d.minute ?? 0).padStart(2, "0")}.`);
+    } finally {
+      setActivating(false);
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -191,6 +213,32 @@ export default function DigestSettingsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
+          {!enabled && (
+            <div className="lg:col-span-2 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-line bg-surface-elevated p-5">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-text-primary">Tu resumen está apagado</p>
+                <p className="text-xs text-text-secondary">
+                  {whatsappConfigured
+                    ? "Actívalo con un clic: te llega cada día a las 8:00 con tu pipeline, tareas, citas y calendario de contenido. Puedes cambiar la hora abajo."
+                    : "Primero configura tu WhatsApp (CallMeBot) en Notificaciones para poder activarlo."}
+                </p>
+              </div>
+              {whatsappConfigured ? (
+                <button
+                  type="button"
+                  onClick={handleActivate}
+                  disabled={activating}
+                  className="inline-flex min-h-11 items-center rounded-control bg-action-primary px-5 text-sm font-semibold text-action-primary-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
+                >
+                  {activating ? "Activando…" : "Activar mi resumen"}
+                </button>
+              ) : (
+                <Link href="/settings/notificaciones" className="inline-flex min-h-11 items-center rounded-control border border-line px-5 text-sm font-semibold text-text-primary hover:bg-nav-hover">
+                  Configurar WhatsApp
+                </Link>
+              )}
+            </div>
+          )}
           <form onSubmit={handleSave} className="bg-surface-elevated rounded-lg border border-line p-6 flex flex-col gap-5">
             <label className="flex items-center justify-between cursor-pointer">
               <div>

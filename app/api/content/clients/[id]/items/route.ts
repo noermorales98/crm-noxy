@@ -51,7 +51,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const client = await prisma.contentClient.findFirst({
     where: { id, organizationId: orgId },
-    select: { id: true, reminderDaysBefore: true },
+    select: { id: true, reminderDaysBefore: true, remindersEnabled: true },
   });
   if (!client) return NextResponse.json({ error: "No encontrado" }, { status: 404 });
 
@@ -65,7 +65,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const type = ALLOWED_TYPES.includes(body.type) ? body.type : "video";
   const hooksAlt = Array.isArray(body.hooksAlt) ? JSON.stringify(body.hooksAlt.filter((h: any) => typeof h === "string" && h.trim())) : null;
 
-  const reminderEnabled = typeof body.reminderEnabled === "boolean" ? body.reminderEnabled : false;
+  const reminderEnabled = typeof body.reminderEnabled === "boolean" ? body.reminderEnabled : client.remindersEnabled;
   const reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, client.reminderDaysBefore);
   const publishStatus = parsePublishStatus(body.publishStatus);
 

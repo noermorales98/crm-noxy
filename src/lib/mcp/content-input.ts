@@ -49,8 +49,11 @@ const cleanHooks = (hooks: string[]) => JSON.stringify(hooks.filter((hook) => ty
 
 type CreateResult = { ok: true; data: ItemData } | { ok: false; error: string; data?: undefined };
 
-/** Datos para crear una pieza; `clientReminderDays` es el recordatorio por defecto del cliente. */
-export function buildItemCreateData(input: ItemInput, clientReminderDays: number): CreateResult {
+/**
+ * Datos para crear una pieza; `clientReminderDays` es el recordatorio por defecto del cliente y
+ * `clientRemindersEnabled` el interruptor del cliente: una pieza sin `reminderEnabled` explícito lo hereda.
+ */
+export function buildItemCreateData(input: ItemInput, clientReminderDays: number, clientRemindersEnabled = false): CreateResult {
   const title = typeof input.title === "string" ? input.title.trim() : "";
   const date = parseItemDate(input.date);
   if (!title) return { ok: false, error: "El título es obligatorio." };
@@ -60,7 +63,7 @@ export function buildItemCreateData(input: ItemInput, clientReminderDays: number
     date,
     type: (CONTENT_TYPES as readonly string[]).includes(input.type ?? "") ? (input.type as string) : "video",
     publishStatus: parsePublishStatus(input.publishStatus),
-    reminderEnabled: input.reminderEnabled === true,
+    reminderEnabled: typeof input.reminderEnabled === "boolean" ? input.reminderEnabled : clientRemindersEnabled,
     reminderDaysBefore: parseReminderDaysBefore(input.reminderDaysBefore, clientReminderDays),
     hooksAlt: Array.isArray(input.hooksAlt) ? cleanHooks(input.hooksAlt) : null,
   };

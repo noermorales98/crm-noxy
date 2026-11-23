@@ -3,6 +3,7 @@ import { shouldCloseSilentLead } from "@/src/lib/lead-followup";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { buildFollowUpMessage, shouldNotifyFollowUp } from "@/src/lib/followup-notify";
 
 export async function GET(req: Request) {
   try {
@@ -30,10 +31,11 @@ export async function GET(req: Request) {
     }
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    // Deals with follow-up due in the last 24h, not in won/lost stages
-    const deals = await prisma.deal.findMany({
+    // Seguimientos vencidos en las últimas 24 h, fuera de etapas ganada/perdida y sin archivar.
+    const candidates = await prisma.deal.findMany({
       where: {
         followUpAt: { gte: twentyFourHoursAgo, lte: now },
+        isArchived: false,
         stage: { isWon: false, isLost: false },
       },
       include: {
@@ -42,50 +44,39 @@ export async function GET(req: Request) {
           include: {
             members: {
               where: { role: "OWNER" },
-              include: {
-                user: {
-                  include: { callMeBot: true },
-                },
-              },
+              include: { user: { include: { callMeBot: true } } },
               take: 1,
             },
           },
         },
       },
     });
+    // Un seguimiento se avisa una sola vez: followUpNotifiedAt guarda el aviso y se limpia al cambiar la fecha.
+    const deals = candidates.filter((deal) => shouldNotifyFollowUp(deal, now));
+
+    // Un solo mensaje por dueño, no uno por deal.
+    const byOwner = new Map<string, { phone: string; apiKey: string; deals: typeof deals }>();
+    for (const deal of deals) {
+      const owner = deal.organization.members[0]?.user;
+      if (!owner?.callMeBot?.phone || !owner.callMeBot.apiKey) continue;
+      const group = byOwner.get(owner.id) ?? { phone: owner.callMeBot.phone, apiKey: owner.callMeBot.apiKey, deals: [] };
+      group.deals.push(deal);
+      byOwner.set(owner.id, group);
+    }
 
     let notified = 0;
     const errors: string[] = [];
-
-    for (const deal of deals) {
-      const owner = deal.organization.members[0]?.user;
-      if (!owner?.callMeBot?.phone || !owner?.callMeBot?.apiKey) continue;
-
-      const contactName = deal.contact
-        ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim()
-        : "Sin contacto";
-
-      const tz = deal.organization.timezone || "America/Cancun";
-      const followUpDate = deal.followUpAt
-        ? new Intl.DateTimeFormat("es-MX", {
-            timeZone: tz,
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          }).format(new Date(deal.followUpAt))
-        : "";
-
-      const message =
-        `⏰ Follow-up vencido en Noxy CRM\n` +
-        `📌 ${deal.title}\n` +
-        `👤 ${contactName}\n` +
-        `💰 $${deal.value ?? 0} ${deal.currency}\n` +
-        `📅 Fecha: ${followUpDate}`;
-
-      const sent = await sendWhatsAppNotification(owner.callMeBot.phone, owner.callMeBot.apiKey, message);
-      if (sent) notified++;
-      else errors.push(deal.id);
+    for (const group of byOwner.values()) {
+      const message = buildFollowUpMessage(
+        group.deals.map((deal) => ({ title: deal.title, contactName: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim() : null })),
+      );
+      const sent = await sendWhatsAppNotification(group.phone, group.apiKey, message);
+      if (sent) {
+        notified += group.deals.length;
+        await prisma.deal.updateMany({ where: { id: { in: group.deals.map((deal) => deal.id) } }, data: { followUpNotifiedAt: now } });
+      } else {
+        errors.push(...group.deals.map((deal) => deal.id));
+      }
     }
 
     return NextResponse.json({

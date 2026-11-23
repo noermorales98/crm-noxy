@@ -504,6 +504,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       if (fields.referredByClientId && !(await owns("client", fields.referredByClientId))) return err("Cliente referidor no encontrado");
       if (fields.referredByContactId && !(await owns("contact", fields.referredByContactId))) return err("Contacto referidor no encontrado");
       const data: any = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+      if ("followUpAt" in data) data.followUpNotifiedAt = null; // fecha nueva: puede volver a avisar
       if (stageId) {
         const stage = await prisma.stage.findUnique({ where: { id: stageId }, include: { pipeline: true } });
         if (!stage || stage.pipeline.organizationId !== org) return err("Etapa inválida");
