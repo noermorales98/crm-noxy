@@ -219,5 +219,5 @@ next-env.d.ts
 .cursor/rules/security-audit.mdc
 .cursor/commands/security-audit.md
 
-# Informes y respaldos locales de scripts (pueden contener datos)
+# Informes y respaldos locales de scripts y de la bóveda (pueden contener texto plano)
 /backups/

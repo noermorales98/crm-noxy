@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { appSecretKey } from "@/src/lib/secret-box";
+import { notesAreEncrypted, openVaultEntry, sealVaultData } from "@/src/lib/vault-crypto";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -13,7 +15,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       where: { clientId: id, organizationId },
       orderBy: [{ type: "asc" }, { createdAt: "desc" }],
     });
-    return NextResponse.json(entries);
+    const key = appSecretKey();
+    return NextResponse.json(entries.map((e) => openVaultEntry(e, key)));
   } catch (e) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
@@ -32,10 +35,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { type, label, username, password, url, notes } = await req.json();
     if (!label) return NextResponse.json({ error: "label requerido" }, { status: 400 });
 
+    const key = appSecretKey();
     const entry = await prisma.clientVaultEntry.create({
-      data: { type: type || "credential", label, username: username || null, password: password || null, url: url || null, notes: notes || null, clientId: id, organizationId },
+      data: sealVaultData({ type: type || "credential", label, username: username || null, password: password || null, url: url || null, notes: notes || null, clientId: id, organizationId }, key),
     });
-    return NextResponse.json(entry, { status: 201 });
+    return NextResponse.json(openVaultEntry(entry, key), { status: 201 });
   } catch (e) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
@@ -59,8 +63,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (fields[k] !== undefined) updateData[k] = fields[k] ?? null;
     }
 
-    const entry = await prisma.clientVaultEntry.update({ where: { id: entryId }, data: updateData });
-    return NextResponse.json(entry);
+    const key = appSecretKey();
+    // Si cambia el tipo, las notas cambian de régimen (cifradas ↔ en claro): se reescriben aunque no vengan en la petición.
+    const finalType = updateData.type ?? existing.type;
+    if (notesAreEncrypted(finalType) !== notesAreEncrypted(existing.type) && updateData.notes === undefined) {
+      updateData.notes = openVaultEntry(existing, key).notes;
+    }
+    updateData.type = finalType;
+    const entry = await prisma.clientVaultEntry.update({ where: { id: entryId }, data: sealVaultData(updateData, key) });
+    return NextResponse.json(openVaultEntry(entry, key));
   } catch (e) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
