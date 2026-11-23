@@ -1552,6 +1552,8 @@ model ContentClient {
   reminderHour       Int @default(8)
   reminderMinute     Int @default(0)
   reminderDaysBefore Int @default(1) // 0 = el mismo día, 1 = un día antes, etc.
+  // Interruptor general de avisos del cliente: las piezas nuevas lo heredan y el cron lo respeta
+  remindersEnabled   Boolean @default(true)
   color       String @default("#3545D6") // hex de la paleta del calendario general
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

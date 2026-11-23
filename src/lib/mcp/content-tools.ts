@@ -187,10 +187,10 @@ export function registerContentTools(server: McpServer, organizationId: string) 
     async ({ clientId, ...input }) => {
       const client = await prisma.contentClient.findFirst({
         where: { id: clientId, organizationId: org },
-        select: { id: true, reminderDaysBefore: true },
+        select: { id: true, reminderDaysBefore: true, remindersEnabled: true },
       });
       if (!client) return err("Cliente de contenido no encontrado");
-      const built = buildItemCreateData(input, client.reminderDaysBefore);
+      const built = buildItemCreateData(input, client.reminderDaysBefore, client.remindersEnabled);
       if (!built.ok) return err(built.error);
       const item = await prisma.contentItem.create({
         data: { ...built.data, clientId, organizationId: org } as any,

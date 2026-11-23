@@ -45,3 +45,11 @@ test("buildItemUpdateData only touches the fields that were sent", () => {
   assert.equal(back.uploadedAt, null, "leaving subido clears uploadedAt");
   assert.equal("title" in buildItemUpdateData({ title: "  " }, before), false, "blank title ignored");
 });
+
+test("buildItemCreateData: la pieza hereda el interruptor del cliente salvo que se indique otro", () => {
+  const base = { title: "Reel", date: "2026-08-15" };
+  assert.equal(buildItemCreateData(base, 1).data?.reminderEnabled, false, "sin interruptor del cliente: apagado");
+  assert.equal(buildItemCreateData(base, 1, true).data?.reminderEnabled, true, "hereda el cliente encendido");
+  assert.equal(buildItemCreateData({ ...base, reminderEnabled: false }, 1, true).data?.reminderEnabled, false, "lo explícito manda");
+  assert.equal(buildItemCreateData({ ...base, reminderEnabled: true }, 1, false).data?.reminderEnabled, true);
+});

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { isPaletteColor, normalizePaletteColor } from "@/src/lib/content-client-colors";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
+import { applyClientReminderSwitch } from "@/src/lib/content-reminder-bulk";
 import { removeContentItemEvent, resyncClientContentEvents } from "@/src/lib/content-google-sync";
 
 async function getClient(id: string, orgId: string) {
@@ -54,6 +55,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (body.reminderDaysBefore !== undefined) {
     data.reminderDaysBefore = parseReminderDaysBefore(body.reminderDaysBefore, existing.reminderDaysBefore);
   }
+  if (typeof body.remindersEnabled === "boolean") data.remindersEnabled = body.remindersEnabled;
   if (isPaletteColor(body.color)) data.color = normalizePaletteColor(body.color);
 
   const nameChanged = typeof data.name === "string" && data.name !== existing.name;
@@ -70,6 +72,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       where: { clientId: id, organizationId: orgId, reminderEnabled: true },
       data: { reminderDaysBefore: data.reminderDaysBefore },
     });
+  }
+
+  if (body.remindersEnabled === true) {
+    await applyClientReminderSwitch(orgId, [id]);
   }
 
   if (nameChanged || colorChanged) {
