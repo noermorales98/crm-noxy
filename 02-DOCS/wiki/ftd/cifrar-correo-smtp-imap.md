@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: main
-status: in-progress
+status: done
 ---
 # Cifrar contraseñas SMTP/IMAP de las empresas
 
@@ -15,7 +15,7 @@ status: in-progress
 - [x] Módulo + 5 pruebas (ida y vuelta, idempotente, texto plano antiguo, clave errónea → null) — Evidence: `mail-secret.test.ts`.
 - [x] Todos los sitios que usaban la contraseña pasan por `openMailSecret`; los que guardan, por `sealMailSecret`; la API nunca devuelve la contraseña — Evidence: `tsc` limpio; búsqueda sin usos sueltos.
 - [x] Simulacro en la base real — Evidence: 2 empresas con texto plano (Noxy Digital, Eilen Centro Terapéutico), 0 cifradas.
-- [ ] Desplegar el código, y **solo entonces** correr `--apply`.
+- [x] Código desplegado (Vercel: success) y **luego** `--apply`: 2 empresas cifradas, 0 saltadas; verificación posterior: 0 con texto plano y ambas se descifran con la clave de producción. Respaldo en texto plano: `backups/mail-antes-de-cifrar-*.json` (local, 0600; bórralo cuando verifiques el envío).
 - [ ] Probar «Probar conexión SMTP» y un envío real tras migrar.
 
 ## Riesgo

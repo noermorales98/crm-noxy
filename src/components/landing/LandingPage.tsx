@@ -110,7 +110,7 @@ const GROUPS: { title: string; items: { icon: typeof Mail01Icon; name: string; t
 
 const TRUST = [
   { icon: KanbanIcon, title: "Aprobación en cada paso", text: "Las sugerencias de la IA se crean solo cuando tú las apruebas. Los avisos y tareas de seguimiento sí son automáticos y los puedes apagar." },
-  { icon: ShieldKeyIcon, title: "Tus datos, protegidos", text: "Las contraseñas de la Bóveda van cifradas, cada organización ve solo lo suyo y las notas privadas no llegan a la IA." },
+  { icon: ShieldKeyIcon, title: "Tus datos, protegidos", text: "Las contraseñas de la Bóveda y del correo van cifradas, cada organización ve solo lo suyo y las notas privadas no llegan a la IA." },
   { icon: UserShield01Icon, title: "Acceso por módulo", text: "Permisos por módulo para cada integrante de tu equipo." },
 ];
 

@@ -285,13 +285,13 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T3 archivados fuera de consultas | ✅ subida | 79fca70 |
 | T4 cierre mensual | ✅ subida | 885482f |
 | T5 «Conocimiento e IA» separado de «Espacios» (escritorio y móvil) | ✅ en main | 67f74b4; arregló 2 pruebas de navegación que fallaban |
-| T7 Bóveda cifrada | ✅ en main. La base tiene 0 filas en la Bóveda: nada que migrar; las nuevas se guardan cifradas. **SMTP/IMAP de empresas siguen en texto plano** (tarea aparte) | c24b6d5, `ftd/cifrar-boveda.md` |
+| T7 Bóveda cifrada | ✅ en main. La base tiene 0 filas en la Bóveda: nada que migrar; las nuevas se guardan cifradas. SMTP/IMAP de empresas también cifrados (ver abajo) | c24b6d5, `ftd/cifrar-boveda.md` |
 | T8 multi-cuenta | ✅ en main y subida; SQL `migratedToOrgId` aplicado; 4 empresas ya son sub-cuentas | bf968e5 |
 | T9 selector de cuenta | ✅ en la barra lateral y en el menú «Más» del móvil. Falta probarlo en navegador | |
 | T6 MCP (aprobado, update_quote, enlaces, email) | ✅ en main | `ftd/mcp-aprobado-cotizaciones-enlaces.md` |
 | T10 Proyectos → Clientes | ✅ en main: panel `/clientes`, permiso `agency`, «Entregas» y «Suscripciones». Falta probarlo en navegador | `ftd/proyectos-a-clientes.md` |
 | T11 landing | ✅ en main | `ftd/landing-solo-lo-cierto.md` |
 | T12 docs/crons/pruebas | ✅ `CRON.md`, `pendientes-crm.md`, pruebas de `isDigestDue` (en `digest-schedule.test.ts`) y reporte de consultas sin organización | `ftd/` no aplica; reporte en `reporte-consultas-sin-organizacion.md` |
-| Cifrar SMTP/IMAP (nueva) | ⏳ propuesta | |
+| Cifrar SMTP/IMAP (nueva) | ✅ hecho y migrado en producción (2 empresas) | `ftd/cifrar-correo-smtp-imap.md` |
 
-**Siguiente:** probar en navegador y decidir si se cifran SMTP/IMAP (tarea aparte, sin hacer).
+**Siguiente:** probar en navegador (ver `pendientes-crm.md`).

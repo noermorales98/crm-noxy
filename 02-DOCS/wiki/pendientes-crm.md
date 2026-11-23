@@ -9,7 +9,7 @@ Ver `02-DOCS/wiki/plan-reestructura-crm.md` (sección 8). Hechas: follow-up úni
 ## 1. Cosas que solo puedes hacer tú
 - [x] Crons dados de alta en cron-job.org (confirmado 2026-11-23). Para el cierre mensual basta `digest` o `followups` (cada 15 min). Revisa `auto-archive` (ver `CRON.md`).
 - [ ] Probar en navegador: `/settings/digest`, `/contenido/recordatorios`, `/pipeline/historial`, `/boveda`, el selector de cuenta y la barra lateral.
-- [ ] Decidir si se cifran `smtpPass`/`imapPass` de las empresas (hoy en texto plano).
+- [x] `smtpPass`/`imapPass` cifrados y migrados (2026-11-23). Falta probar «Probar conexión SMTP» y un envío real, y borrar `backups/mail-antes-de-cifrar-*.json` y `backups/eilen-tareas-*.json` cuando verifiques.
 - [ ] Revisar `02-DOCS/wiki/reporte-consultas-sin-organizacion.md` (candidatos, no fallos confirmados).
 - [ ] Dar de alta el cron en cron-job.org: `GET https://crm-noxy.vercel.app/api/cron/payment-alerts`, cada hora, header `Authorization: Bearer <CRON_SECRET>`. Sin esto no salen las alertas de cobro (2 días antes).
 - [ ] Decidir a qué etapa pasan los 3 deals que están en «Ganado» (etapa legado): «Entregado» o «En producción». Cuando queden vacíos, «Ganado» se puede quitar.
