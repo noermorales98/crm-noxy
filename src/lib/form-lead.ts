@@ -64,3 +64,8 @@ export function pickLeadStage(pipelines: PipelineWithStages[]): { pipelineId: st
 export function dealTitleForLead(input: { fullName: string; formName: string }): string {
   return `${input.fullName} · ${input.formName}`.slice(0, 190);
 }
+
+/** Solo se usa lo que vive en la organización dueña del formulario; un enlace a otra org (mal configurado) se ignora. */
+export function sameOrg<T extends { organizationId?: string | null }>(organizationId: string, linked: T | null | undefined): T | null {
+  return linked && linked.organizationId === organizationId ? linked : null;
+}

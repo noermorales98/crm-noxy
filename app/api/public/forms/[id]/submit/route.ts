@@ -5,7 +5,8 @@ import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
 import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
-import { dealTitleForLead, pickLeadStage, resolveLeadSource } from "@/src/lib/form-lead";
+import { dealTitleForLead, pickLeadStage, resolveLeadSource, sameOrg } from "@/src/lib/form-lead";
+import { pickNotifyOwner } from "@/src/lib/org-owner";
 import { formatLeadPersonNotes } from "@/src/lib/lead-person";
 
 // Handle preflight CORS for cross-origin iframes
@@ -46,6 +47,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           include: { schedule: { include: { slots: true } } }
         },
         whatsAppRecipients: { select: { phone: true, apiKey: true } },
+        project: { select: { organizationId: true } },
       }
     });
 
@@ -56,6 +58,14 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     if (!form.isActive) {
       return corsResponse({ error: "This form is no longer accepting submissions." }, { status: 400 });
     }
+
+    // Multi-cuenta: todo lo que se escribe o se usa pertenece a la organización dueña del formulario.
+    // Un enlace del formulario a otra organización (empresa, cita, correo, proyecto) se ignora, nunca se sigue.
+    const orgId = form.organizationId;
+    const company = sameOrg(orgId, form.company);
+    const welcomeEmail = sameOrg(orgId, form.welcomeEmail);
+    const appointmentType = sameOrg(orgId, form.appointmentType);
+    const projectId = sameOrg(orgId, form.project) ? form.projectId : null;
 
     // Parse the submission data directly from the dynamic fields
     const submissionData = await req.json();
@@ -167,7 +177,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             pipelineId: target.pipelineId,
             stageId: target.stageId,
             contactId: null,
-            companyId: form.companyId,
+            companyId: company ? form.companyId : null,
           },
         });
         createdDealId = createdDeal.id;
@@ -188,16 +198,16 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
 
     // 2b. If form is linked to an appointment type and __appointment_slot was submitted, book the appointment
     const appointmentSlot = submissionData["__appointment_slot"];
-    if (form.appointmentType && appointmentSlot) {
+    if (appointmentType && appointmentSlot) {
       const { randomUUID } = await import("crypto");
-      const apptType = form.appointmentType;
+      const apptType = appointmentType;
       const start = new Date(appointmentSlot);
       const end = new Date(start.getTime() + apptType.duration * 60000);
 
       // Check for conflicts
       const conflict = await prisma.appointment.findFirst({
         where: {
-          ...busyAppointmentsWhere({ organizationId: apptType.organizationId, appointmentTypeId: apptType.id }),
+          ...busyAppointmentsWhere({ organizationId: orgId, appointmentTypeId: apptType.id }),
           status: { not: "CANCELLED" },
           startTime: { lt: end },
           endTime: { gt: start }
@@ -226,10 +236,13 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     }
 
     // 3. Log a Task + send notifications to the owner
-    const owner = await prisma.organizationMember.findFirst({
-      where: { organizationId: form.organizationId, role: "OWNER" },
-      include: { user: { select: { email: true, callMeBot: true } } }
-    });
+    const owner = pickNotifyOwner(
+      await prisma.organizationMember.findMany({
+        where: { organizationId: orgId, role: "OWNER" },
+        include: { user: { select: { email: true, callMeBot: true } } },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      }),
+    );
 
     if (owner) {
       const variantLine = variant ? `Variante: ${variant.name}` : null;
@@ -244,7 +257,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           dealId: createdDealId,
           formId: form.id,
           assignedToId: owner.userId,
-          ...(form.projectId ? { projectId: form.projectId } : {}),
+          ...(projectId ? { projectId } : {}),
         }
       });
 
@@ -254,7 +267,6 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
         : "";
 
       // 3a. Notificación por email — usa SMTP de la empresa del formulario
-      const company = (form as any).company;
       const destEmail = owner.user?.callMeBot?.notificationEmail || owner.user?.email;
 
       if (destEmail && company?.smtpHost && company?.smtpUser && company?.smtpPass) {
@@ -343,8 +355,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     }
 
     // 4. Welcome email: sin Contact aún (EmailLog exige contactId), se envía directo por SMTP.
-    if (form.welcomeEmail && email) {
-      const company = (form as any).company;
+    if (welcomeEmail && email) {
       if (company?.smtpHost && company?.smtpUser && company?.smtpPass) {
         try {
           const transporter = nodemailer.createTransport({
@@ -357,8 +368,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
           await transporter.sendMail({
             from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,
             to: email,
-            subject: form.welcomeEmail.subject,
-            html: form.welcomeEmail.body,
+            subject: welcomeEmail.subject,
+            html: welcomeEmail.body,
           });
         } catch (err) {
           console.error("Welcome email error:", err);

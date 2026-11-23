@@ -297,6 +297,9 @@ model Company {
   // Oculta los contactos de esta empresa en listas y selectores, sin borrarlos
   hideContacts Boolean @default(false)
 
+  // Sub-cuenta creada a partir de esta empresa (scripts/company-to-org.ts); null = no migrada. Sin relación: el original no depende de la copia.
+  migratedToOrgId String?
+
   contacts       Contact[]
   deals          Deal[]
   campaigns      EmailCampaign[]

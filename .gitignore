@@ -218,3 +218,6 @@ next-env.d.ts
 .codex/rsc/security-audit
 .cursor/rules/security-audit.mdc
 .cursor/commands/security-audit.md
+
+# Informes y respaldos locales de scripts (pueden contener datos)
+/backups/

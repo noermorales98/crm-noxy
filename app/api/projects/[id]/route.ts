@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -93,6 +94,8 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
       for (const key of allowedKeys) {
         if (key in fields) data[key] = fields[key] || null;
       }
+      const refError = await assertOrgRefs(prisma as never, currentOrganizationId, { companyId: data.companyId, contactId: data.contactId, clientId: data.clientId, emailAccountCompanyId: data.emailAccountCompanyId });
+      if (refError) return NextResponse.json({ error: refError }, { status: 400 });
       await prisma.project.update({ where: { id }, data });
 
       const associationLabels: Record<string, string> = {

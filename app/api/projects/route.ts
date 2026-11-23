@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 
 export async function GET(req: Request) {
@@ -62,6 +63,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const { name, description, icon, companyId, contactId, clientId, emailAccountCompanyId } = body;
+    const refError = await assertOrgRefs(prisma as never, currentOrganizationId, { companyId, contactId, clientId, emailAccountCompanyId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
     if (!name) {
       return NextResponse.json({ error: "Project name is required" }, { status: 400 });

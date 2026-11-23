@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +15,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!existing) return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 });
 
     const body = await req.json();
+    const refError = await assertOrgRefs(prisma as never, organizationId, { companyId: body.companyId, contactId: body.contactId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
     const fields = [
       "name", "monthlyFee", "currency", "startDate", "billingDay", "notes",
       "isActive", "companyId", "contactId", "autoMarkPaid",

@@ -18,9 +18,11 @@ export function shouldNotifyFollowUp(deal: FollowUpDeal, now: Date, windowHours 
 }
 
 /** Un solo mensaje con hasta `max` seguimientos y «+N más». */
-export function buildFollowUpMessage(deals: Pick<FollowUpDeal, "title" | "contactName">[], max = 5): string {
+export function buildFollowUpMessage(deals: Pick<FollowUpDeal, "title" | "contactName">[], max = 5, organizationName?: string | null): string {
   const shown = deals.slice(0, max).map((deal) => `• ${deal.title}${deal.contactName ? ` — ${deal.contactName}` : ""}`);
   const more = deals.length > max ? `\n+${deals.length - max} más` : "";
   const noun = deals.length === 1 ? "seguimiento vencido" : "seguimientos vencidos";
-  return `⏰ ${deals.length} ${noun} en Noxy CRM\n${shown.join("\n")}${more}`;
+  // Con varias sub-cuentas, el aviso dice de cuál es.
+  const where = organizationName ? ` · ${organizationName}` : "";
+  return `⏰ ${deals.length} ${noun} en Noxy CRM${where}\n${shown.join("\n")}${more}`;
 }

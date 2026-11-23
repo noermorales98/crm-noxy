@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 
 export async function GET() {
   const session = await auth();
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
   if (!name || !duration || !slug || !scheduleId) {
     return NextResponse.json({ error: "name, duration, slug, and scheduleId are required" }, { status: 400 });
   }
+  const refError = await assertOrgRefs(prisma as never, session.currentOrganizationId, { companyId, scheduleId });
+  if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
   try {
     const type = await prisma.appointmentType.create({

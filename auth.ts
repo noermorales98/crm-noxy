@@ -4,9 +4,34 @@ import { authConfig } from "./auth.config";
 import { prisma } from "@/src/lib/db";
 import { verifyPassword } from "@/src/lib/auth-utils";
 import { isRoleName, normalizePermissions } from "@/src/lib/permissions";
+import { pickInitialMembership, resolveSwitch } from "@/src/lib/organizations";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    // Cambio de organización: el destino se valida contra las membresías reales y el rol/permisos salen de la base.
+    async jwt(params) {
+      const token = await authConfig.callbacks.jwt(params);
+      if (params.trigger === "update") {
+        const requested = (params.session as { currentOrganizationId?: unknown } | undefined)?.currentOrganizationId;
+        if (requested !== undefined && token.id) {
+          try {
+            const memberships = await prisma.organizationMember.findMany({ where: { userId: token.id as string } });
+            const claims = resolveSwitch(memberships, requested);
+            if (claims) {
+              token.currentOrganizationId = claims.currentOrganizationId;
+              token.role = claims.role;
+              token.permissions = claims.permissions;
+            }
+          } catch (error) {
+            console.error("[auth] switch de organización falló", error);
+          }
+        }
+      }
+      return token;
+    },
+  },
   providers: [
     Credentials({
       credentials: {
@@ -41,7 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (!isPasswordValid) return null;
 
-          const membership = user.organizations[0];
+          const membership = pickInitialMembership(user.organizations);
           const role = isRoleName(membership?.role) ? membership.role : null;
 
           return {

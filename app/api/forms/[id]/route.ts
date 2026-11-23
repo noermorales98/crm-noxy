@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 import { generateFormApiToken } from "@/src/lib/form-entries-api";
 
@@ -64,6 +65,9 @@ export async function PUT(req: Request, context: { params: Promise<{ id: string 
 
     const body = await req.json();
     const { name, description, isActive, successAction, successMessage, redirectUrl, welcomeEmailId, appointmentTypeId, accentColor, backgroundColor, showNoxyBrand, apiEnabled, apiAuthRequired, fields } = body;
+
+    const refError = await assertOrgRefs(prisma as never, currentOrganizationId, { welcomeEmailId, appointmentTypeId });
+    if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
     // Colores de apariencia: hex "#RGB" o "#RRGGBB", o vacío/null para quitar
     const hexRe = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
