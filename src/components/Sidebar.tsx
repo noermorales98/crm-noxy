@@ -27,6 +27,7 @@ import { useNotifications } from "@/src/context/NotificationContext";
 import { useGlobalSearch } from "@/src/context/SearchContext";
 import AccountMenu from "@/src/components/AccountMenu";
 import NotificationsMenu from "@/src/components/NotificationsMenu";
+import OrganizationSwitcher from "@/src/components/OrganizationSwitcher";
 import { AssistantNav } from "@/src/components/context-navs";
 import { ContextContent } from "@/src/components/ContextContent";
 import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
@@ -382,6 +383,8 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
             })}
           </div>
         )}
+
+        <OrganizationSwitcher />
 
         {/* ── Lista plana del modo ──────────────────────────────────────────── */}
         <nav

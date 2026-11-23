@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: multi-cuenta
-status: spec — pendiente de aprobación
+status: in-progress (paso 1 hecho, a la espera de prueba manual)
 ---
 # Multi-cuenta: cada cliente es una Organization (sub-cuenta)
 
@@ -54,9 +54,9 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 3. ¿Qué otras entidades con `companyId` copia el paso 2 (proyectos, cotizaciones, pagos), o solo contactos, deals y formularios como pediste? Propongo solo esos tres.
 
 ## Checklist
-- [ ] P1 `GET/POST /api/organizations` + `switch` — prueba: crear org siembra pipeline y plantillas, y me deja OWNER (prueba unitaria + prueba manual tuya).
-- [ ] P1 JWT valida membresía y recalcula rol/permisos — prueba: un `update()` con org ajena no cambia la sesión.
-- [ ] P1 orden determinista de la org inicial.
+- [x] P1 `GET/POST /api/organizations` + `switch` — prueba: crear org siembra pipeline y plantillas, y me deja OWNER (prueba unitaria + prueba manual tuya).
+- [x] P1 JWT valida membresía y recalcula rol/permisos — prueba: un `update()` con org ajena no cambia la sesión.
+- [x] P1 orden determinista de la org inicial.
 - [ ] P1 selector en la interfaz — prueba en navegador (tuya).
 - [ ] **Parada tras el paso 1.**
 - [ ] P2 script `--dry-run`/`--apply` con respaldo e idempotencia.
@@ -65,7 +65,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
 
 ## Evidence
-(vacío hasta tener pruebas)
+P1: `npm test` 484 (477 pasan; los 7 fallos son previos y sin relación: contratos de diseño, fallan igual en main). 7 pruebas nuevas en `src/lib/organizations.test.ts`. `tsc` y `eslint` sin errores en lo tocado. Falta: prueba manual en navegador y con la base real (la siembra transaccional no tiene prueba automática: necesita base).
 
 ## Next
 Aprobar o corregir esta spec y responder las 3 preguntas (la 1 y la 2 no bloquean el paso 1).

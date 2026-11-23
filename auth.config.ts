@@ -66,9 +66,7 @@ export const authConfig = {
         token.sexo = parseSexo(user.sexo);
       }
       if (trigger === "update" && session) {
-        if (session.currentOrganizationId) token.currentOrganizationId = session.currentOrganizationId as string;
-        if (session.role) token.role = session.role as RoleName;
-        if (session.permissions) token.permissions = session.permissions as ModulePermissions;
+        // Organización, rol y permisos NO se aceptan del cliente: los fija auth.ts tras validar la membresía en la base.
         if (session.user?.sexo) token.sexo = parseSexo(session.user.sexo);
       }
       return token;
