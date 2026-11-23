@@ -115,9 +115,11 @@ Cierre:                               T11 Kimi (landing) · T12 Kimi (docs/CRON/
 
 ## 6. Prompts, paso a paso
 
+> **Dónde estás:** T1, T2, T3 y T4 ya están hechas y subidas (no las ejecutes). Las que puedes ejecutar ahora son **T5, T6, T7, T11 y T12**, cada una en su IA. T8→T9→T10 van en orden y después de las anteriores.
+
 Pega cada prompt completo en la IA indicada. Cada uno es autónomo.
 
-### T1 · Claude · Un solo aviso de follow-up (y ninguno de archivados)
+### ✅ HECHA — no la ejecutes · T1 · Claude · Un solo aviso de follow-up (y ninguno de archivados)
 ```text
 Proyecto: /Users/noeli/Documents/Develop/crm/crm-noxy (Next.js + Prisma). Trabaja en main.
 Problema: app/api/cron/followups/route.ts manda un WhatsApp «Follow-up vencido» por cada deal con
@@ -130,7 +132,7 @@ Tarea:
 Criterio de hecho: npm test pasa; muestra la salida; explica en 3 líneas el cambio. No borres datos. Un commit.
 ```
 
-### T2 · Claude · Que el resumen diario llegue y traiga el calendario de contenido
+### ✅ HECHA — no la ejecutes · T2 · Claude · Que el resumen diario llegue y traiga el calendario de contenido
 ```text
 Proyecto: crm-noxy. Trabaja en main. Archivos: src/lib/digest.ts, app/api/cron/digest/route.ts, app/settings (donde se edita DigestSchedule).
 Problema: el resumen diario no llega y, aunque llegara, no incluye el calendario de contenido.
@@ -145,7 +147,7 @@ Tarea:
 Criterio de hecho: npm test; pruebas para la función que arma la sección de contenido; muestra un resumen de ejemplo generado con datos de prueba. Un commit.
 ```
 
-### T3 · Cursor · Lo archivado no debe aparecer en consultas
+### ✅ HECHA — no la ejecutes · T3 · Cursor · Lo archivado no debe aparecer en consultas
 ```text
 Proyecto crm-noxy (Next.js + Prisma), rama main. Tarea mecánica con criterio claro.
 Los deals tienen isArchived. Estas consultas NO lo filtran y deben filtrarlo (isArchived:false), salvo que el usuario pida ver archivados:
@@ -162,7 +164,7 @@ Pasos:
 Hecho cuando: npm test pasa y entregas la lista del paso 4. Un commit.
 ```
 
-### T4 · Claude · Cierre por mes de las ventas ganadas
+### ✅ HECHA — no la ejecutes · T4 · Claude · Cierre por mes de las ventas ganadas
 ```text
 Proyecto crm-noxy, main. Hazlo DESPUÉS de T2 (comparten digest.ts).
 Problema: Deal no tiene fecha de cierre; «ganado este mes» usa updatedAt (se mueve al editar); no hay guardado mensual ni forma de consultar un mes pasado; los ganados no se archivan solos.
@@ -177,7 +179,7 @@ Tarea:
 Criterio: npm test; pruebas para el cálculo por mes (incluye cambio de mes y zona horaria America/Cancun). Un commit por paso 1–3 y otro por 4–7.
 ```
 
-### T5 · Cursor · Separar «Espacios» en dos secciones
+### ⏳ PENDIENTE · T5 · Cursor · Separar «Espacios» en dos secciones
 ```text
 Proyecto crm-noxy, main. Archivos: src/lib/crm-navigation.ts (+ su .test.ts), src/components/Sidebar.tsx, src/components/sidebar-parts.tsx, src/components/MobileMoreSheet.tsx, src/components/context-navs.tsx.
 Hoy el grupo «Espacios» contiene Correo, Docs, Asistente, Bóveda y Gestión de contenido.
@@ -188,7 +190,7 @@ Cambio: deja «Espacios» con Correo, Bóveda y Gestión de contenido, y crea un
 Hecho cuando: npm test pasa sin romper pruebas que ya pasaban (4 fallan desde antes: contratos de diseño y favicon; no las toques) y revisas en el navegador (npm run dev) escritorio y móvil con captura.
 ```
 
-### T6 · Cursor · MCP: «aprobado», editar cotizaciones, enlaces y correos
+### ⏳ PENDIENTE · T6 · Cursor · MCP: «aprobado», editar cotizaciones, enlaces y correos
 ```text
 Proyecto crm-noxy, main. Archivos: src/lib/content-publish.ts, src/lib/mcp/content-input.ts, src/lib/mcp/content-tools.ts, src/lib/mcp/tools.ts, src/lib/url.ts, app/api/quotes/[id]/route.ts.
 1. Estado «aprobado»: agrégalo a PUBLISH_STATUSES entre «editado» y «subido» (orden: pendiente, en_edicion, editado, aprobado, subido), con etiqueta «Aprobado» y color (usa uno de la paleta del CRM) en publishStatusLabel/publishStatusColor; actualiza el z.enum STATUS de content-tools.ts, los filtros de la UI de /contenido y las pruebas. No cambies el significado de uploadedAt (solo «subido»).
@@ -198,7 +200,7 @@ Proyecto crm-noxy, main. Archivos: src/lib/content-publish.ts, src/lib/mcp/conte
 Hecho cuando: npm test pasa, pruebas nuevas para (1) y (2), y muestras la respuesta JSON de una cotización con sus dos enlaces.
 ```
 
-### T7 · Claude · La Bóveda no está cifrada (la landing dice que sí)
+### ⏳ PENDIENTE · T7 · Claude · La Bóveda no está cifrada (la landing dice que sí)
 ```text
 Proyecto crm-noxy, main. Hallazgo: ClientVaultEntry.password se guarda en texto plano (app/api/clients/[id]/vault/route.ts) aunque la landing promete «Bóveda cifrada». Ya existe src/lib/secret-box.ts (appSecretKey, encryptSecret, decryptSecret) usado para claves de IA y Notion.
 Tarea:
@@ -209,7 +211,7 @@ Tarea:
 Hecho cuando: npm test pasa y me dices el comando exacto para aplicar la migración.
 ```
 
-### T8 · Claude · Multi-cuenta: cada cliente con su propio CRM (Opción A)
+### ⏳ PENDIENTE · T8 · Claude · Multi-cuenta: cada cliente con su propio CRM (Opción A)
 *Empezar solo después de confirmar la opción en la sección 4.*
 ```text
 Proyecto crm-noxy, main. Decisión tomada: cada cliente que administro es una Organization (sub-cuenta) y yo soy miembro de todas. Hoy todo filtra por organizationId y la sesión guarda currentOrganizationId (auth.ts, auth.config.ts), pero no hay selector ni forma de crear organizaciones.
@@ -223,7 +225,7 @@ Alcance:
 Entrega por pasos, un commit cada uno, y detente tras el paso 1 para que yo pruebe.
 ```
 
-### T9 · Cursor · Selector de cuenta en la interfaz
+### ⏳ PENDIENTE · T9 · Cursor · Selector de cuenta en la interfaz
 ```text
 Proyecto crm-noxy, main. Hazlo DESPUÉS de T8 (paso 1: API /api/organizations y /switch).
 Agrega un selector de cuenta arriba del Sidebar (src/components/Sidebar.tsx y AccountMenu.tsx) y en móvil (MobileTopBar):
@@ -234,7 +236,7 @@ Agrega un selector de cuenta arriba del Sidebar (src/components/Sidebar.tsx y Ac
 Hecho cuando: npm run dev, pruebo cambiar entre dos cuentas, y envías captura escritorio y móvil. npm test sigue igual.
 ```
 
-### T10 · Claude · De «Proyectos» a «Clientes»
+### ⏳ PENDIENTE · T10 · Claude · De «Proyectos» a «Clientes»
 *Tras T8–T9.*
 ```text
 Proyecto crm-noxy, main. Con multi-cuenta activo, «Proyectos» pierde su razón de ser. Propuesta: la sección «Proyectos» del Sidebar pasa a llamarse «Clientes» y es el panel de agencia: lista de mis sub-cuentas con, por cada una, deals abiertos, ganados del mes, tareas vencidas, cobros pendientes y enlace al portal público.
@@ -245,7 +247,7 @@ Escribe antes la spec en 02-DOCS/wiki/ftd/proyectos-a-clientes.md y espera mi ap
 No implementes hasta tener la spec aprobada.
 ```
 
-### T11 · Kimi K3 · Landing: que diga solo lo cierto
+### ⏳ PENDIENTE · T11 · Kimi K3 · Landing: que diga solo lo cierto
 ```text
 Proyecto crm-noxy. Archivo: src/components/landing/LandingPage.tsx (y mocks en LandingMocks.tsx). Solo cambia textos; no toques estilos ni estructura.
 Corrige estas afirmaciones (mantén el tono corto y claro, en español, sin signos de exclamación):
@@ -258,7 +260,7 @@ Corrige estas afirmaciones (mantén el tono corto y claro, en español, sin sign
 Entrega el diff y una lista de lo que cambiaste. No inventes funciones nuevas.
 ```
 
-### T12 · Kimi K3 · Documentación, crons y pruebas
+### ⏳ PENDIENTE · T12 · Kimi K3 · Documentación, crons y pruebas
 ```text
 Proyecto crm-noxy. Tareas de bajo riesgo:
 1. CRON.md: agrega las entradas que faltan (auto-archive, notion-sync y, cuando existan, monthly-close) con frecuencia sugerida, y un apartado «Cómo comprobar que un cron corre» (curl con Bearer y respuesta esperada).
