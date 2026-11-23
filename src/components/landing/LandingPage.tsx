@@ -101,7 +101,7 @@ const GROUPS: { title: string; items: { icon: typeof Mail01Icon; name: string; t
     title: "Para controlar",
     items: [
       { icon: SafeIcon, name: "Bóveda cifrada", text: "Datos sensibles de clientes bajo llave." },
-      { icon: UserShield01Icon, name: "Equipo y permisos", text: "Cada persona ve solo lo suyo." },
+      { icon: UserShield01Icon, name: "Equipo y permisos", text: "Permisos por módulo para cada integrante." },
       { icon: SmartPhone01Icon, name: "App en tu móvil", text: "Se instala y se usa con una mano." },
       { icon: PlugSocketIcon, name: "Conexión con bots", text: "Un asistente crea tareas con tu permiso." },
     ],
@@ -109,9 +109,9 @@ const GROUPS: { title: string; items: { icon: typeof Mail01Icon; name: string; t
 ];
 
 const TRUST = [
-  { icon: KanbanIcon, title: "Aprobación en cada paso", text: "Ninguna sugerencia crea nada por sí sola. Tú eliges qué agregar." },
-  { icon: ShieldKeyIcon, title: "Tus datos, protegidos", text: "Credenciales cifradas, cada organización ve solo lo suyo y las notas privadas no llegan a la IA." },
-  { icon: UserShield01Icon, title: "Cada quien, lo suyo", text: "Permisos por módulo para todo tu equipo." },
+  { icon: KanbanIcon, title: "Aprobación en cada paso", text: "Las sugerencias de la IA se crean solo cuando tú las apruebas. Los avisos y tareas de seguimiento sí son automáticos y los puedes apagar." },
+  { icon: ShieldKeyIcon, title: "Tus datos, protegidos", text: "Las contraseñas de la Bóveda van cifradas, cada organización ve solo lo suyo y las notas privadas no llegan a la IA." },
+  { icon: UserShield01Icon, title: "Acceso por módulo", text: "Permisos por módulo para cada integrante de tu equipo." },
 ];
 
 export default function LandingPage() {
@@ -185,7 +185,7 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:py-28">
             <Reveal className="mx-auto max-w-2xl text-center">
               <Pill>Cómo funciona</Pill>
-              <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">Empieza en minutos, no en semanas.</h2>
+              <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">De la reunión a la entrega, en un solo lugar.</h2>
               <p className="mt-4 text-lg text-text-secondary-strong">Del primer contacto a la entrega, sin cambiar de herramienta.</p>
             </Reveal>
             <div className="mt-14">
@@ -213,7 +213,7 @@ export default function LandingPage() {
               <article className="flex h-full flex-col rounded-surface bg-brand-obsidian p-5 text-white sm:p-7">
                 <Icon icon={Notification03Icon} size={22} className="text-brand-lime" />
                 <h3 className="mt-4 text-xl font-semibold">Nada se te escapa</h3>
-                <p className="mt-2 text-white/75">Un resumen en tu WhatsApp cada mañana, con recordatorios de citas y alertas de cobros.</p>
+                <p className="mt-2 text-white/75">Un resumen opcional en tu WhatsApp, a la hora que elijas, con recordatorios de citas y alertas de cobros.</p>
                 <div className="mt-auto flex flex-col gap-3 pt-6">
                   <DigestMock />
                   <p className="rounded-surface bg-white/10 px-4 py-3 text-sm text-white/85">Recordatorio: reunión con Taller Norte hoy a las 11:00. Las notas se guardan en la cita.</p>
@@ -224,8 +224,8 @@ export default function LandingPage() {
             <Reveal className="lg:col-span-2">
               <article className="h-full rounded-surface border border-line bg-surface-elevated p-5 sm:p-6">
                 <Icon icon={FileEditIcon} size={22} className="text-action-primary" />
-                <h3 className="mt-4 text-lg font-semibold">Cotizaciones que se siguen solas</h3>
-                <p className="mt-1.5 text-sm text-text-secondary-strong">Sabes cuándo la abrieron y cuándo darle seguimiento.</p>
+                <h3 className="mt-4 text-lg font-semibold">Sabes cuándo abrieron tu cotización</h3>
+                <p className="mt-1.5 text-sm text-text-secondary-strong">El CRM registra cuando el cliente abre el enlace por primera vez y lo muestra en el historial.</p>
                 <div className="mt-5"><QuoteMock /></div>
               </article>
             </Reveal>

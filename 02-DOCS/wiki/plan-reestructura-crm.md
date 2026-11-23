@@ -247,7 +247,7 @@ Escribe antes la spec en 02-DOCS/wiki/ftd/proyectos-a-clientes.md y espera mi ap
 No implementes hasta tener la spec aprobada.
 ```
 
-### ⏳ PENDIENTE · T11 · Kimi K3 · Landing: que diga solo lo cierto
+### ✅ HECHA (en main) — no la ejecutes · T11 · Kimi K3 · Landing: que diga solo lo cierto
 ```text
 Proyecto crm-noxy. Archivo: src/components/landing/LandingPage.tsx (y mocks en LandingMocks.tsx). Solo cambia textos; no toques estilos ni estructura.
 Corrige estas afirmaciones (mantén el tono corto y claro, en español, sin signos de exclamación):
@@ -290,7 +290,7 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T9 selector de cuenta | ✅ en la barra lateral y en el menú «Más» del móvil. Falta probarlo en navegador | |
 | T6 MCP (aprobado, update_quote, enlaces, email) | ✅ en main | `ftd/mcp-aprobado-cotizaciones-enlaces.md` |
 | T10 Proyectos → Clientes | ⏳ sin empezar | |
-| T11 landing | ⏳ sin empezar (ahora «Bóveda cifrada» ya es cierto; «Credenciales cifradas» no del todo por SMTP/IMAP) | |
+| T11 landing | ✅ en main | `ftd/landing-solo-lo-cierto.md` |
 | T12 docs/crons/pruebas | ⏳ sin empezar | |
 | Cifrar SMTP/IMAP (nueva) | ⏳ propuesta | |
 
