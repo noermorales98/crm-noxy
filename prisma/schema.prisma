@@ -156,6 +156,7 @@ model Organization {
   aiProviderKeys        AiProviderKey[]
   contentItems          ContentItem[]
   videos                Video[]
+  monthlySnapshots      MonthlySnapshot[]
 }
 
 enum Sexo {
@@ -488,6 +489,7 @@ model Deal {
   allowedBookingTypes String? @db.Text
   isArchived  Boolean     @default(false)
   archivedAt  DateTime?
+  wonAt       DateTime? // cuándo pasó a una etapa ganada; el mes de la venta sale de aquí, no de updatedAt
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -1804,4 +1806,19 @@ model AiProviderKey {
   updatedAt      DateTime     @updatedAt
 
   @@unique([organizationId, provider])
+}
+
+// Foto del cierre de un mes (ventas, tasa de cierre, cobros). Se guarda una vez y no se recalcula.
+model MonthlySnapshot {
+  id             String   @id @default(cuid())
+  year           Int
+  month          Int // 1-12
+  metrics        Json
+  createdAt      DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year, month])
+  @@index([organizationId])
 }

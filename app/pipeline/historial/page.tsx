@@ -20,6 +20,23 @@ type ArchivedDeal = {
   stage?: { name?: string | null; color?: string | null; isWon?: boolean; isLost?: boolean } | null;
 };
 
+type MonthClosing = {
+  source: "snapshot" | "live" | "none";
+  note?: string;
+  metrics: {
+    created: number;
+    won: { count: number; byCurrency: Record<string, number> };
+    lost: { count: number };
+    closingRate: number | null;
+    paymentsReceived: Record<string, number>;
+  } | null;
+};
+
+const moneyByCurrency = (bucket: Record<string, number> | undefined) => {
+  const parts = Object.entries(bucket ?? {}).map(([currency, amount]) => (currency === "MXN" ? fmtMXN(amount) : fmtUSD(amount)));
+  return parts.length ? parts.join(" · ") : "—";
+};
+
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const money = (d: ArchivedDeal) => (d.currency === "MXN" ? fmtMXN(d.value ?? 0) : fmtUSD(d.value ?? 0));
@@ -77,6 +94,27 @@ export default function HistoryPage() {
   const [year, setYear] = useState(String(now.getFullYear()));
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
+  const [closing, setClosing] = useState<MonthClosing | null>(null);
+
+  // Cierre guardado del mes elegido (o cifras en vivo si es el mes en curso).
+  useEffect(() => {
+    if (!month || !year) {
+      setClosing(null);
+      return;
+    }
+    let stale = false;
+    fetch(`/api/sales/months?month=${year}-${month.padStart(2, "0")}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!stale) setClosing(data);
+      })
+      .catch(() => {
+        if (!stale) setClosing(null);
+      });
+    return () => {
+      stale = true;
+    };
+  }, [month, year]);
 
   useEffect(() => {
     resetState();
@@ -138,6 +176,29 @@ export default function HistoryPage() {
           subtitle={loading ? "Cargando historial…" : `${filteredDeals.length} ventas archivadas en el período`}
         />
       </Enter>
+
+      {closing && (
+        <Enter index={1}>
+          <section aria-label="Cierre del mes" className="mb-4">
+            <h2 className="mb-2 text-sm font-semibold text-text-primary">
+              Cierre de {MONTHS[Number(month) - 1]} {year}
+              <span className="ml-2 text-xs font-normal text-text-secondary">
+                {closing.source === "snapshot" ? "Guardado al cerrar el mes" : closing.source === "live" ? "En vivo: el mes aún no termina" : ""}
+              </span>
+            </h2>
+            {closing.metrics ? (
+              <div className="flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
+                <StatCard label="Ventas ganadas" value={String(closing.metrics.won.count)} sub={moneyByCurrency(closing.metrics.won.byCurrency)} />
+                <StatCard label="Perdidos" value={String(closing.metrics.lost.count)} sub={`${closing.metrics.created} deals nuevos`} />
+                <StatCard label="Tasa de cierre" value={closing.metrics.closingRate === null ? "—" : `${closing.metrics.closingRate}%`} sub="Ganados ÷ cerrados" />
+                <StatCard label="Cobros recibidos" value={moneyByCurrency(closing.metrics.paymentsReceived)} sub="En el mes" />
+              </div>
+            ) : (
+              <p className="rounded-surface border border-line bg-surface-elevated p-4 text-sm text-text-secondary">{closing.note ?? "Sin datos para este mes."}</p>
+            )}
+          </section>
+        </Enter>
+      )}
 
       <Enter index={1}>
         <section aria-label="Resumen del período" className="mb-4 flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">

@@ -24,7 +24,7 @@ Dejar de activar los avisos del calendario pieza por pieza: un interruptor por c
 - [x] 3. API de lotes + pantalla Recordatorios (tipos y lint OK; sin probar en navegador: falta BD)
 - [x] 4. Tool MCP `set_content_reminders` (con aprobación humana)
 - [x] 5. Digest con sección Contenido, «Activar mi resumen» (Configuración → Resumen) y aviso único de follow-up agrupado (8 pruebas)
-- [ ] 6. Cierre mensual y archivado dentro de digest (T4, aparte)
+- [x] 6. Cierre mensual y archivado: `wonAt`, `MonthlySnapshot`, cierre idempotente en los crons `digest` y `followups`, selector en /pipeline/historial y `get_sales_metrics(month)`. SQL `cierre-mensual` aplicado. Vista previa en la BD: 0 deals se archivan hoy (5 ganados: 2 ya archivados, 3 de noviembre). Los ganados se archivan solo en la etapa ganada final del pipeline.
 
 ## Next
 Fusionado en main el 2026-11-23 (cdf5848).

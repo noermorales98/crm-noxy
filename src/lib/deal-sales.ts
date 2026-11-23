@@ -41,6 +41,8 @@ export type WonDeal = {
   value: number | null;
   currency: string;
   updatedAt: Date;
+  /** Fecha de cierre; si falta (deals viejos) se usa la última edición. */
+  wonAt?: Date | null;
   quotes: { status: string; total: number; currency: string }[];
 };
 
@@ -79,7 +81,7 @@ export function effectiveDealValue(deal: {
   return { amount, currency, source: "quotes" };
 }
 
-/** Ventas = leads en etapa ganada. «Este mes» usa `updatedAt`, igual que el tablero de Inicio. */
+/** Ventas = leads en etapa ganada. «Este mes» usa la fecha de cierre (`wonAt`), o `updatedAt` si aún no la tienen. */
 export function summarizeWonSales(deals: WonDeal[], now = new Date()): WonSalesSummary {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const summary: WonSalesSummary = {
@@ -92,7 +94,7 @@ export function summarizeWonSales(deals: WonDeal[], now = new Date()): WonSalesS
   };
   for (const deal of deals) {
     const { amount: value, currency } = effectiveDealValue(deal);
-    const thisMonth = deal.updatedAt >= startOfMonth;
+    const thisMonth = (deal.wonAt ?? deal.updatedAt) >= startOfMonth;
     summary.total.count++;
     add(summary.total.byCurrency, currency, value);
     if (thisMonth) {
