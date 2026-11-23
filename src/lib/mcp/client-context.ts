@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-type McpContext = { client: string; origin: string };
+type McpContext = { client: string; origin: string; organizationId?: string };
 
 const storage = new AsyncLocalStorage<McpContext>();
 
@@ -14,4 +14,9 @@ export function currentMcpClient(): string {
 
 export function currentMcpOrigin(): string {
   return storage.getStore()?.origin ?? "https://noxthy.co";
+}
+
+/** Organización elegida para esta conexión (`?org=`); `undefined` = la base (MCP_ORGANIZATION_ID). */
+export function currentMcpOrganization(): string | undefined {
+  return storage.getStore()?.organizationId;
 }

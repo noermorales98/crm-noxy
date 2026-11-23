@@ -36,6 +36,9 @@ export function publicUrls(base: string = getPublicBaseUrl()) {
     quoteCrm: (folio: string) => `${root}/cotizaciones/${encodeURIComponent(folio)}`,
     dealCrm: (id: string) => `${root}/pipeline/${id}`,
     contentClientCrm: (clientId: string) => `${root}/contenido/${clientId}`,
+    formPublic: (formId: string) => `${root}/form/${formId}`,
+    projectCrm: (id: string) => `${root}/projects/${id}`,
+    kbPageCrm: (id: string) => `${root}/kb/${id}`,
   };
 }
 

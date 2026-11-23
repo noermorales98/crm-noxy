@@ -279,7 +279,7 @@ Todos requieren `Authorization: Bearer <CRON_SECRET>` en producción (configurad
 
 ## Servidor MCP — `/mcp`
 
-Rewrite a `/api/[transport]` con `mcp-handler` (Streamable HTTP; GET devuelve heartbeats para compatibilidad con ChatGPT). Server info: `noxthy-crm@1.0.0`. ~30 herramientas en `src/lib/mcp/tools.ts` (`registerCrmTools`), scopeadas a `MCP_ORGANIZATION_ID`.
+Rewrite a `/api/[transport]` con `mcp-handler` (Streamable HTTP; GET devuelve heartbeats para compatibilidad con ChatGPT). Server info: `noxthy-crm@1.0.0`. 98 herramientas en `src/lib/mcp/` (`registerCrmTools`, `registerCrudTools`, `registerOrgTools`, contenido y Notion), scopeadas a `MCP_ORGANIZATION_ID` o, con `?org=<id>`, a una sub-cuenta del dueño de esa organización.
 
 **Auth dual:**
 1. OAuth 2.1 (authorization code + PKCE S256, payloads firmados con HMAC en `src/lib/mcp/oauth.ts`):

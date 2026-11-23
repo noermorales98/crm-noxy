@@ -6,18 +6,26 @@ import { registerNotionTools } from "@/src/lib/mcp/notion";
 import { registerContentTools } from "@/src/lib/mcp/content-tools";
 import { verifyAccessToken, verifyPayload, type OAuthClient } from "@/src/lib/mcp/oauth";
 import { OAUTH_CORS, corsOptions } from "@/src/lib/mcp/cors";
-import { runWithMcpContext } from "@/src/lib/mcp/client-context";
+import { currentMcpOrganization, runWithMcpContext } from "@/src/lib/mcp/client-context";
+import { registerOrgTools } from "@/src/lib/mcp/org-tools";
+import { registerCrudTools } from "@/src/lib/mcp/crud-tools";
+import { loadMcpAccess } from "@/src/lib/mcp/org-access";
+import { pickMcpOrganization } from "@/src/lib/mcp/org-scope";
 
 // Servidor MCP del CRM. URL pública: https://noxthy.co/mcp (rewrite a /api/mcp).
 // Auth (dos métodos, cualquiera válido):
 //   1. OAuth 2.1 (authorization code + PKCE) — el que usan Gemini/Claude/ChatGPT
 //   2. API key estática: Authorization: Bearer <MCP_API_KEY>
-// Datos scopeados a MCP_ORGANIZATION_ID.
+// Datos scopeados a MCP_ORGANIZATION_ID; con ?org=<id> (una sub-cuenta del dueño de esa organización) a esa otra.
 
 const handler = createMcpHandler(
   (server) => {
-    const organizationId = process.env.MCP_ORGANIZATION_ID!;
+    const baseOrganizationId = process.env.MCP_ORGANIZATION_ID!;
+    // Cada conexión trabaja con UNA organización: la base, o una sub-cuenta pedida con ?org= (ya validada en withAuth).
+    const organizationId = currentMcpOrganization() ?? baseOrganizationId;
     registerCrmTools(server, organizationId);
+    registerCrudTools(server, organizationId);
+    registerOrgTools(server, organizationId, baseOrganizationId);
     registerCrmProtocol(server, organizationId);
     registerNotionTools(server, organizationId);
     registerContentTools(server, organizationId);
@@ -84,7 +92,7 @@ function sseListener(): Response {
   });
 }
 
-function withAuth(req: Request) {
+async function withAuth(req: Request) {
   const apiKey = process.env.MCP_API_KEY;
   const organizationId = process.env.MCP_ORGANIZATION_ID;
   if (!apiKey || !organizationId) {
@@ -110,8 +118,18 @@ function withAuth(req: Request) {
   if (req.method === "GET") {
     return sseListener();
   }
-  const origin = new URL(req.url).origin;
-  return runWithMcpContext({ client, origin }, () => handler(req));
+  const url = new URL(req.url);
+  let scopedOrganizationId = organizationId;
+  const requested = url.searchParams.get("org");
+  if (requested && requested !== organizationId) {
+    const access = await loadMcpAccess(organizationId);
+    const choice = pickMcpOrganization(organizationId, requested, access.organizations.map((o) => o.id));
+    if (!choice.ok) {
+      return new Response(JSON.stringify({ error: choice.error }), { status: 403, headers: { "Content-Type": "application/json", ...OAUTH_CORS } });
+    }
+    scopedOrganizationId = choice.organizationId;
+  }
+  return runWithMcpContext({ client, origin: url.origin, organizationId: scopedOrganizationId }, () => handler(req));
 }
 
 export { withAuth as GET, withAuth as POST, withAuth as DELETE };
