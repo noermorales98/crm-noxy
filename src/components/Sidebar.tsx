@@ -27,7 +27,7 @@ import { useNotifications } from "@/src/context/NotificationContext";
 import { useGlobalSearch } from "@/src/context/SearchContext";
 import AccountMenu from "@/src/components/AccountMenu";
 import NotificationsMenu from "@/src/components/NotificationsMenu";
-import OrganizationSwitcher from "@/src/components/OrganizationSwitcher";
+import OrgSwitcherMenu from "@/src/components/org/OrgSwitcherMenu";
 import { AssistantNav } from "@/src/components/context-navs";
 import { ContextContent } from "@/src/components/ContextContent";
 import ContentMiniMonth from "@/src/components/content/ContentMiniMonth";
@@ -325,26 +325,13 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
         {/* ── Marca, búsqueda y notificaciones ───────────────────────────────── */}
         {collapsed ? (
           <div className="flex shrink-0 flex-col items-center gap-0.5 px-2 pb-1 pt-2">
-            <Link href="/" onClick={chooseDestination} aria-label="Noxy, ir a Inicio" {...tipProps("Inicio")} className={ICON_BUTTON}>
-              {/* Isotipo oficial (public/Isotipo_Azul.svg), sin cuadro de fondo. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/Isotipo_Azul.svg" alt="" width={24} height={18} className="h-[18px] w-6 shrink-0" />
-            </Link>
+            <OrgSwitcherMenu collapsed onNavigate={chooseDestination} tipProps={tipProps("Cuentas")} />
             {searchButton}
             <NotificationsMenu open={notifOpen} onOpenChange={setNotifOpen} placement="right" onNavigate={onNavigate} />
           </div>
         ) : (
           <div className="flex h-14 shrink-0 items-center gap-0.5 pl-3 pr-2">
-            <Link
-              href="/"
-              onClick={chooseDestination}
-              aria-label="Noxy, ir a Inicio"
-              className="flex min-h-11 min-w-0 flex-1 items-center gap-2.5 rounded-control px-2 outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/Isotipo_Azul.svg" alt="" width={24} height={18} className="h-[18px] w-6 shrink-0" />
-              <span className="truncate text-sm font-semibold text-text-primary">Noxy</span>
-            </Link>
+            <OrgSwitcherMenu onNavigate={chooseDestination} />
             {searchButton}
             <NotificationsMenu open={notifOpen} onOpenChange={setNotifOpen} placement="below" onNavigate={onNavigate} />
             {headerControl}
@@ -383,8 +370,6 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
             })}
           </div>
         )}
-
-        <OrganizationSwitcher />
 
         {/* ── Lista plana del modo ──────────────────────────────────────────── */}
         <nav

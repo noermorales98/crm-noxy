@@ -8,7 +8,7 @@ import { DEFAULT_TEMPLATES } from "@/src/lib/project-templates";
 export async function listMemberships(userId: string) {
   return prisma.organizationMember.findMany({
     where: { userId },
-    include: { organization: { select: { id: true, name: true, timezone: true } } },
+    include: { organization: { select: { id: true, name: true, timezone: true, brandColor: true, brandIcon: true, themeId: true } } },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 }

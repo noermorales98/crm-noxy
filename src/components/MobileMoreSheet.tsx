@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, CheckmarkCircle02Icon, Home01Icon, Megaphone01Icon, Settings01Icon, User02Icon } from "@hugeicons/core-free-icons";
 import { NAV_ICONS } from "@/src/components/sidebar-parts";
-import OrganizationSwitcher from "@/src/components/OrganizationSwitcher";
+import OrgSwitchList from "@/src/components/org/OrgSwitchList";
 import { useDialog } from "@/src/components/ui";
 import { useOptionalMobileChrome } from "@/src/context/MobileChromeContext";
 import { useMobileTabs } from "@/src/hooks/useMobileTabs";
@@ -151,7 +151,7 @@ export default function MobileMoreSheet() {
           {!editing && (
           <section aria-label="Cuenta">
             <h3 className="px-2 pb-1 text-xs font-medium text-text-secondary-strong">Cuenta</h3>
-            <OrganizationSwitcher />
+            <OrgSwitchList />
             <div className="grid grid-cols-4 gap-1">
               {tile("/settings", "Ajustes", Settings01Icon, false)}
               {tile("/profile", "Perfil", User02Icon, false)}

@@ -23,7 +23,7 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
 | `GET /api/cron/content-reminders` | **Cada 15 min** | Avisa por WhatsApp las piezas con recordatorio activo cuyo día de aviso es hoy (mismo día o N días antes; Gestión de contenido) |
 | `GET /api/cron/granola` | **Cada 30 min** | Sincroniza las reuniones de Granola (resumen, notas y pasos) y las guarda en la cita que coincide; no crea tareas ni envía mensajes |
-| `GET /api/cron/auto-archive` | Cada día | Archiva leads en etapa ganada con más de `autoArchiveDays` sin cambios (por organización). Ver la nota de abajo: **choca con el cierre mensual** |
+| `GET /api/cron/auto-archive` | Cada día | Archiva los leads ganados en la última etapa ganadora, `autoArchiveDays` días después de ganarse (por organización) |
 | `GET /api/cron/notion-sync` | Cada 5 min | Respaldo del auto-sync de documentos de `/kb`: envía a Notion los editados desde su último envío |
 | `GET /api/cron/payment-alerts` | **Cada hora** | Avisa por WhatsApp los cobros (pagos de deals y mensualidades) que vencen en 2 días o menos; una sola vez por cobro |
 
@@ -40,9 +40,11 @@ Si ambos dominios apuntan al mismo deploy de Vercel, usa el dominio canónico pa
 
 No hay un job `monthly-close`: el cierre corre **dentro de `digest` y `followups`** (cada 15 min) y es idempotente. Si falta la foto de un mes ya terminado (`MonthlySnapshot`), la crea con las métricas del mes y archiva los leads ganados de ese mes que estén en la **última etapa ganada** de su pipeline. Con que uno de los dos crons esté dado de alta, el cierre se ejecuta. La respuesta JSON de ambos trae `monthlyClose`.
 
-### Nota sobre `auto-archive`
+### `auto-archive` (corregido 2026-11-23)
 
-`auto-archive` archiva cualquier lead en etapa ganada con `updatedAt` viejo, **sin distinguir la última etapa ganada**: puede archivar un lead que sigue «En producción». El cierre mensual sí lo distingue. Si ya usas el cierre mensual, no des de alta `auto-archive` o pon `autoArchiveDays` en 0 en la organización.
+Archiva los leads ganados que ya están en la **última etapa ganadora** de su pipeline («Entregado», «Ganado», «Publicación KDP») y llevan `autoArchiveDays` días (por defecto 30) desde que se ganaron (`wonAt`). Un lead en «Anticipo pagado» o «En producción» **no** se archiva: sigue siendo trabajo en curso. Usa la misma regla de «etapa final» que el cierre mensual, así que ambos mecanismos no se contradicen. Con `autoArchiveDays = 0` la organización queda excluida.
+
+**Alta en cron-job.org:** Title `Noxy — Auto archive` · URL `https://crm-noxy.vercel.app/api/cron/auto-archive` · Schedule: una vez al día (p. ej. 03:00) · Método GET · en Advanced → Headers: `Authorization: Bearer TU_CRON_SECRET` · Save y «Run now». Respuesta esperada: `{"success":true,"processedOrganizations":5,"dealsArchived":0}`.
 
 ### Cómo comprobar que un cron corre
 
@@ -55,6 +57,7 @@ curl -s -H "Authorization: Bearer $CRON_SECRET" https://crm-noxy.vercel.app/api/
 | `digest` | `{"processed":1,"sent":0,"fallbacks":0,"errors":[],"monthlyClose":{…}}` (`sent` es 1 solo en la ventana de la hora configurada) |
 | `followups` | `{"processed":0,"notified":0,"errors":[],"monthlyClose":{…}}` |
 | `content-reminders` | JSON con los avisos enviados |
+| `auto-archive` | `{"success":true,"processedOrganizations":5,"dealsArchived":0}` |
 | `notion-sync` | `{"message":"Documentos pendientes enviados a Notion",…}` |
 
 Una respuesta `401` significa que el `CRON_SECRET` del job no coincide con el de Vercel. Para ver si el resumen diario se envió, mira `lastSentAt` en `/settings/digest` o ejecuta `node scripts/digest-diagnostico.cjs` (solo lectura).
@@ -142,6 +145,7 @@ https://crm-noxy.vercel.app/api/cron/content-reminders
 https://crm-noxy.vercel.app/api/cron/granola
 https://crm-noxy.vercel.app/api/cron/notion-sync
 https://crm-noxy.vercel.app/api/cron/payment-alerts
+https://crm-noxy.vercel.app/api/cron/auto-archive
 ```
 
 `content-reminders` envía por WhatsApp (CallMeBot) las piezas del calendario de contenido que tengan **recordatorio activado** y cuyo día de aviso (fecha de la pieza − días de anticipación) sea hoy, en la hora configurada por cliente en el panel WhatsApp. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.

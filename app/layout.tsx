@@ -7,6 +7,8 @@ import { NotificationProvider } from "@/src/context/NotificationContext";
 import { AiProvider } from "@/src/components/ai/AiProvider";
 import { SoundProvider } from "@/src/context/SoundContext";
 import AppShell from "@/src/components/AppShell";
+import { ThemeBootProvider } from "@/src/context/CrmThemeContext";
+import { loadThemeBoot } from "@/src/lib/theme-boot";
 import PwaRegister from "@/src/components/PwaRegister";
 import "@/src/lib/fonts";
 import "./globals.css";
@@ -41,15 +43,18 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // El servidor resuelve sesión, tema y empresa antes de pintar: sin parpadeo de tema en la primera carga.
+  const { boot, session } = await loadThemeBoot();
   return (
     <html lang="es">
       <body className="bg-surface-app text-text-primary antialiased">
-        <AuthProvider>
+        <AuthProvider session={session}>
+          <ThemeBootProvider boot={boot}>
           <ToastProvider>
             <ConfirmProvider>
               <HeaderProvider>
@@ -64,6 +69,7 @@ export default function RootLayout({
               </HeaderProvider>
             </ConfirmProvider>
           </ToastProvider>
+          </ThemeBootProvider>
         </AuthProvider>
       </body>
     </html>

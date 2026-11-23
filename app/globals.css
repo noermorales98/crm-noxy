@@ -287,6 +287,16 @@ body {
   }
 }
 
+/* Entrada del marco del CRM al cargar: la pantalla aparece con el tema ya aplicado, sin saltos. */
+@keyframes crm-shell-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes crm-menu-enter {
   from {
     opacity: 0;
@@ -335,6 +345,10 @@ body {
        anclados a su disparador (transform-origin lo fija cada menú). Feedback, no entrada. */
     .crm-menu-enter {
       animation: crm-menu-enter var(--duration-state) var(--ease-state);
+    }
+
+    .crm-shell-enter {
+      animation: crm-shell-enter 220ms var(--ease-state) both;
     }
 
     /* Rama de la sidebar: altura por grid-template-rows (0fr ↔ 1fr), interrumpible. */

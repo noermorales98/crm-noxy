@@ -107,6 +107,9 @@ model Organization {
   name      String
   timezone  String   @default("America/Cancun")
   autoArchiveDays Int     @default(30)
+  brandColor      String? @db.VarChar(16) // color de la empresa (hex); null = identidad Noxy
+  brandIcon       String? @db.VarChar(32) // clave de icono; null = isotipo de Noxy
+  themeId         String? @db.VarChar(32) // tema propio de la empresa; null = el de cada persona
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

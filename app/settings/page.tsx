@@ -3,6 +3,7 @@
 import { SaveBar, SettingsScreen } from "@/src/components/settings/SettingsScreen";
 import { Block, Enter, PageHeader } from "@/src/components/ui";
 import { useOrgSettings } from "@/src/components/settings/useOrgSettings";
+import OrgBrandEditor from "@/src/components/settings/OrgBrandEditor";
 import { input as inputCls } from "@/src/lib/crm-ui";
 
 const TIMEZONES = [
@@ -43,6 +44,8 @@ export default function SettingsGeneralPage() {
       <Enter index={0}>
         <PageHeader title="General" subtitle="Zona horaria y reglas del pipeline de tu organización." />
       </Enter>
+      <div className="flex flex-col gap-5">
+      <OrgBrandEditor />
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -64,7 +67,7 @@ export default function SettingsGeneralPage() {
 
         <Block title="Pipeline de ventas">
           <div className="flex flex-col gap-2 px-4 py-4 sm:px-5">
-            <p className="text-sm text-text-secondary">Los deals en la etapa Ganado se archivan solos después del periodo indicado. Las ventas perdidas solo se archivan a mano.</p>
+            <p className="text-sm text-text-secondary">Los deals ganados que llegaron a la última etapa ganadora de su pipeline se archivan solos después del periodo indicado. Los que siguen en producción no se archivan. Las ventas perdidas solo se archivan a mano.</p>
             <label htmlFor="auto-archive" className="text-sm font-semibold text-text-primary">Auto-archivar deals ganados (días)</label>
             <div className="flex items-center gap-3">
               <input id="auto-archive" type="number" min={0} value={values.autoArchiveDays} onChange={(e) => set("autoArchiveDays", parseInt(e.target.value) || 0)} className={`${inputCls} w-28`} />
@@ -74,6 +77,7 @@ export default function SettingsGeneralPage() {
           <SaveBar saving={saving} saved={saved} error={error} />
         </Block>
       </form>
+      </div>
     </SettingsScreen>
   );
 }

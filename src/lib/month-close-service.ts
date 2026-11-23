@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/db";
 import {
   buildMonthMetrics,
+  isAutoArchivable,
   isFinalWonStage,
   monthKeyInZone,
   monthKeysBetween,
@@ -104,4 +105,31 @@ export async function closePendingMonthsForAll(now = new Date()) {
     console.error("[month-close] all", error);
   }
   return results;
+}
+
+/**
+ * Archivo automático por antigüedad (cron `auto-archive`): solo los ganados que ya están en la última etapa ganadora
+ * de su pipeline y llevan más de `days` días ganados. Misma regla de «etapa final» que el cierre mensual.
+ */
+export async function archiveStaleWonDeals(organizationId: string, days: number, now = new Date()): Promise<number> {
+  if (days <= 0) return 0;
+  const threshold = new Date(now.getTime() - days * 86_400_000);
+  const candidates = await prisma.deal.findMany({
+    where: {
+      organizationId,
+      isArchived: false,
+      stage: { isWon: true },
+      OR: [{ wonAt: { lte: threshold } }, { wonAt: null, updatedAt: { lte: threshold } }],
+    },
+    select: { id: true, wonAt: true, updatedAt: true, stage: { select: { order: true, name: true, pipelineId: true } } },
+  });
+  if (candidates.length === 0) return 0;
+  const pipelineIds = Array.from(new Set(candidates.map((deal) => deal.stage.pipelineId)));
+  const wonStages = await prisma.stage.findMany({ where: { pipelineId: { in: pipelineIds }, isWon: true }, select: { pipelineId: true, order: true } });
+  const maxOrder = new Map<string, number>();
+  for (const stage of wonStages) maxOrder.set(stage.pipelineId, Math.max(maxOrder.get(stage.pipelineId) ?? -1, stage.order));
+  const ids = candidates.filter((deal) => isAutoArchivable(deal, maxOrder.get(deal.stage.pipelineId) ?? deal.stage.order, threshold)).map((deal) => deal.id);
+  if (ids.length === 0) return 0;
+  const result = await prisma.deal.updateMany({ where: { id: { in: ids } }, data: { isArchived: true, archivedAt: now } });
+  return result.count;
 }

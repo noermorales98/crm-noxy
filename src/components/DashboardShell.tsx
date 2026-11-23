@@ -63,7 +63,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <MobileChromeProvider>
             <div
               ref={frameRef}
-              className="noxy-product-frame flex h-dvh overflow-hidden bg-surface-sidebar"
+              className="noxy-product-frame crm-shell-enter flex h-dvh overflow-hidden bg-surface-sidebar"
               data-crm-theme={themeId}
               style={crmThemeCssVariables(theme) as CSSProperties}
             >

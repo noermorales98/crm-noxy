@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useSession } from "next-auth/react";
+import { EMPTY_THEME_BOOT, type ThemeBoot } from "@/src/lib/org-brand";
 import {
   CRM_THEMES,
   isCrmThemeId,
@@ -30,6 +31,8 @@ import {
 } from "@/src/lib/crm-theme-preference";
 
 type CrmThemeContextValue = {
+  /** El tema lo fija la empresa actual: el menú de la persona no lo cambia. */
+  lockedByOrg: boolean;
   themeId: CrmThemeId;
   theme: CrmThemeDefinition;
   themes: readonly CrmThemeDefinition[];
@@ -39,6 +42,15 @@ type CrmThemeContextValue = {
 };
 
 const CrmThemeContext = createContext<CrmThemeContextValue | null>(null);
+
+/** Tema y empresa que el servidor resolvió antes de pintar (ver `loadThemeBoot`). */
+const ThemeBootContext = createContext<ThemeBoot>(EMPTY_THEME_BOOT);
+export function ThemeBootProvider({ boot, children }: { boot: ThemeBoot; children: ReactNode }) {
+  return <ThemeBootContext.Provider value={boot}>{children}</ThemeBootContext.Provider>;
+}
+export function useThemeBoot(): ThemeBoot {
+  return useContext(ThemeBootContext);
+}
 
 function readCachedTheme(userId: string): CrmThemeId | undefined {
   try {
@@ -64,25 +76,28 @@ function isAbortError(error: unknown): boolean {
 export function CrmThemeProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
+  const boot = useThemeBoot();
 
   return (
-    <CrmThemePreferenceProvider key={userId ?? "anonymous"} userId={userId}>
+    <CrmThemePreferenceProvider key={userId ?? "anonymous"} userId={userId} boot={boot}>
       {children}
     </CrmThemePreferenceProvider>
   );
 }
 
-function CrmThemePreferenceProvider({ children, userId }: { children: ReactNode; userId?: string }) {
+function CrmThemePreferenceProvider({ children, userId, boot }: { children: ReactNode; userId?: string; boot: ThemeBoot }) {
+  // Con el tema que resolvió el servidor no hay parpadeo ni consulta inicial; sin él (sesión nueva) se usa la copia local.
+  const fromServer = Boolean(userId && boot.org);
   const [state, setState] = useState<CrmThemePreferenceState>(() => {
-    const initial = createThemePreferenceState(userId ? readCachedTheme(userId) : undefined);
-    return userId ? { ...initial, saveStatus: "loading" } : initial;
+    const initial = createThemePreferenceState(fromServer ? boot.themeId : userId ? readCachedTheme(userId) : undefined);
+    return userId && !fromServer ? { ...initial, saveStatus: "loading" } : initial;
   });
   const requestVersionRef = useRef(0);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || fromServer) return;
 
     const loadVersion = ++requestVersionRef.current;
     const controller = new AbortController();
@@ -103,7 +118,7 @@ function CrmThemePreferenceProvider({ children, userId }: { children: ReactNode;
       });
 
     return () => controller.abort();
-  }, [userId]);
+  }, [userId, fromServer]);
 
   useEffect(() => () => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -150,13 +165,15 @@ function CrmThemePreferenceProvider({ children, userId }: { children: ReactNode;
   }, [userId]);
 
   const value = useMemo<CrmThemeContextValue>(() => ({
-    themeId: state.activeThemeId,
-    theme: resolveCrmTheme(state.activeThemeId),
+    lockedByOrg: boot.lockedByOrg,
+    // Si la empresa fija su tema, ese es el que se ve aunque la persona tenga otro guardado.
+    themeId: boot.lockedByOrg ? resolveCrmTheme(boot.themeId).id : state.activeThemeId,
+    theme: resolveCrmTheme(boot.lockedByOrg ? boot.themeId : state.activeThemeId),
     themes: CRM_THEMES,
     saveStatus: state.saveStatus,
     message: state.message,
     selectTheme,
-  }), [selectTheme, state.activeThemeId, state.message, state.saveStatus]);
+  }), [selectTheme, state.activeThemeId, state.message, state.saveStatus, boot.lockedByOrg, boot.themeId]);
 
   return <CrmThemeContext.Provider value={value}>{children}</CrmThemeContext.Provider>;
 }

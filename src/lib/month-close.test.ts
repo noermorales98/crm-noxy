@@ -59,3 +59,18 @@ test("isFinalWonStage archiva solo la etapa ganada final o la legado «Ganado»"
   assert.equal(isFinalWonStage({ order: 5, name: "En producción" }, 6), false);
   assert.equal(isFinalWonStage({ order: 3, name: " Ganado " }, 6), true);
 });
+
+// auto-archive: solo etapa final ganadora, contando desde que se ganó.
+// @ts-expect-error: node --test carga el .ts directo
+import { isAutoArchivable } from "./month-close.ts";
+test("isAutoArchivable: la última etapa ganadora vieja se archiva; la de producción nunca", () => {
+  const threshold = new Date("2026-11-01T00:00:00Z");
+  const old = new Date("2026-09-01T00:00:00Z");
+  const fresh = new Date("2026-11-20T00:00:00Z");
+  // pipeline con etapas ganadoras de orden 4 (anticipo), 5 (producción), 6 (entregado): la final es 6
+  assert.equal(isAutoArchivable({ wonAt: old, updatedAt: fresh, stage: { order: 6, name: "Entregado" } }, 6, threshold), true, "cuenta desde wonAt, no desde la última edición");
+  assert.equal(isAutoArchivable({ wonAt: old, updatedAt: old, stage: { order: 5, name: "En producción" } }, 6, threshold), false, "producción es trabajo en curso");
+  assert.equal(isAutoArchivable({ wonAt: old, updatedAt: old, stage: { order: 4, name: "Anticipo pagado" } }, 6, threshold), false);
+  assert.equal(isAutoArchivable({ wonAt: fresh, updatedAt: fresh, stage: { order: 6, name: "Entregado" } }, 6, threshold), false, "aún no cumple los días");
+  assert.equal(isAutoArchivable({ wonAt: null, updatedAt: old, stage: { order: 7, name: "Ganado" } }, 7, threshold), true, "sin wonAt usa updatedAt");
+});

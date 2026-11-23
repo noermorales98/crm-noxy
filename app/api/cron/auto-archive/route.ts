@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
+import { archiveStaleWonDeals } from "@/src/lib/month-close-service";
 
+// Archiva los ganados que ya están en la última etapa ganadora de su pipeline y llevan `autoArchiveDays` días ganados.
+// Un deal en «En producción» o «Anticipo pagado» no se archiva: sigue siendo trabajo en curso.
 export async function GET(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if ((!cronSecret && process.env.NODE_ENV === "production") || (cronSecret && authHeader !== `Bearer ${cronSecret}`)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -15,26 +18,8 @@ export async function GET(req: Request) {
     });
 
     let totalArchived = 0;
-
     for (const org of organizations) {
-      const archiveThreshold = new Date();
-      archiveThreshold.setDate(archiveThreshold.getDate() - org.autoArchiveDays);
-
-      // Find all deals in won stages for this organization that are older than threshold
-      const result = await prisma.deal.updateMany({
-        where: {
-          organizationId: org.id,
-          isArchived: false,
-          stage: { isWon: true },
-          updatedAt: { lte: archiveThreshold },
-        },
-        data: {
-          isArchived: true,
-          archivedAt: new Date(),
-        },
-      });
-
-      totalArchived += result.count;
+      totalArchived += await archiveStaleWonDeals(org.id, org.autoArchiveDays);
     }
 
     return NextResponse.json({

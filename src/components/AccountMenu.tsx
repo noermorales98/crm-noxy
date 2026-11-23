@@ -90,7 +90,7 @@ export default function AccountMenu({
   className = "",
 }: AccountMenuProps) {
   const { data: session, status } = useSession();
-  const { themeId, themes, selectTheme } = useCrmTheme();
+  const { themeId, themes, selectTheme, lockedByOrg } = useCrmTheme();
   const [open, setOpenState] = useState(false);
   const [themesOpen, setThemesOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -318,7 +318,12 @@ export default function AccountMenu({
               />
             </span>
           </button>
-          {themesOpen && (
+          {themesOpen && lockedByOrg && (
+            <p id={themesId} className="px-3 pb-2 pl-7 text-xs text-text-secondary">
+              Esta empresa usa su propio tema. Se cambia en Ajustes → General; tu tema personal vuelve en las demás cuentas.
+            </p>
+          )}
+          {themesOpen && !lockedByOrg && (
             <div id={themesId} role="group" aria-label="Tema" className="max-h-56 overflow-y-auto pl-4">
               {themes.map((option) => {
                 const selected = option.id === themeId;

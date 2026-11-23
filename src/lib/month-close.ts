@@ -125,3 +125,16 @@ export function buildMonthMetrics(input: {
 export function isFinalWonStage(stage: { order: number; name: string }, maxWonOrderInPipeline: number): boolean {
   return stage.order >= maxWonOrderInPipeline || stage.name.trim().toLowerCase() === "ganado";
 }
+
+/**
+ * ¿Lo archiva el cron `auto-archive`? Solo un deal en la última etapa ganadora de su pipeline y con más de N días
+ * desde que se ganó (`wonAt`; si falta, la última edición). Un deal en «En producción» o «Anticipo pagado» es trabajo en curso.
+ */
+export function isAutoArchivable(
+  deal: { wonAt: Date | null; updatedAt: Date; stage: { order: number; name: string } },
+  maxWonOrderInPipeline: number,
+  threshold: Date,
+): boolean {
+  if (!isFinalWonStage(deal.stage, maxWonOrderInPipeline)) return false;
+  return (deal.wonAt ?? deal.updatedAt).getTime() <= threshold.getTime();
+}

@@ -13,7 +13,7 @@ export async function GET() {
   const rows = await listMemberships(userId);
   return NextResponse.json({
     currentOrganizationId: current,
-    organizations: rows.map((m) => ({ id: m.organization.id, name: m.organization.name, timezone: m.organization.timezone, role: m.role, current: m.organizationId === current })),
+    organizations: rows.map((m) => ({ id: m.organization.id, name: m.organization.name, timezone: m.organization.timezone, role: m.role, current: m.organizationId === current, brandColor: m.organization.brandColor, brandIcon: m.organization.brandIcon, themeId: m.organization.themeId })),
   });
 }
 
