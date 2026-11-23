@@ -50,7 +50,7 @@ const area = (section: AreaSection, label: string): NavArea => ({
   permission: AREA_ITEMS[section][0].permission,
 });
 
-/** Primer nivel de la sidebar: 11 entradas en 3 grupos (ronda 2). */
+/** Primer nivel de la sidebar: 11 entradas en 4 grupos (ronda 2 + Conocimiento e IA). */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     label: "Principal",
@@ -69,11 +69,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     label: "Espacios",
     items: [
       space("/emails", "Correo", "mail", "unread-mail"),
-      space("/kb", "Docs", "kb"),
-      space("/assistant", "Asistente", "assistant"),
       space("/boveda", "Bóveda", "vault"),
       space("/contenido/general", "Gestión de contenido", "content"),
     ],
+  },
+  {
+    label: "Conocimiento e IA",
+    items: [space("/kb", "Docs", "kb"), space("/assistant", "Asistente", "assistant")],
   },
 ];
 
@@ -241,8 +243,11 @@ export type NavMode = "work" | "sales" | "spaces" | "content";
 export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
 
 const CONTENT_HOME = "/contenido/general";
-// Gestión de contenido se muda a su propio modo; Espacios conserva el resto.
-const spaceItems = ((NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[]).filter((item) => item.href !== CONTENT_HOME);
+// Gestión de contenido vive en el modo Contenido; el modo Espacios reparte el resto en dos grupos.
+const espaciosModeItems = ((NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[]).filter(
+  (item) => item.href !== CONTENT_HOME,
+);
+const conocimientoModeItems = (NAV_GROUPS.find((group) => group.label === "Conocimiento e IA")?.items ?? []) as NavItem[];
 
 /** Pantallas del modo Contenido: resumen, clientes, calendario y recordatorios. */
 const contentItems: NavItem[] = [
@@ -254,7 +259,7 @@ const contentItems: NavItem[] = [
 ];
 
 /**
- * Tres modos, cada uno con una lista plana de 5 a 8 entradas (sin ramas desplegables). Reparten los mismos
+ * Cuatro modos, cada uno con listas planas cortas (sin ramas desplegables). Reparten los mismos
  * 18 destinos de siempre; un destino vive en un solo modo.
  */
 export const NAV_MODES: readonly NavModeDef[] = [
@@ -275,7 +280,14 @@ export const NAV_MODES: readonly NavModeDef[] = [
     ],
   },
   { key: "sales", label: "Ventas", groups: [{ label: "Ventas", items: [...AREA_ITEMS.sales] }] },
-  { key: "spaces", label: "Espacios", groups: [{ label: "Espacios", items: spaceItems }] },
+  {
+    key: "spaces",
+    label: "Espacios",
+    groups: [
+      { label: "Espacios", items: espaciosModeItems },
+      { label: "Conocimiento e IA", items: conocimientoModeItems },
+    ],
+  },
   { key: "content", label: "Contenido", groups: [{ label: "Contenido", items: contentItems }] },
 ];
 

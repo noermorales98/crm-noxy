@@ -45,10 +45,11 @@ test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat li
     ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
   assert.deepEqual(shape(mode("spaces").groups), [
-    ["Espacios", [["Correo", "/emails"], ["Docs", "/kb"], ["Asistente", "/assistant"], ["Bóveda", "/boveda"]]],
+    ["Espacios", [["Correo", "/emails"], ["Bóveda", "/boveda"]]],
+    ["Conocimiento e IA", [["Docs", "/kb"], ["Asistente", "/assistant"]]],
   ]);
   assert.deepEqual(shape(mode("content").groups), [
-    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Recordatorios", "/contenido/recordatorios"]]],
+    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"]]],
   ]);
 });
 
@@ -64,7 +65,7 @@ test("every destination lives in exactly one mode (plus the new Contenido screen
   const all = (NAV_MODES as unknown as Array<{ groups: Group[] }>).flatMap((m) => m.groups.flatMap((g) => g.items));
   const hrefs = all.map((e) => e.href);
   assert.equal(new Set(hrefs).size, hrefs.length, "no destination in two modes");
-  const extra = ["/contenido", "/contenido/clientes", "/contenido/recordatorios"];
+  const extra = ["/contenido", "/contenido/clientes", "/contenido/recordatorios", "/contenido/videos"];
   assert.deepEqual([...hrefs].sort(), [...(NAV_DESTINATIONS as Entry[]).map((d) => d.href), ...extra].sort(), "same destinations as the flat model plus the Contenido screens");
   const byHref = new Map((NAV_DESTINATIONS as Entry[]).map((d) => [d.href, d]));
   for (const e of all) assert.equal(e.permission, byHref.get(e.href)?.permission ?? "content", e.label);

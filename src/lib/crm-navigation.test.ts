@@ -43,7 +43,8 @@ type Group = { label: string; items: Item[] };
 const EXPECTED_TOP: Array<[string, Array<[string, string, string]>]> = [
   ["Principal", [["link", "Inicio", "/"], ["area", "Contactos", "/contacts"], ["link", "Tareas", "/tasks"], ["link", "Proyectos", "/projects"]]],
   ["Áreas", [["area", "Ventas", "/pipeline"], ["area", "Agenda", "/appointments"]]],
-  ["Espacios", [["link", "Correo", "/emails"], ["link", "Docs", "/kb"], ["link", "Asistente", "/assistant"], ["link", "Bóveda", "/boveda"], ["link", "Gestión de contenido", "/contenido/general"]]],
+  ["Espacios", [["link", "Correo", "/emails"], ["link", "Bóveda", "/boveda"], ["link", "Gestión de contenido", "/contenido/general"]]],
+  ["Conocimiento e IA", [["link", "Docs", "/kb"], ["link", "Asistente", "/assistant"]]],
 ];
 const EXPECTED_AREAS: Record<string, Array<[string, string]>> = {
   contacts: [["Contactos", "/contacts"], ["Empresas", "/companies"]],
@@ -58,7 +59,7 @@ const SPACE_SECTION: Record<string, string> = {
   "/contenido/general": "content",
 };
 
-test("NAV_GROUPS shows 11 entries in 3 groups: direct destinations and areas", () => {
+test("NAV_GROUPS shows 11 entries in 4 groups: direct destinations and areas", () => {
   assert.deepEqual(
     (NAV_GROUPS as Group[]).map((g) => [g.label, g.items.map((i) => [i.kind === "area" ? "area" : "link", i.label, i.href])]),
     EXPECTED_TOP,
@@ -96,7 +97,7 @@ test("only Correo carries the existing unread-mail counter", () => {
 test("visibleNavGroups filters by permission, hides areas with no visible destination and drops empty groups", () => {
   assert.deepEqual(
     (visibleNavGroups("OWNER", ALL_PERMISSIONS) as Group[]).map((g) => [g.label, g.items.length]),
-    [["Principal", 4], ["Áreas", 2], ["Espacios", 5]],
+    [["Principal", 4], ["Áreas", 2], ["Espacios", 3], ["Conocimiento e IA", 2]],
     "owner sees everything",
   );
   // Sin rol ni permisos (sesión antigua o cargando) `hasPermission` deja pasar: se conserva ese comportamiento.

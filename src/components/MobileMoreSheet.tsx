@@ -125,14 +125,28 @@ export default function MobileMoreSheet() {
               </button>
             </p>
           )}
-          {modes.map((mode) => (
-            <section key={mode.key} aria-label={mode.label}>
-              <h3 className="px-2 pb-1 text-xs font-medium text-text-secondary-strong">{mode.label}</h3>
-              <div className="grid grid-cols-4 gap-1">
-                {mode.groups.flatMap((group) => group.items).map((item) => tile(item.href, item.label, iconFor(item.href), item.href === active, item.href !== "/"))}
-              </div>
-            </section>
-          ))}
+          {modes.map((mode) =>
+            mode.groups.length > 1 ? (
+              <section key={mode.key} aria-label={mode.label} className="flex flex-col gap-3">
+                <h3 className="px-2 pb-1 text-xs font-medium text-text-secondary-strong">{mode.label}</h3>
+                {mode.groups.map((group) => (
+                  <div key={group.label}>
+                    <p className="px-2 pb-1 text-xs font-medium text-text-secondary">{group.label}</p>
+                    <div className="grid grid-cols-4 gap-1">
+                      {group.items.map((item) => tile(item.href, item.label, iconFor(item.href), item.href === active, item.href !== "/"))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            ) : (
+              <section key={mode.key} aria-label={mode.label}>
+                <h3 className="px-2 pb-1 text-xs font-medium text-text-secondary-strong">{mode.label}</h3>
+                <div className="grid grid-cols-4 gap-1">
+                  {mode.groups.flatMap((group) => group.items).map((item) => tile(item.href, item.label, iconFor(item.href), item.href === active, item.href !== "/"))}
+                </div>
+              </section>
+            ),
+          )}
           {!editing && (
           <section aria-label="Cuenta">
             <h3 className="px-2 pb-1 text-xs font-medium text-text-secondary-strong">Cuenta</h3>
