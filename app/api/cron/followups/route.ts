@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { buildFollowUpMessage, shouldNotifyFollowUp } from "@/src/lib/followup-notify";
+import { pickNotifyOwner } from "@/src/lib/org-owner";
 import { closePendingMonthsForAll } from "@/src/lib/month-close-service";
 
 export async function GET(req: Request) {
@@ -46,7 +47,7 @@ export async function GET(req: Request) {
             members: {
               where: { role: "OWNER" },
               include: { user: { include: { callMeBot: true } } },
-              take: 1,
+              orderBy: [{ createdAt: "asc" }, { id: "asc" }],
             },
           },
         },
@@ -55,14 +56,15 @@ export async function GET(req: Request) {
     // Un seguimiento se avisa una sola vez: followUpNotifiedAt guarda el aviso y se limpia al cambiar la fecha.
     const deals = candidates.filter((deal) => shouldNotifyFollowUp(deal, now));
 
-    // Un solo mensaje por dueño, no uno por deal.
-    const byOwner = new Map<string, { phone: string; apiKey: string; deals: typeof deals }>();
+    // Un solo mensaje por organización (y destinatario), no uno por deal: los seguimientos de dos sub-cuentas nunca se mezclan.
+    const byOwner = new Map<string, { phone: string; apiKey: string; organizationName: string; deals: typeof deals }>();
     for (const deal of deals) {
-      const owner = deal.organization.members[0]?.user;
+      const owner = pickNotifyOwner(deal.organization.members)?.user;
       if (!owner?.callMeBot?.phone || !owner.callMeBot.apiKey) continue;
-      const group = byOwner.get(owner.id) ?? { phone: owner.callMeBot.phone, apiKey: owner.callMeBot.apiKey, deals: [] };
+      const key = `${deal.organizationId}:${owner.id}`;
+      const group = byOwner.get(key) ?? { phone: owner.callMeBot.phone, apiKey: owner.callMeBot.apiKey, organizationName: deal.organization.name, deals: [] };
       group.deals.push(deal);
-      byOwner.set(owner.id, group);
+      byOwner.set(key, group);
     }
 
     let notified = 0;
@@ -70,6 +72,8 @@ export async function GET(req: Request) {
     for (const group of byOwner.values()) {
       const message = buildFollowUpMessage(
         group.deals.map((deal) => ({ title: deal.title, contactName: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName || ""}`.trim() : null })),
+        5,
+        group.organizationName,
       );
       const sent = await sendWhatsAppNotification(group.phone, group.apiKey, message);
       if (sent) {

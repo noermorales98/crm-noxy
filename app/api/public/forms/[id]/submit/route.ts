@@ -5,7 +5,8 @@ import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import nodemailer from "nodemailer";
 import { createNotification } from "@/src/lib/notifications";
 import { ensureLeadFollowups } from "@/src/lib/lead-followup-service";
-import { dealTitleForLead, pickLeadStage, pickNotifyOwner, resolveLeadSource, sameOrg } from "@/src/lib/form-lead";
+import { dealTitleForLead, pickLeadStage, resolveLeadSource, sameOrg } from "@/src/lib/form-lead";
+import { pickNotifyOwner } from "@/src/lib/org-owner";
 import { formatLeadPersonNotes } from "@/src/lib/lead-person";
 
 // Handle preflight CORS for cross-origin iframes

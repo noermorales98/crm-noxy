@@ -45,7 +45,8 @@ export function monthlyDueDate(input: { year: number; month: number; billingDay:
   return new Date(Date.UTC(input.year, input.month - 1, Math.min(Math.max(input.billingDay, 1), last)));
 }
 
-export function dueAlertMessage(input: { who: string; amount: number; currency: string; days: number }): string {
+export function dueAlertMessage(input: { who: string; amount: number; currency: string; days: number; organizationName?: string | null }): string {
   const when = input.days === 0 ? "hoy" : input.days === 1 ? "mañana" : `en ${input.days} días`;
-  return `💸 Cobro por vencer ${when}\n👤 ${input.who}\n💰 $${input.amount} ${input.currency}`;
+  const where = input.organizationName ? ` · ${input.organizationName}` : "";
+  return `💸 Cobro por vencer ${when}${where}\n👤 ${input.who}\n💰 $${input.amount} ${input.currency}`;
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
+import { pickNotifyOwner } from "@/src/lib/org-owner";
 import { dueAlertMessage, daysUntilDue, monthlyDueDate, needsDueAlert } from "@/src/lib/payment-status";
 
 // Avisa por WhatsApp (CallMeBot al dueño) los cobros que vencen en ≤2 días. Una vez por cobro.
@@ -16,8 +17,9 @@ export async function GET(req: Request) {
     const orgs = await prisma.organization.findMany({
       select: {
         id: true,
+        name: true,
         timezone: true,
-        members: { where: { role: "OWNER" }, take: 1, select: { user: { select: { callMeBot: true } } } },
+        members: { where: { role: "OWNER" }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { id: true, createdAt: true, user: { select: { callMeBot: true } } } },
       },
     });
 
@@ -25,7 +27,7 @@ export async function GET(req: Request) {
     const failed: string[] = [];
 
     for (const org of orgs) {
-      const bot = org.members[0]?.user?.callMeBot;
+      const bot = pickNotifyOwner(org.members)?.user?.callMeBot;
       if (!bot?.phone || !bot?.apiKey) continue;
       const tz = org.timezone || "America/Cancun";
 
@@ -69,7 +71,7 @@ export async function GET(req: Request) {
         const ok = await sendWhatsAppNotification(
           bot.phone,
           bot.apiKey,
-          dueAlertMessage({ who: item.who, amount: item.amount, currency: item.currency, days }),
+          dueAlertMessage({ who: item.who, amount: item.amount, currency: item.currency, days, organizationName: org.name }),
         );
         if (!ok) {
           failed.push(item.id);

@@ -71,7 +71,13 @@ test("the organizations API requires a session and the switch validates membersh
 
 // ── Formularios públicos (paso 3): todo cae en la organización dueña del formulario ─────────────────────────
 // @ts-expect-error: node --test carga el .ts directo
-import { pickNotifyOwner, sameOrg } from "./form-lead.ts";
+import { sameOrg } from "./form-lead.ts";
+// @ts-expect-error: node --test carga el .ts directo
+import { pickNotifyOwner } from "./org-owner.ts";
+// @ts-expect-error: node --test carga el .ts directo
+import { buildFollowUpMessage } from "./followup-notify.ts";
+// @ts-expect-error: node --test carga el .ts directo
+import { dueAlertMessage } from "./payment-status.ts";
 
 test("a form link to another organization is ignored, one in the same organization is used", () => {
   assert.equal(sameOrg("A", { organizationId: "B", id: 1 }), null);
@@ -103,4 +109,27 @@ test("the public form submit writes only into form.organizationId and never trus
   for (const link of ["company", "welcomeEmail", "appointmentType"]) assert.match(src, new RegExp(`const ${link} = sameOrg\\(orgId, form\\.`));
   assert.doesNotMatch(src, /organizationMember\.findFirst\(/, "el dueño no se elige sin orden");
   assert.match(src, /pickNotifyOwner\(/);
+});
+
+// ── Crons (paso 4): cada aviso es de UNA organización, lleva su nombre y va a un destinatario determinista ──────
+test("follow-up and payment messages name the organization when given, and stay the same without it", () => {
+  const deals = [{ title: "Web", contactName: "Ana" }];
+  assert.match(buildFollowUpMessage(deals, 5, "Dreams Club"), /en Noxy CRM · Dreams Club\n/);
+  assert.doesNotMatch(buildFollowUpMessage(deals), /·/);
+  assert.match(dueAlertMessage({ who: "Ana", amount: 10, currency: "USD", days: 1, organizationName: "Eilen" }), /mañana · Eilen\n/);
+  assert.doesNotMatch(dueAlertMessage({ who: "Ana", amount: 10, currency: "USD", days: 1 }), /·/);
+});
+
+test("crons never pick an OWNER without order and never merge two organizations in one message", () => {
+  const read = (f: string) => readFileSync(new URL(`../../app/api/cron/${f}/route.ts`, import.meta.url), "utf8");
+  for (const f of ["followups", "payment-alerts"]) {
+    const src = read(f);
+    assert.doesNotMatch(src, /members:[\s\S]{0,300}take: 1/, `${f}: el OWNER no se elige con take: 1 sin orden`);
+    assert.match(src, /pickNotifyOwner\(/);
+    assert.match(src, /orderBy: \[\{ createdAt: "asc" \}/);
+  }
+  assert.match(read("followups"), /const key = `\$\{deal\.organizationId\}:\$\{owner\.id\}`/, "followups agrupa por organización");
+  assert.match(read("payment-alerts"), /organizationName: org\.name/);
+  // digest: cada horario es de un usuario en UNA organización y el resumen se arma con esa organización.
+  assert.match(read("digest"), /runDigestForUser\(schedule\.userId, schedule\.organizationId,/);
 });
