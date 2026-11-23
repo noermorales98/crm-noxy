@@ -1,7 +1,7 @@
 ---
 author: Noeli
 branch: main
-status: in-progress
+status: done
 ---
 # Pipeline por categorías, alta de clientes, sección propia de Conocimiento e IA y caché
 
@@ -15,5 +15,10 @@ status: in-progress
 ## Sin probar
 Nada se vio en navegador. La caché del router puede mostrar datos de hasta 30 s en pantallas de servidor; las que guardan datos usan `router.refresh()`.
 
-## Pendiente (esperando decisión)
-Mover contactos y formularios de los clientes a sus sub-cuentas (hoy Noxy Digital conserva los originales y las sub-cuentas tienen copias).
+## Mover contactos y formularios a sus sub-cuentas (hecho, aprobado por Noeli: «mover los originales»)
+`scripts/move-company-data.ts` (simulacro por defecto, `--apply` con respaldo, una transacción por empresa). Los originales cambiaron de organización conservando id, enlace público de formularios, historial de correos y tareas; las copias de la migración se borraron.
+- **Eilen Centro Terapéutico:** 147 contactos, 1 formulario, 1 tarea. **Dreams Club:** 63 contactos, 2 formularios, 59 tareas (65 en total con las suyas).
+- **Noxy Digital** pasó de 216 a 6 contactos y de 9 a 6 formularios. **J&H Multiservices** se queda como está: su contacto tiene deal, cotización y proyecto en Noxy.
+- **Se perdió a propósito:** el vínculo del formulario de Eilen con su proyecto y su correo de bienvenida (viven en Noxy), y 2 campañas de Noxy que apuntaban a ese formulario (`targetFormId` a nulo). Hay que volver a ligar el correo de bienvenida desde la sub-cuenta de Eilen.
+- Verificado: 0 contactos cuyo formulario sea de otra organización.
+- Respaldo local con datos personales en `backups/mover-*.json` (git lo ignora): bórralo cuando verifiques.
