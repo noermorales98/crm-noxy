@@ -60,8 +60,9 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [ ] P1 selector en la interfaz — prueba en navegador (tuya).
 - [x] **Parada tras el paso 1** — aprobado por Noeli.
 - [x] P2 `scripts/company-to-org.ts`: simulacro por defecto, `--apply` explícito, una transacción, informe con cómo deshacer, se niega a repetir si `migratedToOrgId` ya está. Supuestos: original intacto (P1), solo contactos/deals/formularios (P3).
-- [ ] P2 aplicar `prisma/sql/company-migrated-org.up.sql` + `prisma generate` y probar el simulacro con una empresa real — lo haces tú.
-- [ ] P3 pruebas de que el formulario escribe en la org dueña.
+- [x] P2 SQL `company-migrated-org.up.sql` aplicado en la base (columna `Company.migratedToOrgId` VARCHAR(191) NULL, verificada), `prisma generate` hecho, simulacro corrido con las 3 empresas de cliente.
+- [ ] P2 `--apply`: pendiente de que Noeli diga qué empresa(s). Sin dump previo: `mysqldump` no autentica (plugin `mysql_native_password` ausente en el cliente).
+- [x] P3 `submit` ya escribía todo en `form.organizationId`; ahora además ignora enlaces a otra org (empresa, correo de bienvenida, tipo de cita, proyecto) y elige el OWNER de forma determinista (`pickNotifyOwner`: el más antiguo con WhatsApp). Pruebas en `organizations.test.ts`.
 - [ ] P4 auditoría de crons + regla de destinatario fijada y probada.
 - [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
 
@@ -72,3 +73,6 @@ P1: `npm test` 484 (477 pasan; los 7 fallos son previos y sin relación: contrat
 Aprobar o corregir esta spec y responder las 3 preguntas (la 1 y la 2 no bloquean el paso 1).
 
 P2: `npm test` 490 (483 pasan, los mismos 7 fallos previos). 6 pruebas nuevas en `src/lib/company-to-org.test.ts` (casado de pipelines, qué se copia y qué se deja fuera, simulacro antes de la transacción, sin borrados). El script NO se ha ejecutado contra la base.
+
+P2 simulacro (base real, solo lectura): Dreams Club 63 contactos/2 deals/2 formularios; Eilen Centro Terapeutico 147/0/1; J&H Multiservices 1/0/0.
+P3: `npm test` 493 (486 pasan; los mismos 7 fallos previos). `tsc` limpio. `eslint` solo marca 2 `any` ya existentes en `submit/route.ts`.

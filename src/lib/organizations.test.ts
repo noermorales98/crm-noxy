@@ -68,3 +68,39 @@ test("the organizations API requires a session and the switch validates membersh
   assert.match(sw, /resolveSwitch\(/);
   assert.match(sw, /status: 403/);
 });
+
+// ── Formularios públicos (paso 3): todo cae en la organización dueña del formulario ─────────────────────────
+// @ts-expect-error: node --test carga el .ts directo
+import { pickNotifyOwner, sameOrg } from "./form-lead.ts";
+
+test("a form link to another organization is ignored, one in the same organization is used", () => {
+  assert.equal(sameOrg("A", { organizationId: "B", id: 1 }), null);
+  assert.deepEqual(sameOrg("A", { organizationId: "A", id: 1 }), { organizationId: "A", id: 1 });
+  assert.equal(sameOrg("A", null), null);
+  assert.equal(sameOrg("A", undefined), null);
+  assert.equal(sameOrg("A", {}), null);
+});
+
+test("with two OWNERs the notified one is the oldest with WhatsApp, in any database order", () => {
+  const bot = { phone: "1", apiKey: "k" };
+  const me = { id: "me", createdAt: new Date(1), user: { callMeBot: bot } };
+  const client = { id: "cli", createdAt: new Date(2), user: { callMeBot: { phone: "2", apiKey: "k2" } } };
+  const noBot = { id: "nb", createdAt: new Date(0), user: { callMeBot: null } };
+  assert.equal(pickNotifyOwner([client, me])?.id, "me");
+  assert.equal(pickNotifyOwner([me, client])?.id, "me");
+  assert.equal(pickNotifyOwner([noBot, client, me])?.id, "me", "prefiere quien tiene WhatsApp");
+  assert.equal(pickNotifyOwner([noBot])?.id, "nb");
+  assert.equal(pickNotifyOwner([]), null);
+});
+
+test("the public form submit writes only into form.organizationId and never trusts links to other organizations", () => {
+  const src = readFileSync(new URL("../../app/api/public/forms/[id]/submit/route.ts", import.meta.url), "utf8");
+  const writes = (src.match(/organizationId: [^,\n}]+/g) ?? []).filter((w) => !/organizationId: true/.test(w));
+  assert.ok(writes.length >= 4);
+  for (const w of writes) assert.match(w, /organizationId: (orgId|form\.organizationId)\s*$/, `organización inesperada: ${w}`);
+  assert.doesNotMatch(src, /apptType\.organizationId/);
+  assert.doesNotMatch(src, /form\.(company|welcomeEmail|appointmentType)\b[^;]*smtp/);
+  for (const link of ["company", "welcomeEmail", "appointmentType"]) assert.match(src, new RegExp(`const ${link} = sameOrg\\(orgId, form\\.`));
+  assert.doesNotMatch(src, /organizationMember\.findFirst\(/, "el dueño no se elige sin orden");
+  assert.match(src, /pickNotifyOwner\(/);
+});
