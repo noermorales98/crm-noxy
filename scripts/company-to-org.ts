@@ -4,6 +4,7 @@
 //   node scripts/company-to-org.ts --company <id> --user <correo>            → simulacro (por defecto): cuenta y avisa, no escribe
 //   node scripts/company-to-org.ts --company <id> --user <correo> --apply    → crea la sub-cuenta (todo en una transacción)
 //   opcionales: --name "Nombre de la sub-cuenta" (por defecto, el de la empresa)
+//               --team correo1,correo2   miembros del equipo que también entran a la sub-cuenta, con el mismo rol y permisos que tienen en la org de origen
 //
 // Requiere el SQL prisma/sql/company-migrated-org.up.sql aplicado y `prisma generate`. --user debe ser miembro de la org de origen.
 // Deshacer: borrar la Organization creada (en cascada se va todo lo copiado) y poner Company.migratedToOrgId = NULL; el informe trae los ids.
@@ -26,6 +27,7 @@ const prisma = new PrismaClient();
 const args = process.argv.slice(2);
 const opt = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined);
 const apply = args.includes("--apply");
+const teamEmails = (opt("--team") ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 const companyId = opt("--company");
 const email = opt("--user");
 if (!companyId || !email) {
@@ -43,6 +45,12 @@ async function main() {
   if (!member) throw new Error("Ese usuario no es miembro de la organización de origen.");
 
   const orgId = company.organizationId;
+  const team = [];
+  for (const teamEmail of teamEmails) {
+    const m = await prisma.organizationMember.findFirst({ where: { organizationId: orgId, user: { email: teamEmail } } });
+    if (!m) throw new Error(`${teamEmail} no es miembro de la organización de origen.`);
+    if (m.userId !== user.id) team.push(m);
+  }
   const [companyContacts, deals, forms] = await Promise.all([
     prisma.contact.findMany({ where: { companyId, organizationId: orgId } }),
     prisma.deal.findMany({ where: { companyId, organizationId: orgId }, include: { pipeline: { include: { stages: true } }, stage: true } }),
@@ -65,7 +73,7 @@ async function main() {
   warn.push("No se copian: correo SMTP/IMAP de la empresa, tareas, proyectos, cotizaciones, pagos, citas ni bóveda.");
 
   const summary = {
-    empresa: company.name, origen: company.organization.name, usuarioOwner: email,
+    empresa: company.name, origen: company.organization.name, usuarioOwner: email, equipo: teamEmails,
     contactos: contacts.length, deals: deals.length, formularios: forms.length,
     pipelinesUsados: usedPipelines.map((p: any) => p.name),
   };
@@ -78,6 +86,7 @@ async function main() {
   const created = await prisma.$transaction(async (tx: any) => {
     const org = await tx.organization.create({ data: { name, timezone: company.organization.timezone } });
     await tx.organizationMember.create({ data: { userId: user.id, organizationId: org.id, role: "OWNER", permissions: ALL_PERMISSIONS } });
+    for (const m of team) await tx.organizationMember.create({ data: { userId: m.userId, organizationId: org.id, role: m.role, permissions: m.permissions ?? undefined } });
     const newCompany = await tx.company.create({ data: { name: company.name, website: company.website, industry: company.industry, hideContacts: company.hideContacts, organizationId: org.id } });
     for (const p of DEFAULT_PIPELINES) {
       await tx.pipeline.create({ data: { name: p.name, organizationId: org.id, stages: { create: p.stages.map((s: any, i: number) => ({ name: s.name, order: i + 1, isWon: !!s.isWon, isLost: !!s.isLost, color: s.color })) } } });

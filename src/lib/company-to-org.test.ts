@@ -63,4 +63,7 @@ test("the script is a dry run unless --apply, and only writes migratedToOrgId on
   assert.ok(!writes.some((w) => w.includes(".delete")), "no debe borrar nada");
   assert.equal(src.match(/tx\.\w+\.update\(\{ where: \{ id: companyId \}/g)?.length, 1);
   assert.equal((src.match(/tx\.\w+\.update\(/g) ?? []).length, 1);
+  assert.match(src, /--team/);
+  assert.match(src, /role: m\.role, permissions: m\.permissions/, "el equipo conserva su rol y permisos de origen");
+  assert.match(src, /no es miembro de la organización de origen/, "solo entra gente que ya es del equipo");
 });
