@@ -41,14 +41,14 @@ type Group = { label: string; items: Item[] };
 
 // Primer nivel: destinos directos y entradas de área (›) que abren su submenú.
 const EXPECTED_TOP: Array<[string, Array<[string, string, string]>]> = [
-  ["Principal", [["link", "Inicio", "/"], ["area", "Contactos", "/contacts"], ["link", "Tareas", "/tasks"], ["link", "Proyectos", "/projects"]]],
+  ["Principal", [["link", "Inicio", "/"], ["link", "Clientes", "/clientes"], ["area", "Contactos", "/contacts"], ["link", "Tareas", "/tasks"], ["link", "Entregas", "/projects"]]],
   ["Áreas", [["area", "Ventas", "/pipeline"], ["area", "Agenda", "/appointments"]]],
   ["Espacios", [["link", "Correo", "/emails"], ["link", "Bóveda", "/boveda"], ["link", "Gestión de contenido", "/contenido/general"]]],
   ["Conocimiento e IA", [["link", "Docs", "/kb"], ["link", "Asistente", "/assistant"]]],
 ];
 const EXPECTED_AREAS: Record<string, Array<[string, string]>> = {
   contacts: [["Contactos", "/contacts"], ["Empresas", "/companies"]],
-  sales: [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]],
+  sales: [["Pipeline de ventas", "/pipeline"], ["Suscripciones", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]],
   agenda: [["Citas Agendadas", "/appointments"], ["Tipos de Cita", "/appointment-types"], ["Disponibilidad", "/availability"]],
 };
 const SPACE_SECTION: Record<string, string> = {
@@ -59,7 +59,7 @@ const SPACE_SECTION: Record<string, string> = {
   "/contenido/general": "content",
 };
 
-test("NAV_GROUPS shows 11 entries in 4 groups: direct destinations and areas", () => {
+test("NAV_GROUPS shows 12 entries in 4 groups: direct destinations and areas", () => {
   assert.deepEqual(
     (NAV_GROUPS as Group[]).map((g) => [g.label, g.items.map((i) => [i.kind === "area" ? "area" : "link", i.label, i.href])]),
     EXPECTED_TOP,
@@ -79,12 +79,13 @@ test("each area lists its destinations with the labels and routes of always; the
 });
 
 // Árbol con subsecciones: Historial de tratos pasa a ser un destino propio de Ventas (17 → 18).
-test("the 18 destinations stay reachable, once each, with the permission that gated them", () => {
+// Panel de clientes (/clientes, permiso «agency»): 18 → 19.
+test("the 19 destinations stay reachable, once each, with the permission that gated them", () => {
   const all = NAV_DESTINATIONS as Item[];
-  assert.equal(all.length, 18);
-  assert.equal(new Set(all.map((i) => i.href)).size, 18, "no duplicates");
+  assert.equal(all.length, 19);
+  assert.equal(new Set(all.map((i) => i.href)).size, 19, "no duplicates");
   for (const item of all) {
-    const expected = SPACE_SECTION[item.href] ? SECTION_PERMISSION[SPACE_SECTION[item.href]] : "crm";
+    const expected = item.href === "/clientes" ? "agency" : SPACE_SECTION[item.href] ? SECTION_PERMISSION[SPACE_SECTION[item.href]] : "crm";
     assert.equal(item.permission, expected, item.label);
   }
 });
@@ -97,11 +98,13 @@ test("only Correo carries the existing unread-mail counter", () => {
 test("visibleNavGroups filters by permission, hides areas with no visible destination and drops empty groups", () => {
   assert.deepEqual(
     (visibleNavGroups("OWNER", ALL_PERMISSIONS) as Group[]).map((g) => [g.label, g.items.length]),
-    [["Principal", 4], ["Áreas", 2], ["Espacios", 3], ["Conocimiento e IA", 2]],
+    [["Principal", 5], ["Áreas", 2], ["Espacios", 3], ["Conocimiento e IA", 2]],
     "owner sees everything",
   );
   // Sin rol ni permisos (sesión antigua o cargando) `hasPermission` deja pasar: se conserva ese comportamiento.
-  assert.equal((visibleNavGroups(undefined, undefined) as Group[]).flatMap((g) => g.items).length, 11, "legacy session keeps today's behaviour");
+  assert.equal((visibleNavGroups(undefined, undefined) as Group[]).flatMap((g) => g.items).length, 11, "legacy session keeps today's behaviour (sin el panel de clientes)");
+  assert.deepEqual((visibleNavGroups("ADMIN", { ...ALL_PERMISSIONS } as never) as Group[])[0].items.map((i) => i.href).includes("/clientes"), false, "ADMIN no ve Clientes sin asignación");
+  assert.deepEqual((visibleNavGroups("ADMIN", { ...ALL_PERMISSIONS, agency: true } as never) as Group[])[0].items.map((i) => i.href).includes("/clientes"), true, "ADMIN con «agency» asignado sí");
   const mailOnly = { ...Object.fromEntries(Object.keys(ALL_PERMISSIONS).map((k) => [k, false])), mail: true };
   const groups = visibleNavGroups("MEMBER", mailOnly) as Group[];
   assert.deepEqual(groups.map((g) => g.label), ["Espacios"]);

@@ -38,11 +38,11 @@ test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat li
     [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"], ["content", "Contenido"]],
   );
   assert.deepEqual(shape(mode("work").groups), [
-    ["Principal", [["Inicio", "/"], ["Tareas", "/tasks"], ["Proyectos", "/projects"], ["Contactos", "/contacts"], ["Empresas", "/companies"]]],
+    ["Principal", [["Inicio", "/"], ["Clientes", "/clientes"], ["Tareas", "/tasks"], ["Entregas", "/projects"], ["Contactos", "/contacts"], ["Empresas", "/companies"]]],
     ["Agenda", [["Citas Agendadas", "/appointments"], ["Tipos de Cita", "/appointment-types"], ["Disponibilidad", "/availability"]]],
   ]);
   assert.deepEqual(shape(mode("sales").groups), [
-    ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Clientes", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
+    ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Suscripciones", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
   assert.deepEqual(shape(mode("spaces").groups), [
     ["Espacios", [["Correo", "/emails"], ["Bóveda", "/boveda"]]],
@@ -53,11 +53,11 @@ test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat li
   ]);
 });
 
-test("no mode has a branch: every entry is a plain link and no mode lists more than 8 entries", () => {
+test("no mode has a branch: every entry is a plain link and no mode lists more than 9 entries", () => {
   for (const m of NAV_MODES as unknown as Array<{ key: string; groups: Group[] }>) {
     const entries = m.groups.flatMap((g) => g.items);
     assert.ok(entries.every((e) => e.kind !== "area"), `${m.key}: no area entries`);
-    assert.ok(entries.length <= 8, `${m.key}: ${entries.length} entries`);
+    assert.ok(entries.length <= 9, `${m.key}: ${entries.length} entries`);
   }
 });
 

@@ -44,6 +44,7 @@ export const NAV_ICONS: Record<string, typeof Home01Icon> = {
   "/companies": Building04Icon,
   "/contacts": UserMultipleIcon,
   "/tasks": Task01Icon,
+  "/clientes": UserMultipleIcon,
   "/projects": FolderKanbanIcon,
   "/pipeline": BarChartIcon,
   "/pipeline/clientes": UserMultipleIcon,

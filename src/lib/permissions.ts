@@ -6,6 +6,7 @@ export const PERMISSION_MODULES = [
   { key: "vault", label: "Bóveda", description: "Contraseñas y datos sensibles de clientes" },
   { key: "content", label: "Gestión de contenido", description: "Calendarios y avisos de grabación" },
   { key: "settings", label: "Configuración", description: "Ajustes, digest e integraciones" },
+  { key: "agency", label: "Panel de clientes", description: "Resumen de todas las sub-cuentas (clientes) de las que eres miembro. Solo el dueño, o quien él asigne" },
 ] as const;
 
 export type PermissionModule = (typeof PERMISSION_MODULES)[number]["key"];
@@ -20,6 +21,7 @@ export const ALL_PERMISSIONS: ModulePermissions = {
   vault: true,
   content: true,
   settings: true,
+  agency: false, // el panel de clientes nunca se concede por rol: solo OWNER o asignación explícita
 };
 
 export const MEMBER_DEFAULT_PERMISSIONS: ModulePermissions = {
@@ -30,6 +32,7 @@ export const MEMBER_DEFAULT_PERMISSIONS: ModulePermissions = {
   vault: false,
   content: false,
   settings: false,
+  agency: false,
 };
 
 const MODULE_KEYS = PERMISSION_MODULES.map((m) => m.key);
@@ -49,8 +52,11 @@ export function sanitizePermissions(raw: unknown, fallback: ModulePermissions = 
 }
 
 export function normalizePermissions(raw: unknown, role: RoleName | null | undefined): ModulePermissions {
-  if (role === "OWNER" || role === "ADMIN") return { ...ALL_PERMISSIONS };
-  return sanitizePermissions(raw, MEMBER_DEFAULT_PERMISSIONS);
+  const explicit = sanitizePermissions(raw, MEMBER_DEFAULT_PERMISSIONS);
+  if (role === "OWNER") return { ...ALL_PERMISSIONS, agency: true };
+  // ADMIN lo ve todo salvo el panel de clientes, que solo tiene si el dueño se lo asignó.
+  if (role === "ADMIN") return { ...ALL_PERMISSIONS, agency: explicit.agency };
+  return explicit;
 }
 
 export function hasPermission(
@@ -59,7 +65,8 @@ export function hasPermission(
   module: PermissionModule,
 ): boolean {
   // JWT antiguo sin rol: no bloquear al dueño hasta que vuelva a entrar.
-  if (!role) return true;
+  if (!role) return module !== "agency";
+  if (module === "agency") return role === "OWNER" || permissions?.agency === true;
   if (role === "OWNER" || role === "ADMIN") return true;
   return permissions?.[module] === true;
 }
@@ -125,6 +132,7 @@ const PAGE_MODULE_PREFIXES: Array<[string, PermissionModule]> = [
   ["/forms", "crm"],
   ["/cotizaciones", "crm"],
   ["/projects", "crm"],
+  ["/clientes", "agency"],
   ["/appointment-types", "crm"],
   ["/availability", "crm"],
   ["/appointments", "crm"],
@@ -154,6 +162,7 @@ const API_MODULE_PREFIXES: Array<[string, PermissionModule]> = [
   ["/api/quotes", "crm"],
   ["/api/quote-settings", "crm"],
   ["/api/projects", "crm"],
+  ["/api/agency", "agency"],
   ["/api/appointments", "crm"],
   ["/api/appointment-types", "crm"],
   ["/api/availability", "crm"],
@@ -226,6 +235,7 @@ export function parsePermissionsFromBody(raw: unknown): ModulePermissions {
     vault: false,
     content: false,
     settings: false,
+    agency: false,
   };
   return sanitizePermissions(raw, empty);
 }

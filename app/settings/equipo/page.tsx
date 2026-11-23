@@ -91,7 +91,7 @@ export default function EquipoPage() {
   };
 
   const togglePerm = (key: keyof ModulePermissions, checked: boolean) => {
-    if (form.role === "ADMIN") return;
+    if (form.role === "ADMIN" && key !== "agency") return;
     setForm((f) => ({ ...f, permissions: { ...f.permissions, [key]: checked } }));
   };
 
@@ -269,7 +269,7 @@ export default function EquipoPage() {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {permissionChecks.map((mod) => (
-                <CheckRow key={mod.key} checked={form.permissions[mod.key]} disabled={form.role === "ADMIN"} onChange={(checked) => togglePerm(mod.key, checked)} label={mod.label} description={mod.description} />
+                <CheckRow key={mod.key} checked={form.permissions[mod.key]} disabled={form.role === "ADMIN" && mod.key !== "agency"} onChange={(checked) => togglePerm(mod.key, checked)} label={mod.label} description={mod.description} />
               ))}
             </div>
           </div>
@@ -343,7 +343,7 @@ export default function EquipoPage() {
                                 ...prev,
                                 [member.id]: {
                                   role: nextRole,
-                                  permissions: nextRole === "ADMIN" ? { ...ALL_PERMISSIONS } : { ...member.permissions },
+                                  permissions: nextRole === "ADMIN" ? { ...ALL_PERMISSIONS, agency: member.permissions.agency } : { ...member.permissions },
                                   sexo: prev[member.id]?.sexo ?? parseSexo(member.user.sexo),
                                 },
                               }));
@@ -370,7 +370,7 @@ export default function EquipoPage() {
                             <CheckRow
                               key={mod.key}
                               checked={perms[mod.key]}
-                              disabled={role === "ADMIN"}
+                              disabled={role === "ADMIN" && mod.key !== "agency"}
                               label={mod.label}
                               onChange={(checked) => {
                                 setEditing((prev) => ({

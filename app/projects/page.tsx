@@ -44,7 +44,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     setConfig({
-      title: "Proyectos",
+      title: "Entregas",
       titleBadge: isLoading ? undefined : projects.length,
       sortOptions: [
         { label: "Nombre", value: "name" },
@@ -134,8 +134,8 @@ export default function ProjectsPage() {
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
       <Enter index={0}>
         <PageHeader
-          title="Proyectos"
-          subtitle={isLoading ? "Cargando proyectos…" : "Organiza tareas, correo y documentación alrededor de un cliente, empresa o contacto."}
+          title="Entregas"
+          subtitle={isLoading ? "Cargando entregas…" : "Organiza tareas, correo y documentación alrededor de un cliente, empresa o contacto."}
           actions={
             <Link href="/projects/create" className={primaryAction}>
               <HugeiconsIcon icon={Add01Icon} size={16} />

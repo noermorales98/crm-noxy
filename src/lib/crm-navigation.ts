@@ -30,7 +30,7 @@ export const AREA_ITEMS: Readonly<Record<AreaSection, readonly NavItem[]>> = {
   ],
   sales: [
     { href: "/pipeline", label: "Pipeline de ventas", permission: "crm" },
-    { href: "/pipeline/clientes", label: "Clientes", permission: "crm" },
+    { href: "/pipeline/clientes", label: "Suscripciones", permission: "crm" },
     { href: "/pipeline/historial", label: "Historial de tratos", permission: "crm" },
     { href: "/cotizaciones", label: "Cotizaciones", permission: "crm" },
     { href: "/forms", label: "Formularios", permission: "crm" },
@@ -56,9 +56,10 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     label: "Principal",
     items: [
       { href: "/", label: "Inicio", permission: "crm" },
+      { href: "/clientes", label: "Clientes", permission: "agency" },
       area("contacts", "Contactos"),
       { href: "/tasks", label: "Tareas", permission: "crm" },
-      { href: "/projects", label: "Proyectos", permission: "crm" },
+      { href: "/projects", label: "Entregas", permission: "crm" },
     ],
   },
   {
@@ -271,8 +272,9 @@ export const NAV_MODES: readonly NavModeDef[] = [
         label: "Principal",
         items: [
           { href: "/", label: "Inicio", permission: "crm" },
+          { href: "/clientes", label: "Clientes", permission: "agency" },
           { href: "/tasks", label: "Tareas", permission: "crm" },
-          { href: "/projects", label: "Proyectos", permission: "crm" },
+          { href: "/projects", label: "Entregas", permission: "crm" },
           ...AREA_ITEMS.contacts,
         ],
       },
@@ -380,7 +382,7 @@ export const MAX_CUSTOM_TABS = 3;
 /** Nombres cortos para que quepan en la cápsula. */
 const TAB_SHORT_LABEL: Record<string, string> = {
   "/pipeline": "Pipeline",
-  "/pipeline/clientes": "Clientes",
+  "/pipeline/clientes": "Suscripciones",
   "/pipeline/historial": "Historial",
   "/appointments": "Citas",
   "/appointment-types": "Tipos",

@@ -36,7 +36,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (body?.permissions && member.role !== "OWNER" && (data.role ?? member.role) !== "OWNER") {
     const nextRole = data.role ?? (member.role as RoleName);
-    data.permissions = nextRole === "ADMIN" ? ALL_PERMISSIONS : parsePermissionsFromBody(body.permissions);
+    const parsed = parsePermissionsFromBody(body.permissions);
+    // Un ADMIN lo tiene todo salvo el panel de clientes, que solo si el dueño se lo asigna.
+    data.permissions = nextRole === "ADMIN" ? { ...ALL_PERMISSIONS, agency: parsed.agency } : parsed;
   }
 
   if (!data.role && !data.permissions && !sexo) {

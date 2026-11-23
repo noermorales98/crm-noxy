@@ -12,7 +12,8 @@ export const CRM_SEARCH_PAGES: CrmSearchPage[] = [
   // Trabajo
   { id: "nav-home", title: "Inicio", subtitle: "Dashboard", href: "/", keywords: ["inicio", "dashboard", "home", "resumen", "personalizar", "widgets"] },
   { id: "nav-tasks", title: "Tareas", subtitle: "Pendientes y completadas", href: "/tasks", keywords: ["tareas", "tasks", "task", "pendientes", "completadas"] },
-  { id: "nav-projects", title: "Proyectos", href: "/projects", keywords: ["proyectos", "projects", "project"] },
+  { id: "nav-clientes", title: "Clientes", subtitle: "Panel de tus sub-cuentas", href: "/clientes", keywords: ["clientes", "sub-cuentas", "cuentas", "agencia", "panel"] },
+  { id: "nav-projects", title: "Entregas", subtitle: "Antes Proyectos", href: "/projects", keywords: ["entregas", "proyectos", "projects", "project"] },
   { id: "nav-project-create", title: "Nuevo proyecto", subtitle: "Proyectos", href: "/projects/create", keywords: ["crear proyecto", "nuevo proyecto", "agregar proyecto"] },
   { id: "nav-contacts", title: "Contactos", href: "/contacts", keywords: ["contactos", "contacts", "contact", "personas", "leads"] },
   { id: "nav-companies", title: "Empresas", href: "/companies", keywords: ["empresas", "companies", "company", "cuentas", "smtp"] },
@@ -21,7 +22,7 @@ export const CRM_SEARCH_PAGES: CrmSearchPage[] = [
   { id: "nav-availability", title: "Disponibilidad", subtitle: "Agenda", href: "/availability", keywords: ["disponibilidad", "availability", "horarios", "horas"] },
   // Ventas
   { id: "nav-pipeline", title: "Pipeline de ventas", subtitle: "Ventas", href: "/pipeline", keywords: ["ventas", "pipeline", "deals", "oportunidades", "tratos", "embudo"] },
-  { id: "nav-pipeline-clientes", title: "Clientes", subtitle: "Cobros recurrentes", href: "/pipeline/clientes", keywords: ["clientes", "recurrente", "mrr", "cobros", "pagos", "mensualidad"] },
+  { id: "nav-pipeline-clientes", title: "Suscripciones", subtitle: "Cobros recurrentes", href: "/pipeline/clientes", keywords: ["suscripciones", "clientes", "recurrente", "mrr", "cobros", "pagos", "mensualidad"] },
   { id: "nav-pipeline-historial", title: "Historial de tratos", subtitle: "Ventas", href: "/pipeline/historial", keywords: ["historial", "tratos", "cerrados", "ganados", "perdidos"] },
   { id: "nav-cotizaciones", title: "Cotizaciones", subtitle: "Ventas", href: "/cotizaciones", keywords: ["cotizaciones", "presupuestos", "propuestas", "quotes"] },
   { id: "nav-cotizacion-nueva", title: "Nueva cotización", subtitle: "Cotizaciones", href: "/cotizaciones/nueva", keywords: ["crear cotizacion", "nueva cotizacion", "presupuesto"] },

@@ -236,7 +236,7 @@ Agrega un selector de cuenta arriba del Sidebar (src/components/Sidebar.tsx y Ac
 Hecho cuando: npm run dev, pruebo cambiar entre dos cuentas, y envías captura escritorio y móvil. npm test sigue igual.
 ```
 
-### 🟡 SPEC ESCRITA, ESPERA TU APROBACIÓN (ver `ftd/proyectos-a-clientes.md`) · T10 · Claude · De «Proyectos» a «Clientes»
+### ✅ HECHA (en main) — no la ejecutes · T10 · Claude · De «Proyectos» a «Clientes»
 *Tras T8–T9.*
 ```text
 Proyecto crm-noxy, main. Con multi-cuenta activo, «Proyectos» pierde su razón de ser. Propuesta: la sección «Proyectos» del Sidebar pasa a llamarse «Clientes» y es el panel de agencia: lista de mis sub-cuentas con, por cada una, deals abiertos, ganados del mes, tareas vencidas, cobros pendientes y enlace al portal público.
@@ -289,9 +289,9 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T8 multi-cuenta | ✅ en main y subida; SQL `migratedToOrgId` aplicado; 4 empresas ya son sub-cuentas | bf968e5 |
 | T9 selector de cuenta | ✅ en la barra lateral y en el menú «Más» del móvil. Falta probarlo en navegador | |
 | T6 MCP (aprobado, update_quote, enlaces, email) | ✅ en main | `ftd/mcp-aprobado-cotizaciones-enlaces.md` |
-| T10 Proyectos → Clientes | 🟡 spec escrita (sin código); espera tu aprobación y 3 respuestas | `ftd/proyectos-a-clientes.md` |
+| T10 Proyectos → Clientes | ✅ en main: panel `/clientes`, permiso `agency`, «Entregas» y «Suscripciones». Falta probarlo en navegador | `ftd/proyectos-a-clientes.md` |
 | T11 landing | ✅ en main | `ftd/landing-solo-lo-cierto.md` |
 | T12 docs/crons/pruebas | ✅ `CRON.md`, `pendientes-crm.md`, pruebas de `isDigestDue` (en `digest-schedule.test.ts`) y reporte de consultas sin organización | `ftd/` no aplica; reporte en `reporte-consultas-sin-organizacion.md` |
 | Cifrar SMTP/IMAP (nueva) | ⏳ propuesta | |
 
-**Siguiente:** aprobar la spec de T10 y decidir si se cifran SMTP/IMAP.
+**Siguiente:** probar en navegador y decidir si se cifran SMTP/IMAP (tarea aparte, sin hacer).

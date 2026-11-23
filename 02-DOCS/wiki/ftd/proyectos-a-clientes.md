@@ -1,11 +1,11 @@
 ---
 author: Noeli
 branch: main
-status: spec-pendiente-de-aprobacion
+status: done
 ---
-# De «Proyectos» a «Clientes» (T10) — SPEC, sin implementar
+# De «Proyectos» a «Clientes» (T10)
 
-> Esta nota es solo la spec. **No se ha cambiado código.** Espera tu aprobación y tus respuestas a las 3 preguntas de abajo.
+> Spec aprobada por Noeli el 2026-11-23 e implementada. Respuestas: nombres «Clientes / Suscripciones / Entregas» aprobados; el panel lo ve el OWNER y quien él asigne (permiso `agency`); «Alumnos Eilen»: se borraron sus 152 tareas y se apagó su portal público (el proyecto y su formulario siguen).
 
 ## Intent
 Con multi-cuenta (T8) cada cliente ya es una sub-cuenta (`Organization`). «Proyectos» dejó de ser el lugar donde separar a un cliente de otro. Lo que sí falta es **un panel de agencia**: ver de un vistazo todas mis sub-cuentas y entrar a la que toque.
@@ -56,5 +56,14 @@ Los 7 proyectos de Noxy Digital son de tres tipos:
 2. **«Alumnos Eilen»** (y los otros proyectos de contenedor de un cliente): ¿los dejo en Noxy Digital tal cual, o los muevo/copio a la sub-cuenta del cliente (Eilen Centro Terapéutico)? Mover implica recrear tareas y portal; recomiendo dejarlos y no mover nada.
 3. **Quién ve el panel:** ¿solo tú (OWNER en 2 o más organizaciones) o también cualquier miembro con permiso `crm` en su propia organización? Recomiendo lo primero.
 
-## Siguiente
+## Implementación (hecho)
+- Permiso nuevo `agency` («Panel de clientes»): OWNER siempre; ADMIN y MEMBER solo si el dueño lo asigna en Equipo (un ADMIN ya no lo hereda).
+- `src/lib/agency-panel.ts` (puro, 5 pruebas), `agency-service.ts` (lee solo organizaciones con membresía y acceso), `GET /api/agency/overview`, pantalla `/clientes` y botón «Abrir» que cambia de cuenta.
+- Menú: «Clientes» (panel) en Trabajo; «Proyectos» → «Entregas»; `/pipeline/clientes` → «Suscripciones» (menú, títulos, buscador). Rutas intactas; ningún dato de proyectos movido.
+- Datos: 152 tareas completadas de «Alumnos Eilen» borradas (respaldo local en `backups/`, ignorado por git) y su portal público apagado (`isPublic=false`, token anulado).
+- Evidence: `npm test` 520 pasan / 5 fallan (los de siempre); `tsc` limpio. Pruebas: permisos (agency), panel, contratos de navegación actualizados (19 destinos).
+- Sin probar: la pantalla `/clientes` en navegador y con dos usuarios; el aislamiento del panel está cubierto por la regla `agencyMemberships` y `organizationId` en cada consulta, no por una prueba HTTP.
+- Sin tocar a propósito: «Clientes» de `/contenido/clientes` (marcas de contenido), landing/demo, widgets del dashboard y el MCP (`list_projects`) siguen diciendo «Proyectos».
+
+## Siguiente (ya hecho arriba; histórico)
 Aprobar la spec (o ajustarla) y contestar las 3 preguntas. Después: plan corto de implementación (≈4 pasos: API del panel + pruebas, pantalla, renombres de menú, revisión de textos) y se hace en `main`.

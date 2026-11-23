@@ -430,7 +430,7 @@ export default function ClientesPage() {
   useEffect(() => {
     resetState();
     setConfig({
-      title: "Clientes",
+      title: "Suscripciones",
       pageHeader: true,
     });
     return () => setConfig({});
@@ -581,7 +581,7 @@ export default function ClientesPage() {
       <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
         <Enter index={0}>
           <PageHeader
-            title="Clientes"
+            title="Suscripciones"
             subtitle={loadingClients && clients.length === 0 ? "Cargando clientes…" : `${activeClients.length} activos · ${pendingThisMonth} pendientes de pago este mes`}
             actions={
               <button type="button" onClick={() => setShowClientModal(true)} className={primaryAction}>

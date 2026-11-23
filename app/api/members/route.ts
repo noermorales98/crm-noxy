@@ -68,7 +68,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Ya existe un usuario con ese correo" }, { status: 409 });
   }
 
-  const permissions = role === "ADMIN" ? ALL_PERMISSIONS : parsePermissionsFromBody(body?.permissions);
+  const parsedPermissions = parsePermissionsFromBody(body?.permissions);
+  const permissions = role === "ADMIN" ? { ...ALL_PERMISSIONS, agency: parsedPermissions.agency } : parsedPermissions;
   const passwordHash = await hashPassword(password);
 
   const member = await prisma.$transaction(async (tx) => {

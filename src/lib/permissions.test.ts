@@ -13,7 +13,7 @@ import {
 } from "./permissions.ts";
 
 test("OWNER and ADMIN always have every module", () => {
-  assert.deepEqual(normalizePermissions({ crm: false }, "OWNER"), ALL_PERMISSIONS);
+  assert.deepEqual(normalizePermissions({ crm: false }, "OWNER"), { ...ALL_PERMISSIONS, agency: true });
   assert.deepEqual(normalizePermissions({ mail: false }, "ADMIN"), ALL_PERMISSIONS);
   assert.equal(hasPermission("OWNER", { crm: false }, "vault"), true);
   assert.equal(canManageTeam("ADMIN"), true);
@@ -76,4 +76,13 @@ test("la landing en / y /demo son públicas; el panel CRM se decide en la page",
   assert.deepEqual(resolveRouteAccess("/api/public/demo"), { kind: "public" });
   assert.notDeepEqual(resolveRouteAccess("/demo/otra"), { kind: "public" }, "solo /demo exacto es público");
   assert.notDeepEqual(resolveRouteAccess("/appointments"), { kind: "public" });
+});
+
+test("el panel de clientes: OWNER siempre; ADMIN y MEMBER solo si el dueño lo asigna", () => {
+  assert.equal(hasPermission("OWNER", {}, "agency"), true);
+  assert.equal(hasPermission("ADMIN", normalizePermissions({}, "ADMIN"), "agency"), false);
+  assert.equal(hasPermission("ADMIN", normalizePermissions({ agency: true }, "ADMIN"), "agency"), true);
+  assert.equal(hasPermission("MEMBER", normalizePermissions({}, "MEMBER"), "agency"), false);
+  assert.equal(hasPermission("MEMBER", normalizePermissions({ agency: true }, "MEMBER"), "agency"), true);
+  assert.equal(hasPermission(null, null, "agency"), false);
 });
