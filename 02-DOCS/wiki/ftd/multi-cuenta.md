@@ -51,7 +51,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 ## Preguntas abiertas (necesito tu respuesta para el paso 2 y 4)
 1. **Copiar contactos/deals deja datos duplicados** (original en la org principal + copia en la sub-cuenta). ¿Aceptas duplicado con el original intacto, o prefieres que tras verificar el original quede archivado?
 2. **Avisos**: dices «mis avisos van solo a mi usuario» y «el dueño de cada sub-cuenta decide los suyos». Si yo soy OWNER de todas, cada org me avisaría a mí por defecto. Propuesta: destinatario = OWNER con CallMeBot configurado, ordenado por antigüedad; si un cliente se une después como OWNER y configura el suyo, pasa a recibirlos él y yo dejo de recibirlos de esa org. ¿Vale?
-3. ¿Qué otras entidades con `companyId` copia el paso 2 (proyectos, cotizaciones, pagos), o solo contactos, deals y formularios como pediste? Propongo solo esos tres.
+3. (resuelta: solo esas tres) ¿Qué otras entidades con `companyId` copia el paso 2 (proyectos, cotizaciones, pagos), o solo contactos, deals y formularios como pediste? Propongo solo esos tres.
 
 ## Checklist
 - [x] P1 `GET/POST /api/organizations` + `switch` — prueba: crear org siembra pipeline y plantillas, y me deja OWNER (prueba unitaria + prueba manual tuya).
@@ -61,7 +61,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [x] **Parada tras el paso 1** — aprobado por Noeli.
 - [x] P2 `scripts/company-to-org.ts`: simulacro por defecto, `--apply` explícito, una transacción, informe con cómo deshacer, se niega a repetir si `migratedToOrgId` ya está. Supuestos: original intacto (P1), solo contactos/deals/formularios (P3).
 - [x] P2 SQL `company-migrated-org.up.sql` aplicado en la base (columna `Company.migratedToOrgId` VARCHAR(191) NULL, verificada), `prisma generate` hecho, simulacro corrido con las 3 empresas de cliente.
-- [ ] P2 `--apply`: pendiente de que Noeli diga qué empresa(s). Sin dump previo: `mysqldump` no autentica (plugin `mysql_native_password` ausente en el cliente).
+- [x] P2 `--apply` ejecutado en orden: Dreams Club, Eilen Centro Terapeutico, J&H Multiservices, Noxy Digital (la empresa propia). Sin dump previo: `mysqldump` no autentica (plugin `mysql_native_password` ausente en el cliente); los informes por conversión están en `backups/` (local, ignorado por git).
 - [x] P3 `submit` ya escribía todo en `form.organizationId`; ahora además ignora enlaces a otra org (empresa, correo de bienvenida, tipo de cita, proyecto) y elige el OWNER de forma determinista (`pickNotifyOwner`: el más antiguo con WhatsApp). Pruebas en `organizations.test.ts`.
 - [ ] P4 auditoría de crons + regla de destinatario fijada y probada.
 - [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
@@ -76,3 +76,7 @@ P2: `npm test` 490 (483 pasan, los mismos 7 fallos previos). 6 pruebas nuevas en
 
 P2 simulacro (base real, solo lectura): Dreams Club 63 contactos/2 deals/2 formularios; Eilen Centro Terapeutico 147/0/1; J&H Multiservices 1/0/0.
 P3: `npm test` 493 (486 pasan; los mismos 7 fallos previos). `tsc` limpio. `eslint` solo marca 2 `any` ya existentes en `submit/route.ts`.
+
+Decisiones de Noeli (2026-11-23): los clientes NO entran al CRM; solo el equipo (Noelí y Esthefani). La regla de destinatario de avisos queda en «OWNER más antiguo con WhatsApp» = Noelí, sin ambigüedad.
+Usuarios: la cuenta duplicada «Noeli» (noe.rmorales98@gmail.com, ADMIN) se borró; quedó solo «Noelí» (noepumasnoe@gmail.com, OWNER, con WhatsApp). La duplicada solo tenía 1 membresía y 1 preferencia de dashboard (respaldo en `backups/usuario-duplicado-*.json`).
+Sub-cuentas creadas (miembros: Noelí OWNER, Esthefani ADMIN): Dreams Club (63 contactos, 2 deals, 2 formularios; verificado contra el origen), Eilen Centro Terapeutico (147/0/1), J&H Multiservices LLC (1/0/0), Noxy Digital (5/0/6; ojo: mismo nombre que la org principal).
