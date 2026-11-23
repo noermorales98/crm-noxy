@@ -8,7 +8,7 @@ const TAG_COLORS: Record<string, string> = {
   General: "bg-surface-sidebar text-text-secondary",
   Potente: "bg-amber-50 text-amber-600",
   Rápido: "bg-green-50 text-green-600",
-  Código: "bg-nav-hover text-action-primary",
+  Código: "bg-nav-hover text-action-ink",
   Razonamiento: "bg-violet-50 text-violet-600",
   Visión: "bg-cyan-50 text-cyan-600",
   "Sin filtros": "bg-orange-50 text-orange-600",

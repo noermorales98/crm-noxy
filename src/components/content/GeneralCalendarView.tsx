@@ -290,7 +290,7 @@ export default function GeneralCalendarView() {
         {google && !google.connected && (
           <p className="mb-1 shrink-0 text-xs text-text-secondary" style={{ fontFamily: '"Open Sauce Two",system-ui,sans-serif' }}>
             Conecta Google Calendar en{" "}
-            <Link href="/settings" className="font-semibold text-action-primary hover:underline">Ajustes</Link>
+            <Link href="/settings" className="font-semibold text-action-ink hover:underline">Ajustes</Link>
             {" "}para reflejar las piezas en tu calendario.
           </p>
         )}
@@ -303,7 +303,7 @@ export default function GeneralCalendarView() {
         ) : clients.length === 0 ? (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-surface border border-dashed border-line bg-surface-elevated text-center">
             <p className="mb-3 text-sm text-text-secondary">Crea un cliente o marca para armar el calendario.</p>
-            <Link href="/contenido?new=1" className="text-sm font-semibold text-action-primary hover:underline">
+            <Link href="/contenido?new=1" className="text-sm font-semibold text-action-ink hover:underline">
               Nuevo cliente / marca
             </Link>
           </div>

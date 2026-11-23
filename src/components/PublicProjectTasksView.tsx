@@ -53,7 +53,7 @@ export default function PublicProjectTasksView({ token }: { token: string }) {
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${
               activeTab === tab.key
-                ? "border-action-primary text-text-primary"
+                ? "border-action-ink text-text-primary"
                 : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >

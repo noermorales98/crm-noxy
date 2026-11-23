@@ -59,7 +59,7 @@ export function DashboardGrid({ widgetIds, data, editMode, onReorder, onRemove }
                     {...dragProvided.draggableProps}
                     className={`${widgetSizeClass(w.size)} relative group ${dragSnapshot.isDragging ? "z-10" : ""}`}
                   >
-                    <div className="absolute inset-0 rounded-surface ring-2 ring-action-primary/20 pointer-events-none" />
+                    <div className="absolute inset-0 rounded-surface ring-2 ring-action-ink/20 pointer-events-none" />
                     <div
                       {...dragProvided.dragHandleProps}
                       className="absolute left-2 top-2 z-20 flex size-8 cursor-grab items-center justify-center rounded-[8px] border border-line bg-surface-elevated text-text-secondary hover:text-text-primary active:cursor-grabbing"

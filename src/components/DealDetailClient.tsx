@@ -716,7 +716,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                 onChange={(e) => setTitleValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") { setEditingTitle(false); setTitleValue(deal.title); } }}
                 aria-label="Título del lead"
-                className="h-10 min-h-0! min-w-0 flex-1 border-b-2 border-action-primary bg-transparent text-2xl font-semibold tracking-[-0.02em] text-text-primary outline-none"
+                className="h-10 min-h-0! min-w-0 flex-1 border-b-2 border-action-ink bg-transparent text-2xl font-semibold tracking-[-0.02em] text-text-primary outline-none"
                 autoFocus
               />
               <button type="button" onClick={saveTitle} aria-label="Guardar título" className={QUICK_ACTION}>
@@ -820,7 +820,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
               aria-selected={activeTab === tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex h-11 min-h-0! shrink-0 items-center gap-1.5 border-b-2 px-3 text-sm font-medium transition-colors ${
-                activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"
+                activeTab === tab.key ? "border-action-ink text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"
               }`}
             >
               {tab.label}
@@ -1109,7 +1109,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       ) : (
                         <div className="grid grid-cols-4 gap-1.5 max-h-48 overflow-y-auto">
                           {availableSlots.map((slot) => (
-                            <button key={slot} onClick={() => selectSlot(slot)} className="min-h-11 lg:min-h-10 px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-line rounded-lg hover:bg-action-primary hover:text-action-primary-foreground hover:border-action-primary transition-all">
+                            <button key={slot} onClick={() => selectSlot(slot)} className="min-h-11 lg:min-h-10 px-2 py-2 text-xs font-semibold text-text-primary bg-surface-sidebar border border-line rounded-lg hover:bg-action-primary hover:text-action-primary-foreground hover:border-action-ink transition-all">
                               {new Date(slot).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true })}
                             </button>
                           ))}
@@ -1232,7 +1232,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                         <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} />
                       </button>
                       {quotesValue.amount > 0 && (
-                        <button type="button" onClick={pinQuotesValue} title="Guardar como valor del lead el total de sus cotizaciones" className="ml-1 h-6 min-h-0! min-w-0! shrink-0 rounded-control px-2 text-xs font-semibold text-action-primary hover:bg-nav-hover">
+                        <button type="button" onClick={pinQuotesValue} title="Guardar como valor del lead el total de sus cotizaciones" className="ml-1 h-6 min-h-0! min-w-0! shrink-0 rounded-control px-2 text-xs font-semibold text-action-ink hover:bg-nav-hover">
                           Usar cotizaciones ({fmt(quotesValue.amount, quotesValue.currency)})
                         </button>
                       )}
@@ -1417,7 +1417,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                       onChange={(e) => setLostReason(e.target.value)}
                       placeholder="¿Por qué se perdió?"
                       aria-label="Motivo de la pérdida"
-                      className="h-8 min-h-0! w-full min-w-0 border-b border-line bg-transparent text-right text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-action-primary"
+                      className="h-8 min-h-0! w-full min-w-0 border-b border-line bg-transparent text-right text-sm text-text-primary outline-none placeholder:text-text-secondary focus:border-action-ink"
                     />
                   </dd>
                 </div>

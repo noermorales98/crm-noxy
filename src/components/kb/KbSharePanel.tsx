@@ -275,7 +275,7 @@ export default function KbSharePanel({
                         onClick={() => saveFavicon(item.id, shareIconBg || DEFAULT_SHARE_ICON_BG)}
                         className={`flex size-9 items-center justify-center rounded-lg border ${
                           selected
-                            ? "border-action-primary bg-nav-active text-action-primary"
+                            ? "border-action-ink bg-nav-active text-action-ink"
                             : "border-transparent text-text-primary hover:bg-nav-hover"
                         }`}
                       >

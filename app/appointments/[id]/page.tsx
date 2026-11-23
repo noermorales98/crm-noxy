@@ -94,12 +94,12 @@ export default function AppointmentPage() {
               {(appointment.contact || appointment.deal) && (
                 <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                   {appointment.contact && (
-                    <Link className="font-medium text-action-primary underline" href={`/contacts/${appointment.contact.id}`}>
+                    <Link className="font-medium text-action-ink underline" href={`/contacts/${appointment.contact.id}`}>
                       Contacto: {appointment.contact.firstName} {appointment.contact.lastName ?? ""}
                     </Link>
                   )}
                   {appointment.deal && (
-                    <Link className="font-medium text-action-primary underline" href={`/pipeline/${appointment.deal.id}`}>
+                    <Link className="font-medium text-action-ink underline" href={`/pipeline/${appointment.deal.id}`}>
                       Lead: {appointment.deal.title}
                     </Link>
                   )}

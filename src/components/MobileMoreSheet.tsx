@@ -121,7 +121,7 @@ export default function MobileMoreSheet() {
           {editing && (
             <p className="flex items-center justify-between gap-3 px-2 text-sm text-text-secondary">
               <span>Inicio y Más son fijos. Elige hasta {MAX_CUSTOM_TABS} secciones ({selected.length} de {MAX_CUSTOM_TABS}).</span>
-              <button type="button" onClick={reset} className="min-h-11 shrink-0 px-2 text-sm font-semibold text-action-primary hover:underline">
+              <button type="button" onClick={reset} className="min-h-11 shrink-0 px-2 text-sm font-semibold text-action-ink hover:underline">
                 Restablecer
               </button>
             </p>

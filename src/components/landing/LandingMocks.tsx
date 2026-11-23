@@ -52,7 +52,7 @@ export function AppointmentMock() {
         </div>
         <div className="mt-4 flex items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 text-[11px] font-semibold text-text-primary">
-            <Icon icon={SparklesIcon} size={14} className="text-action-primary" />
+            <Icon icon={SparklesIcon} size={14} className="text-action-ink" />
             Sugerencias de la IA
           </p>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors duration-300 ${pending > 0 ? "bg-brand-lime text-brand-obsidian" : "bg-success-soft text-success"}`}>
@@ -105,7 +105,7 @@ export function DigestMock() {
         <ul className="mt-3 flex flex-col gap-2 text-text-secondary-strong">
           {rows.map((r, i) => (
             <li key={r} className={`flex items-start gap-2 transition-all duration-300 ${tick > i ? "translate-y-0 opacity-100" : "translate-y-1.5 opacity-0"}`}>
-              <Icon icon={CheckmarkCircle02Icon} size={14} className="mt-0.5 shrink-0 text-action-primary" />
+              <Icon icon={CheckmarkCircle02Icon} size={14} className="mt-0.5 shrink-0 text-action-ink" />
               {r}
             </li>
           ))}
@@ -128,7 +128,7 @@ export function QuoteMock() {
     <div ref={ref} role="img" aria-label="Vista previa del recorrido de una cotización: enviada, abierta por el cliente y aceptada." className={`${CARD} p-4`}>
       <div aria-hidden="true">
         <p className="flex items-center gap-2 text-[11px] font-semibold text-text-primary">
-          <Icon icon={FileEditIcon} size={14} className="text-action-primary" />
+          <Icon icon={FileEditIcon} size={14} className="text-action-ink" />
           Propuesta de marca y contenido
         </p>
         <ol className="mt-3 flex flex-col gap-3">
@@ -168,7 +168,7 @@ export function ContentMock() {
                 {items.map((it) => {
                   const shown = tick > seen++;
                   return (
-                    <span key={it} className={`truncate rounded px-1.5 py-1 text-[10px] font-medium transition-all duration-300 ${shown ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"} ${it === "Grabar" ? "bg-brand-lime text-brand-obsidian" : "bg-surface-elevated text-action-primary"}`}>{it}</span>
+                    <span key={it} className={`truncate rounded px-1.5 py-1 text-[10px] font-medium transition-all duration-300 ${shown ? "translate-y-0 opacity-100" : "-translate-y-1.5 opacity-0"} ${it === "Grabar" ? "bg-brand-lime text-brand-obsidian" : "bg-surface-elevated text-action-ink"}`}>{it}</span>
                   );
                 })}
               </div>
@@ -176,7 +176,7 @@ export function ContentMock() {
           ))}
         </div>
         <p className="mt-2.5 flex items-center gap-1.5 text-[10px] text-text-secondary-strong">
-          <Icon icon={Clock01Icon} size={13} className="text-action-primary" />
+          <Icon icon={Clock01Icon} size={13} className="text-action-ink" />
           Aviso el miércoles: mañana hay grabación
         </p>
       </div>
@@ -194,10 +194,10 @@ export function ProjectMock() {
       <div aria-hidden="true">
         <div className="flex items-center justify-between gap-2">
           <p className="flex items-center gap-2 text-[11px] font-semibold text-text-primary">
-            <Icon icon={FolderLibraryIcon} size={14} className="text-action-primary" />
+            <Icon icon={FolderLibraryIcon} size={14} className="text-action-ink" />
             Lanzamiento Casa Alba
           </p>
-          <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-[10px] font-semibold text-action-primary">{tick} de 3</span>
+          <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-[10px] font-semibold text-action-ink">{tick} de 3</span>
         </div>
         <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-surface-sidebar">
           <div className="h-full rounded-full bg-action-primary transition-[width] duration-500" style={{ width: `${(tick / 3) * 100}%` }} />

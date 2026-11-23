@@ -229,7 +229,7 @@ export default function ClientDrawer({
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
+                className={`px-4 py-3 text-sm font-semibold border-b-2 transition-colors -mb-px ${tab === t ? "border-action-ink text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
               >
                 {labels[t]}
               </button>

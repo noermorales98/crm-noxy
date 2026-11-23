@@ -90,7 +90,7 @@ export default function ProjectTasksView({ projectId }: { projectId: string }) {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-primary text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === tab.key ? "border-action-ink text-text-primary" : "border-transparent text-text-secondary hover:text-text-primary"}`}
             >
               {tab.label}
               <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === tab.key ? "bg-action-primary text-action-primary-foreground" : "bg-gray-100 text-text-secondary"}`}>{tab.count}</span>

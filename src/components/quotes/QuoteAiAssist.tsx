@@ -67,7 +67,7 @@ export function QuoteAiAssist({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="-my-3 inline-flex min-h-11 self-start items-center text-sm font-semibold text-action-primary hover:underline lg:my-0 lg:min-h-0"
+        className="-my-3 inline-flex min-h-11 self-start items-center text-sm font-semibold text-action-ink hover:underline lg:my-0 lg:min-h-0"
       >
         Ayuda de IA
       </button>

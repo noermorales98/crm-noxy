@@ -32,7 +32,7 @@ export default function SettingsNotificationsPage() {
           <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
             <p className="text-sm text-text-secondary">
               Recibe alertas vía{" "}
-              <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-primary hover:underline">CallMeBot</a>{" "}
+              <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-ink hover:underline">CallMeBot</a>{" "}
               cuando ocurran eventos en tu CRM.
             </p>
             <div className="flex flex-col gap-2">

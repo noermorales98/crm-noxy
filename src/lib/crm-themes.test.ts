@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
-import { CRM_THEMES, DEFAULT_CRM_THEME_ID, contrastRatio, crmThemeCssVariables, isCrmThemeId, navActiveInk, resolveCrmTheme, type CrmThemeTokens } from "./crm-themes.ts";
+import { CRM_THEMES, DEFAULT_CRM_THEME_ID, actionInk, actionInkHover, contrastRatio, crmThemeCssVariables, isCrmThemeId, navActiveInk, resolveCrmTheme, type CrmThemeTokens } from "./crm-themes.ts";
 
 const TOKEN_KEYS: Array<keyof CrmThemeTokens> = [
   "surfaceApp",
@@ -20,9 +20,9 @@ const TOKEN_KEYS: Array<keyof CrmThemeTokens> = [
   "highlight",
 ];
 
-test("ships ten unique light themes including the requested Obsidian palette", () => {
-  assert.equal(CRM_THEMES.length, 10);
-  assert.equal(new Set(CRM_THEMES.map(({ id }) => id)).size, 10);
+test("ships eighteen unique light themes including the requested Obsidian palette", () => {
+  assert.equal(CRM_THEMES.length, 18);
+  assert.equal(new Set(CRM_THEMES.map(({ id }) => id)).size, 18);
   assert.ok(CRM_THEMES.every(({ isDark }) => isDark === false));
 
   const obsidian = resolveCrmTheme("noxy-obsidian");
@@ -87,5 +87,39 @@ test("light frame pairs meet WCAG AA in every theme", () => {
     assert.equal((crmThemeCssVariables(theme) as Record<string, string>)["--nav-active-ink"], ink, `${id}: --nav-active-ink`);
     // Foco visible también sobre el marco.
     assert.ok(contrastRatio(tokens.focus, tokens.surfaceSidebar) >= 3, `${id}: focus on frame`);
+  }
+});
+
+test("la tinta de acción (texto, enlaces e iconos) llega a AA en todas las superficies de cada tema", () => {
+  for (const theme of CRM_THEMES) {
+    const { id, tokens } = theme;
+    const ink = actionInk(theme);
+    for (const surface of [tokens.surfaceApp, tokens.surfaceSidebar, tokens.surfaceElevated, tokens.navActive, tokens.navHover]) {
+      assert.ok(contrastRatio(ink, surface) >= 4.5, `${id}: tinta ${ink} sobre ${surface} = ${contrastRatio(ink, surface).toFixed(2)}`);
+    }
+    // Un paso más oscura al pasar el puntero, sin perder contraste.
+    assert.ok(contrastRatio(actionInkHover(theme), tokens.surfaceElevated) >= contrastRatio(ink, tokens.surfaceElevated), `${id}: hover`);
+    const css = crmThemeCssVariables(theme) as Record<string, string>;
+    assert.equal(css["--color-action-ink"], ink);
+    assert.equal(css["--action-ink"], ink);
+    assert.equal(css["--color-action-ink-hover"], actionInkHover(theme));
+  }
+});
+
+test("Lima y Azul Recuerdo conservan su matiz en la tinta: oscurecen su color, no lo cambian por gris", () => {
+  const lime = actionInk(resolveCrmTheme("noxy-lime"));
+  const memory = actionInk(resolveCrmTheme("noxy-memory"));
+  assert.notEqual(lime, "#C8FE37");
+  assert.notEqual(memory, "#7F96F9");
+  // Lima sigue siendo verdosa (G domina) y Recuerdo azulada (B domina).
+  const [lr, lg, lb] = [1, 3, 5].map((i) => Number.parseInt(lime.slice(i, i + 2), 16));
+  const [mr, mg, mb] = [1, 3, 5].map((i) => Number.parseInt(memory.slice(i, i + 2), 16));
+  assert.ok(lg > lr && lg > lb);
+  assert.ok(mb > mr && mb > mg);
+});
+
+test("el color de acción original sigue valiendo para botones (fondo con su texto encima)", () => {
+  for (const { id, tokens } of CRM_THEMES) {
+    assert.ok(contrastRatio(tokens.actionPrimaryForeground, tokens.actionPrimary) >= 4.5, `${id}: texto del botón`);
   }
 });

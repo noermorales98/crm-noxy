@@ -421,7 +421,7 @@ export default function KbSidebarTree({ onNavigate }: { onNavigate?: () => void 
             <p className="text-xs text-text-secondary mb-2">Sin páginas</p>
             <button
               onClick={() => createRoot(false)}
-              className="text-xs text-action-primary font-medium underline"
+              className="text-xs text-action-ink font-medium underline"
             >
               Crear primera página
             </button>

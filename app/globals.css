@@ -26,6 +26,9 @@
   --color-action-primary: #3545D6;
   --color-action-primary-foreground: #FFFFFF;
   --color-action-secondary: #5363EE;
+  /* Color de acción para TEXTO, enlaces e iconos: llega a 4.5:1 en cada tema (el color de acción de Lima o Recuerdo no). */
+  --color-action-ink: #3545D6;
+  --color-action-ink-hover: #2C38AC;
   --color-focus: #3545D6;
   --color-highlight: #C8FE37;
   /* Estado (semánticos: ningún tema personal los redefine). */
@@ -75,6 +78,7 @@
   --action-primary: #3545D6;
   --action-primary-foreground: #FFFFFF;
   --action-secondary: #5363EE;
+  --action-ink: #3545D6;
   --focus: #3545D6;
   --highlight: #C8FE37;
   /* Tinta del destino activo del marco (navActiveInk del tema; Índigo por defecto). */

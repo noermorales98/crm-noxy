@@ -93,7 +93,7 @@ function DealCard({ deal, index, category }: { deal: any; index: number; categor
             deal.currency === "MXN" ? fmtMXN(deal.value ?? 0) : fmtUSD(deal.value ?? 0),
             isOverdue ? "Necesita atención" : "En camino",
           ].filter(Boolean).join(", ")}
-          className="cursor-pointer select-none rounded-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary"
+          className="cursor-pointer select-none rounded-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-ink"
         >
           <BoardCard dragging={snapshot.isDragging}>
             <p className="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-text-primary">{deal.title}</p>

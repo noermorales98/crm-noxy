@@ -11,7 +11,7 @@ export default function ThemeSelector() {
     <section aria-labelledby="appearance-heading">
       <div className="flex items-start gap-3">
         <span
-          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-nav-active text-action-primary"
+          className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-nav-active text-action-ink"
           aria-hidden="true"
         >
           <Palette size={18} />
@@ -37,8 +37,8 @@ export default function ThemeSelector() {
               onClick={() => selectTheme(themeOption.id)}
               className={`group min-h-44 rounded-surface border p-3 text-left transition-colors duration-200 motion-reduce:transition-none ${
                 selected
-                  ? "border-action-primary bg-nav-hover"
-                  : "border-border-subtle bg-surface-elevated hover:border-action-primary/45 hover:bg-nav-hover"
+                  ? "border-action-ink bg-nav-hover"
+                  : "border-border-subtle bg-surface-elevated hover:border-action-ink/45 hover:bg-nav-hover"
               }`}
             >
               <span
@@ -79,7 +79,7 @@ export default function ThemeSelector() {
                 <span
                   className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                     selected
-                      ? "border-action-primary bg-action-primary text-action-primary-foreground"
+                      ? "border-action-ink bg-action-primary text-action-primary-foreground"
                       : "border-border-subtle bg-surface-elevated text-transparent"
                   }`}
                   aria-hidden="true"

@@ -267,7 +267,7 @@ export default function CampaignsPage() {
   const statusBadge = (camp: Campaign) => (
     <span className="flex flex-col items-start gap-1">
       {camp.status === "DRAFT" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-surface-sidebar px-2.5 text-xs font-semibold text-text-secondary"><HugeiconsIcon icon={Clock01Icon} size={12} /> Borrador</span>}
-      {camp.status === "SENDING" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-nav-hover px-2.5 text-xs font-semibold text-action-primary"><HugeiconsIcon icon={SentIcon} size={12} /> Enviando</span>}
+      {camp.status === "SENDING" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-nav-hover px-2.5 text-xs font-semibold text-action-ink"><HugeiconsIcon icon={SentIcon} size={12} /> Enviando</span>}
       {camp.status === "COMPLETED" && <span className="inline-flex h-6 items-center gap-1.5 rounded-full bg-success-soft px-2.5 text-xs font-semibold text-success"><HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} /> Completada</span>}
       {camp.status === "SENDING" && (
         <span className="text-xs text-text-secondary">
@@ -281,7 +281,7 @@ export default function CampaignsPage() {
     <span className="flex flex-col gap-0.5 text-xs">
       <span className="text-sm font-semibold text-text-primary">{camp.company?.name || "Sin empresa"}</span>
       {camp.project ? (
-        <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Briefcase01Icon} size={12} /> {camp.project.name}</span>
+        <span className="flex items-center gap-1 font-medium text-action-ink"><HugeiconsIcon icon={Briefcase01Icon} size={12} /> {camp.project.name}</span>
       ) : camp.targetForm ? (
         <span className="flex items-center gap-1 font-medium text-purple-700"><HugeiconsIcon icon={Note01Icon} size={12} /> {camp.targetForm.name}</span>
       ) : (
@@ -294,7 +294,7 @@ export default function CampaignsPage() {
         <span className="flex items-center gap-1 font-medium text-amber-800"><HugeiconsIcon icon={Clock01Icon} size={12} /> Inicia: {shortDateTime(camp.scheduledAt)}</span>
       )}
       {camp.status === "SENDING" && camp.nextScheduledAt && (
-        <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Clock01Icon} size={12} /> Próximo envío: {shortDateTime(camp.nextScheduledAt)}</span>
+        <span className="flex items-center gap-1 font-medium text-action-ink"><HugeiconsIcon icon={Clock01Icon} size={12} /> Próximo envío: {shortDateTime(camp.nextScheduledAt)}</span>
       )}
     </span>
   );
@@ -445,11 +445,11 @@ export default function CampaignsPage() {
                     <label className="text-sm font-semibold text-text-primary">Destinatarios:</label>
                     <div className="flex flex-col gap-3">
                       <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
-                        <input type="radio" name="targetType" checked={targetType === "ALL"} onChange={() => setTargetType("ALL")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <input type="radio" name="targetType" checked={targetType === "ALL"} onChange={() => setTargetType("ALL")} className="size-4 accent-action-ink border-line focus:ring-action-ink" />
                         <span className="text-sm font-medium text-text-primary">Toda la empresa</span>
                       </label>
                       <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
-                        <input type="radio" name="targetType" checked={targetType === "PROJECT"} onChange={() => setTargetType("PROJECT")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <input type="radio" name="targetType" checked={targetType === "PROJECT"} onChange={() => setTargetType("PROJECT")} className="size-4 accent-action-ink border-line focus:ring-action-ink" />
                         <span className="text-sm font-medium text-text-primary">Un proyecto específico</span>
                       </label>
                       {targetType === "PROJECT" && (
@@ -459,7 +459,7 @@ export default function CampaignsPage() {
                         </select>
                       )}
                       <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer lg:min-h-9">
-                        <input type="radio" name="targetType" checked={targetType === "FORM"} onChange={() => setTargetType("FORM")} className="size-4 accent-action-primary border-line focus:ring-action-primary" />
+                        <input type="radio" name="targetType" checked={targetType === "FORM"} onChange={() => setTargetType("FORM")} className="size-4 accent-action-ink border-line focus:ring-action-ink" />
                         <span className="text-sm font-medium text-text-primary">Un formulario específico</span>
                       </label>
                       {targetType === "FORM" && (
@@ -516,7 +516,7 @@ export default function CampaignsPage() {
                       type="button"
                       onClick={addStep}
                       disabled={steps.length >= 10}
-                      className="shrink-0 min-h-11 px-3 rounded-control text-sm font-semibold text-action-primary bg-nav-hover hover:bg-nav-active transition-colors disabled:opacity-40 lg:min-h-8"
+                      className="shrink-0 min-h-11 px-3 rounded-control text-sm font-semibold text-action-ink bg-nav-hover hover:bg-nav-active transition-colors disabled:opacity-40 lg:min-h-8"
                     >
                       + Agregar seguimiento
                     </button>

@@ -76,7 +76,7 @@ export default async function ProjectInfoPage(props: { params: Promise<{ id: str
             <ul className="divide-y divide-line">
               {project.forms.map((f) => (
                 <li key={f.id} className="py-2.5 flex items-center justify-between gap-2">
-                  <Link href={`/projects/${id}/registros?formId=${f.id}`} className="block min-h-11 truncate text-sm font-medium leading-[44px] text-text-primary hover:text-action-primary lg:min-h-0 lg:leading-normal">
+                  <Link href={`/projects/${id}/registros?formId=${f.id}`} className="block min-h-11 truncate text-sm font-medium leading-[44px] text-text-primary hover:text-action-ink lg:min-h-0 lg:leading-normal">
                     {f.name}
                   </Link>
                   <span className="text-xs text-text-secondary shrink-0">

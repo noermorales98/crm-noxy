@@ -494,7 +494,7 @@ export default function QuoteForm({ mode, quoteId }: QuoteFormProps) {
             type="checkbox"
             checked={splitPayment}
             onChange={(e) => setSplitPayment(e.target.checked)}
-            className="w-4 h-4 rounded accent-action-primary"
+            className="w-4 h-4 rounded accent-action-ink"
           />
           <span className="text-sm font-medium text-text-primary">
             Dividir el cobro en dos pagos (anticipo + pago final)

@@ -23,7 +23,7 @@ export function Block({ title, action, children, className }: BlockProps) {
             <Link
               key={item.label}
               href={item.href}
-              className="-mr-2 inline-flex min-h-11 items-center rounded-control px-2 text-sm font-semibold text-action-primary hover:underline"
+              className="-mr-2 inline-flex min-h-11 items-center rounded-control px-2 text-sm font-semibold text-action-ink hover:underline"
             >
               {item.label}
             </Link>
@@ -32,7 +32,7 @@ export function Block({ title, action, children, className }: BlockProps) {
               key={item.label}
               type="button"
               onClick={item.onClick}
-              className="-mr-2 inline-flex min-h-11 items-center rounded-control px-2 text-sm font-semibold text-action-primary hover:underline"
+              className="-mr-2 inline-flex min-h-11 items-center rounded-control px-2 text-sm font-semibold text-action-ink hover:underline"
             >
               {item.label}
             </button>

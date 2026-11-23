@@ -263,7 +263,7 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
                   <h4 className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{note.title || "Sin título"}</h4>
                   <Chip>{SOURCE_LABEL[note.source]}</Chip>
                   {safeHref(note.url) && (
-                    <a href={safeHref(note.url)!} target="_blank" rel="noreferrer" className="text-xs font-medium text-action-primary underline">
+                    <a href={safeHref(note.url)!} target="_blank" rel="noreferrer" className="text-xs font-medium text-action-ink underline">
                       Abrir
                     </a>
                   )}

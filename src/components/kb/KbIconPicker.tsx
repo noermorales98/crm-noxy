@@ -106,7 +106,7 @@ export default function KbIconPicker({
               title={p.label}
               onClick={() => applyColors(p.iconColor, p.iconBg)}
               className={`w-7 h-7 rounded-lg border-2 transition-all ${
-                iconColor === p.iconColor && iconBg === p.iconBg ? "border-action-primary scale-105" : "border-transparent"
+                iconColor === p.iconColor && iconBg === p.iconBg ? "border-action-ink scale-105" : "border-transparent"
               }`}
               style={{ backgroundColor: p.iconBg }}
             >
@@ -153,7 +153,7 @@ export default function KbIconPicker({
                 type="button"
                 onClick={() => apply(e)}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg text-xl hover:bg-nav-hover ${
-                  currentEmoji === e ? "ring-1 ring-action-primary" : ""
+                  currentEmoji === e ? "ring-1 ring-action-ink" : ""
                 }`}
               >
                 {e}
@@ -189,7 +189,7 @@ export default function KbIconPicker({
                     title={name}
                     onClick={() => apply(val)}
                     className={`w-9 h-9 flex items-center justify-center rounded-lg hover:bg-nav-hover transition-colors ${
-                      selected ? "ring-1 ring-action-primary" : ""
+                      selected ? "ring-1 ring-action-ink" : ""
                     }`}
                     style={{ backgroundColor: iconBg }}
                   >

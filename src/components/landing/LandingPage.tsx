@@ -75,7 +75,7 @@ const BENEFITS = [
 ];
 
 function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="inline-flex items-center rounded-full border border-line bg-surface-elevated px-3 py-1 text-xs font-semibold text-action-primary">{children}</span>;
+  return <span className="inline-flex items-center rounded-full border border-line bg-surface-elevated px-3 py-1 text-xs font-semibold text-action-ink">{children}</span>;
 }
 
 
@@ -203,7 +203,7 @@ export default function LandingPage() {
           <div className="mt-12 grid gap-4 lg:grid-cols-6">
             <Reveal className="lg:col-span-4">
               <article className="h-full rounded-surface border border-line bg-surface-elevated p-5 sm:p-7">
-                <Icon icon={Calendar03Icon} size={22} className="text-action-primary" />
+                <Icon icon={Calendar03Icon} size={22} className="text-action-ink" />
                 <h3 className="mt-4 text-xl font-semibold">Tus reuniones se convierten en acciones</h3>
                 <p className="mt-2 max-w-xl text-text-secondary-strong">Conecta Granola o Notion, o escribe tus notas. La IA propone tareas, citas y contactos nuevos. Nada se crea hasta que tú lo apruebas.</p>
                 <div className="mt-6"><AppointmentMock /></div>
@@ -223,7 +223,7 @@ export default function LandingPage() {
             </Reveal>
             <Reveal className="lg:col-span-2">
               <article className="h-full rounded-surface border border-line bg-surface-elevated p-5 sm:p-6">
-                <Icon icon={FileEditIcon} size={22} className="text-action-primary" />
+                <Icon icon={FileEditIcon} size={22} className="text-action-ink" />
                 <h3 className="mt-4 text-lg font-semibold">Sabes cuándo abrieron tu cotización</h3>
                 <p className="mt-1.5 text-sm text-text-secondary-strong">El CRM registra cuando el cliente abre el enlace por primera vez y lo muestra en el historial.</p>
                 <div className="mt-5"><QuoteMock /></div>
@@ -231,7 +231,7 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={80} className="lg:col-span-2">
               <article className="h-full rounded-surface border border-line bg-surface-sidebar p-5 sm:p-6">
-                <Icon icon={Video01Icon} size={22} className="text-action-primary" />
+                <Icon icon={Video01Icon} size={22} className="text-action-ink" />
                 <h3 className="mt-4 text-lg font-semibold">Contenido sin improvisar</h3>
                 <p className="mt-1.5 text-sm text-text-secondary-strong">Calendario semanal y aviso antes de cada grabación.</p>
                 <div className="mt-5"><ContentMock /></div>
@@ -239,7 +239,7 @@ export default function LandingPage() {
             </Reveal>
             <Reveal delay={160} className="lg:col-span-2">
               <article className="h-full rounded-surface border border-line bg-surface-elevated p-5 sm:p-6">
-                <Icon icon={FolderLibraryIcon} size={22} className="text-action-primary" />
+                <Icon icon={FolderLibraryIcon} size={22} className="text-action-ink" />
                 <h3 className="mt-4 text-lg font-semibold">Un portal para tu cliente</h3>
                 <p className="mt-1.5 text-sm text-text-secondary-strong">Ve el avance de su proyecto sin pedirte actualizaciones.</p>
                 <div className="mt-5"><ProjectMock /></div>
@@ -256,7 +256,7 @@ export default function LandingPage() {
           <div className="mt-14 grid gap-12 md:grid-cols-3">
             {GROUPS.map((group, gi) => (
               <Reveal key={group.title} delay={gi * 80}>
-                <h3 className="text-sm font-semibold text-action-primary">{group.title}</h3>
+                <h3 className="text-sm font-semibold text-action-ink">{group.title}</h3>
                 <ul className="mt-5 flex flex-col gap-5">
                   {group.items.map((item) => (
                     <li key={item.name} className="flex gap-3">
@@ -284,7 +284,7 @@ export default function LandingPage() {
               {TRUST.map((t, i) => (
                 <li key={t.title}>
                   <Reveal delay={i * 80} className="flex gap-4">
-                    <Icon icon={t.icon} size={22} className="mt-0.5 shrink-0 text-action-primary" />
+                    <Icon icon={t.icon} size={22} className="mt-0.5 shrink-0 text-action-ink" />
                     <div>
                       <p className="font-semibold">{t.title}</p>
                       <p className="mt-1.5 text-text-secondary-strong">{t.text}</p>

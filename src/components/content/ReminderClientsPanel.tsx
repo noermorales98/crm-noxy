@@ -106,7 +106,7 @@ export default function ReminderClientsPanel({ clients }: { clients: ReminderCli
               aria-label={`Seleccionar ${row.name}`}
               checked={selected.includes(row.id)}
               onChange={() => toggleSelected(row.id)}
-              className="size-4 shrink-0 accent-[var(--color-action-primary)]"
+              className="size-4 shrink-0 accent-[var(--color-action-ink)]"
             />
             <span aria-hidden="true" className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: row.color }} />
             <span className="min-w-0 flex-1">

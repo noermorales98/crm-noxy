@@ -132,7 +132,7 @@ export default function OrgSwitcherMenu({ collapsed = false, onNavigate, tipProp
               >
                 <OrgMark brandColor={org.brandColor} brandIcon={org.brandIcon} name={org.name} size={24} />
                 <span className="min-w-0 flex-1 truncate">{org.name}</span>
-                {org.current && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} aria-hidden="true" className="shrink-0 text-action-primary" />}
+                {org.current && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} aria-hidden="true" className="shrink-0 text-action-ink" />}
               </button>
             ))}
           </div>
@@ -160,7 +160,7 @@ export default function OrgSwitcherMenu({ collapsed = false, onNavigate, tipProp
                   maxLength={120}
                   className="min-h-11 min-w-0 flex-1 rounded-control bg-nav-hover px-2 text-sm text-text-primary outline-none placeholder:text-text-placeholder focus-visible:ring-2 focus-visible:ring-focus"
                 />
-                <button type="submit" disabled={busy || !name.trim()} className="min-h-11 rounded-control px-3 text-sm font-semibold text-action-primary outline-none hover:bg-nav-hover focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50">
+                <button type="submit" disabled={busy || !name.trim()} className="min-h-11 rounded-control px-3 text-sm font-semibold text-action-ink outline-none hover:bg-nav-hover focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50">
                   {busy ? "Creando…" : "Crear"}
                 </button>
               </form>

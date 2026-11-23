@@ -36,7 +36,7 @@ export function CheckRow({ checked, onChange, label, description, disabled = fal
         className={cn(
           "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors",
           "peer-focus-visible:ring-2 peer-focus-visible:ring-focus peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-surface-elevated",
-          checked ? "border-action-primary bg-action-primary text-action-primary-foreground" : "border-text-secondary/40 bg-surface-elevated",
+          checked ? "border-action-ink bg-action-primary text-action-primary-foreground" : "border-text-secondary/40 bg-surface-elevated",
         )}
       >
         {checked && <HugeiconsIcon icon={Tick02Icon} size={11} strokeWidth={3} />}

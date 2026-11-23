@@ -417,7 +417,7 @@ export default function SchedulePage() {
                               <button
                                 key={slot}
                                 onClick={() => handleSlotSelect(slot)}
-                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-action-primary hover:bg-action-primary hover:text-action-primary-foreground text-sm font-medium text-text-primary transition-colors text-center"
+                                className="py-2.5 px-4 rounded-lg border border-border-subtle hover:border-action-ink hover:bg-action-primary hover:text-action-primary-foreground text-sm font-medium text-text-primary transition-colors text-center"
                               >
                                 {formatSlot(slot)}
                               </button>

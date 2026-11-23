@@ -207,7 +207,7 @@ export default function FormsPage() {
     const iframeCode = `<iframe src="${formUrl}" width="100%" height="600" frameborder="0"></iframe>`;
     return (
       <div className="flex w-full min-w-0 flex-col gap-3 py-2 lg:flex-row lg:items-center">
-        <Link href={`/forms/${form.id}`} className="group min-w-0 flex-1 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary">
+        <Link href={`/forms/${form.id}`} className="group min-w-0 flex-1 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-ink">
           <span className="flex flex-wrap items-center gap-2">
             <span className="truncate font-semibold text-text-primary group-hover:underline">{form.name}</span>
             <Chip tone={form.isActive ? "done" : "neutral"}>{form.isActive ? "Activo" : "Offline"}</Chip>
@@ -215,7 +215,7 @@ export default function FormsPage() {
           <span className="mt-0.5 block truncate text-sm text-text-secondary">{form.description || "Sin descripción."}</span>
           <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-text-secondary">
             <span>{form.company?.name || "Empresa desconocida"}</span>
-            {form.project && <span className="text-action-primary">Proyecto: {form.project.name}</span>}
+            {form.project && <span className="text-action-ink">Proyecto: {form.project.name}</span>}
             <span className="tabular-nums">{form._count.fields} campos</span>
             <span className="tabular-nums">{new Date(form.createdAt).toLocaleDateString("es-MX")}</span>
           </span>

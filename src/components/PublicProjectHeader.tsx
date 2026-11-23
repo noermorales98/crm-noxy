@@ -42,7 +42,7 @@ export default function PublicProjectHeader({
                 href={tab.href}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold border-b-2 transition-colors -mb-px whitespace-nowrap ${
                   isActive
-                    ? "border-action-primary text-text-primary"
+                    ? "border-action-ink text-text-primary"
                     : "border-transparent text-text-secondary hover:text-text-primary"
                 }`}
               >

@@ -181,7 +181,7 @@ export default function AppointmentTypesPage() {
 
   const renderType = (type: TypeRow) => (
     <div className="flex w-full min-w-0 flex-col gap-3 py-2 lg:flex-row lg:items-center">
-      <button type="button" onClick={() => openEdit(type)} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary">
+      <button type="button" onClick={() => openEdit(type)} className="flex min-h-11 min-w-0 flex-1 items-start gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-ink">
         {/* Color del tipo de cita: dato que guarda el usuario. */}
         <span className="mt-1.5 size-3 shrink-0 rounded-full" style={{ backgroundColor: type.color }} aria-hidden="true" />
         <span className="min-w-0 flex-1">
@@ -195,7 +195,7 @@ export default function AppointmentTypesPage() {
             <span className="flex items-center gap-1"><HugeiconsIcon icon={Clock01Icon} size={12} /> {type.duration} min</span>
             <span className="tabular-nums">{type._count?.appointments || 0} citas</span>
             {(type._count?.forms ?? 0) > 0 && (
-              <span className="flex items-center gap-1 font-medium text-action-primary"><HugeiconsIcon icon={Note01Icon} size={12} /> Con formulario</span>
+              <span className="flex items-center gap-1 font-medium text-action-ink"><HugeiconsIcon icon={Note01Icon} size={12} /> Con formulario</span>
             )}
             {type.company && (
               <span className="flex items-center gap-1">

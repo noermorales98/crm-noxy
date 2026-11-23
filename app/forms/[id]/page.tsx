@@ -827,7 +827,7 @@ export default function FormBuilderPage() {
                           <button
                             key={opt.value}
                             onClick={() => setSuccessAction(opt.value)}
-                            className={`flex-1 min-h-11 py-2.5 rounded-control border text-sm font-semibold ${successAction === opt.value ? "border-action-primary bg-action-primary text-action-primary-foreground" : "border-line text-text-secondary hover:bg-surface-sidebar"}`}
+                            className={`flex-1 min-h-11 py-2.5 rounded-control border text-sm font-semibold ${successAction === opt.value ? "border-action-ink bg-action-primary text-action-primary-foreground" : "border-line text-text-secondary hover:bg-surface-sidebar"}`}
                           >
                             {opt.label}
                           </button>

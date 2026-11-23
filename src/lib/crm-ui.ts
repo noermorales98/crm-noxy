@@ -18,7 +18,7 @@ export const btnPrimary =
 export const btnGhost =
   "inline-flex min-h-11 items-center justify-center bg-surface-sidebar text-text-primary rounded-control px-3 py-2 text-sm font-medium hover:bg-nav-hover transition-colors duration-200";
 
-export const btnGhostActive = "inline-flex min-h-11 items-center justify-center bg-nav-active text-action-primary rounded-control px-3 py-2 text-sm font-semibold";
+export const btnGhostActive = "inline-flex min-h-11 items-center justify-center bg-nav-active text-action-ink rounded-control px-3 py-2 text-sm font-semibold";
 
 export const sectionLabel =
   "text-xs font-semibold text-text-secondary";

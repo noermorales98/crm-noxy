@@ -195,7 +195,7 @@ export default function CreateProjectPage() {
                         type="button"
                         onClick={() => setIcon(item.id)}
                         className={`flex flex-col items-center justify-center p-4 rounded-lg border transition-all ${icon === item.id
-                          ? "border-action-primary bg-action-primary text-action-primary-foreground transform scale-105"
+                          ? "border-action-ink bg-action-primary text-action-primary-foreground transform scale-105"
                           : "border-border-subtle bg-surface-sidebar text-text-secondary hover:border-border-subtle hover:bg-white"
                           }`}
                       >

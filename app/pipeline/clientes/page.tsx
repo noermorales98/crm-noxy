@@ -210,7 +210,7 @@ function ClientRow({
       <button
         type="button"
         onClick={onOpen}
-        className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary"
+        className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-control text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-ink"
       >
         <ContactAvatar />
         <span className="min-w-0 flex-1">

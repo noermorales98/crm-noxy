@@ -96,7 +96,7 @@ function ClientModal({
                   onClick={() => setKind(opt.v)}
                   className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
                     kind === opt.v
-                      ? "border-action-primary bg-nav-active text-action-primary font-semibold"
+                      ? "border-action-ink bg-nav-active text-action-ink font-semibold"
                       : "border-line text-text-secondary hover:bg-surface-sidebar"
                   }`}
                 >
@@ -363,7 +363,7 @@ export default function ContentClientsView() {
                 {c.context && (
                   <>
                     <span aria-hidden="true">·</span>
-                    <span className="font-semibold text-action-primary">Con contexto IA</span>
+                    <span className="font-semibold text-action-ink">Con contexto IA</span>
                   </>
                 )}
               </p>

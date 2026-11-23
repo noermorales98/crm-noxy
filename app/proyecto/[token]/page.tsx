@@ -115,7 +115,7 @@ export default async function PublicProjectOverviewPage({ params }: { params: Pr
             <ul className="divide-y divide-gray-50">
               {docsRelations.map((r) => (
                 <li key={r.id} className="py-2.5">
-                  <Link href={`/proyecto/${token}/docs/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-primary">
+                  <Link href={`/proyecto/${token}/docs/${r.page.id}`} className="flex items-center gap-2 text-sm font-medium text-text-primary hover:text-action-ink">
                     <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
                     <span className="truncate">{r.page.title}</span>
                   </Link>

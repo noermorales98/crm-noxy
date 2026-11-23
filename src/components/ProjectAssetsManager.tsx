@@ -168,7 +168,7 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                       </span>
                       <button
                         onClick={handleSelectAllFiltered}
-                        className="text-xs font-bold text-action-primary hover:text-action-secondary px-2 py-1 bg-nav-hover hover:bg-nav-active rounded-md transition-colors"
+                        className="text-xs font-bold text-action-ink hover:text-action-ink-hover px-2 py-1 bg-nav-hover hover:bg-nav-active rounded-md transition-colors"
                       >
                         Seleccionar Todo / Ninguno
                       </button>
@@ -186,12 +186,12 @@ export default function ProjectAssetsManager({ projectId }: ProjectAssetsManager
                           type="checkbox"
                           checked={selectedTasks.has(t.id)}
                           onChange={() => toggleSelection(t.id)}
-                          className="w-4 h-4 rounded text-action-primary border-border-subtle focus:ring-focus"
+                          className="w-4 h-4 rounded text-action-ink border-border-subtle focus:ring-focus"
                         />
                         <div className="flex flex-col min-w-0">
                           <span className={`text-sm font-semibold truncate ${t.isCompleted ? "text-text-secondary line-through" : "text-text-primary"}`}>{t.title}</span>
                           <div className="flex gap-2 flex-wrap text-xs text-text-secondary">
-                            {t.company && <span className="text-action-primary bg-nav-hover px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={Building04Icon} size={10} className="inline mr-0.5" />{t.company.name}</span>}
+                            {t.company && <span className="text-action-ink bg-nav-hover px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={Building04Icon} size={10} className="inline mr-0.5" />{t.company.name}</span>}
                             {t.form && <span className="text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md font-bold shrink-0"><HugeiconsIcon icon={BrowserIcon} size={10} className="inline mr-0.5" />{t.form.name}</span>}
                           </div>
                         </div>

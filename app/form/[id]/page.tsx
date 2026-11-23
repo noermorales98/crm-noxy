@@ -290,7 +290,7 @@ export default function PublicFormPage() {
     <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <div className="noxy-form-panel w-full max-w-sm px-6 py-5 text-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-action-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-action-ink border-t-transparent rounded-full animate-spin"></div>
           <p
             role="status"
             aria-live="polite"
@@ -315,7 +315,7 @@ export default function PublicFormPage() {
               setIsLoading(true);
               fetchFormDefinition();
             }}
-            className="mt-2 px-6 py-2.5 bg-action-primary text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+            className="mt-2 px-6 py-2.5 bg-action-primary text-action-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity"
           >
             Reintentar
           </button>
@@ -433,10 +433,10 @@ export default function PublicFormPage() {
                       {field.options?.map((opt: string, i: number) => (
                         <label key={i} className="flex items-center gap-3 cursor-pointer group">
                           <div className="relative flex items-center justify-center">
-                            <input type="radio" required={field.isRequired} name={field.name} value={opt} checked={formData[field.name] === opt} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-border-subtle rounded-full checked:border-action-primary" />
+                            <input type="radio" required={field.isRequired} name={field.name} value={opt} checked={formData[field.name] === opt} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-border-subtle rounded-full checked:border-action-ink" />
                             {formData[field.name] === opt && <div className="absolute w-2.5 h-2.5 bg-action-primary rounded-full" />}
                           </div>
-                          <span className="text-[15px] text-text-primary font-medium group-hover:text-action-primary">{opt}</span>
+                          <span className="text-[15px] text-text-primary font-medium group-hover:text-action-ink">{opt}</span>
                         </label>
                       ))}
                     </div>
@@ -446,10 +446,10 @@ export default function PublicFormPage() {
                       {field.options?.map((opt: string, i: number) => (
                         <label key={i} className="flex items-center gap-3 cursor-pointer group">
                           <div className="relative flex items-center justify-center">
-                            <input type="checkbox" value={opt} checked={formData[field.name]?.includes(opt)} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-border-subtle rounded-md checked:border-action-primary checked:bg-action-primary" />
+                            <input type="checkbox" value={opt} checked={formData[field.name]?.includes(opt)} onChange={e => handleInputChange(field.name, e.target.value, field.type)} className="appearance-none w-5 h-5 border-2 border-border-subtle rounded-md checked:border-action-ink checked:bg-action-primary" />
                             {formData[field.name]?.includes(opt) && <HugeiconsIcon icon={CheckmarkCircle01Icon} size={14} color="white" className="absolute" />}
                           </div>
-                          <span className="text-[15px] text-text-primary font-medium group-hover:text-action-primary">{opt}</span>
+                          <span className="text-[15px] text-text-primary font-medium group-hover:text-action-ink">{opt}</span>
                         </label>
                       ))}
                     </div>
@@ -548,8 +548,8 @@ export default function PublicFormPage() {
                                 onClick={() => setSelectedSlot(slot)}
                                 className={`min-h-11 py-3 px-2 rounded-control border-2 text-[13px] font-bold
                                   ${selectedSlot === slot
-                                    ? "bg-action-primary text-action-primary-foreground border-action-primary"
-                                    : "border-border-subtle hover:border-action-primary text-text-primary bg-surface-sidebar/50"
+                                    ? "bg-action-primary text-action-primary-foreground border-action-ink"
+                                    : "border-border-subtle hover:border-action-ink text-text-primary bg-surface-sidebar/50"
                                   }`}
                                 style={selectedSlot === slot ? accentStyle : undefined}
                               >

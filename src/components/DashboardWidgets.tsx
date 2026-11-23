@@ -88,7 +88,7 @@ export function DashboardTabsTable({ tabIds, data, editMode, onReorder, onRemove
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px ${
                 activeTabData.id === tab.id
-                  ? "border-action-primary text-text-primary"
+                  ? "border-action-ink text-text-primary"
                   : "border-transparent text-text-secondary hover:text-text-secondary hover:border-line"
               }`}
             >

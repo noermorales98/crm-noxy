@@ -203,7 +203,7 @@ function TasksContent() {
               filterProjectId ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <Chip>{`Proyecto: ${(dropdownData.projects.find((p: { id: string }) => p.id === filterProjectId) as { name?: string } | undefined)?.name ?? "seleccionado"}`}</Chip>
-                  <Link href="/tasks" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline lg:min-h-8">
+                  <Link href="/tasks" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-ink hover:underline lg:min-h-8">
                     Quitar filtro
                   </Link>
                 </div>
@@ -246,7 +246,7 @@ function TasksContent() {
                       >
                         <span
                           className={`flex size-6 items-center justify-center rounded-full border-2 ${
-                            task.isCompleted ? "border-success bg-success text-white" : "border-line bg-surface-elevated hover:border-action-primary"
+                            task.isCompleted ? "border-success bg-success text-white" : "border-line bg-surface-elevated hover:border-action-ink"
                           }`}
                         >
                           {task.isCompleted && <HugeiconsIcon icon={Tick01Icon} size={12} />}

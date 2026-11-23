@@ -109,7 +109,7 @@ export default function KbHomePage() {
 
   const renderPage = (page: KbPage, withMenu: boolean) => (
     <div className="flex w-full min-w-0 items-center gap-2">
-      <Link href={`/kb/${page.id}`} className="group flex min-h-14 min-w-0 flex-1 items-center gap-4 rounded-control py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-primary">
+      <Link href={`/kb/${page.id}`} className="group flex min-h-14 min-w-0 flex-1 items-center gap-4 rounded-control py-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-action-ink">
         <PageIcon emoji={page.emoji} iconColor={page.iconColor} iconBg={page.iconBg} isFolder={page.isFolder} size={20} block className="shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-text-primary group-hover:underline">{page.title || "Sin título"}</span>

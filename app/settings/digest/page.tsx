@@ -312,7 +312,7 @@ export default function DigestSettingsPage() {
                       onClick={() => toggleDay(d.value)}
                       className={`min-h-11 lg:min-h-10 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                         customDays.includes(d.value)
-                          ? "bg-action-primary text-action-primary-foreground border-action-primary"
+                          ? "bg-action-primary text-action-primary-foreground border-action-ink"
                           : "bg-surface-elevated text-text-secondary border-line hover:bg-nav-hover"
                       }`}
                     >

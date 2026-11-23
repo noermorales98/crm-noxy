@@ -197,7 +197,7 @@ export default function CompaniesPage() {
         type="button"
         onClick={() => openEditModal(c)}
         aria-label={`Editar ${c.name}`}
-        className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-action-primary lg:size-9"
+        className="crm-press flex size-11 items-center justify-center rounded-control text-text-secondary hover:bg-surface-sidebar hover:text-action-ink lg:size-9"
       >
         <HugeiconsIcon icon={PencilEdit01Icon} size={16} />
       </button>
@@ -243,7 +243,7 @@ export default function CompaniesPage() {
         href={c.website.startsWith("http") ? c.website : `https://${c.website}`}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex min-h-11 items-center gap-1.5 font-medium text-action-primary hover:text-action-secondary lg:min-h-0"
+        className="inline-flex min-h-11 items-center gap-1.5 font-medium text-action-ink hover:text-action-ink-hover lg:min-h-0"
       >
         <HugeiconsIcon icon={GlobeIcon} size={14} />
         <span className="truncate">{c.website.replace(/^https?:\/\//, "")}</span>

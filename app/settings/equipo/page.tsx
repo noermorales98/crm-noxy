@@ -301,7 +301,7 @@ export default function EquipoPage() {
                         <p className="text-sm font-semibold text-text-primary">{member.user.name || "Sin nombre"}</p>
                         <p className="text-xs text-text-secondary">{member.user.email}</p>
                       </div>
-                      <span className="text-xs font-semibold px-2 py-1 rounded-control bg-nav-active text-action-primary">
+                      <span className="text-xs font-semibold px-2 py-1 rounded-control bg-nav-active text-action-ink">
                         {ROLE_LABEL[member.role]}
                       </span>
                     </div>

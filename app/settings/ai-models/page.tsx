@@ -227,7 +227,7 @@ export default function AiModelsPage() {
           ) : customs.length === 0 ? (
             <div className="px-5 py-10 text-center">
               <p className="text-sm text-text-secondary mb-2">No hay modelos personalizados aún.</p>
-              <button type="button" onClick={openAdd} className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline">Agregar el primero</button>
+              <button type="button" onClick={openAdd} className="inline-flex min-h-11 items-center text-sm font-semibold text-action-ink hover:underline">Agregar el primero</button>
             </div>
           ) : (
             <div className="divide-y divide-line">
@@ -309,7 +309,7 @@ export default function AiModelsPage() {
                       <span className={`text-sm font-medium ${isHidden ? "line-through text-text-secondary" : "text-text-primary"}`}>
                         {m.name}
                       </span>
-                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-nav-active text-action-primary font-semibold">{m.group}</span>
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-nav-active text-action-ink font-semibold">{m.group}</span>
                       {isHidden && (
                         <span className="text-xs px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Oculto</span>
                       )}

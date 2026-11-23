@@ -627,7 +627,7 @@ export default function AvailabilityPage() {
                           id={`day-${slot.dayOfWeek}`}
                           checked={slot.isAvailable}
                           onChange={e => updateSlot(slot.dayOfWeek, "isAvailable", e.target.checked)}
-                          className="size-4 rounded border-line accent-action-primary"
+                          className="size-4 rounded border-line accent-action-ink"
                         />
                         {DAYS.find(d => d.id === slot.dayOfWeek)?.label}
                       </label>
@@ -698,11 +698,11 @@ export default function AvailabilityPage() {
 
                 <div className="flex gap-4 border-b border-line pb-2">
                   <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer text-sm font-medium text-text-primary lg:min-h-9">
-                    <input type="radio" checked={blockedType === "HOURS"} onChange={() => setBlockedType("HOURS")} className="size-4 accent-action-primary focus:ring-action-primary" />
+                    <input type="radio" checked={blockedType === "HOURS"} onChange={() => setBlockedType("HOURS")} className="size-4 accent-action-ink focus:ring-action-ink" />
                     <span>Por Horas</span>
                   </label>
                   <label data-check-ignore-tap className="flex min-h-11 items-center gap-2 cursor-pointer text-sm font-medium text-text-primary lg:min-h-9">
-                    <input type="radio" checked={blockedType === "ALL_DAY"} onChange={() => setBlockedType("ALL_DAY")} className="size-4 accent-action-primary focus:ring-action-primary" />
+                    <input type="radio" checked={blockedType === "ALL_DAY"} onChange={() => setBlockedType("ALL_DAY")} className="size-4 accent-action-ink focus:ring-action-ink" />
                     <span>Días Completos</span>
                   </label>
                 </div>

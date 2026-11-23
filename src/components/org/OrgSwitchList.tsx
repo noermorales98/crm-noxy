@@ -26,7 +26,7 @@ export default function OrgSwitchList() {
         >
           <OrgMark brandColor={org.brandColor} brandIcon={org.brandIcon} name={org.name} size={24} />
           <span className="min-w-0 flex-1 truncate">{org.name}</span>
-          {org.current && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} aria-hidden="true" className="shrink-0 text-action-primary" />}
+          {org.current && <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} aria-hidden="true" className="shrink-0 text-action-ink" />}
         </button>
       ))}
       {error && <p role="alert" className="px-2 text-xs text-danger">{error}</p>}

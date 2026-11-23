@@ -129,7 +129,7 @@ export default function FormApiConfig({ formId }: FormApiConfigProps) {
     <div className="p-6 space-y-6">
       <div className="flex items-start gap-4">
         <div className="p-3 rounded-lg bg-surface-sidebar">
-          <HugeiconsIcon icon={CodeIcon} className="w-6 h-6 text-action-primary" />
+          <HugeiconsIcon icon={CodeIcon} className="w-6 h-6 text-action-ink" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-text-primary mb-1">API de Leads</h3>

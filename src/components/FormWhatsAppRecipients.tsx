@@ -121,7 +121,7 @@ export default function FormWhatsAppRecipients({ formId }: { formId: string }) {
           {/* Enlace en línea dentro de una frase: exento del tamaño mínimo de toque. */}
           <p className="text-xs text-text-secondary" data-check-ignore-tap>
             Obtén la API key enviando &quot;I allow callmebot to send me messages&quot; al número de{" "}
-            <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-primary hover:underline">
+            <a href="https://www.callmebot.com/" target="_blank" rel="noreferrer" className="text-action-ink hover:underline">
               CallMeBot
             </a>
             .

@@ -225,7 +225,7 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
       </header>
       <p className="text-xs text-text-secondary">Lee las notas y propone acciones. Nada se crea hasta que tú lo agregues.</p>
       {watching && (
-        <p role="status" className="text-xs font-medium text-action-primary">
+        <p role="status" className="text-xs font-medium text-action-ink">
           La IA está leyendo las notas…
         </p>
       )}

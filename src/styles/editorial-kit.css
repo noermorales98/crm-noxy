@@ -12,7 +12,7 @@
   --ground: var(--surface-sidebar, #EBEDFA); --surface: #FFFFFF; --raised: #F5F6FB;
   --border: #E8EAEC; --rule: #F0F1F2; --control: #CDCED1;
   --text: var(--text-primary, #0B0B18); --muted: #555B6E; --faint: var(--muted);
-  --accent: var(--action-primary, #3545D6); --primary: var(--accent); --primary-ink: var(--action-primary-foreground, #FFFFFF); --active: var(--nav-active, #DDE3FE);
+  --accent: var(--action-ink, #3545D6); --primary: var(--action-primary, #3545D6); --primary-ink: var(--action-primary-foreground, #FFFFFF); --active: var(--nav-active, #DDE3FE);
   --positive: #067647; --negative: #B42318; --warning: #92400E; --highlight: #C8FE37;
   --pill-positive-bg: #E7F6EE; --pill-positive-ink: #067647; --pill-negative-bg: #FDECEA; --pill-negative-ink: #B42318;
   --pill-warning-bg: #FFFBEB; --pill-warning-ink: #92400E; --pill-neutral-bg: #EBEDEE; --pill-neutral-ink: #353736;

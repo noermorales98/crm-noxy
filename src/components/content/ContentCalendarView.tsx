@@ -639,7 +639,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
       onClick={() => setPanel((p) => (p === id ? null : id))}
       className={`hidden items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors sm:flex sm:text-sm ${
         panel === id
-          ? "border-action-primary bg-nav-active text-action-primary font-semibold"
+          ? "border-action-ink bg-nav-active text-action-ink font-semibold"
           : "border-line text-text-secondary hover:bg-surface-sidebar"
       }`}
     >
@@ -844,7 +844,7 @@ export default function ContentCalendarView({ client }: { client: ClientData }) 
                       }
                       className={`w-8 h-8 text-xs rounded-lg border font-medium transition-colors ${
                         active
-                          ? "border-action-primary bg-nav-active text-action-primary"
+                          ? "border-action-ink bg-nav-active text-action-ink"
                           : "border-line text-text-secondary hover:bg-surface-sidebar"
                       }`}
                       title={`Semana ${w} (días ${(w - 1) * 7 + 1}–${Math.min(w * 7, 31)})`}

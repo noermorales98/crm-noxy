@@ -188,7 +188,7 @@ function QuoteDetailContent() {
             title="Cotización no encontrada"
             body="Puede que se haya eliminado o que el folio no exista."
             action={
-              <Link href="/cotizaciones" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-primary hover:underline">
+              <Link href="/cotizaciones" className="inline-flex min-h-11 items-center text-sm font-semibold text-action-ink hover:underline">
                 Volver al listado
               </Link>
             }
@@ -475,12 +475,12 @@ function QuoteDetailContent() {
               {quote.clientPhone && <p className="text-sm text-text-secondary">{quote.clientPhone}</p>}
               {quote.clientAddress && <p className="text-sm text-text-secondary">{quote.clientAddress}</p>}
               {quote.contact && (
-                <Link href="/contacts" className="inline-block mt-2 text-xs text-action-primary hover:underline">
+                <Link href="/contacts" className="inline-block mt-2 text-xs text-action-ink hover:underline">
                   Vinculado al contacto {quote.contact.firstName} {quote.contact.lastName || ""}
                 </Link>
               )}
               {quote.deal && (
-                <Link href={`/pipeline/${quote.deal.id}`} className="block mt-2 text-xs text-action-primary hover:underline">
+                <Link href={`/pipeline/${quote.deal.id}`} className="block mt-2 text-xs text-action-ink hover:underline">
                   Lead: {quote.deal.title}
                 </Link>
               )}

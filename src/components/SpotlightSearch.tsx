@@ -325,7 +325,7 @@ export default function SpotlightSearch({
               </div>
             )}
             {conversationId && (
-              <Link href={`/assistant/${conversationId}`} onClick={onClose} className="mt-4 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-action-primary hover:underline">
+              <Link href={`/assistant/${conversationId}`} onClick={onClose} className="mt-4 inline-flex min-h-9 items-center gap-1 text-xs font-semibold text-action-ink hover:underline">
                 Abrir en el chat <HugeiconsIcon icon={ArrowUpRight01Icon} size={12} aria-hidden="true" />
               </Link>
             )}

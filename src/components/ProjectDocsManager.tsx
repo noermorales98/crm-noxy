@@ -133,7 +133,7 @@ export default function ProjectDocsManager({ projectId, projectName }: { project
           <ul className="divide-y divide-gray-50">
             {relations.map((r) => (
               <li key={r.id} className="py-2.5 flex items-center justify-between gap-2 group">
-                <button onClick={() => setViewingPageId(r.page.id)} className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-primary transition-colors">
+                <button onClick={() => setViewingPageId(r.page.id)} className="flex items-center gap-2 min-w-0 text-sm font-medium text-text-primary hover:text-action-ink transition-colors">
                   <PageIcon emoji={r.page.emoji} isFolder={r.page.isFolder} size={15} />
                   <span className="truncate">{r.page.title}</span>
                 </button>
