@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: multi-cuenta
-status: verificado (pasos 1-5); pendiente de integrar a main
+status: done
+merged: 2026-11-23
+merged_by: Noeli
 ---
 # Multi-cuenta: cada cliente es una Organization (sub-cuenta)
 
@@ -70,19 +72,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 P1: `npm test` 484 (477 pasan; los 7 fallos son previos y sin relación: contratos de diseño, fallan igual en main). 7 pruebas nuevas en `src/lib/organizations.test.ts`. `tsc` y `eslint` sin errores en lo tocado. Falta: prueba manual en navegador y con la base real (la siembra transaccional no tiene prueba automática: necesita base).
 
 ## Next
-Aprobar o corregir esta spec y responder las 3 preguntas (la 1 y la 2 no bloquean el paso 1).
-
-P2: `npm test` 490 (483 pasan, los mismos 7 fallos previos). 6 pruebas nuevas en `src/lib/company-to-org.test.ts` (casado de pipelines, qué se copia y qué se deja fuera, simulacro antes de la transacción, sin borrados). El script NO se ha ejecutado contra la base.
-
-P2 simulacro (base real, solo lectura): Dreams Club 63 contactos/2 deals/2 formularios; Eilen Centro Terapeutico 147/0/1; J&H Multiservices 1/0/0.
-P3: `npm test` 493 (486 pasan; los mismos 7 fallos previos). `tsc` limpio. `eslint` solo marca 2 `any` ya existentes en `submit/route.ts`.
-
-Decisiones de Noeli (2026-11-23): los clientes NO entran al CRM; solo el equipo (Noelí y Esthefani). La regla de destinatario de avisos queda en «OWNER más antiguo con WhatsApp» = Noelí, sin ambigüedad.
-Usuarios: la cuenta duplicada «Noeli» (noe.rmorales98@gmail.com, ADMIN) se borró; quedó solo «Noelí» (noepumasnoe@gmail.com, OWNER, con WhatsApp). La duplicada solo tenía 1 membresía y 1 preferencia de dashboard (respaldo en `backups/usuario-duplicado-*.json`).
-Sub-cuentas creadas (miembros: Noelí OWNER, Esthefani ADMIN): Dreams Club (63 contactos, 2 deals, 2 formularios; verificado contra el origen), Eilen Centro Terapeutico (147/0/1), J&H Multiservices LLC (1/0/0), Noxy Digital (5/0/6; ojo: mismo nombre que la org principal).
-
-Unión Noxy: la sub-cuenta «Noxy Digital» (copia de la empresa propia) se borró; la empresa original conserva 5 contactos y 6 formularios y `migratedToOrgId` volvió a NULL (respaldo en `backups/deshacer-noxy-copia-*.json`).
-P4: `npm test` 495 (488 pasan; mismos 7 fallos previos). `tsc` y `eslint` limpios en lo tocado. Pendiente (no automatizable): ver llegar un aviso real con el nombre de la sub-cuenta.
+Fusionado en main el 2026-11-23 (bf968e5).
 
 ## Verificación de cierre (2026-11-23, rama multi-cuenta vs main 4cf0890; main no se había movido)
 - `npm test`: 503 pruebas, 496 pasan, 7 fallan. Esos 7 son EXACTAMENTE los mismos que fallan en main sin la rama (comparados por nombre): contratos de diseño ajenos a este trabajo. Gate estricto = no verde por ellos; sin regresiones.
