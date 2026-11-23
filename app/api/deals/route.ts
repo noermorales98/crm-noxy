@@ -173,6 +173,12 @@ export async function PATCH(req: Request) {
       if (!stage) return NextResponse.json({ error: "Stage no válido" }, { status: 404 });
       updateData.stageId = stageId;
       updateData.pipelineId = stage.pipelineId;
+      // Fecha de cierre: al entrar a una etapa ganada (si ya era ganado se conserva); al salir de ganado se borra.
+      if (stage.isWon) {
+        if (!existing.wonAt) updateData.wonAt = new Date();
+      } else {
+        updateData.wonAt = null;
+      }
 
       // WhatsApp notification when deal moves to a won stage
       if (stage.isWon && session.user?.id) {

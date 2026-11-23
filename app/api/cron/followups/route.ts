@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { buildFollowUpMessage, shouldNotifyFollowUp } from "@/src/lib/followup-notify";
+import { closePendingMonthsForAll } from "@/src/lib/month-close-service";
 
 export async function GET(req: Request) {
   try {
@@ -79,10 +80,14 @@ export async function GET(req: Request) {
       }
     }
 
+    // Respaldo del cierre mensual (idempotente): corre también aquí por si el cron del resumen no está dado de alta.
+    const monthlyClose = await closePendingMonthsForAll(now);
+
     return NextResponse.json({
       processed: deals.length, followupTasksCreated, closedSilentLeads,
       notified,
       errors,
+      monthlyClose,
     });
   } catch (error) {
     console.error("GET /api/cron/followups error:", error);

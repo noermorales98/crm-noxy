@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { isDigestDue, runDigestForUser, type DigestFrequency } from "@/src/lib/digest";
+import { closePendingMonthsForAll } from "@/src/lib/month-close-service";
 
 export async function GET(req: Request) {
   try {
@@ -53,7 +54,10 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ processed, sent, errors });
+    // Reciclamos este cron (cada 15 min): el cierre mensual es idempotente y solo actúa si falta una foto.
+    const monthlyClose = await closePendingMonthsForAll();
+
+    return NextResponse.json({ processed, sent, errors, monthlyClose });
   } catch (error) {
     console.error("GET /api/cron/digest error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });

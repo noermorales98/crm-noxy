@@ -89,3 +89,19 @@ test("summarizeWonSales usa el valor calculado cuando el lead no tiene valor", (
   assert.deepEqual(summary.total.byCurrency, { MXN: 10000 });
   assert.deepEqual(summary.month.byCurrency, { MXN: 10000 });
 });
+
+test("summarizeWonSales: el mes sale de wonAt aunque el deal se haya editado después", () => {
+  const now = new Date("2026-11-15T12:00:00Z");
+  const summary = summarizeWonSales(
+    [
+      // ganado en octubre, editado en noviembre: NO es venta de noviembre
+      { value: 1000, currency: "MXN", wonAt: new Date("2026-10-20T00:00:00Z"), updatedAt: new Date("2026-11-10T00:00:00Z"), quotes: [] },
+      // sin wonAt (deal viejo): cae al updatedAt
+      { value: 500, currency: "MXN", updatedAt: new Date("2026-11-05T00:00:00Z"), quotes: [] },
+    ],
+    now,
+  );
+  assert.deepEqual(summary.total.byCurrency, { MXN: 1500 });
+  assert.deepEqual(summary.month.byCurrency, { MXN: 500 });
+  assert.equal(summary.month.count, 1);
+});

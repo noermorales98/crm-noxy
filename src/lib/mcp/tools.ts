@@ -12,6 +12,7 @@ import { visibleContactWhere } from "@/src/lib/visible-contacts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
 import { loadSalesMetrics } from "@/src/lib/mcp/sales-metrics";
+import { loadMonthMetrics } from "@/src/lib/month-metrics";
 import { dealToQuotePrefill } from "@/src/lib/deal-sales";
 import { computeQuoteTotals, nextQuoteFolio } from "@/src/lib/quotes";
 
@@ -516,6 +517,12 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         }
         data.stageId = stageId;
         data.pipelineId = stage.pipelineId;
+        const before = await prisma.deal.findUnique({ where: { id }, select: { wonAt: true } });
+        if (stage.isWon) {
+          if (!before?.wonAt) data.wonAt = new Date();
+        } else {
+          data.wonAt = null;
+        }
       }
       const deal = await prisma.deal.update({
         where: { id },
@@ -1354,10 +1361,16 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "get_sales_metrics",
     {
-      description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes. Incluye `wonSales`: ventas ganadas (mes y total, por moneda), cuántas tienen cotización, lo cotizado aceptado y lo cobrado.",
-      inputSchema: {},
+      description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes. Incluye `wonSales`: ventas ganadas (mes y total, por moneda), cuántas tienen cotización, lo cotizado aceptado y lo cobrado. Con `month` (YYYY-MM) devuelve el cierre guardado de ese mes (o las cifras en vivo si es el mes en curso) para comparar meses.",
+      inputSchema: { month: z.string().optional().describe("Mes a consultar, formato YYYY-MM (p. ej. 2026-10)") },
     },
-    async () => json(await loadSalesMetrics(org))
+    async ({ month }) => {
+      if (month) {
+        const result = await loadMonthMetrics(org, month);
+        return result.ok ? json(result) : err(result.error);
+      }
+      return json(await loadSalesMetrics(org));
+    }
   );
 
   server.registerTool(

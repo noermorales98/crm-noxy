@@ -16,6 +16,7 @@ export async function loadWonSales(organizationId: string): Promise<WonSalesRepo
       value: true,
       currency: true,
       updatedAt: true,
+      wonAt: true,
       quotes: { select: { folio: true, status: true, total: true, currency: true } },
     },
   });
@@ -28,7 +29,7 @@ export async function loadWonSales(organizationId: string): Promise<WonSalesRepo
         title: deal.title,
         value: effective.amount,
         currency: effective.currency,
-        wonAt: deal.updatedAt,
+        wonAt: deal.wonAt ?? deal.updatedAt,
         quotes: deal.quotes.map((quote) => quote.folio),
       };
     }),
