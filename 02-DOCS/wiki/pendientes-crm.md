@@ -1,9 +1,16 @@
 # Pendientes del CRM de Noxy
 
-Actualizado: 2026-11-14. Marca `[x]` cuando algo quede hecho y verificado.
+Actualizado: 2026-11-23. Marca `[x]` cuando algo quede hecho y verificado.
 Detalle técnico de la Fase 1: `02-DOCS/wiki/ftd/fase1-crm-seguimiento-referidos.md`.
 
+## 0. Hecho del plan de reestructura (2026-11-23)
+Ver `02-DOCS/wiki/plan-reestructura-crm.md` (sección 8). Hechas: follow-up único (T1), resumen diario confiable (T2), archivados fuera de las consultas (T3), cierre mensual (T4), sidebar «Conocimiento e IA» (T5), MCP (T6), Bóveda cifrada (T7), multi-cuenta (T8) y su selector (T9), landing (T11), docs de crons (T12).
+
 ## 1. Cosas que solo puedes hacer tú
+- [x] Crons dados de alta en cron-job.org (confirmado 2026-11-23). Para el cierre mensual basta `digest` o `followups` (cada 15 min). Revisa `auto-archive` (ver `CRON.md`).
+- [ ] Probar en navegador: `/settings/digest`, `/contenido/recordatorios`, `/pipeline/historial`, `/boveda`, el selector de cuenta y la barra lateral.
+- [ ] Decidir si se cifran `smtpPass`/`imapPass` de las empresas (hoy en texto plano).
+- [ ] Revisar `02-DOCS/wiki/reporte-consultas-sin-organizacion.md` (candidatos, no fallos confirmados).
 - [ ] Dar de alta el cron en cron-job.org: `GET https://crm-noxy.vercel.app/api/cron/payment-alerts`, cada hora, header `Authorization: Bearer <CRON_SECRET>`. Sin esto no salen las alertas de cobro (2 días antes).
 - [ ] Decidir a qué etapa pasan los 3 deals que están en «Ganado» (etapa legado): «Entregado» o «En producción». Cuando queden vacíos, «Ganado» se puede quitar.
 - [ ] Revisar y confirmar la limpieza de duplicados (nada se ha borrado):

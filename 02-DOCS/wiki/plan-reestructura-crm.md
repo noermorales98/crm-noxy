@@ -260,7 +260,7 @@ Corrige estas afirmaciones (mantén el tono corto y claro, en español, sin sign
 Entrega el diff y una lista de lo que cambiaste. No inventes funciones nuevas.
 ```
 
-### ⏳ PENDIENTE · T12 · Kimi K3 · Documentación, crons y pruebas
+### ✅ HECHA (en main) — no la ejecutes · T12 · Kimi K3 · Documentación, crons y pruebas
 ```text
 Proyecto crm-noxy. Tareas de bajo riesgo:
 1. CRON.md: agrega las entradas que faltan (auto-archive, notion-sync y, cuando existan, monthly-close) con frecuencia sugerida, y un apartado «Cómo comprobar que un cron corre» (curl con Bearer y respuesta esperada).
@@ -291,7 +291,7 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T6 MCP (aprobado, update_quote, enlaces, email) | ✅ en main | `ftd/mcp-aprobado-cotizaciones-enlaces.md` |
 | T10 Proyectos → Clientes | ⏳ sin empezar | |
 | T11 landing | ✅ en main | `ftd/landing-solo-lo-cierto.md` |
-| T12 docs/crons/pruebas | ⏳ sin empezar | |
+| T12 docs/crons/pruebas | ✅ `CRON.md`, `pendientes-crm.md`, pruebas de `isDigestDue` (en `digest-schedule.test.ts`) y reporte de consultas sin organización | `ftd/` no aplica; reporte en `reporte-consultas-sin-organizacion.md` |
 | Cifrar SMTP/IMAP (nueva) | ⏳ propuesta | |
 
 **Siguiente:** T6, T10, T11, T12, y cifrar SMTP/IMAP.

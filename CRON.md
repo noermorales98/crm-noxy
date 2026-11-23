@@ -17,12 +17,14 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/fetch-emails` | **Cada 5 min** | Descarga correos nuevos vía IMAP y crea notificaciones in-app |
 | `GET /api/cron/send-scheduled` | Cada 5 min | Envía correos programados (`scheduledAt`) |
 | `GET /api/cron/process-emails` | Cada 5 min | Despacha cola de campañas (logs PENDING) |
-| `GET /api/cron/followups` | Cada 15 min | Recordatorios WhatsApp de deals con follow-up |
+| `GET /api/cron/followups` | Cada 15 min | Un solo aviso de WhatsApp por seguimiento vencido, agrupado por organización (no repite, no avisa de archivados). Además crea las tareas de seguimiento de leads, mueve a Perdido los leads sin respuesta en 14 días y **ejecuta el cierre mensual** (respaldo) |
 | `GET /api/cron/appointment-reminders` | Cada 15 min | Recordatorios de citas (WhatsApp / email) |
-| `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot) |
+| `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot; si la IA falla, manda el resumen sin IA y avisa en la campanita si no se pudo enviar). También **ejecuta el cierre mensual** |
 | `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
 | `GET /api/cron/content-reminders` | **Cada 15 min** | Avisa por WhatsApp las piezas con recordatorio activo cuyo día de aviso es hoy (mismo día o N días antes; Gestión de contenido) |
 | `GET /api/cron/granola` | **Cada 30 min** | Sincroniza las reuniones de Granola (resumen, notas y pasos) y las guarda en la cita que coincide; no crea tareas ni envía mensajes |
+| `GET /api/cron/auto-archive` | Cada día | Archiva leads en etapa ganada con más de `autoArchiveDays` sin cambios (por organización). Ver la nota de abajo: **choca con el cierre mensual** |
+| `GET /api/cron/notion-sync` | Cada 5 min | Respaldo del auto-sync de documentos de `/kb`: envía a Notion los editados desde su último envío |
 | `GET /api/cron/payment-alerts` | **Cada hora** | Avisa por WhatsApp los cobros (pagos de deals y mensualidades) que vencen en 2 días o menos; una sola vez por cobro |
 
 **Producción:**
@@ -31,6 +33,31 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 - Recordatorios (dominio alternativo): `https://www.noxthy.co/api/cron/appointment-reminders`
 
 Si ambos dominios apuntan al mismo deploy de Vercel, usa el dominio canónico para todos los crons.
+
+---
+
+### Cierre mensual de ventas (no tiene cron propio)
+
+No hay un job `monthly-close`: el cierre corre **dentro de `digest` y `followups`** (cada 15 min) y es idempotente. Si falta la foto de un mes ya terminado (`MonthlySnapshot`), la crea con las métricas del mes y archiva los leads ganados de ese mes que estén en la **última etapa ganada** de su pipeline. Con que uno de los dos crons esté dado de alta, el cierre se ejecuta. La respuesta JSON de ambos trae `monthlyClose`.
+
+### Nota sobre `auto-archive`
+
+`auto-archive` archiva cualquier lead en etapa ganada con `updatedAt` viejo, **sin distinguir la última etapa ganada**: puede archivar un lead que sigue «En producción». El cierre mensual sí lo distingue. Si ya usas el cierre mensual, no des de alta `auto-archive` o pon `autoArchiveDays` en 0 en la organización.
+
+### Cómo comprobar que un cron corre
+
+```bash
+curl -s -H "Authorization: Bearer $CRON_SECRET" https://crm-noxy.vercel.app/api/cron/digest
+```
+
+| Cron | Respuesta esperada (200) |
+|------|--------------------------|
+| `digest` | `{"processed":1,"sent":0,"fallbacks":0,"errors":[],"monthlyClose":{…}}` (`sent` es 1 solo en la ventana de la hora configurada) |
+| `followups` | `{"processed":0,"notified":0,"errors":[],"monthlyClose":{…}}` |
+| `content-reminders` | JSON con los avisos enviados |
+| `notion-sync` | `{"message":"Documentos pendientes enviados a Notion",…}` |
+
+Una respuesta `401` significa que el `CRON_SECRET` del job no coincide con el de Vercel. Para ver si el resumen diario se envió, mira `lastSentAt` en `/settings/digest` o ejecuta `node scripts/digest-diagnostico.cjs` (solo lectura).
 
 ---
 
@@ -113,6 +140,8 @@ https://crm-noxy.vercel.app/api/cron/digest
 https://crm-noxy.vercel.app/api/cron/google-calendar-reminders
 https://crm-noxy.vercel.app/api/cron/content-reminders
 https://crm-noxy.vercel.app/api/cron/granola
+https://crm-noxy.vercel.app/api/cron/notion-sync
+https://crm-noxy.vercel.app/api/cron/payment-alerts
 ```
 
 `content-reminders` envía por WhatsApp (CallMeBot) las piezas del calendario de contenido que tengan **recordatorio activado** y cuyo día de aviso (fecha de la pieza − días de anticipación) sea hoy, en la hora configurada por cliente en el panel WhatsApp. Sin este job, el aviso automático no sale; el botón **Avisar por WhatsApp** y **Enviar prueba** en `/contenido` sí funcionan a mano.
