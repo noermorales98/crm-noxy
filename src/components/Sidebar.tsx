@@ -15,6 +15,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   BarChartIcon,
+  AiChatIcon,
   Briefcase01Icon,
   GridViewIcon,
   Megaphone01Icon,
@@ -61,6 +62,7 @@ const MODE_ICONS: Record<NavMode, typeof Home01Icon> = {
   work: Briefcase01Icon,
   sales: BarChartIcon,
   spaces: GridViewIcon,
+  knowledge: AiChatIcon,
   content: Megaphone01Icon,
 };
 

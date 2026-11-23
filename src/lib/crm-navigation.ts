@@ -240,7 +240,7 @@ export function isCollapseShortcut(event: { key: string; metaKey: boolean; ctrlK
 
 // ─── Modos de la sidebar (Ronda 3: selector tipo Claude, listas planas y cortas) ─────────────
 
-export type NavMode = "work" | "sales" | "spaces" | "content";
+export type NavMode = "work" | "sales" | "spaces" | "knowledge" | "content";
 export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
 
 const CONTENT_HOME = "/contenido/general";
@@ -260,7 +260,7 @@ const contentItems: NavItem[] = [
 ];
 
 /**
- * Cuatro modos, cada uno con listas planas cortas (sin ramas desplegables). Reparten los mismos
+ * Cinco modos, cada uno con listas planas cortas (sin ramas desplegables). Reparten los mismos
  * 18 destinos de siempre; un destino vive en un solo modo.
  */
 export const NAV_MODES: readonly NavModeDef[] = [
@@ -285,11 +285,10 @@ export const NAV_MODES: readonly NavModeDef[] = [
   {
     key: "spaces",
     label: "Espacios",
-    groups: [
-      { label: "Espacios", items: espaciosModeItems },
-      { label: "Conocimiento e IA", items: conocimientoModeItems },
-    ],
+    groups: [{ label: "Espacios", items: espaciosModeItems }],
   },
+  // Docs y Asistente tienen su propia sección: ya no comparten pestaña con Correo y Bóveda.
+  { key: "knowledge", label: "Conocimiento e IA", groups: [{ label: "Conocimiento e IA", items: conocimientoModeItems }] },
   { key: "content", label: "Contenido", groups: [{ label: "Contenido", items: contentItems }] },
 ];
 
@@ -317,9 +316,9 @@ const MODE_BY_SECTION: Partial<Record<ContextualSection, NavMode>> = {
   agenda: "work",
   sales: "sales",
   mail: "spaces",
-  kb: "spaces",
+  kb: "knowledge",
   vault: "spaces",
-  assistant: "spaces",
+  assistant: "knowledge",
   content: "content",
 };
 

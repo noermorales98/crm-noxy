@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { isDbUnavailableError } from "@/src/lib/db";
 import DbUnavailableNotice from "@/src/components/DbUnavailableNotice";
 import AgencyOpenButton from "@/src/components/AgencyOpenButton";
+import AgencyNewClient from "@/src/components/AgencyNewClient";
 import { EmptyState, Enter, PageHeader, StatStrip } from "@/src/components/ui";
 import { loadAgencyCards } from "@/src/lib/agency-service";
 import { monthLabel, type AgencyCard } from "@/src/lib/agency-panel";
@@ -40,7 +41,7 @@ export default async function ClientesPage() {
   return (
     <main className="crm-mobile-bottom-clearance flex min-h-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto bg-surface-app px-4 py-5 sm:px-6 sm:py-6">
       <Enter index={0}>
-        <PageHeader title="Clientes" subtitle="Tus sub-cuentas: cada cliente con su propio pipeline, contactos y formularios." />
+        <PageHeader title="Clientes" subtitle="Tus sub-cuentas: cada cliente con su propio pipeline, contactos y formularios." actions={<AgencyNewClient />} />
       </Enter>
       <Enter index={1}>
         <StatStrip
@@ -55,7 +56,7 @@ export default async function ClientesPage() {
       <Enter index={2}>
         {cards.length === 0 ? (
           <section className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
-            <EmptyState title="Aún no tienes clientes" body="Crea una sub-cuenta desde el selector de cuenta de la barra lateral." />
+            <EmptyState title="Aún no tienes clientes" body="Crea el primero con «Nuevo cliente»." />
           </section>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

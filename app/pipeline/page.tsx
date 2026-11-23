@@ -27,9 +27,15 @@ import {
   Enter,
   ErrorState,
   PageHeader,
+  Segmented,
   Skeleton,
   useDialog,
 } from "@/src/components/ui";
+import { visiblePipelines } from "@/src/lib/pipeline-categories";
+import { readCache, writeCache } from "@/src/lib/client-cache";
+
+const DEALS_CACHE_KEY = "pipeline:deals";
+const DEALS_CACHE_MS = 5 * 60_000;
 
 // Colores de la fuente del deal: categorías de datos, se conservan (DESIGN.md).
 const SOURCE_COLORS: Record<string, string> = {
@@ -378,12 +384,18 @@ function NewDealModal({
 
 export default function PipelinePage() {
   const { setConfig, resetState } = useHeader();
-  const [pipelines, setPipelines] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Al volver a la pantalla se pinta al instante con lo último visto y se actualiza en segundo plano.
+  const [pipelines, setPipelines] = useState<any[]>(() => readCache<any[]>(DEALS_CACHE_KEY, DEALS_CACHE_MS) ?? []);
+  const [loading, setLoading] = useState(() => readCache<any[]>(DEALS_CACHE_KEY, DEALS_CACHE_MS) === undefined);
   const [loadError, setLoadError] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
   const [defaultStageId, setDefaultStageId] = useState<string | undefined>();
-  const [selectedPipelineIdx, setSelectedPipelineIdx] = useState(0);
+  // Categoría (pipeline) elegida: «all» = todo el pipeline junto. Se recuerda entre visitas.
+  const [selectedPipeline, setSelectedPipeline] = useState("all");
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [creatingCategory, setCreatingCategory] = useState(false);
   const [hiddenStats, setHiddenStats] = useState<Set<string>>(new Set());
 
   // ─── Hidden stat cards (persisted) ─────────────────────────────────────────
@@ -393,6 +405,18 @@ export default function PipelinePage() {
       const raw = localStorage.getItem("pipeline_hidden_stats");
       if (raw) setHiddenStats(new Set(JSON.parse(raw)));
     } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("pipeline_category");
+      if (saved) setSelectedPipeline(saved);
+    } catch { /* ignore */ }
+  }, []);
+
+  const chooseCategory = useCallback((value: string) => {
+    setSelectedPipeline(value);
+    try { localStorage.setItem("pipeline_category", value); } catch { /* ignore */ }
   }, []);
 
   const hideStat = useCallback((id: string) => {
@@ -429,7 +453,9 @@ export default function PipelinePage() {
       const res = await fetch("/api/deals");
       if (res.ok) {
         const data = await res.json();
-        setPipelines(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : [];
+        setPipelines(list);
+        writeCache(DEALS_CACHE_KEY, list);
       } else {
         setLoadError(true);
       }
@@ -441,6 +467,11 @@ export default function PipelinePage() {
   }, []);
 
   useEffect(() => { fetchPipelines(); }, [fetchPipelines]);
+
+  // Mantiene la copia en caché al día con los cambios locales (p. ej. al arrastrar un deal).
+  useEffect(() => {
+    if (!loading && pipelines.length > 0) writeCache(DEALS_CACHE_KEY, pipelines);
+  }, [pipelines, loading]);
 
   const retry = () => {
     setLoading(true);
@@ -565,8 +596,27 @@ export default function PipelinePage() {
   const visibleStats = pipelineStats.filter((s) => !hiddenStats.has(s.id));
   const minimizedStats = pipelineStats.filter((s) => hiddenStats.has(s.id));
 
-  const activePipeline = pipelines[selectedPipelineIdx] || pipelines[0];
-  const filteredPipeline = activePipeline || null;
+  const shownPipelines = visiblePipelines(pipelines, selectedPipeline);
+  const showHeadings = shownPipelines.length > 1;
+
+  const createCategory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setCreatingCategory(true);
+    setCategoryError(null);
+    try {
+      const res = await fetch("/api/pipelines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: categoryName }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "No se pudo crear la categoría");
+      setCategoryName("");
+      setAddingCategory(false);
+      chooseCategory(data.id);
+      await fetchPipelines();
+    } catch (e) {
+      setCategoryError(e instanceof Error ? e.message : "Error");
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
 
   const openNewDeal = (stageId?: string) => {
     setDefaultStageId(stageId);
@@ -636,19 +686,38 @@ export default function PipelinePage() {
               </div>
             )}
 
-            {pipelines.length > 1 && (
-              <div className="mb-3">
-                <label htmlFor="pipeline-select" className="sr-only">Pipeline</label>
-                <select
-                  id="pipeline-select"
-                  value={selectedPipelineIdx}
-                  onChange={(e) => setSelectedPipelineIdx(parseInt(e.target.value))}
-                  className={selectInline}
-                >
-                  {pipelines.map((p, i) => (
-                    <option key={p.id} value={i}>{p.name}</option>
-                  ))}
-                </select>
+            {pipelines.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Segmented
+                  label="Categoría del pipeline"
+                  value={pipelines.some((p) => p.id === selectedPipeline) ? selectedPipeline : "all"}
+                  onChange={chooseCategory}
+                  options={[{ value: "all", label: "Todos" }, ...pipelines.map((p) => ({ value: p.id, label: p.name }))]}
+                />
+                {addingCategory ? (
+                  <form onSubmit={createCategory} className="flex items-center gap-1">
+                    <label htmlFor="new-category" className="sr-only">Nombre de la categoría</label>
+                    <input
+                      id="new-category"
+                      autoFocus
+                      value={categoryName}
+                      onChange={(e) => setCategoryName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Escape") { setAddingCategory(false); setCategoryError(null); } }}
+                      placeholder="Nombre de la categoría"
+                      maxLength={60}
+                      className={`${inputCls} min-h-11 w-52 lg:min-h-9`}
+                    />
+                    <button type="submit" disabled={creatingCategory || !categoryName.trim()} className={primaryAction}>
+                      {creatingCategory ? "Creando…" : "Crear"}
+                    </button>
+                  </form>
+                ) : (
+                  <button type="button" onClick={() => setAddingCategory(true)} className="crm-press inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-text-secondary-strong hover:bg-nav-hover hover:text-text-primary lg:min-h-9">
+                    <HugeiconsIcon icon={Add01Icon} size={14} aria-hidden="true" />
+                    Nueva categoría
+                  </button>
+                )}
+                {categoryError && <p role="alert" className="w-full text-xs text-danger">{categoryError}</p>}
               </div>
             )}
 
@@ -659,13 +728,23 @@ export default function PipelinePage() {
                 </div>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  {filteredPipeline && (
-                    <Board label={`Tablero ${filteredPipeline.name ?? "del pipeline"}`}>
-                      {filteredPipeline.stages.map((stage: any) => (
-                        <KanbanColumn key={stage.id} stage={stage} deals={stage.deals} onAddDeal={openNewDeal} />
-                      ))}
-                    </Board>
-                  )}
+                  <div className="flex flex-col gap-6">
+                    {shownPipelines.map((pipeline: any) => (
+                      <section key={pipeline.id} aria-label={pipeline.name}>
+                        {showHeadings && (
+                          <h2 className="mb-2 text-sm font-semibold text-text-primary">
+                            {pipeline.name}
+                            <span className="ml-2 font-normal text-text-secondary">{pipeline.stages.reduce((n: number, s: any) => n + s.deals.length, 0)} deals</span>
+                          </h2>
+                        )}
+                        <Board label={`Tablero ${pipeline.name ?? "del pipeline"}`}>
+                          {pipeline.stages.map((stage: any) => (
+                            <KanbanColumn key={stage.id} stage={stage} deals={stage.deals} onAddDeal={openNewDeal} />
+                          ))}
+                        </Board>
+                      </section>
+                    ))}
+                  </div>
                 </DragDropContext>
               )}
             </Enter>

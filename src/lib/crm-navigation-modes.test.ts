@@ -32,10 +32,10 @@ const mode = (key: string) => (NAV_MODES as unknown as Array<{ key: string; labe
 
 const ALL_HREFS = ['/', '/tasks', '/projects', '/contacts', '/companies', '/pipeline', '/forms', '/emails', '/kb', '/boveda', '/contenido'];
 
-test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat lists, in order", () => {
+test("five modes (Trabajo, Ventas, Espacios, Conocimiento e IA, Contenido) with their short flat lists, in order", () => {
   assert.deepEqual(
     (NAV_MODES as unknown as Array<{ key: string; label: string }>).map((m) => [m.key, m.label]),
-    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"], ["content", "Contenido"]],
+    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"], ["knowledge", "Conocimiento e IA"], ["content", "Contenido"]],
   );
   assert.deepEqual(shape(mode("work").groups), [
     ["Principal", [["Inicio", "/"], ["Clientes", "/clientes"], ["Tareas", "/tasks"], ["Entregas", "/projects"], ["Contactos", "/contacts"], ["Empresas", "/companies"]]],
@@ -44,10 +44,8 @@ test("four modes (Trabajo, Ventas, Espacios, Contenido) with their short flat li
   assert.deepEqual(shape(mode("sales").groups), [
     ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Suscripciones", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
-  assert.deepEqual(shape(mode("spaces").groups), [
-    ["Espacios", [["Correo", "/emails"], ["Bóveda", "/boveda"]]],
-    ["Conocimiento e IA", [["Docs", "/kb"], ["Asistente", "/assistant"]]],
-  ]);
+  assert.deepEqual(shape(mode("spaces").groups), [["Espacios", [["Correo", "/emails"], ["Bóveda", "/boveda"]]]]);
+  assert.deepEqual(shape(mode("knowledge").groups), [["Conocimiento e IA", [["Docs", "/kb"], ["Asistente", "/assistant"]]]]);
   assert.deepEqual(shape(mode("content").groups), [
     ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"]]],
   ]);
@@ -73,10 +71,10 @@ test("every destination lives in exactly one mode (plus the new Contenido screen
 });
 
 test("visibleModes and modeGroups filter by permission and hide a mode with nothing to show", () => {
-  assert.deepEqual((visibleModes("OWNER", ALL_PERMISSIONS) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "content"]);
-  assert.deepEqual((visibleModes(undefined, undefined) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "content"], "legacy session keeps everything");
+  assert.deepEqual((visibleModes("OWNER", ALL_PERMISSIONS) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "knowledge", "content"]);
+  assert.deepEqual((visibleModes(undefined, undefined) as Array<{ key: string }>).map((m) => m.key), ["work", "sales", "spaces", "knowledge", "content"], "legacy session keeps everything");
   const noCrm = { ...ALL_PERMISSIONS, crm: false };
-  assert.deepEqual((visibleModes("MEMBER", noCrm) as Array<{ key: string }>).map((m) => m.key), ["spaces", "content"]);
+  assert.deepEqual((visibleModes("MEMBER", noCrm) as Array<{ key: string }>).map((m) => m.key), ["spaces", "knowledge", "content"]);
   const mailOnly = { ...Object.fromEntries(Object.keys(ALL_PERMISSIONS).map((k) => [k, false])), mail: true };
   const spaces = visibleModes("MEMBER", mailOnly) as Array<{ key: string; groups: Group[] }>;
   assert.deepEqual(spaces.map((m) => m.key), ["spaces"]);
@@ -103,8 +101,8 @@ test("modeForPath picks the mode that owns the route (most specific match, secti
     ["/forms/7", "sales"],
     ["/emails", "spaces"],
     ["/campaigns", "spaces"],
-    ["/kb/page-1", "spaces"],
-    ["/assistant/new", "spaces"],
+    ["/kb/page-1", "knowledge"],
+    ["/assistant/new", "knowledge"],
     ["/boveda/client-1", "spaces"],
     ["/contenido", "content"],
     ["/contenido/clientes", "content"],
