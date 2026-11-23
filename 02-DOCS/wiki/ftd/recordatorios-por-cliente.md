@@ -17,12 +17,17 @@ Dejar de activar los avisos del calendario pieza por pieza: un interruptor por c
 - Fuera de alcance: multi-cuenta, aviso al dueño por el canal del cliente, cierre mensual (T4, después).
 
 ## Checklist
-- [ ] 1. Esquema + SQL up/down (sin aplicar a la BD)
-- [ ] 2. Cron e herencia al crear piezas, con pruebas
-- [ ] 3. API de lotes + pantalla Recordatorios
-- [ ] 4. Tool MCP `set_content_reminders`
-- [ ] 5. Digest: contenido + «Activar mi resumen» + aviso único de follow-up
+- [x] 1. Esquema + SQL up/down (`content-reminders-client`, `followup-notified`; sin aplicar a la BD)
+- [x] 2. Cron y herencia al crear piezas, con pruebas (8 pasan)
+- [x] 3. API de lotes + pantalla Recordatorios (tipos y lint OK; sin probar en navegador: falta BD)
+- [x] 4. Tool MCP `set_content_reminders` (con aprobación humana)
+- [x] 5. Digest con sección Contenido, «Activar mi resumen» (Configuración → Resumen) y aviso único de follow-up agrupado (8 pruebas)
 - [ ] 6. Cierre mensual y archivado dentro de digest (T4, aparte)
 
 ## Next
-Paso 1 hecho al aplicar `prisma/sql/content-reminders-client.up.sql` (o `db:push`) en la BD: lo hace Noeli.
+1. Aplicar en la BD **antes** de desplegar: `prisma/sql/content-reminders-client.up.sql` y `prisma/sql/followup-notified.up.sql` (o `db:push`). Sin las columnas, las consultas nuevas fallan.
+2. Probar en el navegador `/contenido/recordatorios` y `/settings/digest`.
+3. Paso 6 (cierre mensual) queda para una tarea aparte.
+
+## Evidencia
+`npm test`: las mismas 7 pruebas que ya fallaban en `main` (contratos de diseño, navegación, favicon); ninguna nueva. `tsc`: sin errores en los archivos tocados.

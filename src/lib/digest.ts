@@ -5,6 +5,7 @@ import { completeWithAi } from "@/src/lib/ai-completion";
 import { normalizeModelId } from "@/src/lib/ai-models";
 import { formatByCurrency } from "@/src/lib/deal-sales";
 import { loadWonSales } from "@/src/lib/won-sales";
+import { buildContentDigestLines } from "@/src/lib/content-digest";
 
 export type DigestFrequency = "daily" | "weekly" | "monthly" | "custom";
 
@@ -177,6 +178,27 @@ export async function buildDigestContext(
   });
 
   const won = await loadWonSales(orgId);
+  const org = await prisma.organization.findUnique({ where: { id: orgId }, select: { timezone: true } });
+  const todayKey = new Intl.DateTimeFormat("en-CA", {
+    timeZone: org?.timezone || "America/Cancun",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+  const todayUtc = new Date(`${todayKey}T00:00:00.000Z`);
+  const contentItems = await prisma.contentItem.findMany({
+    where: {
+      organizationId: orgId,
+      client: { isActive: true },
+      date: { gte: new Date(todayUtc.getTime() - 30 * 86_400_000), lt: new Date(todayUtc.getTime() + 5 * 86_400_000) },
+    },
+    orderBy: { date: "asc" },
+    select: { date: true, title: true, publishStatus: true, client: { select: { name: true } } },
+  });
+  const contentLines = buildContentDigestLines(
+    contentItems.map((item) => ({ date: item.date, title: item.title, publishStatus: item.publishStatus, clientName: item.client.name })),
+    todayKey,
+  );
   const fmt = (d: Date) =>
     d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
@@ -200,7 +222,6 @@ export async function buildDigestContext(
     }),
     ``,
     `VENTAS GANADAS ESTE MES: ${won.month.count} | ${formatByCurrency(won.month.byCurrency)}`,
-    `VENTAS GANADAS TOTAL: ${won.total.count} | ${formatByCurrency(won.total.byCurrency)} | ${won.withoutQuote} sin cotización`,
     ...won.recent.slice(0, 3).map(
       (d) => `  - "${d.title}" | $${d.value} ${d.currency}${d.quotes.length ? ` | cotización ${d.quotes.join(", ")}` : " | sin cotización"}`,
     ),
@@ -215,6 +236,8 @@ export async function buildDigestContext(
     ...upcomingBillings.map((c) =>
       `  - ${c.name}: día ${c.billingDay} | $${c.monthlyFee} ${c.currency}`
     ),
+    ``,
+    ...contentLines,
     ``,
     `TAREAS VENCIDAS: ${overdueTasks}`,
     `TAREAS HOY: ${todayTasks.length}`,
@@ -258,10 +281,10 @@ export async function generateDigestMessage(
 ): Promise<string> {
   const systemPrompt = `Eres un asistente de CRM. Genera un resumen ejecutivo en español para enviar por WhatsApp.
 Reglas:
-- Máximo 1200 caracteres
+- Máximo 1500 caracteres
 - Usa emojis con moderación (2-4 en total)
 - Secciones cortas con títulos en mayúsculas
-- Incluye: pipelines, deals pendientes/vencidos, ventas y pagos pendientes, ingresos MRR, cobros próximos, tareas, citas del CRM, correos sin leer y eventos de Google Calendar si aparecen en los datos
+- Incluye: la sección CONTENIDO (qué se sube hoy, pendientes y atrasadas) completa, pipelines, deals pendientes/vencidos, ventas y pagos pendientes, ingresos MRR, cobros próximos, tareas, citas del CRM, correos sin leer y eventos de Google Calendar si aparecen en los datos
 - Sé conciso y accionable
 - NO uses markdown ni asteriscos
 - Solo el texto del mensaje, sin introducción`;

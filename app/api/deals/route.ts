@@ -139,7 +139,10 @@ export async function PATCH(req: Request) {
     if (probability !== undefined) updateData.probability = probability;
     if (notes !== undefined) updateData.notes = notes;
     if (lostReason !== undefined) updateData.lostReason = lostReason;
-    if (followUpAt !== undefined) updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
+    if (followUpAt !== undefined) {
+      updateData.followUpAt = followUpAt ? new Date(followUpAt) : null;
+      updateData.followUpNotifiedAt = null; // fecha nueva: puede volver a avisar
+    }
     if (contactId !== undefined) updateData.contactId = contactId || null;
     // «Referido por»: un cliente o un contacto de la misma organización (o null para quitarlo)
     if (body.referredByClientId !== undefined) {

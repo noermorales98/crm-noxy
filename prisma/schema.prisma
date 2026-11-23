@@ -478,6 +478,7 @@ model Deal {
   currency    String      @default("USD")
   source      LeadSource?
   followUpAt  DateTime?
+  followUpNotifiedAt DateTime? // último followUpAt ya avisado por WhatsApp: evita repetir el aviso
   lostReason  String?
   probability Int         @default(50)
   notes       String?     @db.Text
