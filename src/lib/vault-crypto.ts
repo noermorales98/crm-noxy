@@ -1,3 +1,4 @@
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { decryptSecret, encryptSecret, isEncryptedSecret } from "./secret-box.ts";
 
 // Bóveda de clientes: la contraseña se guarda siempre cifrada; las notas, solo en las entradas de tipo «credential»

@@ -179,7 +179,7 @@ Tarea:
 Criterio: npm test; pruebas para el cálculo por mes (incluye cambio de mes y zona horaria America/Cancun). Un commit por paso 1–3 y otro por 4–7.
 ```
 
-### 🟡 EN CURSO (rama nav/conocimientos-ia, sin fusionar) · T5 · Cursor · Separar «Espacios» en dos secciones
+### ✅ HECHA (fusionada en main) — no la ejecutes · T5 · Cursor · Separar «Espacios» en dos secciones
 ```text
 Proyecto crm-noxy, main. Archivos: src/lib/crm-navigation.ts (+ su .test.ts), src/components/Sidebar.tsx, src/components/sidebar-parts.tsx, src/components/MobileMoreSheet.tsx, src/components/context-navs.tsx.
 Hoy el grupo «Espacios» contiene Correo, Docs, Asistente, Bóveda y Gestión de contenido.
@@ -200,7 +200,7 @@ Proyecto crm-noxy, main. Archivos: src/lib/content-publish.ts, src/lib/mcp/conte
 Hecho cuando: npm test pasa, pruebas nuevas para (1) y (2), y muestras la respuesta JSON de una cotización con sus dos enlaces.
 ```
 
-### 🟡 EN CURSO (rama cifrar-boveda, sin fusionar) · T7 · Claude · La Bóveda no está cifrada (la landing dice que sí)
+### ✅ HECHA (fusionada en main) — no la ejecutes · T7 · Claude · La Bóveda no está cifrada (la landing dice que sí)
 ```text
 Proyecto crm-noxy, main. Hallazgo: ClientVaultEntry.password se guarda en texto plano (app/api/clients/[id]/vault/route.ts) aunque la landing promete «Bóveda cifrada». Ya existe src/lib/secret-box.ts (appSecretKey, encryptSecret, decryptSecret) usado para claves de IA y Notion.
 Tarea:
@@ -225,7 +225,7 @@ Alcance:
 Entrega por pasos, un commit cada uno, y detente tras el paso 1 para que yo pruebe.
 ```
 
-### 🟡 CASI HECHA (el selector ya existe; falta probarlo en el navegador) · T9 · Cursor · Selector de cuenta en la interfaz
+### ✅ HECHA (selector en escritorio y móvil; falta que lo pruebes en el navegador) — no la ejecutes · T9 · Cursor · Selector de cuenta en la interfaz
 ```text
 Proyecto crm-noxy, main. Hazlo DESPUÉS de T8 (paso 1: API /api/organizations y /switch).
 Agrega un selector de cuenta arriba del Sidebar (src/components/Sidebar.tsx y AccountMenu.tsx) y en móvil (MobileTopBar):
@@ -277,21 +277,21 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 - ✅ «Agregar correos» en el MCP = email del cliente en contacto y cotización (T6.4).
 - ✅ Crons dados de alta en cron-job.org (confirmado por Noeli, 2026-11-23). `DigestSchedule`: 1 activo (09:00 Cancún, WhatsApp configurado); el último envío había sido el 2026-11-13 (diagnóstico: `node scripts/digest-diagnostico.cjs`).
 
-## 8. Estado de avance (revisado 2026-11-23)
+## 8. Estado de avance (revisado 2026-11-23, tarde)
 | Tarea | Estado | Evidencia |
 |---|---|---|
-| T1 follow-up único y agrupado | ✅ hecha, en main y subida | commit cdf5848 |
-| T2 resumen diario | ✅ hecha, subida. **Falta aplicar** `prisma/sql/digest-error.up.sql` | commit 2956c9e |
-| T3 archivados fuera de consultas | ✅ hecha, subida | commit 79fca70 |
-| T4 cierre mensual | ✅ hecha, subida | commit 885482f |
-| Avisos por cliente + «Activar mi resumen» | ✅ hecha, subida | commit cdf5848 |
-| T8 multi-cuenta (API de organizaciones, JWT que valida membresía, aislamiento, empresa→sub-cuenta) | ✅ hecha y fusionada en main (bf968e5), **sin subir**. Empresas ya convertidas en producción: Dreams Club, Eilen Centro Terapéutico, J&H Multiservices, Noxy Digital | `02-DOCS/wiki/ftd/multi-cuenta.md` |
-| T9 selector de cuenta | 🟡 `OrganizationSwitcher` ya está en main; falta probarlo en el navegador | |
-| T5 sidebar «Espacios» / «Conocimiento e IA» | 🟡 hecha en la rama `nav/conocimientos-ia` (cambios sin confirmar, sin fusionar) | `separar-espacios-conocimiento-ia.md` |
-| T7 cifrar la Bóveda | 🟡 empezada en la rama `cifrar-boveda` (módulo de cifrado, script y ruta sin confirmar, sin fusionar). Hasta fusionarla y correr el script, la landing sigue diciendo algo falso | |
-| T6 MCP (aprobado, update_quote, enlaces, email) | ⏳ sin empezar (no hay `update_quote` ni «aprobado» en el código) | |
-| T10 Proyectos → Clientes | ⏳ sin empezar (el menú sigue diciendo «Proyectos») | |
-| T11 landing | ⏳ sin empezar (sigue diciendo «Bóveda cifrada» y «Credenciales cifradas») | |
-| T12 docs/crons/pruebas | ⏳ sin empezar (`CRON.md` no menciona auto-archive, notion-sync ni cierre mensual) | |
+| T1 follow-up único y agrupado | ✅ en main y subida | cdf5848 |
+| T2 resumen diario | ✅ subida; SQL `digest-error` aplicado a la base | 2956c9e |
+| T3 archivados fuera de consultas | ✅ subida | 79fca70 |
+| T4 cierre mensual | ✅ subida | 885482f |
+| T5 «Conocimiento e IA» separado de «Espacios» (escritorio y móvil) | ✅ en main | 67f74b4; arregló 2 pruebas de navegación que fallaban |
+| T7 Bóveda cifrada | ✅ en main. La base tiene 0 filas en la Bóveda: nada que migrar; las nuevas se guardan cifradas. **SMTP/IMAP de empresas siguen en texto plano** (tarea aparte) | c24b6d5, `ftd/cifrar-boveda.md` |
+| T8 multi-cuenta | ✅ en main y subida; SQL `migratedToOrgId` aplicado; 4 empresas ya son sub-cuentas | bf968e5 |
+| T9 selector de cuenta | ✅ en la barra lateral y en el menú «Más» del móvil. Falta probarlo en navegador | |
+| T6 MCP (aprobado, update_quote, enlaces, email) | ⏳ sin empezar | |
+| T10 Proyectos → Clientes | ⏳ sin empezar | |
+| T11 landing | ⏳ sin empezar (ahora «Bóveda cifrada» ya es cierto; «Credenciales cifradas» no del todo por SMTP/IMAP) | |
+| T12 docs/crons/pruebas | ⏳ sin empezar | |
+| Cifrar SMTP/IMAP (nueva) | ⏳ propuesta | |
 
-**Siguiente:** terminar y fusionar T5 y T7; después T6, T10, T11 y T12.
+**Siguiente:** T6, T10, T11, T12, y cifrar SMTP/IMAP.
