@@ -63,7 +63,7 @@ Administrar varios clientes desde un solo usuario. Cada cliente es una `Organiza
 - [x] P2 SQL `company-migrated-org.up.sql` aplicado en la base (columna `Company.migratedToOrgId` VARCHAR(191) NULL, verificada), `prisma generate` hecho, simulacro corrido con las 3 empresas de cliente.
 - [x] P2 `--apply` ejecutado en orden: Dreams Club, Eilen Centro Terapeutico, J&H Multiservices, Noxy Digital (la empresa propia). Sin dump previo: `mysqldump` no autentica (plugin `mysql_native_password` ausente en el cliente); los informes por conversión están en `backups/` (local, ignorado por git).
 - [x] P3 `submit` ya escribía todo en `form.organizationId`; ahora además ignora enlaces a otra org (empresa, correo de bienvenida, tipo de cita, proyecto) y elige el OWNER de forma determinista (`pickNotifyOwner`: el más antiguo con WhatsApp). Pruebas en `organizations.test.ts`.
-- [ ] P4 auditoría de crons + regla de destinatario fijada y probada.
+- [x] P4 auditoría de crons: `digest` y `content-reminders` ya aislaban por organización (sin cambios); `followups` mezclaba en un mensaje los seguimientos de todas las orgs del mismo dueño y `followups`/`payment-alerts` elegían OWNER sin orden → ahora agrupan por organización, usan `pickNotifyOwner` (`src/lib/org-owner.ts`) y el mensaje lleva el nombre de la sub-cuenta.
 - [ ] P5 pruebas de aislamiento A↔B (deals, contacts, forms, quotes, mcp).
 
 ## Evidence
@@ -80,3 +80,6 @@ P3: `npm test` 493 (486 pasan; los mismos 7 fallos previos). `tsc` limpio. `esli
 Decisiones de Noeli (2026-11-23): los clientes NO entran al CRM; solo el equipo (Noelí y Esthefani). La regla de destinatario de avisos queda en «OWNER más antiguo con WhatsApp» = Noelí, sin ambigüedad.
 Usuarios: la cuenta duplicada «Noeli» (noe.rmorales98@gmail.com, ADMIN) se borró; quedó solo «Noelí» (noepumasnoe@gmail.com, OWNER, con WhatsApp). La duplicada solo tenía 1 membresía y 1 preferencia de dashboard (respaldo en `backups/usuario-duplicado-*.json`).
 Sub-cuentas creadas (miembros: Noelí OWNER, Esthefani ADMIN): Dreams Club (63 contactos, 2 deals, 2 formularios; verificado contra el origen), Eilen Centro Terapeutico (147/0/1), J&H Multiservices LLC (1/0/0), Noxy Digital (5/0/6; ojo: mismo nombre que la org principal).
+
+Unión Noxy: la sub-cuenta «Noxy Digital» (copia de la empresa propia) se borró; la empresa original conserva 5 contactos y 6 formularios y `migratedToOrgId` volvió a NULL (respaldo en `backups/deshacer-noxy-copia-*.json`).
+P4: `npm test` 495 (488 pasan; mismos 7 fallos previos). `tsc` y `eslint` limpios en lo tocado. Pendiente (no automatizable): ver llegar un aviso real con el nombre de la sub-cuenta.
