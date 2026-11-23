@@ -22,3 +22,6 @@ Nada se vio en navegador. La caché del router puede mostrar datos de hasta 30 s
 - **Se perdió a propósito:** el vínculo del formulario de Eilen con su proyecto y su correo de bienvenida (viven en Noxy), y 2 campañas de Noxy que apuntaban a ese formulario (`targetFormId` a nulo). Hay que volver a ligar el correo de bienvenida desde la sub-cuenta de Eilen.
 - Verificado: 0 contactos cuyo formulario sea de otra organización.
 - Respaldo local con datos personales en `backups/mover-*.json` (git lo ignora): bórralo cuando verifiques.
+
+## Ajuste de la barra lateral (5 secciones)
+Las pestañas medían 44 px (móvil) o 36 px (escritorio) con huecos fijos y, con 5, no cabían. Ahora la fila es una rejilla de 5 columnas iguales (`auto-cols-fr`), cada pestaña de 36 px centrada: caben siempre. El nombre de la sección activa se muestra justo debajo de las pestañas (no cabe dentro de la pestaña sin cortar «Conocimiento e IA»). Sin probar en navegador.

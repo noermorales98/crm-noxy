@@ -347,7 +347,8 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
             aria-label="Secciones"
             aria-orientation={collapsed ? "vertical" : "horizontal"}
             onKeyDown={onTabsKeyDown}
-            className={`flex shrink-0 items-center gap-1.5 pb-2 pt-1 ${collapsed ? "flex-col px-2" : "px-4"}`}
+            // Expandida: 5 columnas iguales, así las cinco secciones caben siempre sin depender de un ancho fijo.
+            className={collapsed ? "flex shrink-0 flex-col items-center gap-1.5 px-2 pb-2 pt-1" : "grid shrink-0 grid-flow-col auto-cols-fr items-center justify-items-center gap-1 px-3 pb-1 pt-1"}
           >
             {modes.map((mode) => {
               const selected = mode.key === activeMode;
@@ -362,7 +363,7 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
                   tabIndex={selected ? 0 : -1}
                   onClick={() => pickMode(mode.key)}
                   {...tipProps(mode.label)}
-                  className={`flex size-11 shrink-0 items-center justify-center rounded-full outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:size-9 ${
+                  className={`flex shrink-0 items-center justify-center rounded-full outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none ${collapsed ? "size-11 lg:size-9" : "size-9"} ${
                     selected ? "border border-line bg-nav-active text-[var(--nav-active-ink)]" : "border border-transparent text-text-secondary-strong hover:bg-nav-hover hover:text-text-primary"
                   }`}
                 >
@@ -371,6 +372,13 @@ function MainSidebar({ variant = "docked", onNavigate, headerControl }: SidebarP
               );
             })}
           </div>
+        )}
+
+        {/* Nombre de la sección activa: las pestañas son solo iconos y no hay sitio para el texto dentro de cada una. */}
+        {modes.length > 1 && !collapsed && (
+          <p key={activeMode} aria-hidden="true" className="crm-menu-enter truncate px-5 pb-1 pt-2 text-sm font-semibold text-text-primary">
+            {modes.find((mode) => mode.key === activeMode)?.label}
+          </p>
         )}
 
         {/* ── Lista plana del modo ──────────────────────────────────────────── */}
