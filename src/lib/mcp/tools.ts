@@ -16,6 +16,9 @@ import { loadSalesMetrics } from "@/src/lib/mcp/sales-metrics";
 import { loadMonthMetrics } from "@/src/lib/month-metrics";
 import { dealToQuotePrefill } from "@/src/lib/deal-sales";
 import { computeQuoteTotals, nextQuoteFolio } from "@/src/lib/quotes";
+import { tryPublicUrls } from "@/src/lib/url";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { canEditQuote, quoteScalarData, validateQuoteEdit } from "./quote-input.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -229,7 +232,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "update_contact",
     {
-      description: "Actualiza los datos de un contacto existente.",
+      description: "Actualiza los datos de un contacto existente (nombre, correo, teléfono, empresa). Para agregar el correo de un cliente en una cotización usa update_quote.",
       inputSchema: {
         id: z.string().describe("ID del contacto"),
         firstName: z.string().optional(),
@@ -436,7 +439,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         },
       });
       if (!deal) return err("Deal no encontrado");
-      return json(deal);
+      return json({ ...deal, crmUrl: tryPublicUrls()?.dealCrm(deal.id) ?? null });
     }
   );
 
@@ -476,7 +479,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         },
         include: { stage: { select: { name: true } } },
       });
-      return json(deal);
+      return json({ ...deal, crmUrl: tryPublicUrls()?.dealCrm(deal.id) ?? null });
     }
   );
 
@@ -887,6 +890,13 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
 
   // ─── Cotizaciones ─────────────────────────────────────────────────────────
 
+  /** Agrega `publicUrl` (lo que ve el cliente) y `crmUrl` (el registro en el CRM) y no expone el token suelto. */
+  const withQuoteLinks = <Q extends { folio: string; publicToken: string }>(quote: Q) => {
+    const urls = tryPublicUrls();
+    const { publicToken, ...rest } = quote;
+    return { ...rest, publicUrl: urls?.quotePublic(publicToken) ?? null, crmUrl: urls?.quoteCrm(quote.folio) ?? null };
+  };
+
   server.registerTool(
     "list_quotes",
     {
@@ -920,12 +930,13 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
             total: true,
             issuedAt: true,
             validUntil: true,
+            publicToken: true,
             contact: { select: { id: true, firstName: true, lastName: true } },
             deal: { select: { id: true, title: true } },
           },
         }),
       ]);
-      return json({ total, quotes });
+      return json({ total, quotes: quotes.map(withQuoteLinks) });
     }
   );
 
@@ -947,7 +958,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         },
       });
       if (!quote) return err("Cotización no encontrada");
-      return json(quote);
+      return json(withQuoteLinks(quote));
     }
   );
 
@@ -969,6 +980,72 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         select: { id: true, folio: true, status: true, total: true, currency: true, deal: { select: { id: true, title: true } } },
       });
       return json(quote);
+    }
+  );
+
+  server.registerTool(
+    "update_quote",
+    {
+      description:
+        "Edita una cotización en BORRADOR o ENVIADA: conceptos (recalcula totales), IVA, vigencia, notas, condiciones y datos del cliente (nombre, empresa, correo, teléfono). En ENVIADA exige approvalToken porque el cliente ya la vio. Otros estados no se pueden editar.",
+      inputSchema: {
+        id: z.string().describe("ID de la cotización (list_quotes)"),
+        items: z
+          .array(z.object({ description: z.string(), quantity: z.number().positive().default(1), unitPrice: z.number().min(0), discount: z.number().min(0).max(100).default(0) }))
+          .optional()
+          .describe("Lista COMPLETA de conceptos: reemplaza a la actual"),
+        taxRate: z.number().min(0).max(100).optional().describe("IVA %"),
+        validUntil: DATE.nullable().optional(),
+        notes: z.string().nullable().optional(),
+        terms: z.string().nullable().optional(),
+        clientName: z.string().optional(),
+        clientCompany: z.string().nullable().optional(),
+        clientEmail: z.string().nullable().optional().describe("Correo del cliente; null para quitarlo"),
+        clientPhone: z.string().nullable().optional(),
+        approvalToken: z.string().optional().describe("Token que devuelve la página de confirmación humana (solo para cotizaciones ENVIADA)"),
+      },
+    },
+    async ({ id, approvalToken, ...input }) => {
+      const existing = await prisma.quote.findFirst({
+        where: { id, organizationId: org },
+        include: { items: { orderBy: { order: "asc" } } },
+      });
+      if (!existing) return err("Cotización no encontrada");
+      if (!canEditQuote(existing.status)) {
+        return err(`La cotización ${existing.folio} está en estado ${existing.status}; solo se editan las que están en BORRADOR o ENVIADA.`);
+      }
+      const invalid = validateQuoteEdit(input);
+      if (invalid) return err(invalid);
+      if (existing.status === "ENVIADA") {
+        const action = canonicalAction("update_quote", definedRecord({ id, ...input }));
+        const gated = gateWrite(action, `Editar la cotización ${existing.folio}, que ya fue enviada al cliente.`, approvalToken);
+        if (!gated.ok) return gated.result;
+      }
+      const data: Record<string, unknown> = quoteScalarData(input);
+      const rate = input.taxRate ?? existing.taxRate;
+      let newItems: ReturnType<typeof computeQuoteTotals>["items"] | null = null;
+      if (input.items !== undefined || input.taxRate !== undefined) {
+        const totals = computeQuoteTotals(input.items ?? existing.items, rate);
+        data.taxRate = rate;
+        data.subtotal = totals.subtotal;
+        data.taxAmount = totals.taxAmount;
+        data.total = totals.total;
+        if (input.items !== undefined) newItems = totals.items;
+      }
+      const changed = Object.keys(input).filter((key) => (input as Record<string, unknown>)[key] !== undefined);
+      const quote = await prisma.$transaction(async (tx) => {
+        if (newItems) await tx.quoteItem.deleteMany({ where: { quoteId: existing.id } });
+        const updated = await tx.quote.update({
+          where: { id: existing.id },
+          data: { ...data, ...(newItems ? { items: { create: newItems } } : {}) } as any,
+          include: { items: { orderBy: { order: "asc" } } },
+        });
+        await tx.quoteEvent.create({
+          data: { type: "EDITADA", description: `Cotización editada por el MCP (${changed.join(", ")})`, actor: "mcp", quoteId: existing.id, organizationId: org },
+        });
+        return updated;
+      });
+      return json(withQuoteLinks(quote));
     }
   );
 
@@ -1038,9 +1115,9 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           items: { create: totals.items },
           events: { create: { type: "CREADA", description: `Cotización ${folio} creada desde el lead «${deal.title}» (MCP)`, actor: "crm", organizationId: org } },
         },
-        select: { id: true, folio: true, status: true, total: true, currency: true, clientName: true, deal: { select: { id: true, title: true } } },
+        select: { id: true, folio: true, status: true, total: true, currency: true, clientName: true, publicToken: true, deal: { select: { id: true, title: true } } },
       });
-      return json(quote);
+      return json(withQuoteLinks(quote));
     }
   );
 

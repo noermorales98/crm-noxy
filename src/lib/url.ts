@@ -24,3 +24,26 @@ export function getPublicBaseUrl(): string {
       "(p. ej. https://crm-noxy.vercel.app) en las variables de entorno."
   );
 }
+
+/**
+ * Enlaces que devuelve el MCP: `publicUrl` es lo que ve el cliente y `crmUrl` abre el registro en el CRM.
+ * `base` se puede pasar a mano (pruebas); por defecto sale del entorno.
+ */
+export function publicUrls(base: string = getPublicBaseUrl()) {
+  const root = base.replace(/\/+$/, "");
+  return {
+    quotePublic: (publicToken: string) => `${root}/cotizar/${publicToken}`,
+    quoteCrm: (folio: string) => `${root}/cotizaciones/${encodeURIComponent(folio)}`,
+    dealCrm: (id: string) => `${root}/pipeline/${id}`,
+    contentClientCrm: (clientId: string) => `${root}/contenido/${clientId}`,
+  };
+}
+
+/** Igual que `publicUrls`, pero devuelve `null` si la URL base no está configurada en vez de lanzar (para no romper una herramienta). */
+export function tryPublicUrls(): ReturnType<typeof publicUrls> | null {
+  try {
+    return publicUrls();
+  } catch {
+    return null;
+  }
+}

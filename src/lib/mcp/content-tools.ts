@@ -2,6 +2,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { prisma } from "@/src/lib/db";
+import { tryPublicUrls } from "@/src/lib/url";
 import { pushContentItem, removeContentItemEvent } from "@/src/lib/content-google-sync";
 import { applyBulkReminders } from "@/src/lib/content-reminder-bulk";
 import { parseBulkReminderInput } from "@/src/lib/content-reminder-input";
@@ -21,7 +22,7 @@ const pagination = {
   limit: z.number().int().min(1).max(100).default(30).describe("Máximo de resultados (1-100)"),
   offset: z.number().int().min(0).default(0).describe("Resultados a saltar (paginación)"),
 };
-const STATUS = z.enum(["pendiente", "en_edicion", "editado", "subido"]);
+const STATUS = z.enum(["pendiente", "en_edicion", "editado", "aprobado", "subido"]);
 const TYPE = z.enum(CONTENT_TYPES as unknown as [string, ...string[]]);
 const DAY = z.string().describe("Día en formato YYYY-MM-DD (o ISO 8601 con hora)");
 
@@ -160,7 +161,7 @@ export function registerContentTools(server: McpServer, organizationId: string) 
     },
     async ({ id }) => {
       const item = await prisma.contentItem.findFirst({ where: { id, organizationId: org }, include: itemInclude });
-      return item ? json(item) : err("Pieza no encontrada");
+      return item ? json({ ...item, crmUrl: tryPublicUrls()?.contentClientCrm(item.clientId) ?? null }) : err("Pieza no encontrada");
     },
   );
 
@@ -199,7 +200,7 @@ export function registerContentTools(server: McpServer, organizationId: string) 
         include: itemInclude,
       });
       await pushToGoogle(item.id);
-      return json(item);
+      return json({ ...item, crmUrl: tryPublicUrls()?.contentClientCrm(item.clientId) ?? null });
     },
   );
 

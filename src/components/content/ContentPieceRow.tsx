@@ -10,7 +10,7 @@ export function pieceHref(item: { id: string; date: string | Date }): string {
   return `/contenido/general?mes=${month}&pieza=${item.id}`;
 }
 
-const STATUS_TONE = { pendiente: "neutral", en_edicion: "hot", editado: "neutral", subido: "done" } as const;
+const STATUS_TONE = { pendiente: "neutral", en_edicion: "hot", editado: "neutral", aprobado: "done", subido: "done" } as const;
 
 /** Fila de una pieza: hora o día, título, cliente (punto de su color), tipo y estado. Lleva al calendario del cliente. */
 export function ContentPieceRow({ item, color, showDate = false, late = false }: { item: ContentItemLike; color?: string; showDate?: boolean; late?: boolean }) {

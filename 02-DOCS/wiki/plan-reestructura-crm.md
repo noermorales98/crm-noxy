@@ -190,7 +190,7 @@ Cambio: deja «Espacios» con Correo, Bóveda y Gestión de contenido, y crea un
 Hecho cuando: npm test pasa sin romper pruebas que ya pasaban (4 fallan desde antes: contratos de diseño y favicon; no las toques) y revisas en el navegador (npm run dev) escritorio y móvil con captura.
 ```
 
-### ⏳ PENDIENTE · T6 · Cursor · MCP: «aprobado», editar cotizaciones, enlaces y correos
+### ✅ HECHA (en main) — no la ejecutes · T6 · Cursor · MCP: «aprobado», editar cotizaciones, enlaces y correos
 ```text
 Proyecto crm-noxy, main. Archivos: src/lib/content-publish.ts, src/lib/mcp/content-input.ts, src/lib/mcp/content-tools.ts, src/lib/mcp/tools.ts, src/lib/url.ts, app/api/quotes/[id]/route.ts.
 1. Estado «aprobado»: agrégalo a PUBLISH_STATUSES entre «editado» y «subido» (orden: pendiente, en_edicion, editado, aprobado, subido), con etiqueta «Aprobado» y color (usa uno de la paleta del CRM) en publishStatusLabel/publishStatusColor; actualiza el z.enum STATUS de content-tools.ts, los filtros de la UI de /contenido y las pruebas. No cambies el significado de uploadedAt (solo «subido»).
@@ -288,7 +288,7 @@ Hecho cuando: npm test pasa y entregas el reporte del punto 4.
 | T7 Bóveda cifrada | ✅ en main. La base tiene 0 filas en la Bóveda: nada que migrar; las nuevas se guardan cifradas. **SMTP/IMAP de empresas siguen en texto plano** (tarea aparte) | c24b6d5, `ftd/cifrar-boveda.md` |
 | T8 multi-cuenta | ✅ en main y subida; SQL `migratedToOrgId` aplicado; 4 empresas ya son sub-cuentas | bf968e5 |
 | T9 selector de cuenta | ✅ en la barra lateral y en el menú «Más» del móvil. Falta probarlo en navegador | |
-| T6 MCP (aprobado, update_quote, enlaces, email) | ⏳ sin empezar | |
+| T6 MCP (aprobado, update_quote, enlaces, email) | ✅ en main | `ftd/mcp-aprobado-cotizaciones-enlaces.md` |
 | T10 Proyectos → Clientes | ⏳ sin empezar | |
 | T11 landing | ⏳ sin empezar (ahora «Bóveda cifrada» ya es cierto; «Credenciales cifradas» no del todo por SMTP/IMAP) | |
 | T12 docs/crons/pruebas | ⏳ sin empezar | |

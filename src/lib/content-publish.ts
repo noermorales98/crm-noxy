@@ -1,4 +1,4 @@
-export const PUBLISH_STATUSES = ["pendiente", "en_edicion", "editado", "subido"] as const;
+export const PUBLISH_STATUSES = ["pendiente", "en_edicion", "editado", "aprobado", "subido"] as const;
 
 export type PublishStatus = (typeof PUBLISH_STATUSES)[number];
 
@@ -21,6 +21,8 @@ export function publishStatusLabel(status: string | null | undefined): string {
       return "En edición";
     case "editado":
       return "Editado";
+    case "aprobado":
+      return "Aprobado";
     case "subido":
       return "Subido";
     default: {
@@ -39,6 +41,8 @@ export function publishStatusColor(status: string | null | undefined): string {
       return "#C9973B";
     case "editado":
       return "#3545D6";
+    case "aprobado":
+      return "#0E9F9A";
     case "subido":
       return "#34C759";
     default: {
@@ -55,6 +59,7 @@ export function matchesPublishFilter(status: string | null | undefined, filter: 
     case "pendiente":
     case "en_edicion":
     case "editado":
+    case "aprobado":
     case "subido":
       return parsePublishStatus(status) === filter;
     default: {

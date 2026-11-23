@@ -70,7 +70,7 @@ export function summarizeContent(items: readonly ContentItemLike[], clients: rea
     counts: {
       today: today.length,
       overdue: overdue.length,
-      toUpload: open.filter((item) => item.publishStatus === "editado").length,
+      toUpload: open.filter((item) => item.publishStatus === "editado" || item.publishStatus === "aprobado").length,
       inEditing: open.filter((item) => item.publishStatus === "en_edicion").length,
       pending: open.filter((item) => item.publishStatus === "pendiente").length,
       thisWeek: today.length + upcoming.length,
