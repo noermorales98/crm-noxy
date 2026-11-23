@@ -1,7 +1,9 @@
 ---
 author: Noeli
 branch: recordatorios-por-cliente
-status: in-progress
+status: done
+merged: 2026-11-23
+merged_by: Noeli
 ---
 
 # Recordatorios por cliente, por lotes, y resumen opt-in
@@ -25,9 +27,7 @@ Dejar de activar los avisos del calendario pieza por pieza: un interruptor por c
 - [ ] 6. Cierre mensual y archivado dentro de digest (T4, aparte)
 
 ## Next
-1. Aplicar en la BD **antes** de desplegar: `prisma/sql/content-reminders-client.up.sql` y `prisma/sql/followup-notified.up.sql` (o `db:push`). Sin las columnas, las consultas nuevas fallan.
-2. Probar en el navegador `/contenido/recordatorios` y `/settings/digest`.
-3. Paso 6 (cierre mensual) queda para una tarea aparte.
+Fusionado en main el 2026-11-23 (cdf5848).
 
 ## Evidencia
 `npm test`: las mismas 7 pruebas que ya fallaban en `main` (contratos de diseño, navegación, favicon); ninguna nueva. `tsc`: sin errores en los archivos tocados.
