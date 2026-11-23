@@ -22,7 +22,7 @@ El HTML del servidor siempre salía con el tema por defecto (Índigo). El tema r
 ## Checklist
 - [x] Módulo `org-brand` + 6 pruebas; `isAutoArchivable` + 1 prueba — Evidence: `npm test` verde salvo los 5 fallos previos.
 - [x] `tsc` limpio en app/ y src/.
-- [ ] **Aplicar `prisma/sql/org-brand.up.sql` a la base ANTES de desplegar** (sin las columnas, leer organizaciones falla). Bloqueado por permisos: lo aprueba Noxy.
+- [x] `prisma/sql/org-brand.up.sql` aplicado a la base antes de desplegar (aprobado por Noxy): columnas `brandColor`, `brandIcon`, `themeId` verificadas y las 5 organizaciones se leen bien.
 - [ ] Probar en navegador: primera carga sin parpadeo (recarga forzada), menú de cuentas (escritorio, plegado y móvil), editor de identidad, cambio de tema por empresa.
 
 ## Sin probar
