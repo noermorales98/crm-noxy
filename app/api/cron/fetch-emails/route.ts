@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { createNotification } from "@/src/lib/notifications";
@@ -317,7 +318,7 @@ export async function GET(req: Request) {
           host: company.imapHost!,
           port: company.imapPort || 993,
           secure: company.imapSecure ?? true,
-          auth: { user: company.imapUser!, pass: company.imapPass! },
+          auth: { user: company.imapUser!, pass: openMailSecret(company.imapPass) ?? "" },
           logger: false,
           // Disable TLS rejection in case of self-signed certs (common in corporate servers)
           tls: { rejectUnauthorized: false },

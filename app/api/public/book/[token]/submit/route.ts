@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
@@ -189,7 +190,7 @@ export async function POST(
 
     const smtpSource = typeCompany || fallbackCompany;
     const smtpConfig = smtpSource?.smtpHost
-      ? { host: smtpSource.smtpHost!, port: smtpSource.smtpPort || 465, secure: smtpSource.smtpSecure ?? true, auth: { user: smtpSource.smtpUser!, pass: smtpSource.smtpPass! }, from: smtpSource.smtpFromEmail || smtpSource.smtpUser!, name: smtpSource.name || "Noxy" }
+      ? { host: smtpSource.smtpHost!, port: smtpSource.smtpPort || 465, secure: smtpSource.smtpSecure ?? true, auth: { user: smtpSource.smtpUser!, pass: openMailSecret(smtpSource.smtpPass) ?? undefined }, from: smtpSource.smtpFromEmail || smtpSource.smtpUser!, name: smtpSource.name || "Noxy" }
       : process.env.SMTP_HOST && process.env.SMTP_USER
         ? { host: process.env.SMTP_HOST, port: parseInt(process.env.SMTP_PORT || "465"), secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465", auth: { user: process.env.SMTP_USER!, pass: process.env.SMTP_PASS! }, from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER!, name: "Noxy" }
         : null;

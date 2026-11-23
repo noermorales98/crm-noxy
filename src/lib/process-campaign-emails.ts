@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { prisma } from "@/src/lib/db";
 import nodemailer from "nodemailer";
 
@@ -67,7 +68,7 @@ export async function processCampaignEmails(opts?: {
       secure: company.smtpSecure ?? true,
       auth: {
         user: company.smtpUser,
-        pass: company.smtpPass,
+        pass: openMailSecret(company.smtpPass) ?? undefined,
       },
     });
 

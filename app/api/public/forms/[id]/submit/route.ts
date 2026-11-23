@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { busyAppointmentsWhere } from "@/src/lib/appointment-busy";
@@ -275,7 +276,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             host: company.smtpHost,
             port: company.smtpPort || 465,
             secure: company.smtpSecure ?? true,
-            auth: { user: company.smtpUser, pass: company.smtpPass },
+            auth: { user: company.smtpUser, pass: openMailSecret(company.smtpPass) ?? undefined },
           });
 
           const fieldsHtml = customNotes.map(n => `<li style="margin-bottom:4px">${n}</li>`).join("");
@@ -362,7 +363,7 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
             host: company.smtpHost,
             port: company.smtpPort || 465,
             secure: company.smtpSecure ?? true,
-            auth: { user: company.smtpUser, pass: company.smtpPass },
+            auth: { user: company.smtpUser, pass: openMailSecret(company.smtpPass) ?? undefined },
           });
 
           await transporter.sendMail({

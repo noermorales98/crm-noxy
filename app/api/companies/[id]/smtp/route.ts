@@ -1,3 +1,4 @@
+import { sealMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
@@ -76,7 +77,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     };
 
     if (smtpPass) {
-       dataToUpdate.smtpPass = smtpPass;
+       dataToUpdate.smtpPass = sealMailSecret(String(smtpPass));
     }
 
     const updatedCompany = await prisma.company.update({

@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
@@ -40,7 +41,7 @@ function buildSmtpConfig(company: {
       host: company.smtpHost,
       port: company.smtpPort ?? 465,
       secure: company.smtpSecure ?? true,
-      auth: { user: company.smtpUser, pass: company.smtpPass },
+      auth: { user: company.smtpUser, pass: openMailSecret(company.smtpPass) ?? "" },
       from: company.smtpFromEmail ?? company.smtpUser,
       senderName: company.name,
     };

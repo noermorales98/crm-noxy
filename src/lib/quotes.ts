@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { prisma } from "@/src/lib/db";
 import { sendEmail } from "@/src/lib/email";
 import { getPublicBaseUrl } from "@/src/lib/url";
@@ -132,7 +133,7 @@ export async function sendQuoteEmail(opts: {
         host: company.smtpHost,
         port: company.smtpPort || 465,
         secure: company.smtpSecure ?? true,
-        auth: { user: company.smtpUser, pass: company.smtpPass },
+        auth: { user: company.smtpUser, pass: openMailSecret(company.smtpPass) ?? undefined },
       });
       const info = await transporter.sendMail({
         from: `"${company.name}" <${company.smtpFromEmail || company.smtpUser}>`,

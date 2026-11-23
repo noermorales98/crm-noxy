@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import nodemailer from "nodemailer";
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
           host: company.smtpHost,
           port: company.smtpPort || 465,
           secure: company.smtpSecure ?? true,
-          auth: { user: company.smtpUser, pass: company.smtpPass },
+          auth: { user: company.smtpUser, pass: openMailSecret(company.smtpPass) ?? undefined },
         });
 
         const mailOptions: any = {

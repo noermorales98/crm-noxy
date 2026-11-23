@@ -1,3 +1,4 @@
+import { openMailSecret } from "@/src/lib/mail-secret";
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
@@ -30,7 +31,8 @@ export async function POST(req: Request, context: { params: Promise<{ id: string
     const body = await req.json();
     const { testEmail, smtpHost, smtpPort, smtpUser, smtpFromEmail, smtpSecure } = body;
     // Use the password from the request if provided, otherwise fall back to the stored one
-    const smtpPass = body.smtpPass || company.smtpPass || "";
+    // La contraseña guardada está cifrada: se abre; la que viene del formulario ya es texto.
+    const smtpPass = body.smtpPass || openMailSecret(company.smtpPass) || "";
 
     if (!testEmail || !smtpHost || !smtpPort || !smtpUser) {
         return NextResponse.json({ error: "Missing required SMTP parameters for testing" }, { status: 400 });
