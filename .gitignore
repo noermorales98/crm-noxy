@@ -218,3 +218,6 @@ next-env.d.ts
 .codex/rsc/security-audit
 .cursor/rules/security-audit.mdc
 .cursor/commands/security-audit.md
+
+# Respaldos locales de la bóveda (contienen texto plano)
+/backups/
