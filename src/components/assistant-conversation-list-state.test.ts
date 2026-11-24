@@ -102,3 +102,16 @@ test("history groups by local day: Hoy, Ayer, Últimos 7 días, Anteriores; empt
   assert.equal(total, rows.length, "every conversation lands in exactly one group");
   assert.deepEqual(groupConversationsByDay([], now), []);
 });
+
+test("splitPinned separa los fijados, conserva el orden e ignora ids que ya no existen", async () => {
+  // @ts-expect-error: import relativo con extensión para node --test
+  const { splitPinned } = await import("./assistant-conversation-list-state.ts");
+  const list = [
+    { id: "a", title: "A", updatedAt: "2026-01-03" },
+    { id: "b", title: "B", updatedAt: "2026-01-02" },
+    { id: "c", title: "C", updatedAt: "2026-01-01" },
+  ];
+  const out = splitPinned(list, ["c", "zzz", "a"]);
+  assert.deepEqual(out.pinned.map((x: { id: string }) => x.id), ["a", "c"]);
+  assert.deepEqual(out.rest.map((x: { id: string }) => x.id), ["b"]);
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -29,6 +29,15 @@ export default function ChatSettings() {
     refreshAiSkills();
   };
   useDialog(panelRef, open, close);
+
+  // «Configurar» en el menú del sidebar abre el chat con ?ajustes=1: se abre el panel y se limpia la dirección.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("ajustes") !== "1") return;
+    setOpen(true);
+    url.searchParams.delete("ajustes");
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+  }, []);
 
   return (
     <>

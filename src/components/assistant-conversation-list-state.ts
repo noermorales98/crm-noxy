@@ -70,3 +70,12 @@ export function groupConversationsByDay(conversations: readonly AiConversation[]
   }
   return order.map((label) => ({ label, conversations: buckets.get(label)! })).filter((group) => group.conversations.length > 0);
 }
+
+/** Separa los chats fijados (en el orden en que se recibieron) del resto. Los ids fijados que ya no existen se ignoran. */
+export function splitPinned(conversations: readonly AiConversation[], pinnedIds: readonly string[]): { pinned: AiConversation[]; rest: AiConversation[] } {
+  const pinnedSet = new Set(pinnedIds);
+  return {
+    pinned: conversations.filter((c) => pinnedSet.has(c.id)),
+    rest: conversations.filter((c) => !pinnedSet.has(c.id)),
+  };
+}

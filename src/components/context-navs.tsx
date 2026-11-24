@@ -4,12 +4,14 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Building04Icon, InboxIcon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Building04Icon, InboxIcon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, Mail01Icon, PinIcon, PinOffIcon } from "@hugeicons/core-free-icons";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
 import { Blobatar } from "@blobatar/react";
 import { chatBlobSeed } from "@/src/lib/chat-blob";
-import { groupConversationsByDay } from "@/src/components/assistant-conversation-list-state";
+import { ActionMenu, type ActionMenuItem } from "@/src/components/ui";
+import { usePinnedChats } from "@/src/hooks/usePinnedChats";
+import { groupConversationsByDay, splitPinned, type AiConversation } from "@/src/components/assistant-conversation-list-state";
 import { ICON_SIZE, ICON_IDLE, branchActionClass, sectionLabelClass, navItemClass, rowClass, CountBadge, NavLeaf, CappedList } from "@/src/components/sidebar-parts";
 
 // ─── Rama: Correo ──────────────────────────────────────────────────────────────
@@ -216,6 +218,9 @@ export function AssistantNav() {
     refresh: refreshConversations,
   } = useAssistantConversations(Boolean(session?.user));
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const { pinned, toggle: togglePin } = usePinnedChats();
   const [showAll, setShowAll] = useState(false);
 
   const deleteConv = async (id: string) => {
@@ -230,8 +235,37 @@ export function AssistantNav() {
     }
   };
 
-  const visible = showAll ? conversations : conversations.slice(0, HISTORY_CAP);
-  const groups = groupConversationsByDay(visible);
+  const startRename = (conv: AiConversation) => {
+    setRenamingId(conv.id);
+    setRenameValue(conv.title);
+  };
+  const saveRename = async () => {
+    const id = renamingId;
+    const title = renameValue.trim();
+    setRenamingId(null);
+    if (!id || !title) return;
+    await fetch(`/api/assistant/conversations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
+    }).catch(() => null);
+    void refreshConversations();
+  };
+
+  const menuItems = (conv: AiConversation): ActionMenuItem[] => [
+    { key: "pin", label: pinned.includes(conv.id) ? "Desanclar" : "Anclar", icon: pinned.includes(conv.id) ? PinOffIcon : PinIcon, onSelect: () => togglePin(conv.id) },
+    { key: "rename", label: "Renombrar", icon: PencilEdit01Icon, onSelect: () => startRename(conv) },
+    { key: "settings", label: "Configurar", icon: Settings01Icon, onSelect: () => router.push(`/assistant/${conv.id}?ajustes=1`) },
+    { key: "delete", label: "Eliminar", icon: Delete01Icon, tone: "danger", onSelect: () => setDeletingId(conv.id) },
+  ];
+
+  // Los anclados van arriba en su propio grupo; el resto, por día.
+  const { pinned: pinnedList, rest } = splitPinned(conversations, pinned);
+  const visible = showAll ? rest : rest.slice(0, HISTORY_CAP);
+  const groups: Array<{ label: string; conversations: AiConversation[] }> = [
+    ...(pinnedList.length ? [{ label: "Anclados", conversations: pinnedList }] : []),
+    ...groupConversationsByDay(visible),
+  ];
 
   return (
     <div className="flex flex-col">
@@ -284,14 +318,38 @@ export function AssistantNav() {
                   const isActive = pathname === `/assistant/${conv.id}`;
                   return (
                     <div key={conv.id} className="group relative">
-                      <Link
-                        href={`/assistant/${conv.id}`}
-                        aria-current={isActive ? "page" : undefined}
-                        className={navItemClass(isActive, "pr-11")}
-                      >
-                        <span className="shrink-0" aria-hidden="true"><Blobatar name={chatBlobSeed(conv.id)} size={22} /></span>
-                        <span className="min-w-0 flex-1 truncate">{conv.title}</span>
-                      </Link>
+                      {renamingId === conv.id ? (
+                        <div className="flex items-center gap-2 px-3 py-1.5">
+                          <span className="shrink-0" aria-hidden="true"><Blobatar name={chatBlobSeed(conv.id)} size={22} /></span>
+                          <input
+                            autoFocus
+                            value={renameValue}
+                            maxLength={60}
+                            aria-label="Nuevo nombre del chat"
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onFocus={(e) => e.currentTarget.select()}
+                            onBlur={() => void saveRename()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") e.currentTarget.blur();
+                              else if (e.key === "Escape") {
+                                setRenameValue("");
+                                setRenamingId(null);
+                              }
+                            }}
+                            className="min-h-9 min-w-0 flex-1 rounded-control border border-line bg-surface-elevated px-2 text-sm text-text-primary outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                          />
+                        </div>
+                      ) : (
+                        <Link
+                          href={`/assistant/${conv.id}`}
+                          aria-current={isActive ? "page" : undefined}
+                          className={navItemClass(isActive, "pr-11")}
+                        >
+                          <span className="shrink-0" aria-hidden="true"><Blobatar name={chatBlobSeed(conv.id)} size={22} /></span>
+                          <span className="min-w-0 flex-1 truncate">{conv.title}</span>
+                          {pinned.includes(conv.id) && <HugeiconsIcon icon={PinIcon} size={12} className="shrink-0 text-text-secondary" aria-label="Anclado" />}
+                        </Link>
+                      )}
                       {deletingId === conv.id ? (
                         <div className="absolute inset-y-1 right-0 left-0 z-10 flex items-center justify-end gap-1 rounded-control bg-surface-elevated pr-1">
                           <span className="mr-auto truncate pl-3 text-xs text-text-secondary">¿Eliminar?</span>
@@ -311,30 +369,24 @@ export function AssistantNav() {
                             Eliminar
                           </button>
                         </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setDeletingId(conv.id)}
-                          aria-label={`Eliminar conversación «${conv.title}»`}
-                          title="Eliminar conversación"
-                          className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-control text-text-secondary-strong opacity-0 transition-opacity duration-150 hover:text-danger focus-visible:opacity-100 group-hover:opacity-100 motion-reduce:transition-none max-lg:opacity-100"
-                        >
-                          <HugeiconsIcon icon={Delete01Icon} size={14} aria-hidden="true" />
-                        </button>
+                      ) : renamingId === conv.id ? null : (
+                        <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100 motion-reduce:transition-none max-lg:opacity-100">
+                          <ActionMenu label={`Acciones del chat «${conv.title}»`} items={menuItems(conv)} />
+                        </div>
                       )}
                     </div>
                   );
                 })}
               </div>
             ))}
-            {conversations.length > HISTORY_CAP && (
+            {rest.length > HISTORY_CAP && (
               <button
                 type="button"
                 aria-expanded={showAll}
                 onClick={() => setShowAll((v) => !v)}
                 className={`${rowClass(false)} text-text-secondary-strong`}
               >
-                {showAll ? "Ver menos" : `Ver todas (${conversations.length})`}
+                {showAll ? "Ver menos" : `Ver todas (${rest.length})`}
               </button>
             )}
           </>
