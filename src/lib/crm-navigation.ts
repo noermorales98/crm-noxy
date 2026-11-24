@@ -50,7 +50,7 @@ const area = (section: AreaSection, label: string): NavArea => ({
   permission: AREA_ITEMS[section][0].permission,
 });
 
-/** Primer nivel de la sidebar: 11 entradas en 4 grupos (ronda 2 + Conocimiento e IA). */
+/** Primer nivel de la sidebar: 12 entradas en 4 grupos. */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     label: "Principal",
@@ -67,7 +67,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     items: [area("sales", "Ventas"), area("agenda", "Agenda")],
   },
   {
-    label: "Espacios",
+    label: "Comunicación y contenido",
     items: [
       space("/emails", "Correo", "mail", "unread-mail"),
       space("/assistant", "Asistente", "assistant"),
@@ -75,7 +75,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     ],
   },
   {
-    label: "Conocimiento e IA",
+    label: "Biblioteca",
     items: [space("/kb", "Docs", "kb"), space("/boveda", "Bóveda", "vault")],
   },
 ];
@@ -244,12 +244,12 @@ export type NavMode = "work" | "sales" | "spaces" | "knowledge" | "content";
 export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
 
 const CONTENT_HOME = "/contenido/general";
-// Gestión de contenido y el Asistente viven en el modo Contenido; el modo Espacios se queda con Correo.
+// Gestión de contenido y el Asistente viven en el modo «Contenido e IA»; el modo «Correo» se queda solo con Correo.
 const ASSISTANT_HOME = "/assistant";
-const espaciosGroupItems = (NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[];
+const espaciosGroupItems = (NAV_GROUPS.find((group) => group.label === "Comunicación y contenido")?.items ?? []) as NavItem[];
 const espaciosModeItems = espaciosGroupItems.filter((item) => item.href !== CONTENT_HOME && item.href !== ASSISTANT_HOME);
 const assistantItem = espaciosGroupItems.find((item) => item.href === ASSISTANT_HOME) as NavItem;
-const conocimientoModeItems = (NAV_GROUPS.find((group) => group.label === "Conocimiento e IA")?.items ?? []) as NavItem[];
+const conocimientoModeItems = (NAV_GROUPS.find((group) => group.label === "Biblioteca")?.items ?? []) as NavItem[];
 
 /** Pantallas del modo Contenido: resumen, clientes, calendario y recordatorios. */
 const contentItems: NavItem[] = [
@@ -286,12 +286,12 @@ export const NAV_MODES: readonly NavModeDef[] = [
   { key: "sales", label: "Ventas", groups: [{ label: "Ventas", items: [...AREA_ITEMS.sales] }] },
   {
     key: "spaces",
-    label: "Espacios",
-    groups: [{ label: "Espacios", items: espaciosModeItems }],
+    label: "Correo",
+    groups: [{ label: "Correo", items: espaciosModeItems }],
   },
-  // Docs y Bóveda comparten sección; el Asistente vive con Contenido.
-  { key: "knowledge", label: "Conocimiento e IA", groups: [{ label: "Conocimiento e IA", items: conocimientoModeItems }] },
-  { key: "content", label: "Contenido", groups: [{ label: "Contenido", items: contentItems }] },
+  // Docs y Bóveda comparten la sección «Biblioteca»; el Asistente de IA vive en «Contenido e IA».
+  { key: "knowledge", label: "Biblioteca", groups: [{ label: "Biblioteca", items: conocimientoModeItems }] },
+  { key: "content", label: "Contenido e IA", groups: [{ label: "Contenido e IA", items: contentItems }] },
 ];
 
 export const MODE_STORAGE_KEY = "noxy.sidebar.mode";

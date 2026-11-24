@@ -32,3 +32,6 @@ Las pestañas medían 44 px (móvil) o 36 px (escritorio) con huecos fijos y, co
 
 ## Cambio de secciones (decisión de Noxy)
 Bóveda pasa a «Conocimiento e IA» junto a Docs; el Asistente pasa a «Contenido» (al final); «Espacios» queda con Correo.
+
+## Nombres de las secciones (2026-11-23)
+Con los cambios de contenido, los nombres ya no decían lo que hay dentro: **Trabajo** y **Ventas** se quedan; **Espacios** (solo Correo) → **Correo**; **Conocimiento e IA** (Docs y Bóveda, ya sin IA) → **Biblioteca**; **Contenido** (con el Asistente de IA) → **Contenido e IA**. En el modelo plano de primer nivel, el grupo «Espacios» pasa a «Comunicación y contenido» y «Conocimiento e IA» a «Biblioteca». Las claves internas de los modos (`spaces`, `knowledge`) no cambian. La demo de la landing (`AppPreview`) conserva sus nombres de muestra.

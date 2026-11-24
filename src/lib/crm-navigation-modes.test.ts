@@ -32,10 +32,10 @@ const mode = (key: string) => (NAV_MODES as unknown as Array<{ key: string; labe
 
 const ALL_HREFS = ['/', '/tasks', '/projects', '/contacts', '/companies', '/pipeline', '/forms', '/emails', '/kb', '/boveda', '/contenido'];
 
-test("five modes (Trabajo, Ventas, Espacios, Conocimiento e IA, Contenido) with their short flat lists, in order", () => {
+test("five modes (Trabajo, Ventas, Correo, Biblioteca, Contenido e IA) with their short flat lists, in order", () => {
   assert.deepEqual(
     (NAV_MODES as unknown as Array<{ key: string; label: string }>).map((m) => [m.key, m.label]),
-    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Espacios"], ["knowledge", "Conocimiento e IA"], ["content", "Contenido"]],
+    [["work", "Trabajo"], ["sales", "Ventas"], ["spaces", "Correo"], ["knowledge", "Biblioteca"], ["content", "Contenido e IA"]],
   );
   assert.deepEqual(shape(mode("work").groups), [
     ["Principal", [["Inicio", "/"], ["Clientes", "/clientes"], ["Tareas", "/tasks"], ["Entregas", "/projects"], ["Contactos", "/contacts"], ["Empresas", "/companies"]]],
@@ -44,10 +44,10 @@ test("five modes (Trabajo, Ventas, Espacios, Conocimiento e IA, Contenido) with 
   assert.deepEqual(shape(mode("sales").groups), [
     ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Suscripciones", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
-  assert.deepEqual(shape(mode("spaces").groups), [["Espacios", [["Correo", "/emails"]]]]);
-  assert.deepEqual(shape(mode("knowledge").groups), [["Conocimiento e IA", [["Docs", "/kb"], ["Bóveda", "/boveda"]]]]);
+  assert.deepEqual(shape(mode("spaces").groups), [["Correo", [["Correo", "/emails"]]]]);
+  assert.deepEqual(shape(mode("knowledge").groups), [["Biblioteca", [["Docs", "/kb"], ["Bóveda", "/boveda"]]]]);
   assert.deepEqual(shape(mode("content").groups), [
-    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"], ["Asistente", "/assistant"]]],
+    ["Contenido e IA", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"], ["Asistente", "/assistant"]]],
   ]);
 });
 

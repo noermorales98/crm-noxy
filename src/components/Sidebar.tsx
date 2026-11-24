@@ -54,7 +54,7 @@ import {
 
 // ─── Sidebar por modos (marco claro · ronda 3) ─────────────────────────────────
 // Ancho: 240px (w-60) desplegada, 64px (w-16) como riel. Arriba, la marca con la búsqueda (⌘K) y las
-// notificaciones; debajo, un selector de 3 modos (Trabajo, Ventas, Espacios) y la lista plana del modo
+// notificaciones; debajo, un selector de modos (Trabajo, Ventas, Correo, Biblioteca, Contenido e IA) y la lista plana del modo
 // elegido: sin ramas desplegables. Abajo, la cuenta (con Ajustes). Las listas propias de Correo, Docs,
 // Bóveda y Contenido se integran en esta misma sidebar, bajo la lista del modo (sin segunda columna).
 

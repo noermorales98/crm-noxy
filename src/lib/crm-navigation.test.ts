@@ -43,8 +43,8 @@ type Group = { label: string; items: Item[] };
 const EXPECTED_TOP: Array<[string, Array<[string, string, string]>]> = [
   ["Principal", [["link", "Inicio", "/"], ["link", "Clientes", "/clientes"], ["area", "Contactos", "/contacts"], ["link", "Tareas", "/tasks"], ["link", "Entregas", "/projects"]]],
   ["Áreas", [["area", "Ventas", "/pipeline"], ["area", "Agenda", "/appointments"]]],
-  ["Espacios", [["link", "Correo", "/emails"], ["link", "Asistente", "/assistant"], ["link", "Gestión de contenido", "/contenido/general"]]],
-  ["Conocimiento e IA", [["link", "Docs", "/kb"], ["link", "Bóveda", "/boveda"]]],
+  ["Comunicación y contenido", [["link", "Correo", "/emails"], ["link", "Asistente", "/assistant"], ["link", "Gestión de contenido", "/contenido/general"]]],
+  ["Biblioteca", [["link", "Docs", "/kb"], ["link", "Bóveda", "/boveda"]]],
 ];
 const EXPECTED_AREAS: Record<string, Array<[string, string]>> = {
   contacts: [["Contactos", "/contacts"], ["Empresas", "/companies"]],
@@ -98,7 +98,7 @@ test("only Correo carries the existing unread-mail counter", () => {
 test("visibleNavGroups filters by permission, hides areas with no visible destination and drops empty groups", () => {
   assert.deepEqual(
     (visibleNavGroups("OWNER", ALL_PERMISSIONS) as Group[]).map((g) => [g.label, g.items.length]),
-    [["Principal", 5], ["Áreas", 2], ["Espacios", 3], ["Conocimiento e IA", 2]],
+    [["Principal", 5], ["Áreas", 2], ["Comunicación y contenido", 3], ["Biblioteca", 2]],
     "owner sees everything",
   );
   // Sin rol ni permisos (sesión antigua o cargando) `hasPermission` deja pasar: se conserva ese comportamiento.
@@ -107,7 +107,7 @@ test("visibleNavGroups filters by permission, hides areas with no visible destin
   assert.deepEqual((visibleNavGroups("ADMIN", { ...ALL_PERMISSIONS, agency: true } as never) as Group[])[0].items.map((i) => i.href).includes("/clientes"), true, "ADMIN con «agency» asignado sí");
   const mailOnly = { ...Object.fromEntries(Object.keys(ALL_PERMISSIONS).map((k) => [k, false])), mail: true };
   const groups = visibleNavGroups("MEMBER", mailOnly) as Group[];
-  assert.deepEqual(groups.map((g) => g.label), ["Espacios"]);
+  assert.deepEqual(groups.map((g) => g.label), ["Comunicación y contenido"]);
   assert.deepEqual(groups[0].items.map((i) => i.href), ["/emails"]);
   const noCrm = { ...ALL_PERMISSIONS, crm: false };
   const entries = (visibleNavGroups("MEMBER", noCrm) as Group[]).flatMap((g) => g.items);
