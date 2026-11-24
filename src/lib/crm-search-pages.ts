@@ -23,8 +23,8 @@ export const CRM_SEARCH_PAGES: CrmSearchPage[] = [
   // Ventas
   { id: "nav-pipeline", title: "Pipeline de ventas", subtitle: "Ventas", href: "/pipeline", keywords: ["ventas", "pipeline", "deals", "oportunidades", "tratos", "embudo"] },
   { id: "nav-pipeline-clientes", title: "Suscripciones", subtitle: "Cobros recurrentes", href: "/pipeline/clientes", keywords: ["suscripciones", "clientes", "recurrente", "mrr", "cobros", "pagos", "mensualidad"] },
-  { id: "nav-pipeline-historial", title: "Historial de tratos", subtitle: "Ventas", href: "/pipeline/historial", keywords: ["historial", "tratos", "cerrados", "ganados", "perdidos"] },
-  { id: "nav-cotizaciones", title: "Cotizaciones", subtitle: "Ventas", href: "/cotizaciones", keywords: ["cotizaciones", "presupuestos", "propuestas", "quotes"] },
+  { id: "nav-pipeline-historial", title: "Historial de tratos", subtitle: "Ventas", href: "/pipeline/historial", keywords: ["historial", "tratos", "cerrados", "ganados", "perdidos", "cierre del mes", "cierre del año", "tasa de cierre", "cobros recibidos", "ventas en proceso", "a mitad de proceso", "motivo de pérdida", "por qué se perdió", "gráficos", "cotizaciones pagadas sin deal"] },
+  { id: "nav-cotizaciones", title: "Cotizaciones", subtitle: "Ventas", href: "/cotizaciones", keywords: ["cotizaciones", "presupuestos", "propuestas", "quotes", "conectar con un deal", "vincular a un deal", "crear deal desde cotización", "cotizaciones pagadas", "sin deal", "fecha de la venta"] },
   { id: "nav-cotizacion-nueva", title: "Nueva cotización", subtitle: "Cotizaciones", href: "/cotizaciones/nueva", keywords: ["crear cotizacion", "nueva cotizacion", "presupuesto"] },
   { id: "nav-cotizacion-config", title: "Configuración de cotizaciones", subtitle: "Cotizaciones", href: "/cotizaciones/configuracion", keywords: ["configuracion cotizaciones", "plantilla", "folio", "impuestos"] },
   { id: "nav-forms", title: "Formularios", subtitle: "Ventas", href: "/forms", keywords: ["formularios", "forms", "form", "registros", "leads"] },

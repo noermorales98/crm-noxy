@@ -13,7 +13,7 @@ const COVERAGE: Record<string, string[]> = {
   empresas: ["create_company", "list_companies", "get_company", "update_company", "delete_company"],
   deals: ["create_deal", "list_deals", "get_deal", "update_deal", "delete_deal", "archive_deal"],
   tareas: ["create_task", "list_tasks", "get_task", "update_task", "delete_task"],
-  cotizaciones: ["create_quote_for_deal", "list_quotes", "get_quote", "update_quote", "delete_quote"],
+  cotizaciones: ["create_quote_for_deal", "list_quotes", "get_quote", "update_quote", "delete_quote", "link_quote_to_deal", "create_deal_from_quote"],
   pipelines: ["create_pipeline", "list_pipelines", "update_pipeline", "delete_pipeline"],
   etapas: ["create_stage", "update_stage", "delete_stage"],
   formularios: ["create_form", "list_forms", "get_form", "update_form", "delete_form"],

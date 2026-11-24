@@ -1,6 +1,8 @@
 import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
+import { loadMonthMetrics } from "@/src/lib/month-metrics";
+import { monthKeyInZone } from "@/src/lib/month-close";
 
 export async function buildCrmContext(userId: string, orgId: string): Promise<string> {
   const now = new Date();
@@ -26,6 +28,7 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     overdueTasks,
     todayTasks,
     upcomingAppointments,
+    orgRow,
   ] = await Promise.all([
     prisma.contact.count({ where: { organizationId: orgId, ...visibleContactWhere } }),
     prisma.contact.count({ where: { organizationId: orgId, createdAt: { gte: startOfWeek }, ...visibleContactWhere } }),
@@ -52,7 +55,8 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
       orderBy: { createdAt: "desc" },
       take: 20,
       select: {
-        id: true, title: true, value: true, currency: true, createdAt: true, followUpAt: true, notes: true,
+        id: true, title: true, value: true, currency: true, createdAt: true, followUpAt: true, notes: true, wonAt: true, lostReason: true,
+        quotes: { select: { folio: true, status: true } },
         stage: { select: { id: true, name: true, isWon: true, isLost: true } },
         contact: { select: { firstName: true, lastName: true, email: true } },
         company: { select: { name: true } },
@@ -97,7 +101,15 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
         contact: { select: { firstName: true, lastName: true, email: true } },
       },
     }),
+    prisma.organization.findUnique({ where: { id: orgId }, select: { timezone: true } }),
   ]);
+
+  // Cierre del mes en curso: ganadas, perdidas (en el mes en que se perdieron), tasa, cobros y lo que sigue a mitad de proceso.
+  const timeZone = orgRow?.timezone || "America/Cancun";
+  const monthKey = monthKeyInZone(now, timeZone);
+  const closing = await loadMonthMetrics(orgId, monthKey).catch(() => null);
+  const sales = (n: number) => `${n} ${n === 1 ? "venta" : "ventas"}`;
+  const money = (bucket: Record<string, number>) => Object.entries(bucket).map(([cur, n]) => `$${n.toLocaleString("es-MX")} ${cur}`).join(" · ") || "—";
 
   const fmt = (d: Date) => d.toLocaleDateString("es-MX", { weekday: "short", year: "numeric", month: "short", day: "numeric" });
   const fmtDt = (d: Date) => d.toLocaleString("es-MX", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -141,14 +153,24 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     `• Deals abiertos: ${openDeals.length} (valor total: $${totalOpenValue.toLocaleString("es-MX")})`,
     `• Ganados: ${wonDeals.length} | Perdidos: ${lostDeals.length}`,
     `• Seguimientos vencidos: ${overdueFollowUps.length}`,
+    ...(closing?.ok && closing.metrics
+      ? [
+          `• Cierre de ${monthKey} (mes en curso): ${sales(closing.metrics.won.count)} ganada${closing.metrics.won.count === 1 ? "" : "s"} (${money(closing.metrics.won.byCurrency)}), ${closing.metrics.lost.count} perdida${closing.metrics.lost.count === 1 ? "" : "s"}, tasa de cierre ${closing.metrics.closingRate ?? "—"}${closing.metrics.closingRate === null ? "" : "%"}, cobros recibidos ${money(closing.metrics.paymentsReceived)} (incluye pagos de cotizaciones).`,
+          ...(closing.inProgress?.count
+            ? [`• De esas ventas ganadas, ${closing.inProgress.count} ${closing.inProgress.count === 1 ? "sigue" : "siguen"} a mitad de proceso (${money(closing.inProgress.byCurrency)}): ${closing.inProgress.deals.map((d) => `"${d.title}" (${d.reason})`).join("; ")}. Cuando hables de ventas ganadas, aclara cuáles siguen en proceso.`]
+            : []),
+        ]
+      : []),
     ``,
     `Deals recientes (con id y stageId para acciones):`,
     ...activeDeals.map(d => {
       const contact = d.contact ? `${d.contact.firstName} ${d.contact.lastName ?? ""}`.trim() : "sin contacto";
       const co = d.company?.name ?? "";
       const followUp = d.followUpAt ? ` | seguimiento: ${fmt(d.followUpAt)}` : "";
-      const status = d.stage.isWon ? "GANADO" : d.stage.isLost ? "PERDIDO" : d.stage.name;
-      return `  - [id:${d.id}] "${d.title}" | $${(d.value || 0).toLocaleString()} ${d.currency} | etapa: ${status} [stageId:${d.stage.id}] | ${contact}${co ? ` / ${co}` : ""}${followUp}`;
+      const status = d.stage.isWon ? `GANADO (${d.stage.name})${d.wonAt ? ` el ${fmt(d.wonAt)}` : ""}` : d.stage.isLost ? "PERDIDO" : d.stage.name;
+      const lost = d.stage.isLost ? ` | motivo de pérdida: ${d.lostReason ?? "sin registrar"}` : "";
+      const quotes = d.quotes.length ? ` | cotizaciones: ${d.quotes.map((q) => `${q.folio} ${q.status}`).join(", ")}` : "";
+      return `  - [id:${d.id}] "${d.title}" | $${(d.value || 0).toLocaleString()} ${d.currency} | etapa: ${status} [stageId:${d.stage.id}] | ${contact}${co ? ` / ${co}` : ""}${followUp}${lost}${quotes}`;
     }),
     ``,
     `Etapas disponibles por pipeline (usa stageId al mover un deal):`,
@@ -183,6 +205,8 @@ export async function buildCrmContext(userId: string, orgId: string): Promise<st
     `Usa los datos anteriores para responder preguntas específicas.`,
     `Cuando el usuario pida crear, modificar o eliminar registros, usa los bloques \`action\` con los IDs reales del contexto anterior.`,
     `Los IDs aparecen entre corchetes: [id:...] y [stageId:...]. Úsalos directamente en el JSON del action.`,
+    `Al mover un deal a una etapa perdida el motivo es OBLIGATORIO: si la persona no lo dijo, pregúntale por qué se perdió (no lo inventes) y úsalo como lostReason.`,
+    `Una venta tiene UNA sola fecha: la del deal (cuándo se ganó). Las fechas de aceptación y pago de una cotización son datos de cobro. Si al conectar una cotización con un deal hay fechas distintas, pregunta cuál es la correcta.`,
     `Responde siempre en español, de forma concisa y útil.`,
   ];
 

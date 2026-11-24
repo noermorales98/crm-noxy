@@ -3,8 +3,7 @@ import { prisma } from "@/src/lib/db";
 import { assertOrgRefs } from "@/src/lib/org-refs";
 import { auth } from "@/auth";
 import { computeQuoteTotals, effectiveQuoteStatus } from "@/src/lib/quotes";
-import { dayInZone, saleDateChoices } from "@/src/lib/quote-sales";
-import { refreshSnapshotsForDates } from "@/src/lib/month-close-service";
+import { linkQuoteToDeal } from "@/src/lib/quote-deal-link";
 
 async function findQuote(idOrFolio: string, organizationId: string) {
   return prisma.quote.findFirst({
@@ -187,37 +186,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const body = await req.json().catch(() => null);
     if (!body || !("dealId" in body)) return NextResponse.json({ error: "dealId es requerido (o null para desvincular)" }, { status: 400 });
     const dealId: string | null = body.dealId || null;
-    const deal = dealId ? await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { id: true, wonAt: true, stage: { select: { isWon: true } } } }) : null;
-    if (dealId && !deal) return NextResponse.json({ error: "Lead inválido" }, { status: 400 });
-
-    // Una sola fecha por venta: la del deal. Si el deal está ganado y la cotización trae otra fecha (aceptada, pagada…),
-    // se pregunta cuál es la correcta (409 con las opciones; se repite con `saleDate`). Si no hay conflicto, no se pregunta.
-    let newWonAt: Date | null = null;
-    if (deal?.stage.isWon) {
-      const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: { timezone: true } });
-      const timeZone = org?.timezone || "America/Cancun";
-      const choices = saleDateChoices(existing, deal.wonAt, timeZone);
-      let chosen: string | undefined;
-      if (typeof body.saleDate === "string") {
-        if (!choices.some((choice) => choice.value === body.saleDate)) return NextResponse.json({ error: "Esa fecha no es una de las posibles" }, { status: 400 });
-        chosen = body.saleDate;
-      } else if (choices.length > 1) {
-        return NextResponse.json({ error: "El deal y la cotización tienen fechas distintas: elige cuál es la de la venta", needsDate: true, choices }, { status: 409 });
-      } else {
-        chosen = choices[0]?.value;
-      }
-      if (chosen && (!deal.wonAt || dayInZone(new Date(chosen), timeZone) !== dayInZone(deal.wonAt, timeZone))) newWonAt = new Date(chosen);
-    }
-
-    const quote = await prisma.quote.update({
-      where: { id: existing.id },
-      data: { dealId },
-      select: { id: true, folio: true, dealId: true, deal: { select: { id: true, title: true } } },
-    });
-    if (deal && newWonAt) {
-      await prisma.deal.update({ where: { id: deal.id }, data: { wonAt: newWonAt } });
-      await refreshSnapshotsForDates(organizationId, [deal.wonAt, newWonAt]); // el mes viejo y el nuevo
-    }
+    const result = await linkQuoteToDeal({ organizationId, quote: existing, dealId, saleDate: typeof body.saleDate === "string" ? body.saleDate : undefined });
+    if (!result.ok) return NextResponse.json({ error: result.error, ...(result.needsDate ? { needsDate: true, choices: result.choices } : {}) }, { status: result.status });
+    const quote = result.quote;
     return NextResponse.json(quote);
   } catch (error) {
     console.error("PATCH /api/quotes/[id] error:", error);

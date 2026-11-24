@@ -13,7 +13,8 @@ import { visibleContactWhere } from "@/src/lib/visible-contacts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canonicalAction, definedRecord, gateWrite } from "./approval.ts";
 import { loadSalesMetrics } from "@/src/lib/mcp/sales-metrics";
-import { loadMonthMetrics } from "@/src/lib/month-metrics";
+import { loadMonthMetrics, loadYearMetrics } from "@/src/lib/month-metrics";
+import { createDealFromQuote, findQuoteForLink, linkQuoteToDeal } from "@/src/lib/quote-deal-link";
 import { dealToQuotePrefill } from "@/src/lib/deal-sales";
 import { computeQuoteTotals, nextQuoteFolio } from "@/src/lib/quotes";
 import { tryPublicUrls } from "@/src/lib/url";
@@ -372,7 +373,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
     "list_deals",
     {
       description:
-        "Lista los leads / deals (oportunidades) del CRM con filtros por texto, etapa, pipeline, contacto o empresa. Los archivados quedan fuera salvo que pidas includeArchived.",
+        "Lista los leads / deals (oportunidades) del CRM con filtros por texto, etapa, pipeline, contacto o empresa. Los archivados quedan fuera salvo que pidas includeArchived. Cada deal trae `wonAt` (fecha de la venta), `lostAt` y `lostReason` (por qué se perdió).",
       inputSchema: {
         search: z.string().optional().describe("Buscar en el título del deal"),
         status: z.enum(["open", "won", "lost"]).optional().describe("open = en curso, won = ganados (ventas), lost = perdidos"),
@@ -416,7 +417,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "get_deal",
     {
-      description: "Obtiene el detalle completo de un deal: etapa, contacto, empresa, propuestas, pagos y actividad reciente.",
+      description: "Obtiene el detalle completo de un deal: etapa, contacto, empresa, propuestas, pagos y actividad reciente. Si está perdido trae `lostReason` (por qué) y `lostAt`; si está ganado, `wonAt` es la ÚNICA fecha de la venta. Sus cotizaciones traen sus fechas de aceptación y pago (son datos de cobro, no la fecha de la venta).",
       inputSchema: { id: z.string().describe("ID del deal") },
     },
     async ({ id }) => {
@@ -428,7 +429,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
           contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
           company: { select: { id: true, name: true } },
           proposals: { include: { items: { orderBy: { order: "asc" } } } },
-          quotes: { select: { id: true, folio: true, status: true, total: true, currency: true, issuedAt: true } },
+          quotes: { select: { id: true, folio: true, status: true, total: true, currency: true, issuedAt: true, acceptedAt: true, paidAt: true, depositPaidAt: true, finalPaidAt: true } },
           payments: { orderBy: { createdAt: "desc" } },
           activities: { orderBy: { createdAt: "desc" }, take: 20 },
           appointments: {
@@ -513,9 +514,18 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
       if (fields.referredByContactId && !(await owns("contact", fields.referredByContactId))) return err("Contacto referidor no encontrado");
       const data: any = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
       if ("followUpAt" in data) data.followUpNotifiedAt = null; // fecha nueva: puede volver a avisar
+      let lostNote: string | null = null;
       if (stageId) {
         const stage = await prisma.stage.findUnique({ where: { id: stageId }, include: { pipeline: true } });
         if (!stage || stage.pipeline.organizationId !== org) return err("Etapa inválida");
+        if (stage.isLost) {
+          // Perder un deal exige decir por qué (queda en lostReason, lostAt y la bitácora). No lo inventes: pregúntaselo a la persona.
+          const current = await prisma.deal.findUnique({ where: { id }, select: { lostReason: true } });
+          const reason = (typeof data.lostReason === "string" ? data.lostReason : current?.lostReason ?? "").trim();
+          if (!reason) return err("Para marcar un deal como perdido indica lostReason: por qué se perdió. Pregúntaselo a la persona; no lo inventes.");
+          data.lostReason = reason;
+          lostNote = reason;
+        }
         if (stage.isWon || stage.isLost) {
           const action = canonicalAction("update_deal", definedRecord({ id, ...data, stageId }));
           const summary = `Mover el deal ${id} a «${stage.name}» (${stage.isWon ? "ganado" : "perdido"}).`;
@@ -537,6 +547,9 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         data,
         include: { stage: { select: { name: true, isWon: true, isLost: true } } },
       });
+      if (lostNote) {
+        await prisma.activityLog.create({ data: { type: "NOTA", description: `Deal perdido en «${deal.stage.name}». Motivo: ${lostNote}`, dealId: id, organizationId: org, createdById: await defaultUserId() } });
+      }
       if (stageId && deal.stage.isWon) {
         await ensureContactForWonDeal({ dealId: id, organizationId: org });
         const wonProject = await ensureProjectForWonDeal({ dealId: id, organizationId: org, actorUserId: await defaultUserId() });
@@ -901,7 +914,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "list_quotes",
     {
-      description: "Lista las cotizaciones con su folio, cliente, estado, total y el lead (deal) al que están ligadas.",
+      description: "Lista las cotizaciones con su folio, cliente, estado, total, sus fechas de aceptación y pago, y el lead (deal) al que están ligadas. Con unlinked=true y status=PAGADA salen las cotizaciones ya pagadas que no están en el historial de ventas (no tienen deal): conéctalas con link_quote_to_deal o create_deal_from_quote.",
       inputSchema: {
         status: z.enum(["BORRADOR", "ENVIADA", "ACEPTADA", "PARCIAL", "PAGADA", "VENCIDA", "RECHAZADA"]).optional(),
         dealId: z.string().optional().describe("Solo las cotizaciones de este lead"),
@@ -931,6 +944,11 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
             total: true,
             issuedAt: true,
             validUntil: true,
+            acceptedAt: true,
+            paidAt: true,
+            splitPayment: true,
+            depositPaidAt: true,
+            finalPaidAt: true,
             publicToken: true,
             contact: { select: { id: true, firstName: true, lastName: true } },
             deal: { select: { id: true, title: true } },
@@ -966,21 +984,53 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "link_quote_to_deal",
     {
-      description: "Vincula una cotización existente a un lead (deal), o la desvincula con dealId null. No borra nada.",
+      description:
+        "Vincula una cotización existente a un lead (deal), o la desvincula con dealId null. No borra nada. Una venta tiene UNA sola fecha (la del deal): si el deal está ganado y la cotización trae otra fecha (aceptada, pagada…), NO se vincula y la respuesta lista las fechas posibles; pregunta a la persona cuál es la correcta y repite con saleDate (el `value` de la opción elegida).",
       inputSchema: {
         quoteId: z.string().describe("ID de la cotización (list_quotes)"),
         dealId: z.string().nullable().describe("ID del lead (list_deals); null para desvincular"),
+        saleDate: z.string().optional().describe("Fecha de la venta elegida por la persona: el `value` de una de las opciones devueltas"),
       },
     },
-    async ({ quoteId, dealId }) => {
-      if (!(await owns("quote", quoteId))) return err("Cotización no encontrada");
-      if (dealId && !(await owns("deal", dealId))) return err("Lead no encontrado");
-      const quote = await prisma.quote.update({
-        where: { id: quoteId },
-        data: { dealId },
-        select: { id: true, folio: true, status: true, total: true, currency: true, deal: { select: { id: true, title: true } } },
-      });
-      return json(quote);
+    async ({ quoteId, dealId, saleDate }) => {
+      const quote = await findQuoteForLink(org, quoteId);
+      if (!quote) return err("Cotización no encontrada");
+      const result = await linkQuoteToDeal({ organizationId: org, quote, dealId, saleDate });
+      if (!result.ok) {
+        return err(result.needsDate ? `${result.error}. Opciones: ${JSON.stringify(result.choices)}. Pregunta a la persona y repite con saleDate.` : result.error);
+      }
+      return json(result.quote);
+    }
+  );
+
+  server.registerTool(
+    "create_deal_from_quote",
+    {
+      description:
+        "Crea un deal nuevo a partir de una cotización (cliente, moneda y total de la cotización) y la vincula. Úsalo para cotizaciones pagadas o aceptadas que no tienen deal. Mover a una etapa ganada pide aprobación. Si la etapa es ganada y la cotización trae fechas distintas (aceptada, pagada…), la respuesta lista las opciones: pregunta a la persona cuál es la fecha correcta de la venta y repite con saleDate.",
+      inputSchema: {
+        quoteId: z.string().describe("ID de la cotización (list_quotes con unlinked=true)"),
+        stageId: z.string().describe("Etapa del deal (list_pipelines); una etapa ganada si la venta ya se cerró"),
+        title: z.string().optional().describe("Título del deal; por defecto el nombre del cliente"),
+        saleDate: z.string().optional().describe("Fecha de la venta elegida por la persona: el `value` de una de las opciones devueltas"),
+        approvalToken: z.string().optional(),
+      },
+    },
+    async ({ quoteId, stageId, title, saleDate, approvalToken }) => {
+      const quote = await findQuoteForLink(org, quoteId);
+      if (!quote) return err("Cotización no encontrada");
+      const stage = await prisma.stage.findUnique({ where: { id: stageId }, include: { pipeline: true } });
+      if (!stage || stage.pipeline.organizationId !== org) return err("Etapa inválida");
+      if (stage.isWon) {
+        const action = canonicalAction("create_deal_from_quote", definedRecord({ quoteId, stageId, title, saleDate }));
+        const gated = gateWrite(action, `Crear un deal ganado desde la cotización ${quote.folio} (${quote.clientName}).`, approvalToken);
+        if (!gated.ok) return gated.result;
+      }
+      const result = await createDealFromQuote({ organizationId: org, quote, stageId, title, saleDate });
+      if (!result.ok) {
+        return err(result.needsDate ? `${result.error}. Opciones: ${JSON.stringify(result.choices)}. Pregunta a la persona y repite con saleDate.` : result.error);
+      }
+      return json({ deal: result.deal, quote: result.quote, crmUrl: tryPublicUrls()?.dealCrm(result.deal.id) ?? null });
     }
   );
 
@@ -1444,10 +1494,18 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
   server.registerTool(
     "get_sales_metrics",
     {
-      description: "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes. Incluye `wonSales`: ventas ganadas (mes y total, por moneda), cuántas tienen cotización, lo cotizado aceptado y lo cobrado. Con `month` (YYYY-MM) devuelve el cierre guardado de ese mes (o las cifras en vivo si es el mes en curso) para comparar meses.",
-      inputSchema: { month: z.string().optional().describe("Mes a consultar, formato YYYY-MM (p. ej. 2026-10)") },
+      description:
+        "Métricas de ventas: deals totales/activos/ganados/perdidos, valor del pipeline, tasa de cierre, ingresos del mes y seguimientos pendientes. Incluye `wonSales`: ventas ganadas (mes y total, por moneda), cuántas tienen cotización, lo cotizado aceptado y lo cobrado. Con `month` (YYYY-MM) devuelve el cierre de ese mes (foto guardada, o cifras en vivo si es el mes en curso) y con `year` (YYYY) la suma de los meses del año. Esas respuestas traen: ventas ganadas, perdidos (contados en el mes en que se perdieron), tasa de cierre, cobros recibidos (pagos de deals y de cotizaciones: pago único, anticipo y resto, por su fecha de pago) e `inProgress`: las ventas ya contadas como ganadas que siguen a mitad de proceso (etapa ganada no final o saldo por cobrar), con el motivo de cada una. Cuando cites «ventas ganadas», aclara cuántas siguen en proceso.",
+      inputSchema: {
+        month: z.string().optional().describe("Mes a consultar, formato YYYY-MM (p. ej. 2026-10)"),
+        year: z.string().optional().describe("Año completo, formato YYYY (p. ej. 2026): suma de sus meses"),
+      },
     },
-    async ({ month }) => {
+    async ({ month, year }) => {
+      if (year && !month) {
+        const result = await loadYearMetrics(org, Number(year));
+        return result.ok ? json(result) : err(result.error);
+      }
       if (month) {
         const result = await loadMonthMetrics(org, month);
         return result.ok ? json(result) : err(result.error);

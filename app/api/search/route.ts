@@ -4,6 +4,7 @@ import { matchCrmSearchPages } from "@/src/lib/crm-search-pages";
 import { markdownContentSnippet } from "@/src/lib/kb-search-snippet";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
 import { dealArchiveFilter, wantsArchived } from "@/src/lib/deal-filters";
+import { dealSearchSubtitle, quoteSearchSubtitle } from "@/src/lib/search-subtitles";
 
 const LIMIT = 5;
 
@@ -30,6 +31,7 @@ export async function GET(req: Request) {
     tasks,
     forms,
     projects,
+    quotes,
   ] = await Promise.all([
     Promise.resolve(matchCrmSearchPages(q, 8)),
     prisma.contact.findMany({
@@ -55,9 +57,10 @@ export async function GET(req: Request) {
       select: { id: true, name: true, industry: true },
     }),
     prisma.deal.findMany({
-      where: { organizationId: orgId, ...dealArchiveFilter(includeArchived), title: { contains: q } },
+      // También por el motivo de pérdida: «caro» o «sin respuesta» encuentran los deals perdidos por eso.
+      where: { organizationId: orgId, ...dealArchiveFilter(includeArchived), OR: [{ title: { contains: q } }, { lostReason: { contains: q } }] },
       take: LIMIT,
-      select: { id: true, title: true, value: true, currency: true },
+      select: { id: true, title: true, value: true, currency: true, isArchived: true, lostReason: true, stage: { select: { name: true, isWon: true, isLost: true } }, quotes: { select: { status: true } } },
     }),
     prisma.kbPage.findMany({
       where: {
@@ -101,6 +104,12 @@ export async function GET(req: Request) {
       },
       take: LIMIT,
       select: { id: true, name: true },
+    }),
+    prisma.quote.findMany({
+      where: { organizationId: orgId, OR: [{ folio: { contains: q } }, { clientName: { contains: q } }, { clientCompany: { contains: q } }] },
+      take: LIMIT,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, folio: true, status: true, clientName: true, total: true, currency: true, deal: { select: { title: true } } },
     }),
   ]);
 
@@ -157,7 +166,7 @@ export async function GET(req: Request) {
       id: d.id,
       type: "deal" as const,
       title: d.title,
-      subtitle: d.value != null ? `$${d.value.toLocaleString("es-MX")} ${d.currency}` : undefined,
+      subtitle: dealSearchSubtitle(d),
       href: `/pipeline/${d.id}`,
     })),
     ...kbResults,
@@ -181,6 +190,13 @@ export async function GET(req: Request) {
       title: f.name,
       subtitle: f.description?.slice(0, 80) ?? undefined,
       href: `/forms/${f.id}`,
+    })),
+    ...quotes.map((quote) => ({
+      id: quote.id,
+      type: "quote" as const,
+      title: `${quote.folio} · ${quote.clientName}`,
+      subtitle: quoteSearchSubtitle(quote),
+      href: `/cotizaciones/${quote.folio}`,
     })),
     ...projects.map((p) => ({
       id: p.id,

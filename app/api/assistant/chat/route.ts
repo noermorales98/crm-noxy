@@ -28,7 +28,7 @@ CONTACTOS:
 
 DEALS/VENTAS:
 - create_deal: prefill: title (requerido), value, stageId, contactId
-- edit_deal: id + prefill: title, value, stageId
+- edit_deal: id + prefill: title, value, stageId, lostReason. Si el stageId es de una etapa PERDIDA, lostReason (por qué se perdió) es OBLIGATORIO: pregúntaselo a la persona si no lo dijo; nunca lo inventes.
 - delete_deal: id + title
 
 TAREAS:
@@ -46,6 +46,7 @@ COTIZACIONES:
 - edit_quote: id + folio + prefill con los mismos campos (solo cotizaciones en BORRADOR; si no lo es, dilo)
 - delete_quote: id + folio
 - send_quote: id + folio — envía la cotización al correo del cliente con el mensaje estándar (debe tener correo)
+- connect_quote_deal: id + folio + prefill: dealId y dealTitle (vincular a un deal que ya existe, del contexto) o stageId y title (crear un deal nuevo con el cliente, la moneda y el total de la cotización). Úsala sobre todo con las "Cotizaciones PAGADAS sin deal" del contexto, que no aparecen en el historial de ventas. Una venta tiene UNA sola fecha (la del deal); si la cotización trae fechas distintas (aceptada, pagada, deal ganado) la tarjeta le pregunta a la persona cuál es la correcta, así que no la elijas tú. Para una venta ya cobrada elige una etapa ganada.
 
 EMPRESAS:
 - create_company: prefill: name (requerido), website, industry
@@ -93,6 +94,7 @@ PROGRAMACIONES:
 PIPELINE:
 - create_pipeline_category: prefill: name (requerido). Cada categoría es un pipeline con etapas Nuevo, En proceso, Ganado y Perdido.
 - Para mover un deal a otra categoría usa edit_deal con el stageId de una etapa de esa categoría.
+- "Ventas ganadas" puede incluir ventas a mitad de proceso (etapa ganada no final, como "Anticipo pagado", o con saldo por cobrar). Cuando cites ventas ganadas o el cierre del mes, di cuántas siguen en proceso; el contexto las lista.
 
 COBROS E INFORMES DE CLIENTES DE LA AGENCIA:
 - create_client_report: id (id del cliente de la lista CLIENTES) + name + prefill: month (1-12), year (por defecto el mes anterior), email ("true" para abrir también el correo). Guarda en Docs el informe mensual con cobros, contenido entregado y videos.

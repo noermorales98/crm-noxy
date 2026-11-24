@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { formatQuoteLines, parseQuoteLines } from "@/src/lib/ai-quote-items";
+import { SaleDateChoice, type SaleDateOption } from "@/src/components/quotes/SaleDateChoice";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserAddIcon,
@@ -35,7 +36,7 @@ export type ActionCardData =
   | { type: "delete_contact"; id: string; name: string }
   // Deals
   | { type: "create_deal"; prefill?: { title?: string; value?: string; stageId?: string; contactId?: string } }
-  | { type: "edit_deal"; id: string; prefill?: { title?: string; value?: string; stageId?: string } }
+  | { type: "edit_deal"; id: string; prefill?: { title?: string; value?: string; stageId?: string; lostReason?: string } }
   | { type: "delete_deal"; id: string; title: string }
   // Tasks
   | { type: "create_task"; prefill?: { title?: string; dueDate?: string; description?: string } }
@@ -49,6 +50,7 @@ export type ActionCardData =
   | { type: "edit_quote"; id: string; folio: string; prefill?: QuotePrefill }
   | { type: "delete_quote"; id: string; folio: string }
   | { type: "send_quote"; id: string; folio: string }
+  | { type: "connect_quote_deal"; id: string; folio: string; prefill?: { dealId?: string; dealTitle?: string; stageId?: string; title?: string } }
   | { type: "create_company"; prefill?: { name?: string; website?: string; industry?: string } }
   | { type: "edit_company"; id: string; name: string; prefill?: { name?: string; website?: string; industry?: string } }
   | { type: "delete_company"; id: string; name: string }
@@ -118,6 +120,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   edit_quote:            { icon: PencilEditIcon,      color: "#3545D6", title: "Editar cotización" },
   delete_quote:          { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar cotización" },
   send_quote:            { icon: MailIcon,            color: "#10B981", title: "Enviar cotización" },
+  connect_quote_deal:    { icon: SaleTagIcon,         color: "#3545D6", title: "Conectar cotización con un deal" },
   create_company:        { icon: AiBrainIcon,         color: "#10B981", title: "Crear empresa" },
   edit_company:          { icon: PencilEditIcon,      color: "#3545D6", title: "Editar empresa" },
   delete_company:        { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar empresa" },
@@ -206,6 +209,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "delete_contact":        return "Contacto eliminado";
     case "create_deal":           return "Deal creado";
     case "edit_deal":             return "Deal actualizado";
+    case "connect_quote_deal":    return "Cotización conectada con el deal";
     case "delete_deal":           return "Deal eliminado";
     case "create_task":           return "Tarea creada";
     case "complete_task":         return "Tarea completada";
@@ -299,7 +303,7 @@ function FormFields({
   onChange: (key: string, value: string) => void;
   companies: { id: string; name: string }[];
   availabilities: { id: string; name: string }[];
-  stages: { id: string; name: string; pipelineName: string }[];
+  stages: { id: string; name: string; pipelineName: string; isWon?: boolean; isLost?: boolean }[];
   contentClients: { id: string; name: string }[];
   batchItems: BatchItem[];
   onBatchChange: (items: BatchItem[]) => void;
@@ -317,6 +321,28 @@ function FormFields({
             <option value="">Sin empresa</option>
             {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
+        </div>
+      );
+
+    case "connect_quote_deal":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          {formData.dealId ? (
+            <p className="text-xs text-text-secondary">
+              Se vinculará {action.folio} al deal <span className="font-medium text-text-primary">{formData.dealTitle || formData.dealId}</span>.
+            </p>
+          ) : (
+            <>
+              <p className="text-xs text-text-secondary">Se creará un deal con el cliente, la moneda y el total de {action.folio} y quedará vinculado.</p>
+              <input className={inputClass} placeholder="Título del deal" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+              <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
+                <option value="">Seleccionar etapa</option>
+                {stages.filter((s) => !s.isLost).map((s) => (
+                  <option key={s.id} value={s.id}>{s.pipelineName} → {s.name}{s.isWon ? " (ganado)" : ""}</option>
+                ))}
+              </select>
+            </>
+          )}
         </div>
       );
 
@@ -348,6 +374,15 @@ function FormFields({
           )}
           {"value" in p && (
             <input className={inputClass} placeholder="Valor" type="number" value={formData.value ?? ""} onChange={(e) => onChange("value", e.target.value)} />
+          )}
+          {stages.find((s) => s.id === formData.stageId)?.isLost && (
+            <textarea
+              className={inputClass}
+              rows={3}
+              placeholder="¿Por qué se perdió? (obligatorio)"
+              value={formData.lostReason ?? ""}
+              onChange={(e) => onChange("lostReason", e.target.value)}
+            />
           )}
           {"stageId" in p && (
             <select className={selectClass} value={formData.stageId ?? ""} onChange={(e) => onChange("stageId", e.target.value)}>
@@ -709,7 +744,9 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [formData, setFormData] = useState<Record<string, string>>(() => getPrefill(action));
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
-  const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string }[]>([]);
+  const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string; isWon?: boolean; isLost?: boolean }[]>([]);
+  // Fechas distintas para la venta: se pregunta cuál es la correcta antes de conectar la cotización.
+  const [dateChoices, setDateChoices] = useState<SaleDateOption[] | null>(null);
   const [contentClients, setContentClients] = useState<{ id: string; name: string }[]>([]);
   const [batchItems, setBatchItems] = useState<BatchItem[]>(() => initialBatch(action));
   const router = useRouter();
@@ -781,15 +818,15 @@ export function ActionCard({ action }: { action: ActionCardData }) {
 
   // Load pipeline stages for deal forms — ?slim=true skips loading deals (fast)
   useEffect(() => {
-    if (action.type !== "create_deal" && action.type !== "edit_deal") return;
+    if (action.type !== "create_deal" && action.type !== "edit_deal" && action.type !== "connect_quote_deal") return;
     fetch("/api/pipelines?slim=true")
       .then((r) => r.json())
       .then((data: unknown) => {
         if (!Array.isArray(data)) return;
-        const flat: { id: string; name: string; pipelineName: string }[] = [];
-        for (const p of data as { name: string; stages?: { id: string; name: string }[] }[]) {
+        const flat: { id: string; name: string; pipelineName: string; isWon?: boolean; isLost?: boolean }[] = [];
+        for (const p of data as { name: string; stages?: { id: string; name: string; isWon?: boolean; isLost?: boolean }[] }[]) {
           for (const s of p.stages ?? []) {
-            flat.push({ id: s.id, name: s.name, pipelineName: p.name });
+            flat.push({ id: s.id, name: s.name, pipelineName: p.name, isWon: s.isWon, isLost: s.isLost });
           }
         }
         setStages(flat);
@@ -861,7 +898,24 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           markDone(getSuccessMessage(action.type));
           break;
         }
+        case "connect_quote_deal": {
+          const saleDate = formData._saleDate || undefined;
+          const res = formData.dealId
+            ? await fetch(`/api/quotes/${action.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dealId: formData.dealId, saleDate }) })
+            : await fetch(`/api/quotes/${action.id}/deal`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stageId: formData.stageId, title: formData.title, saleDate }) });
+          const data = (await res.json().catch(() => ({}))) as { error?: string; needsDate?: boolean; choices?: SaleDateOption[] };
+          if (res.status === 409 && data.needsDate && data.choices) {
+            setDateChoices(data.choices);
+            setFormData((prev) => ({ ...prev, _saleDate: data.choices?.[0]?.value ?? "" }));
+            setStatus("pending");
+            return;
+          }
+          if (!res.ok) throw new Error(data.error ?? "No se pudo conectar la cotización");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
         case "edit_deal": {
+          if (stages.find((s) => s.id === formData.stageId)?.isLost && !formData.lostReason?.trim()) throw new Error("Indica por qué se perdió el deal");
           const res = await fetch("/api/deals", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: action.id, ...formData }) });
           if (!res.ok) throw new Error(((await res.json()) as { error?: string }).error ?? "Error al actualizar deal");
           markDone(getSuccessMessage(action.type));
@@ -1268,6 +1322,12 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               batchItems={batchItems}
               onBatchChange={setBatchItems}
             />
+          )}
+
+          {dateChoices && action.type === "connect_quote_deal" && (
+            <div className="mt-3">
+              <SaleDateChoice choices={dateChoices} value={formData._saleDate ?? ""} onChange={(value) => handleFieldChange("_saleDate", value)} />
+            </div>
           )}
 
           {/* Buttons */}

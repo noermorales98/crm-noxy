@@ -280,6 +280,9 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
         currency: deal.currency,
         stage: deal.stage?.name,
         pipeline: deal.stage?.pipeline?.name,
+        wonAt: deal.wonAt ?? undefined,
+        lostReason: deal.stage?.isLost ? deal.lostReason ?? "sin registrar" : undefined,
+        quotes: deal.quotes?.length ? deal.quotes.map((q: { folio: string; status: string }) => `${q.folio} ${q.status}`).join(", ") : undefined,
         contact: deal.contact ? `${deal.contact.firstName} ${deal.contact.lastName ?? ""}`.trim() : undefined,
       },
     });

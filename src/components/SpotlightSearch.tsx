@@ -16,6 +16,7 @@ import {
   Folder01Icon,
   AiMagicIcon,
   ArrowUpRight01Icon,
+  File01Icon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 
@@ -28,7 +29,8 @@ type ResultType =
   | "client"
   | "task"
   | "form"
-  | "project";
+  | "project"
+  | "quote";
 
 type SearchResult = {
   id: string;
@@ -48,6 +50,7 @@ const RESULT_ICONS: Record<ResultType, typeof UserMultipleIcon> = {
   task: Task01Icon,
   form: BrowserIcon,
   project: Folder01Icon,
+  quote: File01Icon,
 };
 
 const RESULT_LABELS: Record<ResultType, string> = {
@@ -60,6 +63,7 @@ const RESULT_LABELS: Record<ResultType, string> = {
   task: "Tarea",
   form: "Formulario",
   project: "Proyecto",
+  quote: "Cotización",
 };
 
 export default function SpotlightSearch({

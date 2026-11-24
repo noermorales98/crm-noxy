@@ -37,6 +37,11 @@ Corregí un deal ganado (USD → MXN) y `/pipeline/historial` seguía mostrando 
 
 - [x] Ventas ganadas «a mitad de proceso» especificadas en el cierre: tarjeta «N aún en proceso» + lista con título, monto y motivo («En etapa «Anticipo pagado»» o «Falta cobrar el saldo»). Se calcula en vivo (`loadInProgressSales`, `inProgressReason`), no entra en la foto del mes. El título del cierre sale de los datos mostrados — Evidence: navegador: ago 2 en proceso (Leticia ×2), nov 1 (Hugo, saldo), año 3; prueba `inProgressReason`.
 
+- [x] MCP, IA y Spotlight al día con lo nuevo:
+  - MCP: `update_deal` exige `lostReason` al perder (y deja nota); `link_quote_to_deal` acepta `saleDate` y pregunta cuando hay fechas distintas; nueva `create_deal_from_quote`; `get_sales_metrics` acepta `year` y devuelve `inProgress` y cobros de cotizaciones; `get_deal`/`list_quotes` traen fechas; `list_deals` avisa de `lostReason`/`wonAt`. Lógica compartida en `src/lib/quote-deal-link.ts` (API, MCP y tarjeta de la IA).
+  - IA: el contexto incluye el cierre del mes, las ventas en proceso, motivo de pérdida, cotizaciones por deal con sus fechas y las pagadas sin deal; el prompt pide el motivo al perder y define la tarjeta `connect_quote_deal` (con pregunta de fecha); `edit_deal` pide el motivo al elegir una etapa perdida.
+  - Spotlight: busca cotizaciones y por motivo de pérdida; subtítulos con estado/saldo/«pagada sin deal» (`src/lib/search-subtitles.ts`, 3 pruebas); palabras clave del historial y de cotizaciones; pregunta sugerida «¿ya terminó o sigue a mitad de proceso?» — Evidence: `/api/search?q=Leticia|Hugo|COT-2026-0015` en el navegador; contexto de la IA generado con datos reales.
+
 ## Evidence
 Causa: el PATCH sí guardaba la moneda; el «Cierre del mes» sale de una foto congelada y el fetch del historial no se repetía al volver.
 

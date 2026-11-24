@@ -255,12 +255,19 @@ export async function buildPageRecordContext(orgId: string, ref: PageRef): Promi
 
 /** Cotizaciones recientes y empresas (con su id) para que la IA pueda editarlas, enviarlas o escribir desde la cuenta correcta. */
 export async function buildSalesDocsContext(orgId: string): Promise<string> {
-  const [quotes, companies] = await Promise.all([
+  const [quotes, unlinkedPaid, companies] = await Promise.all([
     prisma.quote.findMany({
       where: { organizationId: orgId },
       orderBy: { createdAt: "desc" },
       take: 15,
-      select: { id: true, folio: true, status: true, clientName: true, clientEmail: true, total: true, currency: true },
+      select: { id: true, folio: true, status: true, clientName: true, clientEmail: true, total: true, currency: true, acceptedAt: true, paidAt: true, depositPaidAt: true, finalPaidAt: true, deal: { select: { id: true, title: true } } },
+    }),
+    // Cotizaciones ya pagadas sin deal: no están en el historial de ventas hasta que se conecten con un deal.
+    prisma.quote.findMany({
+      where: { organizationId: orgId, status: "PAGADA", dealId: null },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { id: true, folio: true, clientName: true, total: true, currency: true, acceptedAt: true, paidAt: true },
     }),
     prisma.company.findMany({
       where: { organizationId: orgId },
@@ -271,7 +278,15 @@ export async function buildSalesDocsContext(orgId: string): Promise<string> {
   ]);
   const L: string[] = ["=== COTIZACIONES Y EMPRESAS ==="];
   L.push(quotes.length ? "Cotizaciones recientes:" : "Aún no hay cotizaciones.");
-  for (const q of quotes) L.push(`  - [id:${q.id}] ${q.folio} | ${q.status} | ${q.clientName} <${q.clientEmail ?? "sin correo"}> | ${q.total} ${q.currency}`);
+  const day = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
+  for (const q of quotes) {
+    const dates = [q.acceptedAt && `aceptada ${day(q.acceptedAt)}`, q.depositPaidAt && `anticipo ${day(q.depositPaidAt)}`, q.finalPaidAt && `pago final ${day(q.finalPaidAt)}`, !q.depositPaidAt && !q.finalPaidAt && q.paidAt && `pagada ${day(q.paidAt)}`].filter(Boolean).join(", ");
+    L.push(`  - [id:${q.id}] ${q.folio} | ${q.status} | ${q.clientName} <${q.clientEmail ?? "sin correo"}> | ${q.total} ${q.currency} | ${q.deal ? `deal: "${q.deal.title}" [id:${q.deal.id}]` : "sin deal"}${dates ? ` | ${dates}` : ""}`);
+  }
+  if (unlinkedPaid.length) {
+    L.push("Cotizaciones PAGADAS sin deal (no aparecen en el historial de ventas; sugiere conectarlas con un deal, existente o nuevo):");
+    for (const q of unlinkedPaid) L.push(`  - [id:${q.id}] ${q.folio} | ${q.clientName} | ${q.total} ${q.currency} | aceptada ${day(q.acceptedAt) ?? "—"}, pagada ${day(q.paidAt) ?? "—"}`);
+  }
   if (companies.length) {
     L.push("Empresas (para enviar correos usa el companyId de una con correo configurado):");
     for (const c of companies) L.push(`  - [id:${c.id}] ${c.name}${c.smtpHost ? " | con correo configurado" : ""}`);
