@@ -5,11 +5,9 @@ import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { providerOfModelId } from "@/src/lib/ai-provider";
+import ChatIdentityPicker, { CHAT_TITLE_MAX } from "@/src/components/ai/ChatIdentityPicker";
 import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
 import { blobColors, chatBlobSeed } from "@/src/lib/chat-blob";
-import { useSession } from "next-auth/react";
-import { AccountAvatar } from "@/src/components/AccountMenu";
-import { userAvatarSrc } from "@/src/lib/user-sexo";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -96,6 +94,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   // Cada chat tiene su propia criatura: la de un chat guardado se recuerda por su id; la de uno nuevo es al azar.
   const [blobSeed, setBlobSeed] = useState(() => randomBlobSeed());
   const [justFinished, setJustFinished] = useState(false);
+  // Nombre que la persona le puso al chat (vacío = automático, del primer mensaje).
+  const [chatTitle, setChatTitle] = useState("");
   const [modelNames, setModelNames] = useState<Record<string, string>>({});
   const nameOfModel = (id: string) => modelNames[id] ?? AI_MODELS.find((m) => m.id === id)?.name ?? prettyModelName(id);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -128,9 +128,21 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     if (conversationId === "new") return;
     setBlobSeed(chatBlobSeed(conversationId));
   }, [conversationId]);
-  const { data: session } = useSession();
-  const profileAvatar = <AccountAvatar size={40} name={session?.user?.name ?? session?.user?.email ?? "Tú"} src={session?.user ? userAvatarSrc(session.user.sexo) : null} />;
   const colors = blobColors(blobSeed);
+  // En un chat guardado, cambiar la cara se recuerda en el navegador y el nombre se guarda en el servidor.
+  const changeSeed = (next: string) => {
+    setBlobSeed(next);
+    if (activeConversationIdRef.current !== "new") {
+      setStored(`assistant-blob-${activeConversationIdRef.current}`, next);
+      window.dispatchEvent(new CustomEvent("assistant:conversations-changed"));
+    }
+  };
+  const changeTitle = (next: string) => {
+    setChatTitle(next);
+  };
+  const identityPicker = (size: number) => (
+    <ChatIdentityPicker seed={blobSeed} onSeedChange={changeSeed} title={chatTitle} onTitleChange={changeTitle} size={size} mood={mood} />
+  );
   const chatVars = { "--chat-bubble": colors.bubble, "--chat-bubble-text": colors.text } as React.CSSProperties;
   // Contenta unos segundos al terminar de responder.
   const wasStreaming = useRef(false);
@@ -217,7 +229,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey, accountId }),
+        body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey, accountId, title: chatTitle.trim().slice(0, CHAT_TITLE_MAX) || undefined }),
         signal: operation.signal,
       });
 
@@ -376,7 +388,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     return (
       <div style={{ display: "contents", ...chatVars }}>
       <AssistantNewExperience
-        mascot={<ChatBlobatar seed={blobSeed} size={104} mood={mood} follow />}
+        mascot={identityPicker(104)}
         onSend={sendMessage}
         disabled={streaming}
         model={model}
@@ -392,7 +404,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         <div className={styles.messageColumn}>
           {isEmpty ? (
             <div className={styles.emptyState}>
-              <ChatBlobatar seed={blobSeed} size={132} mood={mood} follow />
+              {identityPicker(132)}
               <div>
                 <h2 className={styles.emptyTitle}>¿En qué puedo ayudarte?</h2>
                 <p className={styles.emptyCopy}>Puedo consultar tu CRM, crear registros, redactar emails y más.</p>
@@ -423,7 +435,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 currentModelId={m.model}
                 keyUsed={m.keyUsed}
                 accountLabel={m.accountLabel}
-                avatar={m.role === "user" ? profileAvatar : <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} />}
+                avatar={m.role === "user" ? undefined : <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} />}
                 onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
             ))

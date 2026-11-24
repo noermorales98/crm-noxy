@@ -101,6 +101,7 @@ export async function POST(req: Request) {
 
   let conversationId: string, content: string, model: string, preferKey: "1" | "2";
   let accountId: string | null = null;
+  let customTitle = "";
   let pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null = null;
   try {
     const body = await req.json() as {
@@ -109,12 +110,14 @@ export async function POST(req: Request) {
       model?: string;
       preferKey?: "1" | "2";
       accountId?: string;
+      title?: string;
       pageContext?: { page: string; id?: string; label?: string; data?: Record<string, unknown> };
     };
     conversationId = body.conversationId;
     content = body.content;
     model = normalizeModelId(body.model);
     preferKey = body.preferKey ?? "1";
+    customTitle = typeof body.title === "string" ? body.title.trim().slice(0, 60) : "";
     accountId = typeof body.accountId === "string" && body.accountId ? body.accountId : null;
     pageContext = body.pageContext ?? null;
   } catch {
@@ -138,7 +141,8 @@ export async function POST(req: Request) {
 
   // Guardar el mensaje y el título ya no se esperan: la respuesta no depende de ellos y la función sigue viva mientras dura el stream.
   const isFirstMessage = conversation.messages.length === 0;
-  const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
+  // Si la persona le puso nombre al chat antes de empezar, se respeta; si no, se toma del primer mensaje.
+  const title = customTitle || trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
   void Promise.all([
     prisma.aiMessage.create({ data: { conversationId, role: "user", content: trimmed } }),
     isFirstMessage ? prisma.aiConversation.update({ where: { id: conversationId }, data: { title } }) : null,

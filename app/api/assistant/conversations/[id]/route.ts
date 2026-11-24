@@ -35,3 +35,20 @@ export async function DELETE(_req: Request, context: { params: Promise<{ id: str
   await prisma.aiConversation.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
+
+/** Cambia el nombre de un chat. */
+export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const orgId = (session as any).currentOrganizationId as string | undefined;
+  if (!orgId) return NextResponse.json({ error: "No organization context" }, { status: 400 });
+
+  const body = (await req.json().catch(() => null)) as { title?: unknown } | null;
+  const title = typeof body?.title === "string" ? body.title.trim().slice(0, 60) : "";
+  if (!title) return NextResponse.json({ error: "El nombre no puede estar vacío." }, { status: 400 });
+
+  const result = await prisma.aiConversation.updateMany({ where: { id, userId: session.user.id!, organizationId: orgId }, data: { title } });
+  if (result.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ ok: true, title });
+}
