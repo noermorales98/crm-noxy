@@ -7,7 +7,7 @@ import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
 import { listSkills } from "@/src/lib/ai-skills-store";
 import { expandSkill, matchSkill } from "@/src/lib/ai-skills";
-import { buildBrandContext, buildModulesContext, buildPageRecordContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
+import { buildBrandContext, buildModulesContext, buildSalesDocsContext, buildPageRecordContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 import { normalizeModelId } from "@/src/lib/ai-models";
 
@@ -30,10 +30,24 @@ DEALS/VENTAS:
 
 TAREAS:
 - create_task: prefill: title (requerido), dueDate, description
+- edit_task: id + title + prefill: title, description, dueDate (AAAA-MM-DD)
 - complete_task: id + title
+- delete_task: id + title
 
 EMAIL:
-- draft_email: prefill: to, subject, body
+- draft_email: prefill: to, subject, body (abre el compositor para que la persona revise y envíe)
+- send_email: prefill: companyId (empresa con correo configurado, del contexto), to, cc, subject, body — envía el correo al confirmar; úsalo cuando la persona pide enviar directamente
+
+COTIZACIONES:
+- create_quote: prefill: clientName (requerido), clientEmail, clientCompany, clientPhone, currency (MXN por defecto), taxRate (16 por defecto), validUntil (AAAA-MM-DD), notes, dealId, contactId, items (arreglo de {description, quantity, unitPrice}; al menos uno)
+- edit_quote: id + folio + prefill con los mismos campos (solo cotizaciones en BORRADOR; si no lo es, dilo)
+- delete_quote: id + folio
+- send_quote: id + folio — envía la cotización al correo del cliente con el mensaje estándar (debe tener correo)
+
+EMPRESAS:
+- create_company: prefill: name (requerido), website, industry
+- edit_company: id + name + prefill: name, website, industry
+- delete_company: id + name
 
 CITAS (appointments):
 - update_appointment: id + title + prefill: status (confirmed|completed|cancelled|no_show|scheduled)
@@ -114,8 +128,12 @@ async function cachedCrmContext(userId: string, orgId: string): Promise<string> 
   const hit = contextCache.get(key);
   if (hit && Date.now() - hit.at < CONTEXT_TTL_MS) return hit.text;
   // Resumen del CRM clásico + módulos nuevos (clientes, contenido, videos, docs). Si los nuevos fallan, el clásico sigue.
-  const [base, modules] = await Promise.all([buildCrmContext(userId, orgId), buildModulesContext(orgId).catch((err) => { console.error("[assistant/chat] contexto de módulos:", err); return ""; })]);
-  const text = modules ? `${base}\n\n${modules}` : base;
+  const [base, modules, salesDocs] = await Promise.all([
+    buildCrmContext(userId, orgId),
+    buildModulesContext(orgId).catch((err) => { console.error("[assistant/chat] contexto de módulos:", err); return ""; }),
+    buildSalesDocsContext(orgId).catch((err) => { console.error("[assistant/chat] contexto de cotizaciones:", err); return ""; }),
+  ]);
+  const text = [base, modules, salesDocs].filter(Boolean).join("\n\n");
   contextCache.set(key, { at: Date.now(), text });
   if (contextCache.size > 200) contextCache.delete(contextCache.keys().next().value as string);
   return text;

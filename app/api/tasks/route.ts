@@ -111,10 +111,14 @@ export async function PATCH(req: Request) {
     const currentOrganizationId = (session as any).currentOrganizationId;
     
     const body = await req.json();
-    const { id, isCompleted } = body;
+    const { id, isCompleted, title, description, dueDate } = body;
 
-    if (!id || isCompleted === undefined) {
-      return NextResponse.json({ error: "Task ID and isCompleted status are required" }, { status: 400 });
+    const editsFields = title !== undefined || description !== undefined || dueDate !== undefined;
+    if (!id || (isCompleted === undefined && !editsFields)) {
+      return NextResponse.json({ error: "Task ID and something to change are required" }, { status: 400 });
+    }
+    if (title !== undefined && !String(title).trim()) {
+      return NextResponse.json({ error: "El título no puede estar vacío" }, { status: 400 });
     }
 
     const existingTask = await prisma.task.findUnique({ where: { id } });
@@ -125,7 +129,12 @@ export async function PATCH(req: Request) {
 
     const updatedTask = await prisma.task.update({
       where: { id },
-      data: { isCompleted }
+      data: {
+        ...(isCompleted !== undefined ? { isCompleted } : {}),
+        ...(title !== undefined ? { title: String(title).trim() } : {}),
+        ...(description !== undefined ? { description: String(description) || null } : {}),
+        ...(dueDate !== undefined ? { dueDate: dueDate ? new Date(dueDate) : null } : {}),
+      }
     });
 
     if (isCompleted && !existingTask.isCompleted && existingTask.projectId) {

@@ -251,3 +251,30 @@ export async function buildPageRecordContext(orgId: string, ref: PageRef): Promi
 
   return L.length ? `\n\n=== REGISTRO QUE LA PERSONA TIENE ABIERTO ===\n${L.join("\n")}` : "";
 }
+
+
+/** Cotizaciones recientes y empresas (con su id) para que la IA pueda editarlas, enviarlas o escribir desde la cuenta correcta. */
+export async function buildSalesDocsContext(orgId: string): Promise<string> {
+  const [quotes, companies] = await Promise.all([
+    prisma.quote.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "desc" },
+      take: 15,
+      select: { id: true, folio: true, status: true, clientName: true, clientEmail: true, total: true, currency: true },
+    }),
+    prisma.company.findMany({
+      where: { organizationId: orgId },
+      orderBy: { name: "asc" },
+      take: 20,
+      select: { id: true, name: true, smtpHost: true },
+    }),
+  ]);
+  const L: string[] = ["=== COTIZACIONES Y EMPRESAS ==="];
+  L.push(quotes.length ? "Cotizaciones recientes:" : "Aún no hay cotizaciones.");
+  for (const q of quotes) L.push(`  - [id:${q.id}] ${q.folio} | ${q.status} | ${q.clientName} <${q.clientEmail ?? "sin correo"}> | ${q.total} ${q.currency}`);
+  if (companies.length) {
+    L.push("Empresas (para enviar correos usa el companyId de una con correo configurado):");
+    for (const c of companies) L.push(`  - [id:${c.id}] ${c.name}${c.smtpHost ? " | con correo configurado" : ""}`);
+  }
+  return L.join("\n");
+}

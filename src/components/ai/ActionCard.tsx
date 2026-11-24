@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { formatQuoteLines, parseQuoteLines } from "@/src/lib/ai-quote-items";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserAddIcon,
@@ -21,6 +22,12 @@ import {
   FolderAddIcon,
 } from "@hugeicons/core-free-icons";
 
+type QuotePrefill = {
+  clientName?: string; clientEmail?: string; clientCompany?: string; clientPhone?: string; currency?: string; taxRate?: string | number;
+  validUntil?: string; notes?: string; dealId?: string; contactId?: string;
+  items?: { description?: string; quantity?: number | string; unitPrice?: number | string }[];
+};
+
 export type ActionCardData =
   // Contacts
   | { type: "create_contact"; prefill?: { firstName?: string; lastName?: string; email?: string; phone?: string; companyId?: string } }
@@ -33,8 +40,18 @@ export type ActionCardData =
   // Tasks
   | { type: "create_task"; prefill?: { title?: string; dueDate?: string; description?: string } }
   | { type: "complete_task"; id: string; title: string }
+  | { type: "edit_task"; id: string; title: string; prefill?: { title?: string; description?: string; dueDate?: string } }
+  | { type: "delete_task"; id: string; title: string }
   // Email
   | { type: "draft_email"; prefill?: { to?: string; subject?: string; body?: string } }
+  | { type: "send_email"; prefill?: { companyId?: string; to?: string; cc?: string; subject?: string; body?: string } }
+  | { type: "create_quote"; prefill?: QuotePrefill }
+  | { type: "edit_quote"; id: string; folio: string; prefill?: QuotePrefill }
+  | { type: "delete_quote"; id: string; folio: string }
+  | { type: "send_quote"; id: string; folio: string }
+  | { type: "create_company"; prefill?: { name?: string; website?: string; industry?: string } }
+  | { type: "edit_company"; id: string; name: string; prefill?: { name?: string; website?: string; industry?: string } }
+  | { type: "delete_company"; id: string; name: string }
   // Appointments
   | { type: "update_appointment"; id: string; title: string; prefill?: { status?: string } }
   | { type: "delete_appointment"; id: string; title: string }
@@ -91,8 +108,19 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   // Tasks
   create_task:           { icon: TaskAddIcon,         color: "#10B981", title: "Crear tarea" },
   complete_task:         { icon: CheckmarkCircleIcon, color: "#10B981", title: "Completar tarea" },
+  edit_task:             { icon: PencilEditIcon,      color: "#3545D6", title: "Editar tarea" },
+  delete_task:           { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar tarea" },
   // Email
   draft_email:           { icon: MailIcon,            color: "#3545D6", title: "Redactar email" },
+  send_email:            { icon: MailIcon,            color: "#10B981", title: "Enviar email" },
+  // Cotizaciones y empresas
+  create_quote:          { icon: File01Icon,          color: "#10B981", title: "Crear cotización" },
+  edit_quote:            { icon: PencilEditIcon,      color: "#3545D6", title: "Editar cotización" },
+  delete_quote:          { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar cotización" },
+  send_quote:            { icon: MailIcon,            color: "#10B981", title: "Enviar cotización" },
+  create_company:        { icon: AiBrainIcon,         color: "#10B981", title: "Crear empresa" },
+  edit_company:          { icon: PencilEditIcon,      color: "#3545D6", title: "Editar empresa" },
+  delete_company:        { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar empresa" },
   // Appointments
   update_appointment:    { icon: PencilEditIcon,      color: "#3545D6", title: "Actualizar cita" },
   delete_appointment:    { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar cita" },
@@ -133,6 +161,7 @@ const CONFIRM_ONLY_TYPES: ActionCardData["type"][] = [
   "delete_contact", "delete_deal", "complete_task",
   "delete_appointment", "delete_availability",
   "delete_appointment_type", "delete_form",
+  "delete_task", "delete_quote", "send_quote", "delete_company",
 ];
 
 // Permanent one-time operations (delete/complete) go to localStorage.
@@ -142,6 +171,7 @@ const PERMANENT_TYPES: ActionCardData["type"][] = [
   "delete_contact", "delete_deal", "complete_task",
   "delete_appointment", "delete_availability",
   "delete_appointment_type", "delete_form",
+  "delete_task", "delete_quote", "send_quote", "delete_company", "send_email",
 ];
 
 // Key uses full JSON so two different edits of the same deal have different keys.
@@ -161,6 +191,11 @@ function getPrefill(action: ActionCardData): Record<string, string> {
     if (typeof v === "string") result[k] = v;
   }
   if (action.type === "create_content_batch" && action.clientId) result.clientId = action.clientId;
+  if (action.type === "create_quote" || action.type === "edit_quote") {
+    const p = (action.prefill ?? {}) as QuotePrefill;
+    if (p.taxRate !== undefined) result.taxRate = String(p.taxRate);
+    if (Array.isArray(p.items) && p.items.length) result.itemsText = formatQuoteLines(p.items);
+  }
   return result;
 }
 
@@ -175,6 +210,16 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "create_task":           return "Tarea creada";
     case "complete_task":         return "Tarea completada";
     case "draft_email":           return "Compositor abierto";
+    case "edit_task":             return "Tarea actualizada";
+    case "delete_task":           return "Tarea eliminada";
+    case "send_email":            return "Correo enviado";
+    case "create_quote":          return "Cotización creada";
+    case "edit_quote":            return "Cotización actualizada";
+    case "delete_quote":          return "Cotización eliminada";
+    case "send_quote":            return "Cotización enviada al cliente";
+    case "create_company":        return "Empresa creada";
+    case "edit_company":          return "Empresa actualizada";
+    case "delete_company":        return "Empresa eliminada";
     case "update_appointment":    return "Cita actualizada";
     case "delete_appointment":    return "Cita eliminada";
     case "create_availability":   return "Disponibilidad creada";
@@ -211,6 +256,10 @@ function getWarningText(action: ActionCardData): string {
     case "delete_availability":   return `¿Eliminar la disponibilidad "${action.name}"?`;
     case "delete_appointment_type": return `¿Eliminar el tipo de cita "${action.name}"?`;
     case "delete_form":           return `¿Eliminar el formulario "${action.name}"?`;
+    case "delete_task":           return `¿Eliminar la tarea "${action.title}"?`;
+    case "delete_quote":          return `¿Eliminar la cotización ${action.folio}? No se puede deshacer.`;
+    case "send_quote":            return `¿Enviar la cotización ${action.folio} al correo del cliente con el mensaje estándar?`;
+    case "delete_company":        return `¿Eliminar la empresa "${action.name}"?`;
     default: return "";
   }
 }
@@ -318,6 +367,60 @@ function FormFields({
           <input className={inputClass} placeholder="Título *" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
           <input className={inputClass} placeholder="Descripción" value={formData.description ?? ""} onChange={(e) => onChange("description", e.target.value)} />
           <input className={inputClass} placeholder="Fecha límite" type="date" value={formData.dueDate ?? ""} onChange={(e) => onChange("dueDate", e.target.value)} />
+        </div>
+      );
+
+    case "edit_task":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <p className="text-xs text-text-secondary">Tarea: <span className="font-medium text-text-primary">{action.title}</span></p>
+          <input className={inputClass} placeholder="Título" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          <input className={inputClass} placeholder="Descripción" value={formData.description ?? ""} onChange={(e) => onChange("description", e.target.value)} />
+          <input className={inputClass} placeholder="Fecha límite" type="date" value={formData.dueDate ?? ""} onChange={(e) => onChange("dueDate", e.target.value)} />
+        </div>
+      );
+
+    case "create_company":
+    case "edit_company":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <input className={inputClass} placeholder="Nombre *" value={formData.name ?? ""} onChange={(e) => onChange("name", e.target.value)} />
+          <input className={inputClass} placeholder="Sitio web" value={formData.website ?? ""} onChange={(e) => onChange("website", e.target.value)} />
+          <input className={inputClass} placeholder="Industria" value={formData.industry ?? ""} onChange={(e) => onChange("industry", e.target.value)} />
+        </div>
+      );
+
+    case "send_email":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <select className={selectClass} aria-label="Enviar desde" value={formData.companyId ?? ""} onChange={(e) => onChange("companyId", e.target.value)}>
+            <option value="">Enviar desde… (empresa con correo configurado)</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <input className={inputClass} placeholder="Para *" type="email" value={formData.to ?? ""} onChange={(e) => onChange("to", e.target.value)} />
+          <input className={inputClass} placeholder="Cc" value={formData.cc ?? ""} onChange={(e) => onChange("cc", e.target.value)} />
+          <input className={inputClass} placeholder="Asunto *" value={formData.subject ?? ""} onChange={(e) => onChange("subject", e.target.value)} />
+          <textarea className={`${inputClass} resize-none`} placeholder="Mensaje *" rows={5} value={formData.body ?? ""} onChange={(e) => onChange("body", e.target.value)} />
+        </div>
+      );
+
+    case "create_quote":
+    case "edit_quote":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          {action.type === "edit_quote" && <p className="text-xs text-text-secondary">Cotización <span className="font-medium text-text-primary">{action.folio}</span>{formData._loaded ? "" : " · cargando datos…"}</p>}
+          <input className={inputClass} placeholder="Nombre del cliente *" value={formData.clientName ?? ""} onChange={(e) => onChange("clientName", e.target.value)} />
+          <input className={inputClass} placeholder="Correo del cliente" type="email" value={formData.clientEmail ?? ""} onChange={(e) => onChange("clientEmail", e.target.value)} />
+          <input className={inputClass} placeholder="Empresa del cliente" value={formData.clientCompany ?? ""} onChange={(e) => onChange("clientCompany", e.target.value)} />
+          <div className="grid grid-cols-3 gap-2">
+            <input className={inputClass} aria-label="Moneda" placeholder="Moneda" value={formData.currency ?? ""} onChange={(e) => onChange("currency", e.target.value.toUpperCase())} />
+            <input className={inputClass} aria-label="Impuesto %" placeholder="IVA %" type="number" value={formData.taxRate ?? ""} onChange={(e) => onChange("taxRate", e.target.value)} />
+            <input className={inputClass} aria-label="Válida hasta" type="date" value={formData.validUntil ?? ""} onChange={(e) => onChange("validUntil", e.target.value)} />
+          </div>
+          <textarea className={`${inputClass} resize-none font-mono text-xs`} aria-label="Conceptos" placeholder={"Un concepto por línea:\ndescripción | cantidad | precio unitario"} rows={5} value={formData.itemsText ?? ""} onChange={(e) => onChange("itemsText", e.target.value)} />
+          <textarea className={`${inputClass} resize-none`} placeholder="Notas" rows={2} value={formData.notes ?? ""} onChange={(e) => onChange("notes", e.target.value)} />
         </div>
       );
 
@@ -638,7 +741,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
 
   // Load companies for contact + form actions
   useEffect(() => {
-    const needsCompanies = ["create_contact", "edit_contact", "create_form"].includes(action.type);
+    const needsCompanies = ["create_contact", "edit_contact", "create_form", "send_email"].includes(action.type);
     if (!needsCompanies) return;
     fetch("/api/companies")
       .then((r) => r.json())
@@ -652,6 +755,28 @@ export function ActionCard({ action }: { action: ActionCardData }) {
         });
       })
       .catch(() => {});
+  }, [action.type]);
+
+  // Editar una cotización: se traen sus datos actuales (el servidor reemplaza todo, así que lo no editable se conserva tal cual).
+  useEffect(() => {
+    if (action.type !== "edit_quote") return;
+    fetch(`/api/quotes/${action.id}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((q: Record<string, unknown> | null) => {
+        if (!q) return;
+        const str = (v: unknown) => (v == null ? "" : String(v));
+        setFormData((prev) => ({
+          clientName: str(q.clientName), clientEmail: str(q.clientEmail), clientCompany: str(q.clientCompany), clientPhone: str(q.clientPhone),
+          currency: str(q.currency), taxRate: str(q.taxRate), validUntil: q.validUntil ? str(q.validUntil).slice(0, 10) : "", notes: str(q.notes),
+          itemsText: formatQuoteLines(Array.isArray(q.items) ? (q.items as { description?: unknown; quantity?: unknown; unitPrice?: unknown }[]) : []),
+          _contactId: str(q.contactId), _senderCompanyId: str(q.senderCompanyId), _clientAddress: str(q.clientAddress), _terms: str(q.terms),
+          _split: q.splitPayment ? "true" : "false", _deposit: str(q.depositPercent),
+          ...prev,
+          _loaded: "1",
+        }));
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [action.type]);
 
   // Load pipeline stages for deal forms — ?slim=true skips loading deals (fast)
@@ -699,7 +824,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const config = typeConfig[action.type];
   const cardTitle = action.type === "query_result" ? (action.title ?? "Resultados") : config.title;
   const isConfirmOnly = CONFIRM_ONLY_TYPES.includes(action.type);
-  const confirmLabel = action.type === "draft_email" ? "Abrir compositor" : "Confirmar";
+  const confirmLabel = action.type === "draft_email" ? "Abrir compositor" : action.type === "send_email" || action.type === "send_quote" ? "Enviar" : "Confirmar";
   const warningText = getWarningText(action);
 
   const handleFieldChange = (key: string, value: string) => {
@@ -761,7 +886,94 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           markDone(getSuccessMessage(action.type));
           break;
         }
+        case "edit_task": {
+          const body: Record<string, unknown> = { id: action.id };
+          if (formData.title) body.title = formData.title;
+          if (formData.description !== undefined) body.description = formData.description;
+          if (formData.dueDate !== undefined) body.dueDate = formData.dueDate || null;
+          const res = await fetch("/api/tasks", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al actualizar tarea");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "delete_task": {
+          const res = await fetch(`/api/tasks/${action.id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Error al eliminar tarea");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Empresas ──────────────────────────────────────────────────────
+        case "create_company": {
+          if (!formData.name?.trim()) throw new Error("La empresa necesita un nombre");
+          const res = await fetch("/api/companies", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: formData.name, website: formData.website || undefined, industry: formData.industry || undefined }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al crear empresa");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "edit_company": {
+          const res = await fetch("/api/companies", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: action.id, name: formData.name || action.name, website: formData.website, industry: formData.industry }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al actualizar empresa");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "delete_company": {
+          const res = await fetch(`/api/companies/${action.id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Error al eliminar empresa");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Cotizaciones ──────────────────────────────────────────────────
+        case "create_quote":
+        case "edit_quote": {
+          const items = parseQuoteLines(formData.itemsText ?? "");
+          if (!formData.clientName?.trim()) throw new Error("Falta el nombre del cliente");
+          if (!items.length) throw new Error("Agrega al menos un concepto («descripción | cantidad | precio»)");
+          const editing = action.type === "edit_quote";
+          if (editing && !formData._loaded) throw new Error("Espera a que carguen los datos de la cotización");
+          const body: Record<string, unknown> = {
+            clientName: formData.clientName, clientEmail: formData.clientEmail || undefined, clientCompany: formData.clientCompany || undefined, clientPhone: formData.clientPhone || undefined,
+            currency: formData.currency || undefined, taxRate: formData.taxRate !== undefined && formData.taxRate !== "" ? Number(formData.taxRate) : undefined,
+            validUntil: formData.validUntil || undefined, notes: formData.notes || undefined, items,
+          };
+          if (editing) {
+            body.contactId = formData._contactId || undefined;
+            body.senderCompanyId = formData._senderCompanyId || undefined;
+            body.clientAddress = formData._clientAddress || undefined;
+            body.terms = formData._terms || undefined;
+            body.splitPayment = formData._split === "true";
+            body.depositPercent = formData._deposit ? Number(formData._deposit) : undefined;
+          } else {
+            if (formData.dealId) body.dealId = formData.dealId;
+            if (formData.contactId) body.contactId = formData.contactId;
+          }
+          const res = await fetch(editing ? `/api/quotes/${action.id}` : "/api/quotes", { method: editing ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al guardar la cotización");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "delete_quote": {
+          const res = await fetch(`/api/quotes/${action.id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al eliminar la cotización");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "send_quote": {
+          const res = await fetch(`/api/quotes/${action.id}/send`, { method: "POST" });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo enviar la cotización");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
         // ── Email ─────────────────────────────────────────────────────────
+        case "send_email": {
+          if (!formData.companyId) throw new Error("Elige desde qué empresa se envía");
+          if (!formData.to?.trim() || !formData.subject?.trim() || !formData.body?.trim()) throw new Error("Faltan destinatario, asunto o mensaje");
+          const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const bodyHtml = formData.body.split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+          const res = await fetch("/api/emails/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: formData.companyId, to: formData.to.trim(), cc: formData.cc?.trim() || undefined, subject: formData.subject.trim(), bodyHtml, bodyText: formData.body }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo enviar el correo");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
         case "draft_email": {
           const params = new URLSearchParams();
           if (formData.to) params.set("to", formData.to);
