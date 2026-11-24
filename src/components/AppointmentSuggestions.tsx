@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Chip, type ChipTone } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
+import { onAppointmentAction, reportAppointmentBusy } from "@/src/lib/appointment-actions";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { AiMagicIcon } from "@hugeicons/core-free-icons";
 
 type Suggestion = {
   id: string;
@@ -184,15 +187,24 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     }
   };
 
+  // La barra de la cita pide «Sugerir con IA»; el estado vuelve a su botón.
+  const generateRef = useRef(generate);
+  generateRef.current = generate;
+  useEffect(() => onAppointmentAction((action) => action === "generate" && void generateRef.current()), []);
+  useEffect(() => reportAppointmentBusy("generate", busy === "generate"), [busy]);
+
   const pending = (items ?? []).filter((s) => s.status === "PENDING");
   const decided = (items ?? []).filter((s) => s.status !== "PENDING");
 
   const selectedModelName = modelId ? models.find((m) => m.id === modelId)?.name : null;
 
   return (
-    <section aria-label="Sugerencias de la IA" className="space-y-3 rounded-control border border-line p-4">
+    <section aria-label="Sugerencias de la IA" className="space-y-3 rounded-surface bg-surface-elevated p-4">
       <header className="flex flex-wrap items-center gap-2">
-        <h2 className="min-w-0 flex-1 text-sm font-semibold text-text-primary">Sugerencias de la IA</h2>
+        <h2 className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-text-primary">
+          <HugeiconsIcon icon={AiMagicIcon} size={16} aria-hidden="true" className="shrink-0 text-text-secondary" />
+          Sugerencias de la IA
+        </h2>
         {models.length > 0 && (
           <label className="inline-flex max-w-[11rem] items-center gap-1 text-[11px] text-text-secondary">
             <span className="sr-only">Modelo de IA</span>
@@ -219,11 +231,8 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
             </select>
           </label>
         )}
-        <button type="button" className={primaryBtn} onClick={generate} disabled={busy === "generate"}>
-          {busy === "generate" ? "Leyendo…" : items && items.length ? "Generar de nuevo" : "Generar"}
-        </button>
       </header>
-      <p className="text-xs text-text-secondary">Lee las notas y propone acciones. Nada se crea hasta que tú lo agregues.</p>
+      <p className="text-xs text-text-secondary">Lee las notas y propone acciones; se piden con «Sugerir con IA» arriba. Nada se crea hasta que tú lo agregues.</p>
       {watching && (
         <p role="status" className="text-xs font-medium text-action-ink">
           La IA está leyendo las notas…
@@ -247,7 +256,7 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
       ) : loadError ? (
         <p role="alert" className="text-sm text-danger">No se pudieron cargar las sugerencias.</p>
       ) : pending.length === 0 ? (
-        <p className="text-sm text-text-secondary">{items.length ? "No quedan sugerencias pendientes." : "Aún no hay sugerencias. Genera desde las notas de la cita."}</p>
+        <p className="text-sm text-text-secondary">{items.length ? "No quedan sugerencias pendientes." : "Aún no hay sugerencias. Pídelas con «Sugerir con IA» cuando haya notas."}</p>
       ) : (
         <ul className="divide-y divide-line">
           {pending.map((s) => (

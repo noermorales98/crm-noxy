@@ -3,10 +3,13 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Briefcase01Icon, Call02Icon, Location01Icon, Mail01Icon, User02Icon, UserIcon } from "@hugeicons/core-free-icons";
+import AppointmentNavbar from "@/src/components/appointments/AppointmentNavbar";
 import { AppointmentMeetingPanel } from "@/src/components/AppointmentMeetingPanel";
 import { AppointmentSuggestions } from "@/src/components/AppointmentSuggestions";
 import KbMarkdown from "@/src/components/kb/KbMarkdown";
-import { Chip, EmptyState, ErrorState, Skeleton, type ChipTone } from "@/src/components/ui";
+import { EmptyState, ErrorState, Skeleton } from "@/src/components/ui";
 import { useHeader } from "@/src/context/HeaderContext";
 
 type Detail = {
@@ -24,13 +27,16 @@ type Detail = {
   deal: { id: string; title: string } | null;
 };
 
-const STATUS_TONES: Record<string, ChipTone> = { CONFIRMED: "neutral", COMPLETED: "done", CANCELLED: "late" };
-const STATUS_LABELS: Record<string, string> = { CONFIRMED: "Confirmada", COMPLETED: "Completada", CANCELLED: "Cancelada" };
-
 const day = (iso: string) => new Date(iso).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 const clock = (iso: string) => new Date(iso).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
 
-/** Página de una cita: datos, sugerencias de la IA y notas de la reunión (Granola, Notion o escritas a mano). */
+const FACT = "inline-flex min-h-11 items-center gap-1.5 rounded-control px-1 text-sm text-text-secondary lg:min-h-8";
+const FACT_LINK = `${FACT} outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus`;
+
+/**
+ * Página de una cita: una barra con el título y las acciones, una línea con los datos y, como centro, las notas de la reunión
+ * (Granola, Notion o escritas a mano). Las sugerencias de la IA van al lado.
+ */
 export default function AppointmentPage() {
   const { id } = useParams<{ id: string }>();
   const { setConfig, resetState } = useHeader();
@@ -62,6 +68,7 @@ export default function AppointmentPage() {
 
   const title = appointment ? appointment.title?.trim() || appointment.appointmentType?.name || appointment.guestName : "Cita";
 
+  // La barra de la cita lleva el título y el botón de volver: la barra general de la hoja no se repite.
   useEffect(() => {
     setConfig({ title, backHref: "/appointments", pageHeader: true });
     return () => setConfig({});
@@ -69,51 +76,77 @@ export default function AppointmentPage() {
   }, [title]);
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
-      <div className="mx-auto max-w-4xl space-y-6">
-        {state === "loading" && <Skeleton shape="rows" count={3} label="Cargando la cita" />}
-        {state === "missing" && <EmptyState title="Cita no encontrada" body="Puede que se haya eliminado o que no pertenezca a esta organización." />}
-        {state === "error" && <ErrorState title="No se pudo cargar la cita" onRetry={() => setAttempt((n) => n + 1)} />}
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 pb-8 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        {state === "loading" && (
+          <div className="py-6">
+            <Skeleton shape="rows" count={3} label="Cargando la cita" />
+          </div>
+        )}
+        {state === "missing" && (
+          <div className="py-6">
+            <EmptyState title="Cita no encontrada" body="Puede que se haya eliminado o que no pertenezca a esta organización." />
+          </div>
+        )}
+        {state === "error" && (
+          <div className="py-6">
+            <ErrorState title="No se pudo cargar la cita" onRetry={() => setAttempt((n) => n + 1)} />
+          </div>
+        )}
 
         {state === "ready" && appointment && (
           <>
-            <section aria-label="Datos de la cita" className="space-y-2 rounded-control border border-line p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="min-w-0 text-lg font-semibold text-text-primary">{title}</h1>
-                <Chip tone={STATUS_TONES[appointment.status] ?? "neutral"}>{STATUS_LABELS[appointment.status] ?? appointment.status}</Chip>
-                {appointment.appointmentType && <Chip>{appointment.appointmentType.name}</Chip>}
-              </div>
-              <p className="text-sm capitalize text-text-secondary">
-                {day(appointment.startTime)} · {clock(appointment.startTime)} – {clock(appointment.endTime)}
-              </p>
-              <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-secondary">
-                <span>{appointment.guestName}</span>
-                {appointment.guestEmail && <a className="hover:text-text-primary" href={`mailto:${appointment.guestEmail}`}>{appointment.guestEmail}</a>}
-                {appointment.guestPhone && <a className="tabular-nums hover:text-text-primary" href={`tel:${appointment.guestPhone}`}>{appointment.guestPhone}</a>}
-              </p>
-              {(appointment.contact || appointment.deal) && (
-                <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  {appointment.contact && (
-                    <Link className="font-medium text-action-ink underline" href={`/contacts/${appointment.contact.id}`}>
-                      Contacto: {appointment.contact.firstName} {appointment.contact.lastName ?? ""}
-                    </Link>
-                  )}
-                  {appointment.deal && (
-                    <Link className="font-medium text-action-ink underline" href={`/pipeline/${appointment.deal.id}`}>
-                      Lead: {appointment.deal.title}
-                    </Link>
-                  )}
-                </p>
+            <AppointmentNavbar title={title} status={appointment.status} subtitle={`${day(appointment.startTime)} · ${clock(appointment.startTime)} – ${clock(appointment.endTime)}`} />
+
+            <section aria-label="Datos de la cita" className="flex flex-wrap items-center gap-x-4 gap-y-0 py-3">
+              <span className={FACT}>
+                <HugeiconsIcon icon={User02Icon} size={14} aria-hidden="true" />
+                {appointment.guestName}
+              </span>
+              {appointment.guestEmail && (
+                <a className={FACT_LINK} href={`mailto:${appointment.guestEmail}`}>
+                  <HugeiconsIcon icon={Mail01Icon} size={14} aria-hidden="true" />
+                  {appointment.guestEmail}
+                </a>
               )}
-              {appointment.notes && <KbMarkdown content={appointment.notes} allowImages={false} />}
+              {appointment.guestPhone && (
+                <a className={`${FACT_LINK} tabular-nums`} href={`tel:${appointment.guestPhone}`}>
+                  <HugeiconsIcon icon={Call02Icon} size={14} aria-hidden="true" />
+                  {appointment.guestPhone}
+                </a>
+              )}
+              {appointment.appointmentType?.location && (
+                <span className={FACT}>
+                  <HugeiconsIcon icon={Location01Icon} size={14} aria-hidden="true" />
+                  {appointment.appointmentType.location}
+                </span>
+              )}
+              {appointment.contact && (
+                <Link className={`${FACT_LINK} font-medium text-action-ink hover:text-action-ink-hover`} href={`/contacts/${appointment.contact.id}`}>
+                  <HugeiconsIcon icon={UserIcon} size={14} aria-hidden="true" />
+                  {appointment.contact.firstName} {appointment.contact.lastName ?? ""}
+                </Link>
+              )}
+              {appointment.deal && (
+                <Link className={`${FACT_LINK} font-medium text-action-ink hover:text-action-ink-hover`} href={`/pipeline/${appointment.deal.id}`}>
+                  <HugeiconsIcon icon={Briefcase01Icon} size={14} aria-hidden="true" />
+                  {appointment.deal.title}
+                </Link>
+              )}
             </section>
 
-            <AppointmentSuggestions appointmentId={appointment.id} />
+            {appointment.notes && (
+              <div className="mb-2 rounded-surface bg-surface-elevated p-4 text-sm text-text-secondary">
+                <KbMarkdown content={appointment.notes} allowImages={false} />
+              </div>
+            )}
 
-            <section aria-label="Notas de la reunión" className="space-y-3">
-              <h2 className="text-sm font-semibold text-text-primary">Notas de la reunión</h2>
+            <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
               <AppointmentMeetingPanel appointmentId={appointment.id} />
-            </section>
+              <aside aria-label="Sugerencias">
+                <AppointmentSuggestions appointmentId={appointment.id} />
+              </aside>
+            </div>
           </>
         )}
       </div>
