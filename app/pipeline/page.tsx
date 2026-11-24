@@ -171,15 +171,9 @@ function KanbanColumn({
   categoryOf?: (deal: any) => string | undefined;
   onAddDeal: (column: BoardColumnDef) => void;
 }) {
-  const totalMXN = deals.filter((d) => d.currency === "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
-  const totalUSD = deals.filter((d) => d.currency !== "MXN").reduce((sum, d) => sum + (d.value ?? 0), 0);
-  const sum = [totalMXN > 0 ? fmtMXN(totalMXN) : null, totalUSD > 0 ? fmtUSD(totalUSD) : null].filter(Boolean).join(" + ") || undefined;
-
   return (
     <BoardColumn
       title={column.name}
-      count={deals.length}
-      sum={sum}
       accent={column.color || "#6B7280"}
       collapsed={deals.length === 0}
       footer={
