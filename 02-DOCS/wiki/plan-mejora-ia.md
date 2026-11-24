@@ -101,10 +101,10 @@ Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definid
 
 ## Fase 8 · Informe mensual de agencia (idea 8)
 
-- [x] ~~**T8.1** Reunir por cliente: ingresos, cobros pendientes, piezas entregadas, videos y resultados~~ — `FASE8` (el cliente de facturación y el de contenido no están enlazados: se enlazan por nombre igual; si no coinciden, el informe lo dice)
-- [x] ~~**T8.2** Redactar un borrador del informe para el cliente~~ — `FASE8` (informe armado con plantilla a partir de los datos, sin inventar nada; para el texto de acompañamiento está la habilidad `/informe-cliente`)
-- [x] ~~**T8.3** Guardarlo como doc y poder enviarlo por correo~~ — `FASE8` (tarjeta `create_client_report`: lo guarda en Docs y, si lo marcas, abre el correo con el informe)
-- [x] ~~**T8.4** Programarlo para el cierre de cada mes (se apoya en T5)~~ — `FASE8` (tipo de programación «Informes mensuales de clientes»: crea el informe del mes anterior de cada cliente activo)
+- [x] ~~**T8.1** Reunir por cliente: ingresos, cobros pendientes, piezas entregadas, videos y resultados~~ — `a900696` (el cliente de facturación y el de contenido no están enlazados: se enlazan por nombre igual; si no coinciden, el informe lo dice)
+- [x] ~~**T8.2** Redactar un borrador del informe para el cliente~~ — `a900696` (informe armado con plantilla a partir de los datos, sin inventar nada; para el texto de acompañamiento está la habilidad `/informe-cliente`)
+- [x] ~~**T8.3** Guardarlo como doc y poder enviarlo por correo~~ — `a900696` (tarjeta `create_client_report`: lo guarda en Docs y, si lo marcas, abre el correo con el informe)
+- [x] ~~**T8.4** Programarlo para el cierre de cada mes (se apoya en T5)~~ — `a900696` (tipo de programación «Informes mensuales de clientes»: crea el informe del mes anterior de cada cliente activo)
 
 🔶 Depende de T5.1–T5.3 y de la función de cierre mensual que ya existe.
 
