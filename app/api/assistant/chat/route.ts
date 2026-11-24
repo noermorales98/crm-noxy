@@ -5,6 +5,7 @@ import { CHAT_ENDPOINTS, PROVIDER_LABEL, providerHeaders, providerModelName, pro
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
+import { buildModulesContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 import { normalizeModelId } from "@/src/lib/ai-models";
 
@@ -83,7 +84,9 @@ async function cachedCrmContext(userId: string, orgId: string): Promise<string> 
   const key = `${userId}:${orgId}`;
   const hit = contextCache.get(key);
   if (hit && Date.now() - hit.at < CONTEXT_TTL_MS) return hit.text;
-  const text = await buildCrmContext(userId, orgId);
+  // Resumen del CRM clásico + módulos nuevos (clientes, contenido, videos, docs). Si los nuevos fallan, el clásico sigue.
+  const [base, modules] = await Promise.all([buildCrmContext(userId, orgId), buildModulesContext(orgId).catch((err) => { console.error("[assistant/chat] contexto de módulos:", err); return ""; })]);
+  const text = modules ? `${base}\n\n${modules}` : base;
   contextCache.set(key, { at: Date.now(), text });
   if (contextCache.size > 200) contextCache.delete(contextCache.keys().next().value as string);
   return text;
@@ -149,7 +152,13 @@ export async function POST(req: Request) {
   ]).catch((err) => console.error("[assistant/chat] no se pudo guardar el mensaje del usuario:", err));
 
   // Contexto del CRM (12 consultas) y preferencias en paralelo; el contexto se reutiliza 60 s.
-  const [crmContext, prefs] = await Promise.all([cachedCrmContext(session.user.id!, orgId), getAiPrefs(orgId)]);
+  // Además se buscan en docs, contenido y videos las palabras del mensaje, para que la IA vea justo lo que se menciona.
+  const [summary, prefs, relevant] = await Promise.all([
+    cachedCrmContext(session.user.id!, orgId),
+    getAiPrefs(orgId),
+    buildRelevantContext(orgId, trimmed).catch(() => ""),
+  ]);
+  const crmContext = summary + relevant;
 
   return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId, prefs, accountId);
 }
@@ -246,7 +255,7 @@ async function streamOpenRouter(
   const sanitizedContext = (crmContext
     .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
     .replace(/•/g, "-")
-    .slice(0, 6000)) + buildPageContextSection(pageContext) + "\n\n" + ACTION_CARDS_PROMPT;
+    .slice(0, 16000)) + buildPageContextSection(pageContext) + "\n\n" + ACTION_CARDS_PROMPT;
 
   const messages = [
     { role: "system", content: sanitizedContext },
