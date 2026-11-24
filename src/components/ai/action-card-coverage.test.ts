@@ -5,7 +5,7 @@ import test from "node:test";
 const card = readFileSync(new URL("./ActionCard.tsx", import.meta.url), "utf8");
 const prompt = readFileSync(new URL("../../../app/api/assistant/chat/route.ts", import.meta.url), "utf8");
 
-const NEW_ACTIONS = ["create_content_item", "edit_content_item", "set_content_status", "edit_content_client_context", "create_kb_doc", "edit_kb_doc", "create_video", "create_pipeline_category", "record_client_payment", "create_ai_schedule"];
+const NEW_ACTIONS = ["create_content_item", "edit_content_item", "set_content_status", "edit_content_client_context", "create_kb_doc", "edit_kb_doc", "create_video", "create_pipeline_category", "record_client_payment", "create_ai_schedule", "create_content_batch"];
 
 test("cada acción nueva del asistente está declarada, se ejecuta y se explica en el prompt de la IA", () => {
   for (const name of NEW_ACTIONS) {

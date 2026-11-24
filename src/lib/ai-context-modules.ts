@@ -1,6 +1,7 @@
 import { prisma } from "@/src/lib/db";
 import { searchTerms } from "@/src/lib/ai-search-terms";
 import { brandVoiceBlock, matchBrands } from "@/src/lib/ai-brand-match";
+import { insightsText, summarizeVideos } from "@/src/lib/video-insights";
 
 // Contexto de los módulos nuevos para el asistente: clientes, contenido, videos, docs y categorías del pipeline.
 // Solo lectura y siempre de la organización activa. La bóveda NO se incluye: guarda secretos y la IA no debe verlos.
@@ -119,8 +120,8 @@ export async function buildBrandContext(orgId: string, message: string): Promise
         prisma.video.findMany({
           where: { organizationId: orgId, contentClientId: b.id },
           orderBy: [{ views: "desc" }, { createdAt: "desc" }],
-          take: 4,
-          select: { title: true, platform: true, views: true, hook: true, hookType: true },
+          take: 60,
+          select: { title: true, platform: true, views: true, hook: true, hookType: true, format: true, leadsGenerated: true, durationSeconds: true },
         }),
       ]);
       if (!client) return "";
@@ -129,10 +130,7 @@ export async function buildBrandContext(orgId: string, message: string): Promise
         L.push("Últimas piezas:");
         for (const i of items) L.push(`  - [id:${i.id}] ${fmt(i.date)} | ${i.type} | "${i.title}" | ${i.publishStatus}${i.hook ? ` | gancho: ${clip(i.hook, 140)}` : ""}`);
       }
-      if (videos.length) {
-        L.push("Videos que mejor rindieron:");
-        for (const v of videos) L.push(`  - "${v.title}" | ${v.platform}${v.views != null ? ` | ${v.views.toLocaleString("es-MX")} vistas` : ""}${v.hookType ? ` | gancho tipo ${v.hookType}` : ""}${v.hook ? `: ${clip(v.hook, 140)}` : ""}`);
-      }
+      if (videos.length) L.push(insightsText(client.name, summarizeVideos(videos)));
       return L.join("\n");
     }),
   );

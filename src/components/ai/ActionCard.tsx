@@ -52,6 +52,7 @@ export type ActionCardData =
   | { type: "delete_form"; id: string; name: string }
   // Contenido
   | { type: "create_content_item"; prefill?: { clientId?: string; date?: string; type?: string; title?: string; time?: string; hook?: string; script?: string; caption?: string; cta?: string } }
+  | { type: "create_content_batch"; clientId?: string; prefill?: { items?: { date?: string; type?: string; title?: string; hook?: string; script?: string; caption?: string; cta?: string }[] } }
   | { type: "edit_content_item"; id: string; title: string; prefill?: { title?: string; date?: string; type?: string; hook?: string; script?: string; caption?: string; cta?: string; publishStatus?: string } }
   | { type: "set_content_status"; id: string; title: string; prefill?: { publishStatus?: string } }
   | { type: "edit_content_client_context"; id: string; name: string; prefill?: { context?: string } }
@@ -108,6 +109,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   delete_form:           { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar formulario" },
   // Contenido
   create_content_item:   { icon: Calendar03Icon,     color: "#10B981", title: "Crear pieza de contenido" },
+  create_content_batch:  { icon: Calendar03Icon,     color: "#10B981", title: "Crear varias piezas de contenido" },
   edit_content_item:     { icon: PencilEditIcon,     color: "#3545D6", title: "Editar pieza de contenido" },
   set_content_status:    { icon: CheckmarkCircleIcon, color: "#3545D6", title: "Cambiar estado de la pieza" },
   edit_content_client_context: { icon: PencilEditIcon, color: "#3545D6", title: "Actualizar la voz de la marca" },
@@ -154,8 +156,9 @@ function getPrefill(action: ActionCardData): Record<string, string> {
   const prefill = (action as { prefill?: Record<string, string | undefined> }).prefill ?? {};
   const result: Record<string, string> = {};
   for (const [k, v] of Object.entries(prefill)) {
-    if (v !== undefined) result[k] = v;
+    if (typeof v === "string") result[k] = v;
   }
+  if (action.type === "create_content_batch" && action.clientId) result.clientId = action.clientId;
   return result;
 }
 
@@ -182,6 +185,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "edit_form":             return "Formulario actualizado";
     case "delete_form":           return "Formulario eliminado";
     case "create_content_item":   return "Pieza creada";
+    case "create_content_batch":  return "Piezas creadas";
     case "edit_content_item":     return "Pieza actualizada";
     case "set_content_status":    return "Estado actualizado";
     case "edit_content_client_context": return "Voz de la marca actualizada";
@@ -208,6 +212,13 @@ function getWarningText(action: ActionCardData): string {
   }
 }
 
+type BatchItem = { selected: boolean; date: string; type: string; title: string; hook: string; script: string; caption: string; cta: string };
+
+function initialBatch(action: ActionCardData): BatchItem[] {
+  if (action.type !== "create_content_batch") return [];
+  return (action.prefill?.items ?? []).slice(0, 20).map((i) => ({ selected: true, date: i.date ?? "", type: i.type ?? "video", title: i.title ?? "", hook: i.hook ?? "", script: i.script ?? "", caption: i.caption ?? "", cta: i.cta ?? "" }));
+}
+
 const CONTENT_STATUSES: [string, string][] = [
   ["pendiente", "Pendiente"],
   ["en_edicion", "En edición"],
@@ -228,6 +239,8 @@ function FormFields({
   availabilities,
   stages,
   contentClients,
+  batchItems,
+  onBatchChange,
 }: {
   action: ActionCardData;
   formData: Record<string, string>;
@@ -236,6 +249,8 @@ function FormFields({
   availabilities: { id: string; name: string }[];
   stages: { id: string; name: string; pipelineName: string }[];
   contentClients: { id: string; name: string }[];
+  batchItems: BatchItem[];
+  onBatchChange: (items: BatchItem[]) => void;
 }) {
   switch (action.type) {
     case "create_contact":
@@ -379,6 +394,38 @@ function FormFields({
           )}
         </div>
       );
+
+    case "create_content_batch": {
+      const setItem = (index: number, patch: Partial<BatchItem>) => onBatchChange(batchItems.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <select className={selectClass} aria-label="Cliente o marca" value={formData.clientId ?? ""} onChange={(e) => onChange("clientId", e.target.value)}>
+            <option value="">Seleccionar cliente o marca *</option>
+            {contentClients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <ul className="flex flex-col gap-2">
+            {batchItems.map((it, i) => (
+              <li key={i} className="rounded-lg border border-border-subtle p-2">
+                <label className="flex items-start gap-2">
+                  <input type="checkbox" className="mt-1" checked={it.selected} onChange={(e) => setItem(i, { selected: e.target.checked })} aria-label={`Crear «${it.title}»`} />
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <input className={inputClass} placeholder="Título" value={it.title} onChange={(e) => setItem(i, { title: e.target.value })} />
+                    <span className="flex gap-1">
+                      <input className={inputClass} type="date" aria-label="Fecha" value={it.date} onChange={(e) => setItem(i, { date: e.target.value })} />
+                      <select className={selectClass} aria-label="Tipo" value={it.type} onChange={(e) => setItem(i, { type: e.target.value })}>
+                        {["video", "reel", "flyer", "historia", "entrega", "edicion"].map((t) => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </span>
+                    {it.hook && <span className="text-xs text-text-secondary">Gancho: {it.hook}</span>}
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-text-secondary">{batchItems.filter((i) => i.selected).length} de {batchItems.length} piezas se crearán.</p>
+        </div>
+      );
+    }
 
     case "create_content_item":
     case "edit_content_item":
@@ -539,6 +586,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
   const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string }[]>([]);
   const [contentClients, setContentClients] = useState<{ id: string; name: string }[]>([]);
+  const [batchItems, setBatchItems] = useState<BatchItem[]>(() => initialBatch(action));
   const router = useRouter();
 
   // Restore done/cancelled state after mount (storage is client-only)
@@ -604,7 +652,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
 
   // Clientes de contenido para las piezas y los videos
   useEffect(() => {
-    if (!["create_content_item", "create_video"].includes(action.type)) return;
+    if (!["create_content_item", "create_content_batch", "create_video"].includes(action.type)) return;
     fetch("/api/content/clients")
       .then((r) => r.json())
       .then((data: unknown) => {
@@ -791,6 +839,20 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           markDone(getSuccessMessage(action.type));
           break;
         }
+        case "create_content_batch": {
+          if (!formData.clientId) throw new Error("Elige el cliente o la marca");
+          const chosen = batchItems.filter((i) => i.selected);
+          if (!chosen.length) throw new Error("Marca al menos una pieza");
+          if (chosen.some((i) => !i.title.trim() || !i.date)) throw new Error("Cada pieza necesita título y fecha");
+          let created = 0;
+          for (const it of chosen) {
+            const res = await fetch(`/api/content/clients/${formData.clientId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: it.date, type: it.type, title: it.title, hook: it.hook || undefined, script: it.script || undefined, caption: it.caption || undefined, cta: it.cta || undefined }) });
+            if (!res.ok) throw new Error(`Se crearon ${created} de ${chosen.length}. ${((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Falló una pieza."}`);
+            created++;
+          }
+          markDone(`${created} piezas creadas`);
+          break;
+        }
         case "edit_content_item":
         case "set_content_status": {
           const body: Record<string, unknown> = {};
@@ -958,6 +1020,8 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               availabilities={availabilities}
               stages={stages}
               contentClients={contentClients}
+              batchItems={batchItems}
+              onBatchChange={setBatchItems}
             />
           )}
 

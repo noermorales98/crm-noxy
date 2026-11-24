@@ -80,10 +80,10 @@ Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definid
 
 ## Fase 6 · Propuestas de contenido (idea 5)
 
-- [ ] **T6.1** Analizar los videos que más rindieron por cliente (tipo de gancho, plataforma, duración)
-- [ ] **T6.2** Proponer ganchos y un calendario del mes por cliente
-- [ ] **T6.3** Crear las piezas propuestas con un clic (usa T1.1)
-- [ ] **T6.4** Prueba: la propuesta cita los videos en los que se basa
+- [x] ~~**T6.1** Analizar los videos que más rindieron por cliente (tipo de gancho, plataforma, duración)~~ — `FASE6` (por gancho, plataforma, formato y duración media; se calcula al nombrar la marca)
+- [x] ~~**T6.2** Proponer ganchos y un calendario del mes por cliente~~ — `FASE6` (habilidad `/plan-contenido`)
+- [x] ~~**T6.3** Crear las piezas propuestas con un clic (usa T1.1)~~ — `FASE6` (tarjeta `create_content_batch`: marcas cuáles crear y editas título, fecha y tipo)
+- [x] ~~**T6.4** Prueba: la propuesta cita los videos en los que se basa~~ — `FASE6` (la prueba verifica que el contexto trae los títulos reales y que con pocos datos no inventa tendencias; que la IA los cite depende del modelo)
 
 🔶 Depende de T1.1 y T2.2.
 

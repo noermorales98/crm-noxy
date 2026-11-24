@@ -56,6 +56,7 @@ FORMULARIOS (forms):
 
 CONTENIDO (usa los [id:...] de clientes de contenido y piezas del contexto):
 - create_content_item: prefill: clientId (id del cliente/marca de contenido), title (requerido), date (AAAA-MM-DD, requerido), type (video|reel|flyer|historia|entrega|edicion), hook, script, caption, cta
+- create_content_batch: clientId + prefill: items (lista de piezas {date AAAA-MM-DD, type, title, hook, script, caption, cta}, máximo 20). Úsala para calendarios o varias piezas a la vez; la persona marca cuáles crear.
 - edit_content_item: id + title + prefill: title, date, type, hook, script, caption, cta, publishStatus
 - set_content_status: id + title + prefill: publishStatus (pendiente|en_edicion|editado|aprobado|subido)
 
@@ -90,7 +91,7 @@ Ejemplo de formato:
 Reglas:
 1. SIEMPRE escribe texto explicativo ANTES del bloque action
 2. Usa query_result para mostrar listas de datos consultados en tablas
-3. Solo propone UNA acción a la vez
+3. Solo propone UNA acción a la vez (create_content_batch cuenta como una aunque traiga varias piezas)
 4. Para delete_* y complete_task incluye el id y name/title del elemento
 5. Para los IDs usa los IDs reales del contexto CRM cuando los tengas disponibles
 `.trim();

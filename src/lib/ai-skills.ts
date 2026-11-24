@@ -37,6 +37,15 @@ export const FACTORY_SKILLS: AiSkill[] = [
     builtin: true,
   },
   {
+    id: "factory-plan-contenido",
+    command: "plan-contenido",
+    name: "Plan de contenido del mes",
+    description: "Propone ganchos y un calendario del mes para una marca según lo que mejor le ha funcionado.",
+    instructions: "Nombra la marca. Con su voz y el rendimiento de sus videos (tipos de gancho, plataformas, vistas), propón: (1) 3 conclusiones de lo que ha funcionado, citando los títulos de los videos en los que te basas; (2) un calendario de 8 a 12 piezas para el mes con fecha, tipo, título y gancho; (3) abre la tarjeta create_content_batch con esas piezas para que la persona las cree de una vez. Si hay pocos videos con vistas, dilo y no afirmes tendencias.",
+    enabled: true,
+    builtin: true,
+  },
+  {
     id: "factory-propuesta",
     command: "propuesta",
     name: "Propuesta comercial",
