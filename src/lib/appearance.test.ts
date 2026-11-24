@@ -69,7 +69,7 @@ test("appearanceStyleSheet: claro sin nada extra; oscuro fijo y automático con 
   assert.equal(appearanceStyleSheet(base, { mode: "light", radius: "normal", borders: "normal" }), "");
   const dark = appearanceStyleSheet(base, { mode: "dark", radius: "normal", borders: "normal" });
   assert.match(dark, /color-scheme:dark/);
-  assert.match(dark, /\.bg-white\{background-color:var\(--color-surface-elevated\)\}/);
+  assert.match(dark, /\.bg-white,.*\)\{background-color:var\(--color-surface-elevated\)\}/);
   const auto = appearanceStyleSheet(base, { mode: "auto", radius: "normal", borders: "normal" });
   assert.match(auto, /@media \(prefers-color-scheme: dark\)/);
   assert.match(auto, /--color-surface-app:#[0-9A-Fa-f]{6} !important/);
@@ -78,7 +78,7 @@ test("appearanceStyleSheet: claro sin nada extra; oscuro fijo y automático con 
 
 test("los pasteles de Tailwind pasan a fondos traslúcidos y textos claros en oscuro", () => {
   const css = darkPaletteOverrides(".x");
-  assert.match(css, /\.bg-green-50,\.bg-green-100\)\{background-color:rgba\(34,197,94,0\.16\)\}/);
+  assert.match(css, /\.bg-green-50,\.bg-green-100,\.bg-green-200,.*\)\{background-color:rgba\(34,197,94,0\.16\)\}/);
   assert.match(css, /\.text-red-500/);
 });
 
@@ -88,4 +88,32 @@ test("con un radio distinto del normal, las esquinas escritas a mano siguen el r
   assert.match(sharp, /html\[data-crm-radius\] :is\(\.rounded-md,\.rounded-lg\)\{border-radius:var\(--radius-control\)\}/);
   assert.match(sharp, /\.rounded-xl,\.rounded-2xl,\.rounded-3xl\)\{border-radius:var\(--radius-surface\)\}/);
   assert.equal(appearanceStyleSheet(base, { mode: "light", radius: "normal", borders: "normal" }), "", "el radio normal no toca nada");
+});
+
+test("en oscuro el isotipo azul de Noxy pasa a blanco y los colores con hex escrito a mano siguen al tema", () => {
+  const css = darkPaletteOverrides(".S");
+  assert.match(css, /img\[src\$="Isotipo_Azul\.svg"\]\{filter:brightness\(0\) invert\(1\)\}/);
+  assert.match(css, /\.bg-\\\[\\#F5F6FB\\\].*background-color:var\(--color-surface-app\)/);
+  assert.match(css, /svg\[color="#0B0B18"\]/);
+});
+
+test("fuera del marco, lo oscuro lo marca data-crm-scheme en la raíz (oscuro fijo y automático, no en claro)", () => {
+  const base = resolveCrmTheme("noxy-indigo");
+  assert.match(appearanceStyleSheet(base, { mode: "dark", radius: "normal", borders: "normal" }), /html\[data-crm-scheme="dark"\] img\[src\$="Isotipo_Azul\.svg"\]/);
+  assert.match(appearanceStyleSheet(base, { mode: "auto", radius: "normal", borders: "normal" }), /html\[data-crm-scheme="dark"\]/);
+  assert.doesNotMatch(appearanceStyleSheet(base, { mode: "light", radius: "normal", borders: "normal" }), /data-crm-scheme/);
+});
+
+test("el oscuro es casi negro: superficies sin tinte azul marino", () => {
+  const dark = darkTheme(resolveCrmTheme("noxy-indigo")).tokens;
+  const channel = (hex: string, i: number) => Number.parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+  for (const surface of [dark.surfaceApp, dark.surfaceSidebar, dark.surfaceElevated]) {
+    assert.ok(Math.max(channel(surface, 0), channel(surface, 1), channel(surface, 2)) < 40, `${surface} debe ser casi negro`);
+  }
+});
+
+test("los colores escritos en línea también se corrigen en oscuro", () => {
+  const css = darkPaletteOverrides(".S");
+  assert.match(css, /\[style\^="color:#0B0B18" i\].*color:var\(--color-text-primary\) !important/);
+  assert.match(css, /background-color:var\(--color-surface-elevated\) !important/);
 });

@@ -61,18 +61,32 @@ const toHex = (rgb: number[]) => `#${rgb.map((v) => Math.round(v).toString(16).p
  */
 export function darkPaletteOverrides(scope: string): string {
   const rules: string[] = [
-    `${scope} .bg-white{background-color:var(--color-surface-elevated)}`,
-    `${scope} :is(.bg-gray-50,.bg-slate-50,.bg-zinc-50,.bg-neutral-50){background-color:var(--color-nav-hover)}`,
-    `${scope} :is(.bg-gray-100,.bg-gray-200,.bg-slate-100,.bg-slate-200,.bg-zinc-100){background-color:var(--color-nav-active)}`,
-    `${scope} :is(.text-gray-900,.text-gray-800,.text-black,.text-slate-900){color:var(--color-text-primary)}`,
-    `${scope} :is(.text-gray-700,.text-gray-600,.text-gray-500,.text-gray-400,.text-slate-600,.text-slate-500){color:var(--color-text-secondary)}`,
-    `${scope} :is(.border-gray-100,.border-gray-200,.border-gray-300,.border-slate-200){border-color:var(--color-border-subtle)}`,
+    `${scope} :is(.bg-white,.focus\\:bg-white:focus,.hover\\:bg-white:hover,.bg-\\[\\#ffffff\\],.bg-\\[\\#FFFFFF\\],.bg-\\[\\#fafafa\\]){background-color:var(--color-surface-elevated)}`,
+    `${scope} :is(.bg-gray-50,.bg-slate-50,.bg-zinc-50,.bg-neutral-50,.hover\\:bg-gray-50:hover){background-color:var(--color-nav-hover)}`,
+    `${scope} :is(.bg-gray-100,.bg-gray-200,.bg-slate-100,.bg-slate-200,.bg-zinc-100,.hover\\:bg-gray-100:hover){background-color:var(--color-nav-active)}`,
+    // Fondos con hex escrito a mano (marca y neutros claros) → el token que les corresponde.
+    `${scope} :is(.bg-\\[\\#F5F6FB\\],.bg-\\[\\#f7f6f3\\],.bg-\\[\\#EEF1F7\\]){background-color:var(--color-surface-app)}`,
+    `${scope} :is(.bg-\\[\\#EBEDFA\\],.bg-\\[\\#F5F3FF\\],.bg-\\[\\#F0F2FE\\]){background-color:var(--color-surface-sidebar)}`,
+    `${scope} .bg-\\[\\#DDE3FE\\]{background-color:var(--color-nav-active)}`,
+    `${scope} :is(.text-gray-900,.text-gray-800,.text-black,.text-slate-900,.text-\\[\\#0B0B18\\]){color:var(--color-text-primary)}`,
+    `${scope} :is(.text-gray-700,.text-gray-600,.text-gray-500,.text-gray-400,.text-slate-600,.text-slate-500,.text-\\[\\#6B7184\\]){color:var(--color-text-secondary)}`,
+    `${scope} :is(.text-\\[\\#3545D6\\],.text-\\[\\#5363EE\\]){color:var(--color-action-ink)}`,
+    `${scope} :is(.border-gray-100,.border-gray-200,.border-gray-300,.border-slate-200,.border-\\[\\#DCDFE6\\],.border-\\[\\#EDE9FE\\]){border-color:var(--color-border-subtle)}`,
     `${scope} :is(.divide-gray-100,.divide-gray-200)>:not([hidden])~:not([hidden]){border-color:var(--color-border-subtle)}`,
+    // Iconos con color oscuro fijo (atributo `color` de Hugeicons) y el isotipo azul de Noxy, que pasa a blanco.
+    `${scope} :is(svg[color="#0B0B18"],svg[color="#0b0b18"],svg[color="#000000"],svg[color="#000"],svg[color="black"]){color:var(--color-text-primary)}`,
+    `${scope} :is(svg[color="#6B7184"],svg[color="#6B7280"],svg[color="#555B6E"]){color:var(--color-text-secondary)}`,
+    `${scope} img[src$="Isotipo_Azul.svg"]{filter:brightness(0) invert(1)}`,
+    // Colores escritos en línea (`style="color:#0B0B18"`, fondos blancos): ganan a las clases, así que se corrigen con !important.
+    `${scope} :is([style^="color:#0B0B18" i],[style*=";color:#0B0B18" i]){color:var(--color-text-primary) !important}`,
+    `${scope} :is([style^="color:#6B7184" i],[style*=";color:#6B7184" i],[style^="color:#6B7280" i],[style*=";color:#6B7280" i]){color:var(--color-text-secondary) !important}`,
+    `${scope} :is([style*="background:#ffffff" i],[style*="background-color:#ffffff" i],[style*="background:#fff;" i]){background-color:var(--color-surface-elevated) !important}`,
+    `${scope} :is([style*="background:#F5F6FB" i],[style*="background-color:#F5F6FB" i]){background-color:var(--color-surface-app) !important}`,
   ];
   for (const [name, rgb] of Object.entries(FAMILIES)) {
     const soft = `rgba(${rgb.join(",")},0.16)`;
     const text = toHex(rgb.map((v) => v + (255 - v) * 0.5));
-    rules.push(`${scope} :is(.bg-${name}-50,.bg-${name}-100){background-color:${soft}}`);
+    rules.push(`${scope} :is(.bg-${name}-50,.bg-${name}-100,.bg-${name}-200,.hover\\:bg-${name}-50:hover){background-color:${soft}}`);
     rules.push(`${scope} :is(.text-${name}-500,.text-${name}-600,.text-${name}-700,.text-${name}-800){color:${text}}`);
     rules.push(`${scope} :is(.border-${name}-100,.border-${name}-200){border-color:rgba(${rgb.join(",")},0.3)}`);
   }
@@ -91,6 +105,9 @@ const decls = (vars: Vars, important: boolean) => Object.entries(vars).map(([k, 
 export function appearanceStyleSheet(base: CrmThemeDefinition, appearance: Appearance): string {
   const parts: string[] = [];
   const frame = ".noxy-product-frame";
+  // Fuera del marco (menús, Spotlight, el flotante de IA) lo oscuro lo marca `data-crm-scheme` en la raíz, que pone el marco ya resuelto
+  // (en automático, según el dispositivo). Así los ajustes de colores escritos a mano también llegan allí.
+  if (appearance.mode !== "light") parts.push(darkPaletteOverrides('html[data-crm-scheme="dark"]'));
   if (appearance.mode === "dark") {
     parts.push(`${frame}[data-appearance="dark"]{color-scheme:dark}`, darkPaletteOverrides(`${frame}[data-appearance="dark"]`));
   } else if (appearance.mode === "auto") {

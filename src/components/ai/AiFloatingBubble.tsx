@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Square } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  AiMagicIcon,
   ArrowUpRight01Icon,
   BubbleChatIcon,
   Cancel01Icon,
@@ -75,7 +74,7 @@ function BubbleInput({
           <button
             onClick={submit}
             disabled={!value.trim()}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-black text-white hover:bg-neutral-800 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-action-primary text-action-primary-foreground hover:bg-action-secondary transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
           >
             <Send size={11} />
           </button>
@@ -194,7 +193,7 @@ export function AiFloatingBubble() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
             <div className="flex items-center">
-              <HugeiconsIcon icon={AiMagicIcon} size={16} />
+              <HugeiconsIcon icon={BubbleChatIcon} size={16} aria-hidden="true" />
               <span className="ml-2 text-sm font-semibold text-text-primary">
                 Asistente IA
               </span>
@@ -233,7 +232,7 @@ export function AiFloatingBubble() {
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 min-h-0">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center gap-3">
-                <HugeiconsIcon icon={AiMagicIcon} size={28} />
+                <HugeiconsIcon icon={BubbleChatIcon} size={28} aria-hidden="true" />
                 <p className="text-sm font-semibold text-text-primary">
                   ¿En qué puedo ayudarte?
                 </p>
@@ -273,7 +272,7 @@ export function AiFloatingBubble() {
         aria-label={isOpen ? "Cerrar asistente IA" : "Abrir asistente IA"}
         aria-expanded={isOpen}
         title={isOpen ? "Cerrar asistente" : "Asistente IA"}
-        className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-brand-obsidian bg-brand-obsidian text-white shadow-md outline-none transition-colors duration-200 hover:bg-brand-obsidian/85 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
+        className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-line bg-white text-brand-obsidian shadow-md outline-none transition-colors duration-200 hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
       >
         <HugeiconsIcon icon={isOpen ? Cancel01Icon : BubbleChatIcon} size={22} aria-hidden="true" />
       </button>

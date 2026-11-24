@@ -124,7 +124,7 @@ export default function DatePicker({
     <div
       ref={dropdownRef}
       style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
-      className="bg-white rounded-lg border border-border-subtle p-4 w-72 select-none"
+      className="bg-surface-elevated rounded-surface border border-border-subtle p-4 w-72 select-none"
     >
       {/* Month nav */}
       <div className="flex items-center justify-between mb-4">
@@ -175,7 +175,7 @@ export default function DatePicker({
               className={[
                 "w-9 h-9 rounded-lg text-sm font-medium transition-all mx-auto flex items-center justify-center",
                 isSelected ? "bg-action-primary text-action-primary-foreground font-bold" : "",
-                isToday && !isSelected ? "bg-gray-100 text-text-primary font-bold ring-1 ring-gray-300" : "",
+                isToday && !isSelected ? "bg-nav-hover text-text-primary font-bold ring-1 ring-border-subtle" : "",
                 !isSelected && !isToday ? "text-text-primary hover:bg-nav-hover" : "",
               ].join(" ")}
             >
@@ -229,7 +229,7 @@ export default function DatePicker({
         {value && (
           <span
             onClick={(e) => { e.stopPropagation(); onChange(""); }}
-            className="text-gray-300 hover:text-text-secondary transition-colors cursor-pointer"
+            className="text-text-secondary/60 hover:text-text-secondary transition-colors cursor-pointer"
           >
             <HugeiconsIcon icon={Cancel01Icon} size={12} />
           </span>

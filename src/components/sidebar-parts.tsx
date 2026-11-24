@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Home01Icon, Building04Icon, UserMultipleIcon, Task01Icon, InboxIcon, BrowserIcon, Calendar01Icon, Clock01Icon, CalendarCheckIn01Icon, BarChartIcon, FolderKanbanIcon, Book01Icon, Settings01Icon, AiChatIcon, Invoice01Icon, LockPasswordIcon, MegaphoneIcon, ClockIcon } from "@hugeicons/core-free-icons";
+import { Home01Icon, Building04Icon, UserMultipleIcon, Task01Icon, InboxIcon, BrowserIcon, Calendar01Icon, Clock01Icon, CalendarCheckIn01Icon, BarChartIcon, FolderKanbanIcon, Book01Icon, Settings01Icon, AiChatIcon, Invoice01Icon, LockPasswordIcon, ClockIcon, DashboardSquare01Icon, UserGroupIcon, Calendar03Icon, Video01Icon, Notification03Icon, RepeatIcon } from "@hugeicons/core-free-icons";
 import { NAV_ITEM_ACTIVE } from "@/src/lib/crm-navigation";
 
 // ─── Sidebar en árbol (marco claro · escalera de acento) ───────────────────────
@@ -44,10 +44,10 @@ export const NAV_ICONS: Record<string, typeof Home01Icon> = {
   "/companies": Building04Icon,
   "/contacts": UserMultipleIcon,
   "/tasks": Task01Icon,
-  "/clientes": UserMultipleIcon,
+  "/clientes": UserGroupIcon,
   "/projects": FolderKanbanIcon,
   "/pipeline": BarChartIcon,
-  "/pipeline/clientes": UserMultipleIcon,
+  "/pipeline/clientes": RepeatIcon,
   "/pipeline/historial": ClockIcon,
   "/forms": BrowserIcon,
   "/cotizaciones": Invoice01Icon,
@@ -58,8 +58,12 @@ export const NAV_ICONS: Record<string, typeof Home01Icon> = {
   "/kb": Book01Icon,
   "/assistant": AiChatIcon,
   "/boveda": LockPasswordIcon,
-  "/contenido/general": MegaphoneIcon,
-  "/contenido/videos": BarChartIcon,
+  // Contenido: cada pantalla con su propio icono (antes todas caían en el megáfono de la sección).
+  "/contenido": DashboardSquare01Icon,
+  "/contenido/clientes": UserGroupIcon,
+  "/contenido/general": Calendar03Icon,
+  "/contenido/videos": Video01Icon,
+  "/contenido/recordatorios": Notification03Icon,
   "/settings": Settings01Icon,
 };
 

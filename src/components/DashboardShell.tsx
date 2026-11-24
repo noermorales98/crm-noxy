@@ -73,6 +73,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       for (const [name, value] of Object.entries(vars)) html.style.setProperty(name, value);
       html.style.colorScheme = dark ? "dark" : "light";
       html.dataset.crmRadius = appearance.radius;
+      html.dataset.crmScheme = dark ? "dark" : "light";
       return Object.keys(vars);
     };
     let names = apply();
@@ -85,6 +86,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       for (const name of names) html.style.removeProperty(name);
       html.style.removeProperty("color-scheme");
       delete html.dataset.crmRadius;
+      delete html.dataset.crmScheme;
     };
   }, [baseTheme, appearance]);
 

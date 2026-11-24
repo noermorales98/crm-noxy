@@ -594,7 +594,7 @@ export function actionInkHover(theme: CrmThemeDefinition): string {
 // tema, texto claro y acción aclarada hasta que el texto del botón y la tinta de enlaces lleguen a 4.5:1 sobre todas las
 // superficies. Así el modo oscuro de «Lima» sigue siendo lima y el de «Océano», verde azulado.
 
-const DARK_BASE = "#0B0B18";
+const DARK_BASE = "#08080F";
 const DARK_TEXT = "#F2F3F8";
 const DARK_TEXT_SECONDARY = "#B4B9CB";
 
@@ -606,11 +606,12 @@ function lightenUntil(color: string, surfaces: string[], min: number): string {
 
 export function darkTheme(theme: CrmThemeDefinition): CrmThemeDefinition {
   const tint = theme.tokens.actionPrimary === OBSIDIAN || theme.tokens.actionPrimary === SECONDARY_TEXT ? "#8A90A6" : theme.tokens.actionPrimary;
-  const surfaceApp = mixHex(DARK_BASE, tint, 0.05);
-  const surfaceSidebar = mixHex(DARK_BASE, tint, 0.08);
-  const surfaceElevated = mixHex(DARK_BASE, tint, 0.12);
-  const navActive = mixHex(DARK_BASE, tint, 0.26);
-  const navHover = mixHex(DARK_BASE, tint, 0.16);
+  // Casi negro: el matiz del tema solo se insinúa en las superficies (1-5 %), no las vuelve azul marino; se nota más en la selección.
+  const surfaceApp = mixHex(DARK_BASE, tint, 0.012);
+  const surfaceSidebar = mixHex(DARK_BASE, tint, 0.022);
+  const surfaceElevated = mixHex(DARK_BASE, tint, 0.045);
+  const navActive = mixHex(DARK_BASE, tint, 0.18);
+  const navHover = mixHex(DARK_BASE, tint, 0.09);
   const surfaces = [surfaceApp, surfaceSidebar, surfaceElevated, navActive, navHover];
   const actionPrimary = lightenUntil(tint, surfaces, 4.5);
   const foreground = contrastRatio(DARK_BASE, actionPrimary) >= 4.5 ? DARK_BASE : "#FFFFFF";
@@ -626,7 +627,7 @@ export function darkTheme(theme: CrmThemeDefinition): CrmThemeDefinition {
       textPlaceholder: DARK_TEXT_SECONDARY,
       navActive,
       navHover,
-      borderSubtle: mixHex(DARK_BASE, "#FFFFFF", 0.2),
+      borderSubtle: mixHex(DARK_BASE, "#FFFFFF", 0.16),
       actionPrimary,
       actionPrimaryForeground: foreground,
       actionSecondary: mixHex(actionPrimary, "#FFFFFF", 0.18),
