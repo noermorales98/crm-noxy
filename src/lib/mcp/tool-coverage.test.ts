@@ -23,6 +23,7 @@ const COVERAGE: Record<string, string[]> = {
   docs: ["create_kb_page", "list_kb_pages", "get_kb_page", "update_kb_page", "delete_kb_page"],
   "clientes de contenido": ["create_content_client", "list_content_clients", "get_content_client", "update_content_client", "delete_content_client"],
   "piezas de contenido": ["create_content_item", "list_content_items", "get_content_item", "update_content_item", "delete_content_item"],
+  "habilidades de la IA": ["list_ai_skills", "get_ai_skill_prompt", "save_ai_skill"],
   notificaciones: ["list_notifications", "mark_notification_read", "delete_notification"],
   organizaciones: ["list_organizations", "get_organization", "create_organization", "update_organization", "get_agency_overview"],
 };

@@ -49,11 +49,11 @@ Hoy la IA **lee** los módulos nuevos pero solo **actúa** sobre contactos, deal
 
 Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definidas, editables.
 
-- [ ] **T3.1** Tabla de habilidades por organización (nombre, comando, instrucciones, fuentes, modelo) 🔒 SQL
-- [ ] **T3.2** Pantalla en Ajustes para crear, editar, activar y borrar habilidades
-- [ ] **T3.3** Escribir `/` en el chat muestra la lista y aplica la habilidad
-- [ ] **T3.4** Habilidades de fábrica: `/guion`, `/resumen-semanal`, `/propuesta`, `/seguimiento`
-- [ ] **T3.5** Las habilidades también se pueden llamar desde el MCP
+- [x] ~~**T3.1** Tabla de habilidades por organización (nombre, comando, instrucciones, fuentes, modelo) 🔒 SQL~~ — `FASE3` (se guardan como JSON de la organización en la tabla de preferencias de IA, sin SQL nuevo; no llevan «fuentes» ni modelo propio: la IA ya ve todo el CRM y usa el modelo del chat)
+- [x] ~~**T3.2** Pantalla en Ajustes para crear, editar, activar y borrar habilidades~~ — `FASE3` (en Ajustes › Modelos de IA; crear, activar/desactivar y borrar; editar = borrar y crear de nuevo)
+- [x] ~~**T3.3** Escribir `/` en el chat muestra la lista y aplica la habilidad~~ — `FASE3`
+- [x] ~~**T3.4** Habilidades de fábrica: `/guion`, `/resumen-semanal`, `/propuesta`, `/seguimiento`~~ — `FASE3`
+- [x] ~~**T3.5** Las habilidades también se pueden llamar desde el MCP~~ — `FASE3` (`list_ai_skills`, `get_ai_skill_prompt`, `save_ai_skill`; borrar solo desde Ajustes)
 
 ---
 

@@ -2,6 +2,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Square } from "lucide-react";
 import ModelSelector from "./ModelSelector";
+import SkillMenu from "@/src/components/ai/SkillMenu";
 import AnimatedSendButton from "@/app/assistant/new/_components/AnimatedSendButton";
 import styles from "../assistant-chat.module.css";
 
@@ -41,6 +42,7 @@ export default function ChatInput({ onSend, onStop, disabled, model, onModelChan
 
   return (
     <div className={styles.composerOuter}>
+      <SkillMenu value={value} onPick={(command) => { setValue(`/${command} `); textareaRef.current?.focus(); }} />
       <div className={styles.composerInner}>
         <textarea
           ref={textareaRef}

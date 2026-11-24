@@ -4,6 +4,7 @@ import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } fro
 import { useSession } from "next-auth/react";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import AnimatedSendButton from "./AnimatedSendButton";
+import SkillMenu from "@/src/components/ai/SkillMenu";
 import { ASSISTANT_NEW_COPY, pickAssistantGreeting } from "./assistant-new-copy";
 import styles from "../assistant-new.module.css";
 
@@ -134,7 +135,8 @@ export default function AssistantNewExperience({
         </h1>
         <p className={styles.subtitle}>{ASSISTANT_NEW_COPY.subtitle}</p>
 
-        <div className={styles.promptOuter}>
+        <div className={styles.promptOuter} style={{ position: "relative" }}>
+          <SkillMenu value={value} onPick={(command) => { setValue(`/${command} `); textareaRef.current?.focus(); }} />
           <div className={styles.promptInner}>
             <div className={styles.textareaArea}>
               <label className={styles.srOnly} htmlFor="assistant-new-prompt">

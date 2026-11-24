@@ -7,6 +7,7 @@ import ModelTierBadge from "@/src/components/ai/ModelTierBadge";
 import { useHeader } from "@/src/context/HeaderContext";
 import { PageHeader } from "@/src/components/ui";
 import { AiProviderKeys } from "@/src/components/settings/AiProviderKeys";
+import { AiSkillsEditor } from "@/src/components/settings/AiSkillsEditor";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Cancel01Icon, Delete02Icon, PencilEdit01Icon, ReloadIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 
@@ -175,6 +176,8 @@ export default function AiModelsPage() {
         />
 
         <AiProviderKeys />
+
+        <AiSkillsEditor />
 
         {/* Add / Edit form */}
         {showForm && (
