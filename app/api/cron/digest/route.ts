@@ -3,6 +3,7 @@ import { prisma } from "@/src/lib/db";
 import { isDigestDue, runDigestForUser, type DigestFrequency } from "@/src/lib/digest";
 import { closePendingMonthsForAll } from "@/src/lib/month-close-service";
 import { shouldNotifyDigestError } from "@/src/lib/digest-schedule";
+import { runDueAiSchedules } from "@/src/lib/ai-schedule-runner";
 
 export async function GET(req: Request) {
   try {
@@ -80,7 +81,13 @@ export async function GET(req: Request) {
     // Reciclamos este cron (cada 15 min): el cierre mensual es idempotente y solo actúa si falta una foto.
     const monthlyClose = await closePendingMonthsForAll();
 
-    return NextResponse.json({ processed, sent, fallbacks, errors, monthlyClose });
+    // Este cron también ejecuta las programaciones y alertas del asistente (cada 15 min): no hace falta registrar otro.
+    const aiSchedules = await runDueAiSchedules().catch((e) => {
+      console.error("[cron/digest] programaciones de IA:", e);
+      return { checked: 0, ran: 0 };
+    });
+
+    return NextResponse.json({ processed, sent, fallbacks, errors, monthlyClose, aiSchedules });
   } catch (error) {
     console.error("GET /api/cron/digest error:", error);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });

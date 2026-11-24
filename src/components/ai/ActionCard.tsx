@@ -64,6 +64,7 @@ export type ActionCardData =
   | { type: "create_pipeline_category"; prefill?: { name?: string } }
   // Cobros de clientes de la agencia
   | { type: "record_client_payment"; id: string; name: string; prefill?: { month?: string; year?: string; amount?: string } }
+  | { type: "create_ai_schedule"; prefill?: { name?: string; kind?: string; prompt?: string; frequency?: string; weeklyDay?: string; monthlyDay?: string; hour?: string; days?: string } }
   // Query
   | { type: "query_result"; title?: string; columns: string[]; rows: string[][] };
 
@@ -119,6 +120,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   create_pipeline_category: { icon: FolderAddIcon,   color: "#10B981", title: "Crear categoría del pipeline" },
   // Cobros
   record_client_payment: { icon: Wallet01Icon,       color: "#10B981", title: "Registrar cobro recibido" },
+  create_ai_schedule:    { icon: Calendar03Icon,     color: "#10B981", title: "Programar con la IA" },
   // Query
   query_result:          { icon: AiBrainIcon,         color: "#3545D6", title: "Resultados" },
 };
@@ -188,6 +190,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "create_video":          return "Video registrado";
     case "create_pipeline_category": return "Categoría creada";
     case "record_client_payment": return "Cobro registrado";
+    case "create_ai_schedule":    return "Programación creada";
     case "query_result":          return "Consulta completada";
   }
 }
@@ -457,6 +460,38 @@ function FormFields({
             <input className={inputClass} placeholder="Leads" type="number" value={formData.leadsGenerated ?? ""} onChange={(e) => onChange("leadsGenerated", e.target.value)} />
           </div>
           <input className={inputClass} placeholder="Notas" value={formData.notes ?? ""} onChange={(e) => onChange("notes", e.target.value)} />
+        </div>
+      );
+
+    case "create_ai_schedule":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <input className={inputClass} placeholder="Nombre" value={formData.name ?? ""} onChange={(e) => onChange("name", e.target.value)} />
+          <select className={selectClass} aria-label="Qué hace" value={formData.kind ?? "prompt"} onChange={(e) => onChange("kind", e.target.value)}>
+            <option value="prompt">Pedirle algo a la IA</option>
+            <option value="stale_deals">Alerta: deals sin movimiento</option>
+            <option value="late_content">Alerta: contenido atrasado</option>
+            <option value="overdue_payments">Alerta: cobros vencidos</option>
+          </select>
+          {(formData.kind ?? "prompt") === "prompt" ? (
+            <textarea className={`${inputClass} resize-none`} placeholder="Qué debe hacer la IA cada vez" rows={3} value={formData.prompt ?? ""} onChange={(e) => onChange("prompt", e.target.value)} />
+          ) : (
+            <input className={inputClass} type="number" placeholder="Días de retraso para avisar (5)" value={formData.days ?? ""} onChange={(e) => onChange("days", e.target.value)} />
+          )}
+          <div className="flex gap-2">
+            <select className={selectClass} aria-label="Frecuencia" value={formData.frequency ?? "weekly"} onChange={(e) => onChange("frequency", e.target.value)}>
+              <option value="daily">Cada día</option>
+              <option value="weekly">Cada semana</option>
+              <option value="monthly">Cada mes</option>
+            </select>
+            {(formData.frequency ?? "weekly") === "weekly" && (
+              <select className={selectClass} aria-label="Día" value={formData.weeklyDay ?? "1"} onChange={(e) => onChange("weeklyDay", e.target.value)}>
+                {["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"].map((d, i) => <option key={d} value={i}>{d}</option>)}
+              </select>
+            )}
+            <input className={inputClass} type="number" min={0} max={23} aria-label="Hora" placeholder="Hora" value={formData.hour ?? "8"} onChange={(e) => onChange("hour", e.target.value)} />
+          </div>
+          <p className="text-xs text-text-secondary">El resultado llegará como un chat nuevo. Puedes pausarla en Ajustes › Modelos de IA.</p>
         </div>
       );
 
@@ -800,6 +835,13 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           for (const key of ["hook", "hookType", "views", "leadsGenerated", "notes", "contentClientId"]) if (formData[key]) body[key] = formData[key];
           const res = await fetch("/api/videos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al registrar el video");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "create_ai_schedule": {
+          const body = { ...formData, days: Number(formData.days) || undefined, weeklyDay: Number(formData.weeklyDay ?? 1), hour: Number(formData.hour ?? 8) };
+          const res = await fetch("/api/ai/schedules", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al crear la programación");
           markDone(getSuccessMessage(action.type));
           break;
         }
