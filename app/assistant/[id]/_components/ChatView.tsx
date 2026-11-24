@@ -5,6 +5,7 @@ import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { providerOfModelId } from "@/src/lib/ai-provider";
+import ChatSettings from "@/src/components/ai/ChatSettings";
 import ChatIdentityPicker, { CHAT_TITLE_MAX } from "@/src/components/ai/ChatIdentityPicker";
 import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
 import { blobColors, chatBlobSeed } from "@/src/lib/chat-blob";
@@ -389,6 +390,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       <div style={{ display: "contents", ...chatVars }}>
       <AssistantNewExperience
         mascot={identityPicker(104)}
+        corner={<ChatSettings />}
         onSend={sendMessage}
         disabled={streaming}
         model={model}
@@ -400,6 +402,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
 
   return (
     <div className={styles.experience} style={chatVars}>
+      <ChatSettings />
       <div ref={scrollAreaRef} className={styles.scrollArea}>
         <div className={styles.messageColumn}>
           {isEmpty ? (

@@ -1,30 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { suggestSkills, type AiSkill } from "@/src/lib/ai-skills";
-
-// Una sola lectura por pestaña: las habilidades casi no cambian.
-let cache: AiSkill[] | null = null;
+import { useAiSkills } from "@/src/hooks/useAiSkills";
+import { suggestSkills } from "@/src/lib/ai-skills";
 
 /** Menú de habilidades: aparece al escribir «/» al inicio del mensaje y completa el comando al elegir una. */
 export default function SkillMenu({ value, onPick }: { value: string; onPick: (command: string) => void }) {
-  const [skills, setSkills] = useState<AiSkill[]>(cache ?? []);
   const wants = value.startsWith("/") && !/\s/.test(value);
-
-  useEffect(() => {
-    if (!wants || cache) return;
-    let cancelled = false;
-    fetch("/api/settings/ai-skills")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((list: AiSkill[]) => {
-        cache = list;
-        if (!cancelled) setSkills(list);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [wants]);
+  const skills = useAiSkills(wants);
 
   const matches = wants ? suggestSkills(value, skills) : [];
   if (!matches.length) return null;

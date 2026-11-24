@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import AnimatedSendButton from "./AnimatedSendButton";
 import SkillMenu from "@/src/components/ai/SkillMenu";
+import CapabilityChips from "@/src/components/ai/CapabilityChips";
 import { ASSISTANT_NEW_COPY, pickAssistantGreeting } from "./assistant-new-copy";
 import styles from "../assistant-new.module.css";
 
@@ -13,6 +14,8 @@ const TYPEWRITER_PHRASES = ASSISTANT_NEW_COPY.prompts;
 interface AssistantNewExperienceProps {
   /** Criatura del chat, encima del saludo. */
   mascot?: React.ReactNode;
+  /** Esquina superior derecha (ajustes del asistente). */
+  corner?: React.ReactNode;
   onSend: (content: string) => void;
   disabled: boolean;
   model: string;
@@ -21,6 +24,7 @@ interface AssistantNewExperienceProps {
 
 export default function AssistantNewExperience({
   mascot,
+  corner,
   onSend,
   disabled,
   model,
@@ -127,7 +131,7 @@ export default function AssistantNewExperience({
 
   return (
     <main className={styles.experience}>
-
+      {corner}
       <div className={styles.content}>
         {mascot && <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>{mascot}</div>}
         <h1 className={styles.heading} aria-label={greeting ?? undefined}>
@@ -181,6 +185,14 @@ export default function AssistantNewExperience({
             </div>
           </div>
         </div>
+
+        <CapabilityChips
+          disabled={disabled}
+          onPick={(text) => {
+            setValue(text);
+            textareaRef.current?.focus();
+          }}
+        />
       </div>
     </main>
   );
