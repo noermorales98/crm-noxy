@@ -55,36 +55,35 @@ export default function ModelSelector({
   placement = "bottom-left",
 }: Props) {
   const [open, setOpen] = useState(false);
-  const [customModels, setCustomModels] = useState<AiModel[]>([]);
-  const [hiddenBuiltins, setHiddenBuiltins] = useState<string[]>([]);
+  // Lista que arma el servidor: los modelos de fábrica no ocultos, los personalizados y los de NVIDIA vigentes ahora.
+  const [serverModels, setServerModels] = useState<AiModel[] | null>(null);
   const [menuPos, setMenuPos] = useState<MenuPosition | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const visibleBuiltins = AI_MODELS.filter((m) => !hiddenBuiltins.includes(m.id));
-  const allModels = [...visibleBuiltins, ...customModels];
+  const allModels = serverModels ?? AI_MODELS;
   const selectedId = allModels.some((m) => m.id === value) ? value : normalizeModelId(value);
   const current = allModels.find((m) => m.id === selectedId) ?? getModelById(selectedId);
-  const groups = buildGroups(visibleBuiltins, customModels);
+  const groups = buildGroups(allModels, []);
 
   useEffect(() => {
-    fetch("/api/settings/ai-models", { cache: "no-store" })
+    fetch("/api/ai/models", { cache: "no-store" })
       .then(async (r) => {
         if (!r.ok) return;
-        const data = await r.json();
-        const mapped: AiModel[] = (data.models ?? [])
-          .filter((m: { enabled?: boolean }) => m.enabled)
-          .map((m: { modelId: string; name: string; group?: string; description?: string; tags?: string }) => ({
-            id: m.modelId,
+        const data = (await r.json()) as { id: string; name: string; group: string; provider: "openrouter" | "nvidia"; configured: boolean }[];
+        if (!Array.isArray(data) || data.length === 0) return;
+        const catalog = new Map(AI_MODELS.map((m) => [m.id, m]));
+        setServerModels(
+          data.map((m) => ({
+            id: m.id,
             name: m.name,
-            provider: "openrouter" as const,
-            group: m.group || "Personalizados",
-            description: m.description || "",
-            tags: JSON.parse(m.tags || "[]"),
-          }));
-        setCustomModels(mapped);
-        setHiddenBuiltins(Array.isArray(data.hiddenBuiltins) ? data.hiddenBuiltins : []);
+            provider: m.provider,
+            group: m.group,
+            description: m.configured ? (catalog.get(m.id)?.description ?? "") : `Sin cuenta de ${m.provider === "nvidia" ? "NVIDIA" : "OpenRouter"}: agrégala en Ajustes › Modelos de IA`,
+            tags: catalog.get(m.id)?.tags,
+          })),
+        );
       })
       .catch(() => {});
   }, []);
@@ -166,7 +165,7 @@ export default function ModelSelector({
               Seleccionar modelo de IA
             </p>
             <p className="text-[10px] text-text-secondary mt-0.5">
-              {allModels.length} modelos disponibles
+              {allModels.length} modelos · si uno falla se cambia solo
             </p>
           </div>
 

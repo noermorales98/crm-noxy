@@ -1,4 +1,6 @@
-import { resolveProviderKeys } from "@/src/lib/ai-keys";
+import { getAiPrefs, recordKeyResult, resolveProviderEntries } from "@/src/lib/ai-keys";
+import { automaticCandidates, promoteDefaultModel } from "@/src/lib/ai-completion";
+import { buildModelChain, classifyStatus, shouldPromote } from "@/src/lib/ai-failover";
 import { CHAT_ENDPOINTS, PROVIDER_LABEL, providerHeaders, providerModelName, providerOfModelId, type ChatProvider } from "@/src/lib/ai-provider";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
@@ -205,18 +207,6 @@ async function streamOpenRouter(
   pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
   orgId: string,
 ) {
-  const provider = providerOfModelId(modelId);
-  const primaryKey = process.env.OPENROUTER_API_KEY;
-  const secondaryKey = process.env.OPENROUTER_API_KEY_SECONDARY;
-  const nvidiaKey = provider === "nvidia" ? (await resolveProviderKeys(orgId, "nvidia")).keys[0] : undefined;
-
-  if (provider === "nvidia" && !nvidiaKey) {
-    return errorStream("Falta la clave de NVIDIA. Agrégala en Ajustes › Modelos de IA o elige otro modelo.");
-  }
-  if (provider === "openrouter" && !primaryKey && !secondaryKey) {
-    return errorStream("Falta OPENROUTER_API_KEY en el servidor. Agrégala al .env.local y reinicia.");
-  }
-
   const sanitizedContext = (crmContext
     .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
     .replace(/•/g, "-")
@@ -228,44 +218,47 @@ async function streamOpenRouter(
     { role: "user", content: trimmed },
   ];
 
-  if (provider === "nvidia") {
-    const r = await callOpenRouter(nvidiaKey!, modelId, messages, "nvidia");
-    if (r.ok) return buildStream(r.body, conversationId, "sse");
-    return openRouterErrorStream(r, "nvidia");
-  }
+  // Cuentas del proveedor del modelo pedido y, si ninguna sirve, otro modelo (respaldos fijados y luego automáticos).
+  // Si el pedido dejó de funcionar de forma permanente, el que responde queda como predeterminado.
+  const prefs = await getAiPrefs(orgId);
+  const chain = prefs.autoSwitch ? buildModelChain(modelId, { fallbacks: prefs.fallbackModelIds, automatic: await automaticCandidates(orgId, modelId) }) : [modelId];
 
-  if (preferKey === "2" && secondaryKey) {
-    // User prefers key 2 — try secondary first
-    const r = await callOpenRouter(secondaryKey, modelId, messages);
-    if (r.ok) return buildStream(r.body, conversationId, "sse", "S");
-
-    if (primaryKey) {
-      console.warn(`[openrouter] Secondary key failed (${r.status}), falling back to primary key…`);
-      const r2 = await callOpenRouter(primaryKey, modelId, messages);
-      if (r2.ok) return buildStream(r2.body, conversationId, "sse", "G");
-      return openRouterErrorStream(r2);
+  let lastFailure: { r: OrFailure; provider: ChatProvider } | null = null;
+  let missing: ChatProvider | null = null;
+  let primaryStatuses: number[] = [];
+  for (let mi = 0; mi < chain.length; mi++) {
+    const currentModel = chain[mi];
+    const provider = providerOfModelId(currentModel);
+    const entries = await resolveProviderEntries(orgId, provider);
+    // La preferencia de cuenta del cliente (1 = principal, 2 = secundaria) solo reordena las dos primeras de OpenRouter.
+    if (provider === "openrouter" && preferKey === "2" && entries.length > 1) [entries[0], entries[1]] = [entries[1], entries[0]];
+    if (entries.length === 0) {
+      missing = provider;
+      continue;
     }
-    return openRouterErrorStream(r);
-  }
-
-  // Default (preferKey "1" or no secondary): try primary first
-  if (primaryKey) {
-    const r = await callOpenRouter(primaryKey, modelId, messages);
-    if (r.ok) return buildStream(r.body, conversationId, "sse", "P");
-
-    if (secondaryKey) {
-      console.warn(`[openrouter] Primary key failed (${r.status}), falling back to secondary key…`);
-      const r2 = await callOpenRouter(secondaryKey, modelId, messages);
-      if (r2.ok) return buildStream(r2.body, conversationId, "sse", "F");
-      return openRouterErrorStream(r2);
+    const statuses: number[] = [];
+    for (let ei = 0; ei < entries.length; ei++) {
+      const r = await callOpenRouter(entries[ei].key, currentModel, messages, provider);
+      void recordKeyResult(orgId, provider, entries[ei].id, r.ok ? 200 : r.status);
+      if (r.ok) {
+        const switched = mi > 0;
+        if (switched && shouldPromote(primaryStatuses, currentModel, modelId)) await promoteDefaultModel(orgId, modelId, currentModel);
+        // Marcadores de cuenta de OpenRouter que lee el cliente: P/S = usó la 1.ª/2.ª directamente; F/G = cayó a otra cuenta.
+        const marker = provider === "openrouter" ? (ei === 0 ? (preferKey === "2" ? "S" : "P") : preferKey === "2" ? "G" : "F") : undefined;
+        return buildStream(r.body, conversationId, "sse", marker, switched ? { "X-AI-Model-Used": encodeURIComponent(currentModel), "X-AI-Model-Requested": encodeURIComponent(modelId) } : undefined);
+      }
+      lastFailure = { r, provider };
+      statuses.push(r.status);
+      if (classifyStatus(r.status) === "next-model") break;
     }
-    return openRouterErrorStream(r);
+    if (mi === 0) primaryStatuses = statuses;
   }
 
-  // Only secondary configured
-  const r = await callOpenRouter(secondaryKey!, modelId, messages);
-  if (r.ok) return buildStream(r.body, conversationId, "sse", "S");
-  return openRouterErrorStream(r);
+  if (lastFailure) return openRouterErrorStream(lastFailure.r, lastFailure.provider);
+  const only = missing ?? providerOfModelId(modelId);
+  return errorStream(only === "nvidia"
+    ? "Falta una cuenta de NVIDIA. Agrégala en Ajustes › Modelos de IA o elige otro modelo."
+    : "Falta una cuenta de OpenRouter. Agrégala en Ajustes › Modelos de IA, o configura OPENROUTER_API_KEY en el servidor.");
 }
 
 function errorStream(message: string): Response {
@@ -287,6 +280,7 @@ function buildStream(
   conversationId: string,
   format: "plain" | "sse",
   keyLabel?: string,
+  extraHeaders?: Record<string, string>,
 ) {
   let fullResponse = "";
   let hasContent = false;
@@ -386,6 +380,6 @@ function buildStream(
   });
 
   return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
+    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache", ...(extraHeaders ?? {}) },
   });
 }
