@@ -33,7 +33,7 @@ export default function AppointmentNavbar({ title, status, subtitle }: Props) {
   );
 
   return (
-    <header className="sticky top-0 z-10 -mx-4 border-b border-line bg-surface-app px-4 py-3 sm:-mx-6 sm:px-6">
+    <header className="sticky top-0 z-20 w-full border-b border-line bg-surface-app px-4 py-3 sm:px-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <Link href="/appointments" aria-label="Volver a las citas" className="flex size-11 shrink-0 items-center justify-center rounded-control text-text-secondary-strong outline-none hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus lg:size-9">
           <HugeiconsIcon icon={ArrowLeft01Icon} size={18} aria-hidden="true" />

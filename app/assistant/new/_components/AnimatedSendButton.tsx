@@ -137,20 +137,8 @@ export default function AnimatedSendButton({
           key={`arrows-${arrowToggle}`}
           className={arrowToggle > 0 ? styles.arrowCycle : styles.arrowRest}
         >
-          <img
-            className={styles.arrowOutgoing}
-            src={`${A}/arrow-up.svg`}
-            alt=""
-            width="16"
-            height="16"
-          />
-          <img
-            className={styles.arrowIncoming}
-            src={`${A}/arrow-up.svg`}
-            alt=""
-            width="16"
-            height="16"
-          />
+          <span className={styles.arrowOutgoing} aria-hidden="true" />
+          <span className={styles.arrowIncoming} aria-hidden="true" />
         </span>
       </span>
     </button>

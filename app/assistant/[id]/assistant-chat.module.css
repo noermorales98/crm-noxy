@@ -434,12 +434,12 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1D1D1F;
-  color: #FFFFFF;
+  background: var(--chat-bubble, #1D1D1F);
+  color: var(--chat-bubble-text, #FFFFFF);
 }
 
 .stopButton:hover {
-  background: #000000;
+  filter: brightness(0.94);
 }
 
 

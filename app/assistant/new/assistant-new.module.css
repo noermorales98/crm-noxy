@@ -461,7 +461,10 @@
   left: 50%;
   width: 18px;
   height: 18px;
-  color: var(--chat-bubble-text, #FFFFFF);
+  /* La flecha se pinta con máscara: toma el color de la letra del botón (oscura sobre fondo claro, clara sobre oscuro). */
+  background-color: var(--chat-bubble-text, #FFFFFF);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 16 16%22 fill=%22none%22%3E%3Cpath d=%22M3.95337 6.38L8.00004 2.33334L12.0467 6.38%22 stroke=%22black%22 stroke-width=%221.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M8 13.6667V2.44669%22 stroke=%22black%22 stroke-width=%221.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 16 16%22 fill=%22none%22%3E%3Cpath d=%22M3.95337 6.38L8.00004 2.33334L12.0467 6.38%22 stroke=%22black%22 stroke-width=%221.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M8 13.6667V2.44669%22 stroke=%22black%22 stroke-width=%221.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E") center / contain no-repeat;
   transform: translate(-50%, -50%);
 }
 

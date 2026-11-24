@@ -76,8 +76,12 @@ export default function AppointmentPage() {
   }, [title]);
 
   return (
-    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 pb-8 sm:px-6">
-      <div className="mx-auto max-w-5xl">
+    <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto pb-8">
+      {/* La barra va fuera del contenedor angosto: ocupa todo el ancho y se queda arriba al desplazar. */}
+      {state === "ready" && appointment && (
+        <AppointmentNavbar title={title} status={appointment.status} subtitle={`${day(appointment.startTime)} · ${clock(appointment.startTime)} – ${clock(appointment.endTime)}`} />
+      )}
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {state === "loading" && (
           <div className="py-6">
             <Skeleton shape="rows" count={3} label="Cargando la cita" />
@@ -96,8 +100,6 @@ export default function AppointmentPage() {
 
         {state === "ready" && appointment && (
           <>
-            <AppointmentNavbar title={title} status={appointment.status} subtitle={`${day(appointment.startTime)} · ${clock(appointment.startTime)} – ${clock(appointment.endTime)}`} />
-
             <section aria-label="Datos de la cita" className="flex flex-wrap items-center gap-x-4 gap-y-0 py-3">
               <span className={FACT}>
                 <HugeiconsIcon icon={User02Icon} size={14} aria-hidden="true" />
@@ -143,7 +145,8 @@ export default function AppointmentPage() {
 
             <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
               <AppointmentMeetingPanel appointmentId={appointment.id} />
-              <aside aria-label="Sugerencias">
+              {/* Las sugerencias de la IA acompañan al desplazarse (en pantallas anchas); si son largas, se desplazan dentro. */}
+              <aside aria-label="Sugerencias" className="lg:sticky lg:top-24 lg:max-h-[calc(100dvh-8rem)] lg:self-start lg:overflow-y-auto">
                 <AppointmentSuggestions appointmentId={appointment.id} />
               </aside>
             </div>
