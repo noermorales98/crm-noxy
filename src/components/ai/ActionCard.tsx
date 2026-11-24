@@ -54,6 +54,7 @@ export type ActionCardData =
   | { type: "create_content_item"; prefill?: { clientId?: string; date?: string; type?: string; title?: string; time?: string; hook?: string; script?: string; caption?: string; cta?: string } }
   | { type: "edit_content_item"; id: string; title: string; prefill?: { title?: string; date?: string; type?: string; hook?: string; script?: string; caption?: string; cta?: string; publishStatus?: string } }
   | { type: "set_content_status"; id: string; title: string; prefill?: { publishStatus?: string } }
+  | { type: "edit_content_client_context"; id: string; name: string; prefill?: { context?: string } }
   // Docs
   | { type: "create_kb_doc"; prefill?: { title?: string; content?: string } }
   | { type: "edit_kb_doc"; id: string; title: string; prefill?: { title?: string; content?: string; appendContent?: string } }
@@ -108,6 +109,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   create_content_item:   { icon: Calendar03Icon,     color: "#10B981", title: "Crear pieza de contenido" },
   edit_content_item:     { icon: PencilEditIcon,     color: "#3545D6", title: "Editar pieza de contenido" },
   set_content_status:    { icon: CheckmarkCircleIcon, color: "#3545D6", title: "Cambiar estado de la pieza" },
+  edit_content_client_context: { icon: PencilEditIcon, color: "#3545D6", title: "Actualizar la voz de la marca" },
   // Docs
   create_kb_doc:         { icon: File01Icon,         color: "#10B981", title: "Crear doc" },
   edit_kb_doc:           { icon: PencilEditIcon,     color: "#3545D6", title: "Editar doc" },
@@ -180,6 +182,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "create_content_item":   return "Pieza creada";
     case "edit_content_item":     return "Pieza actualizada";
     case "set_content_status":    return "Estado actualizado";
+    case "edit_content_client_context": return "Voz de la marca actualizada";
     case "create_kb_doc":         return "Doc creado";
     case "edit_kb_doc":           return "Doc actualizado";
     case "create_video":          return "Video registrado";
@@ -413,6 +416,15 @@ function FormFields({
             <option value="">Seleccionar estado</option>
             {CONTENT_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
+        </div>
+      );
+
+    case "edit_content_client_context":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <p className="text-xs text-text-secondary">Marca: <span className="font-medium text-text-primary">{action.name}</span></p>
+          <textarea className={`${inputClass} resize-y`} placeholder="Voz, audiencia, productos, tono y reglas" rows={8} value={formData.context ?? ""} onChange={(e) => onChange("context", e.target.value)} />
+          <p className="text-xs text-text-secondary">Reemplaza la voz guardada. La IA la usará en cada texto de esta marca.</p>
         </div>
       );
 
@@ -751,6 +763,12 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           if (action.type === "set_content_status" && !body.publishStatus) throw new Error("Elige el estado");
           const res = await fetch(`/api/content/items/${action.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al actualizar la pieza");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "edit_content_client_context": {
+          const res = await fetch(`/api/content/clients/${action.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ context: formData.context ?? "" }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al actualizar la voz de la marca");
           markDone(getSuccessMessage(action.type));
           break;
         }

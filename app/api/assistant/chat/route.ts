@@ -5,7 +5,7 @@ import { CHAT_ENDPOINTS, PROVIDER_LABEL, providerHeaders, providerModelName, pro
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
-import { buildModulesContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
+import { buildBrandContext, buildModulesContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 import { normalizeModelId } from "@/src/lib/ai-models";
 
@@ -63,6 +63,9 @@ DOCS:
 
 VIDEOS:
 - create_video: prefill: title (requerido), platform (requerido), hook, hookType, views, leadsGenerated, notes, contentClientId
+
+VOZ DE LA MARCA:
+- edit_content_client_context: id (id de la marca) + name + prefill: context (voz, audiencia, productos, tono y reglas; reemplaza el actual). Propónla cuando la marca no tenga voz definida o la persona te dé nuevas reglas de tono. Al redactar para una marca, respeta siempre su voz del contexto.
 
 PIPELINE:
 - create_pipeline_category: prefill: name (requerido). Cada categoría es un pipeline con etapas Nuevo, En proceso, Ganado y Perdido.
@@ -175,7 +178,7 @@ export async function POST(req: Request) {
   const [summary, prefs, relevant] = await Promise.all([
     cachedCrmContext(session.user.id!, orgId),
     getAiPrefs(orgId),
-    buildRelevantContext(orgId, trimmed).catch(() => ""),
+    Promise.all([buildBrandContext(orgId, trimmed).catch(() => ""), buildRelevantContext(orgId, trimmed).catch(() => "")]).then(([brand, found]) => brand + found),
   ]);
   const crmContext = summary + relevant;
 

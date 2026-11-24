@@ -1,5 +1,6 @@
 import { prisma } from "@/src/lib/db";
 import { searchTerms } from "@/src/lib/ai-search-terms";
+import { brandVoiceBlock, matchBrands } from "@/src/lib/ai-brand-match";
 
 // Contexto de los módulos nuevos para el asistente: clientes, contenido, videos, docs y categorías del pipeline.
 // Solo lectura y siempre de la organización activa. La bóveda NO se incluye: guarda secretos y la IA no debe verlos.
@@ -97,6 +98,46 @@ export async function buildModulesContext(orgId: string): Promise<string> {
 
   L.push("", "BÓVEDA: contiene credenciales cifradas; no tienes acceso a ellas. Si te las piden, indica que se consultan solo desde la Bóveda.");
   return L.join("\n");
+}
+
+/** Si el mensaje nombra una marca o cliente de contenido: su voz completa, sus últimas piezas y sus videos con más vistas. */
+export async function buildBrandContext(orgId: string, message: string): Promise<string> {
+  const all = await prisma.contentClient.findMany({ where: { organizationId: orgId, isActive: true }, select: { id: true, name: true } });
+  const brands = matchBrands(message, all);
+  if (!brands.length) return "";
+
+  const blocks = await Promise.all(
+    brands.map(async (b) => {
+      const [client, items, videos] = await Promise.all([
+        prisma.contentClient.findFirst({ where: { id: b.id, organizationId: orgId }, select: { name: true, description: true, context: true } }),
+        prisma.contentItem.findMany({
+          where: { organizationId: orgId, clientId: b.id },
+          orderBy: { date: "desc" },
+          take: 5,
+          select: { id: true, date: true, type: true, title: true, hook: true, publishStatus: true },
+        }),
+        prisma.video.findMany({
+          where: { organizationId: orgId, contentClientId: b.id },
+          orderBy: [{ views: "desc" }, { createdAt: "desc" }],
+          take: 4,
+          select: { title: true, platform: true, views: true, hook: true, hookType: true },
+        }),
+      ]);
+      if (!client) return "";
+      const L = [brandVoiceBlock(client.name, client.context, client.description), `[id de la marca: ${b.id}]`];
+      if (items.length) {
+        L.push("Últimas piezas:");
+        for (const i of items) L.push(`  - [id:${i.id}] ${fmt(i.date)} | ${i.type} | "${i.title}" | ${i.publishStatus}${i.hook ? ` | gancho: ${clip(i.hook, 140)}` : ""}`);
+      }
+      if (videos.length) {
+        L.push("Videos que mejor rindieron:");
+        for (const v of videos) L.push(`  - "${v.title}" | ${v.platform}${v.views != null ? ` | ${v.views.toLocaleString("es-MX")} vistas` : ""}${v.hookType ? ` | gancho tipo ${v.hookType}` : ""}${v.hook ? `: ${clip(v.hook, 140)}` : ""}`);
+      }
+      return L.join("\n");
+    }),
+  );
+  const text = blocks.filter(Boolean).join("\n\n");
+  return text ? `\n\n=== MARCA MENCIONADA (escribe con su voz) ===\n${text}` : "";
 }
 
 /** Lo que el mensaje menciona: fragmentos de docs, piezas de contenido y videos que coinciden. Vacío si no hay coincidencias. */

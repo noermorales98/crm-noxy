@@ -36,12 +36,12 @@ Hoy la IA **lee** los módulos nuevos pero solo **actúa** sobre contactos, deal
 
 ## Fase 2 · Memoria por cliente (idea 3)
 
-- [ ] **T2.1** Al redactar para una marca, la IA recibe su campo «voz y contexto» completo (hoy solo ve 140 caracteres)
-- [ ] **T2.2** Detectar de qué marca se habla en el mensaje (por nombre) y cargar su voz, sus últimas piezas y sus videos
-- [ ] **T2.3** Permitir que la IA proponga actualizar el «voz y contexto» de una marca (con confirmación)
-- [ ] **T2.4** Prueba: dos marcas con tonos distintos producen textos distintos
+- [x] ~~**T2.1** Al redactar para una marca, la IA recibe su campo «voz y contexto» completo (hoy solo ve 140 caracteres)~~ — `FASE2`
+- [x] ~~**T2.2** Detectar de qué marca se habla en el mensaje (por nombre) y cargar su voz, sus últimas piezas y sus videos~~ — `FASE2`
+- [x] ~~**T2.3** Permitir que la IA proponga actualizar el «voz y contexto» de una marca (con confirmación)~~ — `FASE2`
+- [x] ~~**T2.4** Prueba: dos marcas con tonos distintos producen textos distintos~~ — `FASE2` (la prueba verifica el contexto que recibe la IA —bloques de voz distintos—; el texto final depende del modelo y no se puede garantizar en una prueba automática)
 
-🔶 Mejor después de T1.1–T1.3 (para poder guardar lo que redacta).
+✅ Fase 2 completa.
 
 ---
 
