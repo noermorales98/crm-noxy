@@ -440,6 +440,8 @@ export default function MessageBubble({
         )}
       </div>
 
+      {isUser && avatar && <div className="shrink-0 mt-0.5 ml-3">{avatar}</div>}
+
       {/* Fullscreen overlay — portal to document.body */}
       {fullscreen &&
         createPortal(

@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: color-mix(in srgb, var(--chat-accent, #FAFBFC) 14%, #FAFBFC);
+  background: #FAFBFC;
   color: #1D1D1F;
   font-family: "Open Sauce Two", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }

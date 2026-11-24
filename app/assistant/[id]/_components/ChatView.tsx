@@ -8,6 +8,9 @@ import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-mode
 import { providerOfModelId } from "@/src/lib/ai-provider";
 import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
 import { blobColors, chatBlobSeed } from "@/src/lib/chat-blob";
+import { useSession } from "next-auth/react";
+import { AccountAvatar } from "@/src/components/AccountMenu";
+import { userAvatarSrc } from "@/src/lib/user-sexo";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -126,8 +129,10 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     if (conversationId === "new") return;
     setBlobSeed(chatBlobSeed(conversationId));
   }, [conversationId]);
+  const { data: session } = useSession();
+  const profileAvatar = <AccountAvatar size={40} name={session?.user?.name ?? session?.user?.email ?? "Tú"} src={session?.user ? userAvatarSrc(session.user.sexo) : null} />;
   const colors = blobColors(blobSeed);
-  const chatVars = { "--chat-accent": colors.accent, "--chat-ink": colors.ink } as React.CSSProperties;
+  const chatVars = { "--chat-surface": colors.surface, "--chat-text": colors.text, "--chat-border": colors.border } as React.CSSProperties;
   // Contenta unos segundos al terminar de responder.
   const wasStreaming = useRef(false);
   useEffect(() => {
@@ -421,7 +426,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 currentModelId={m.model}
                 keyUsed={m.keyUsed}
                 accountLabel={m.accountLabel}
-                avatar={m.role === "assistant" ? <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} /> : undefined}
+                avatar={m.role === "user" ? profileAvatar : <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} />}
                 onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
             ))

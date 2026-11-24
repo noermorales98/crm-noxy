@@ -7,7 +7,7 @@
   width: 100%;
   height: 100%;
   overflow: clip;
-  background: color-mix(in srgb, var(--chat-accent, #FAFBFC) 14%, #FAFBFC);
+  background: #FAFBFC;
   color: #1D1D1F;
   font-family: "Open Sauce Two", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
@@ -157,8 +157,8 @@
 
 .userCard {
   max-width: 100%;
-  background: var(--chat-accent, #007AFF);
-  color: var(--chat-ink, #FFFFFF);
+  background: #007AFF;
+  color: #FFFFFF;
   border-radius: 20px;
   border: none;
   padding: 14px 18px;
@@ -177,12 +177,23 @@
   width: 100%;
   min-width: 0;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  border: 1px solid color-mix(in srgb, var(--chat-accent, #000000) 40%, transparent);
+  background: var(--chat-surface, rgba(255, 255, 255, 0.80));
+  border: 1px solid var(--chat-border, rgba(0, 0, 0, 0.06));
   border-radius: 20px;
-  color: #1D1D1F;
+  color: var(--chat-text, #1D1D1F);
+  /* Todo lo de dentro (texto, enlaces, listas) toma la letra con contraste garantizado sobre este fondo. */
+  color-scheme: light;
+  --color-text-primary: var(--chat-text, #1D1D1F);
+  --color-text-secondary: var(--chat-text, #6E6E73);
+  --color-text-secondary-strong: var(--chat-text, #555B6E);
+  --tw-prose-body: var(--chat-text, #1D1D1F);
+  --tw-prose-headings: var(--chat-text, #1D1D1F);
+  --tw-prose-bold: var(--chat-text, #1D1D1F);
+  --tw-prose-links: var(--chat-text, #1D1D1F);
+  --tw-prose-bullets: var(--chat-text, #1D1D1F);
+  --tw-prose-counters: var(--chat-text, #1D1D1F);
+  --tw-prose-quotes: var(--chat-text, #1D1D1F);
+  --tw-prose-code: var(--chat-text, #1D1D1F);
 }
 
 .assistantAvatar {
@@ -250,7 +261,7 @@
   align-items: center;
   gap: 10px;
   min-height: 24px;
-  color: #6E6E73;
+  color: var(--chat-text, #6E6E73);
   font-size: 14px;
 }
 
@@ -263,7 +274,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--chat-ink, #1D1D1F);
+  background: var(--chat-text, #1D1D1F);
   opacity: 0.25;
   animation: thinkingBounce 1.1s ease-in-out infinite;
 }
@@ -272,7 +283,7 @@
 .thinkingDots i:nth-child(3) { animation-delay: 0.3s; }
 
 .thinkingText {
-  background: linear-gradient(90deg, #6E6E73 0%, var(--chat-ink, #1D1D1F) 50%, #6E6E73 100%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--chat-text, #1D1D1F) 62%, var(--chat-surface, #fff)) 0%, var(--chat-text, #1D1D1F) 50%, color-mix(in srgb, var(--chat-text, #1D1D1F) 62%, var(--chat-surface, #fff)) 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -358,7 +369,7 @@
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(32px) saturate(1.3);
   -webkit-backdrop-filter: blur(32px) saturate(1.3);
-  border: 1px solid color-mix(in srgb, var(--chat-accent, #000000) 55%, transparent);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 14px 16px 12px 18px;
 }
 
@@ -434,13 +445,12 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--chat-ink, #1D1D1F);
-  color: var(--chat-accent, #FFFFFF);
+  background: #1D1D1F;
+  color: #FFFFFF;
 }
 
 .stopButton:hover {
-  background: var(--chat-ink, #000000);
-  filter: brightness(1.25);
+  background: #000000;
 }
 
 
@@ -677,7 +687,7 @@
   }
 
   .thinkingText {
-    color: #6E6E73;
+    color: var(--chat-text, #6E6E73);
     background: none;
   }
 
