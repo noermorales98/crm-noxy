@@ -24,7 +24,7 @@ test("the redesign preserves message capabilities", () => {
   assert.match(bubbleSource, /openRetry/);
   assert.match(bubbleSource, /handleCopy/);
   assert.match(bubbleSource, /setFullscreen/);
-  assert.match(viewSource, /PixelGrid/);
+  assert.doesNotMatch(viewSource, /PixelGrid/);
   assert.match(viewSource, /presentation="soft-card"/);
 });
 

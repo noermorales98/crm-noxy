@@ -35,24 +35,22 @@ export function contrastRatio(a: string, b: string): number {
 }
 
 /**
- * Colores del chat sacados del dibujo de su criatura: `surface` es el fondo de la respuesta (el color de su cara aclarado) y
- * `text` la letra, que siempre cumple contraste AA reforzado (7:1) sobre ese fondo.
+ * Colores del mensaje del usuario y del botón de enviar, sacados de la cara de la criatura: `bubble` es el color de su cara
+ * (aclarado solo lo necesario) y `text` la letra, que siempre cumple contraste 7:1 sobre ese fondo.
  */
-export function chatPalette(accent: string, ink: string): { accent: string; surface: string; text: string; border: string } {
-  // Se aclara el fondo hasta que exista una letra con 7:1; con colores medios (ni claros ni oscuros) hace falta más blanco.
-  for (const lighten of [0.55, 0.7, 0.82, 0.92, 1]) {
-    const surface = mixHex(accent, "#ffffff", lighten);
-    // La letra parte del color de los ojos y se oscurece hasta lograr el contraste (o casi negro).
+export function chatPalette(accent: string, ink: string): { bubble: string; text: string } {
+  for (const lighten of [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]) {
+    const bubble = mixHex(accent, "#ffffff", lighten);
     let text = ink;
-    for (let i = 0; i < 10 && contrastRatio(text, surface) < 7; i++) text = mixHex(text, "#000000", 0.25);
-    if (contrastRatio(text, surface) < 7) text = "#111111";
-    if (contrastRatio(text, surface) >= 7) return { accent, surface, text, border: mixHex(accent, "#000000", 0.12) };
+    for (let i = 0; i < 10 && contrastRatio(text, bubble) < 7; i++) text = mixHex(text, "#000000", 0.25);
+    if (contrastRatio(text, bubble) < 7) text = "#111111";
+    if (contrastRatio(text, bubble) >= 7) return { bubble, text };
   }
-  return { accent, surface: "#ffffff", text: "#111111", border: mixHex(accent, "#000000", 0.12) };
+  return { bubble: "#ffffff", text: "#111111" };
 }
 
 /** Colores de la criatura (cabeza y ojos), leídos de su propio dibujo. */
-export function blobColors(seed: string): { accent: string; surface: string; text: string; border: string } {
+export function blobColors(seed: string): { bubble: string; text: string } {
   const fills = String(blobatar(seed, {})).match(/fill="(#[0-9a-fA-F]{6})"/g) ?? [];
   const hex = (f: string | undefined, fallback: string) => f?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback;
   return chatPalette(hex(fills[0], "#c9d6f3"), hex(fills[1], "#1D1D1F"));

@@ -430,12 +430,13 @@
   overflow: hidden;
   border: none;
   border-radius: 50%;
-  background: #1D1D1F;
+  background: var(--chat-bubble, #1D1D1F);
   transition: background 200ms ease;
 }
 
 .sendButton:hover:not(:disabled) .sendInner {
-  background: #000000;
+  background: var(--chat-bubble, #000000);
+  filter: brightness(0.94);
 }
 
 .sendDots {
@@ -460,7 +461,7 @@
   left: 50%;
   width: 18px;
   height: 18px;
-  color: #FFFFFF;
+  color: var(--chat-bubble-text, #FFFFFF);
   transform: translate(-50%, -50%);
 }
 

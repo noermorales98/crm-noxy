@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
-import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
 import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { providerOfModelId } from "@/src/lib/ai-provider";
 import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
@@ -132,7 +131,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const { data: session } = useSession();
   const profileAvatar = <AccountAvatar size={40} name={session?.user?.name ?? session?.user?.email ?? "Tú"} src={session?.user ? userAvatarSrc(session.user.sexo) : null} />;
   const colors = blobColors(blobSeed);
-  const chatVars = { "--chat-surface": colors.surface, "--chat-text": colors.text, "--chat-border": colors.border } as React.CSSProperties;
+  const chatVars = { "--chat-bubble": colors.bubble, "--chat-bubble-text": colors.text } as React.CSSProperties;
   // Contenta unos segundos al terminar de responder.
   const wasStreaming = useRef(false);
   useEffect(() => {
@@ -389,8 +388,6 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
 
   return (
     <div className={styles.experience} style={chatVars}>
-      <PixelGrid side="left" />
-      <PixelGrid side="right" />
       <div ref={scrollAreaRef} className={styles.scrollArea}>
         <div className={styles.messageColumn}>
           {isEmpty ? (
