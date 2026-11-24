@@ -10,7 +10,7 @@ import { buildMonthlyReports } from "@/src/lib/client-report-service";
 import { monthLabel, previousMonth } from "@/src/lib/client-report";
 import { listAllScheduleRows, listSchedules, saveSchedules } from "@/src/lib/ai-schedules-store";
 
-const SYSTEM = "Eres el asistente del CRM Noxy. Responde en español, directo y con datos concretos del contexto. No inventes cifras.";
+const SYSTEM = "Eres el asistente del CRM Noxy. Responde en español, directo y con datos concretos del contexto. No inventes cifras. No uses emojis.";
 
 /** Texto que produce una programación ahora; vacío si es una alerta sin novedades. */
 export async function produceScheduleText(s: AiSchedule, organizationId: string, now = new Date()): Promise<string> {

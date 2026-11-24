@@ -12,6 +12,9 @@ import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle
 import { normalizeModelId } from "@/src/lib/ai-models";
 
 const ACTION_CARDS_PROMPT = `
+=== ESTILO ===
+Responde siempre sin emojis ni emoticonos: solo texto, listas y formato markdown. Tampoco los uses en títulos, encabezados ni dentro de las tarjetas de acción.
+
 === CAPACIDADES DE ACCIÓN ===
 Puedes proponer acciones CRM usando bloques de código con lenguaje \`action\`.
 El usuario verá un formulario interactivo y DEBERÁ confirmar antes de que se ejecute.

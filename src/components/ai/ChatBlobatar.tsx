@@ -22,8 +22,20 @@ export function randomBlobSeed(): string {
 export default function ChatBlobatar({ seed, size = 40, mood = "idle", follow = false, className }: { seed: string; size?: number; mood?: BlobMood; follow?: boolean; className?: string }) {
   const { ref } = useGaze({ travel: size >= 64 ? 3.5 : 2.5, lookAt: follow ? "pointer" : undefined });
   return (
-    <span className={className} aria-hidden="true" style={{ display: "inline-flex", flexShrink: 0 }}>
+    <span className={className} aria-hidden="true" style={{ display: "inline-flex", flexShrink: 0, position: "relative" }}>
       <Blobatar ref={ref} name={seed} size={size} animate="always" expression={MOODS[mood]} />
+      {/* Mientras piensa: tres puntos que laten debajo de la cara (como el estado «thinking» del presence-avatar de blobatar). */}
+      {mood === "thinking" && (
+        <span style={{ position: "absolute", left: "50%", bottom: -Math.max(4, size * 0.1), transform: "translateX(-50%)", display: "flex", gap: Math.max(3, size * 0.06) }}>
+          {[0, 1, 2].map((i) => (
+            <i
+              key={i}
+              className="animate-pulse motion-reduce:animate-none"
+              style={{ width: Math.max(4, size * 0.09), height: Math.max(4, size * 0.09), borderRadius: "50%", background: "#6E6E73", animationDuration: "1.1s", animationDelay: `${i * 150}ms` }}
+            />
+          ))}
+        </span>
+      )}
     </span>
   );
 }

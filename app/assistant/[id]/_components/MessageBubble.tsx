@@ -8,6 +8,7 @@ import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
 import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
 import styles from "../assistant-chat.module.css";
 import ThinkingStatus from "./ThinkingStatus";
+import { stripEmojis } from "@/src/lib/strip-emoji";
 import {
   createAbortableRequestLifecycle,
   createReplaceableTimer,
@@ -56,7 +57,7 @@ const PROSE =
 
 export default function MessageBubble({
   role,
-  content,
+  content: rawContent,
   streaming,
   modelName,
   currentModelId,
@@ -67,6 +68,8 @@ export default function MessageBubble({
   presentation,
 }: Props) {
   const isUser = role === "user";
+  // Las respuestas de la IA se muestran sin emojis (no se tocan los bloques de código ni lo que escribe la persona).
+  const content = isUser ? rawContent : stripEmojis(rawContent);
   const usesSoftCards = resolveMessageBubblePresentation(presentation) === "soft-card";
   const [retryOpen, setRetryOpen] = useState(false);
   const [copied, setCopied] = useState(false);

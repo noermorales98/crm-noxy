@@ -3,20 +3,22 @@
 import { useEffect, useState } from "react";
 import styles from "../assistant-chat.module.css";
 
-// Frases que rotan mientras llega la primera palabra, para que la espera se sienta activa. Al pasar de cierto tiempo
-// cambian a mensajes honestos de que tarda más de lo normal.
+// Frases que rotan mientras llega la primera palabra. Nunca avisan de que algo tarda: solo describen que se está trabajando.
 const PHRASES = [
   "Pensando…",
   "Revisando tu CRM…",
   "Buscando en tus contactos y tratos…",
   "Ordenando las ideas…",
+  "Cruzando los datos…",
   "Preparando una respuesta…",
-  "Casi listo…",
+  "Armando los detalles…",
+  "Repasando tus clientes y contenido…",
+  "Dándole forma a la respuesta…",
+  "Afinando las palabras…",
+  "Poniendo todo en orden…",
 ];
-const SLOW_PHRASES = ["Esto tarda un poco más de lo normal…", "El modelo está ocupado, sigo esperando…", "Si tarda mucho, prueba «reintentar» con otro modelo."];
 
 const STEP_MS = 2400;
-const SLOW_AFTER_MS = 12000;
 
 export default function ThinkingStatus() {
   const [elapsed, setElapsed] = useState(0);
@@ -27,9 +29,9 @@ export default function ThinkingStatus() {
     return () => clearInterval(timer);
   }, []);
 
+  // Recorre la lista una y otra vez; la primera siempre es «Pensando…».
   const step = Math.floor(elapsed / STEP_MS);
-  const slow = elapsed >= SLOW_AFTER_MS;
-  const phrase = slow ? SLOW_PHRASES[(step - Math.ceil(SLOW_AFTER_MS / STEP_MS)) % SLOW_PHRASES.length] : PHRASES[Math.min(step, PHRASES.length - 1)];
+  const phrase = PHRASES[step % PHRASES.length];
 
   return (
     <div className={styles.thinking} role="status" aria-live="polite">
