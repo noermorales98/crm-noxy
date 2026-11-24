@@ -272,7 +272,7 @@ export function AiFloatingBubble() {
         aria-label={isOpen ? "Cerrar asistente IA" : "Abrir asistente IA"}
         aria-expanded={isOpen}
         title={isOpen ? "Cerrar asistente" : "Asistente IA"}
-        className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-line bg-white text-brand-obsidian shadow-md outline-none transition-colors duration-200 hover:bg-white/90 focus-visible:ring-2 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
+        className="crm-press fixed bottom-6 right-6 z-50 hidden size-12 items-center justify-center rounded-full border border-brand-obsidian bg-brand-obsidian text-white shadow-md outline-none transition-colors duration-200 hover:bg-brand-obsidian/85 focus-visible:ring-2 [[data-crm-scheme=dark]_&]:border-line [[data-crm-scheme=dark]_&]:bg-white [[data-crm-scheme=dark]_&]:text-brand-obsidian [[data-crm-scheme=dark]_&]:hover:bg-white/90 focus-visible:ring-focus motion-reduce:transition-none lg:flex"
       >
         <HugeiconsIcon icon={isOpen ? Cancel01Icon : BubbleChatIcon} size={22} aria-hidden="true" />
       </button>
