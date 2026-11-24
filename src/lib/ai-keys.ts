@@ -21,8 +21,23 @@ function logStorage(what: string, error: unknown) {
   console.warn(`[ai-keys] ${what}:`, error instanceof Error ? error.name : "error", code ?? "");
 }
 
+// Memoria breve por instancia: las cuentas y preferencias casi nunca cambian y leerlas (más descifrar) en cada mensaje
+// sumaba viajes a la base remota. Se invalida al guardar; otra instancia lo ve como mucho a los 30 s.
+const READ_TTL_MS = 30_000;
+const poolCache = new Map<string, { at: number; value: { pool: KeyPool; unreadable: boolean } }>();
+const prefsCache = new Map<string, { at: number; value: AiPrefs }>();
+
 /** Cuentas guardadas en la base. `unreadable`: hay una fila que ya no se puede descifrar (p. ej. cambió AUTH_SECRET). */
 export async function loadPool(organizationId: string, provider: ChatProvider): Promise<{ pool: KeyPool; unreadable: boolean }> {
+  const cacheKey = `${organizationId}:${provider}`;
+  const hit = poolCache.get(cacheKey);
+  if (hit && Date.now() - hit.at < READ_TTL_MS) return { pool: hit.value.pool.map((k) => ({ ...k })), unreadable: hit.value.unreadable };
+  const value = await readPool(organizationId, provider);
+  poolCache.set(cacheKey, { at: Date.now(), value });
+  return { pool: value.pool.map((k) => ({ ...k })), unreadable: value.unreadable };
+}
+
+async function readPool(organizationId: string, provider: ChatProvider): Promise<{ pool: KeyPool; unreadable: boolean }> {
   try {
     const row = await prisma.aiProviderKey.findUnique({ where: { organizationId_provider: { organizationId, provider } } });
     if (!row) return { pool: [], unreadable: false };
@@ -36,6 +51,7 @@ export async function loadPool(organizationId: string, provider: ChatProvider): 
 
 async function savePool(organizationId: string, provider: ChatProvider, pool: KeyPool): Promise<void> {
   forgetNvidiaModels(organizationId);
+  poolCache.delete(`${organizationId}:${provider}`);
   if (pool.length === 0) {
     await prisma.aiProviderKey.deleteMany({ where: { organizationId, provider } });
     return;
@@ -196,9 +212,13 @@ export const forgetNvidiaModels = (organizationId: string) => void modelsCache.d
 // ─── Preferencias (modelo predeterminado, cambio automático, respaldos) ──────────────────────────────
 
 export async function getAiPrefs(organizationId: string): Promise<AiPrefs> {
+  const hit = prefsCache.get(organizationId);
+  if (hit && Date.now() - hit.at < READ_TTL_MS) return { ...hit.value, fallbackModelIds: [...hit.value.fallbackModelIds] };
   try {
     const row = await prisma.aiProviderKey.findUnique({ where: { organizationId_provider: { organizationId, provider: PREFS_PROVIDER } } });
-    return row ? parseAiPrefs(row.apiKey) : { ...DEFAULT_AI_PREFS };
+    const value = row ? parseAiPrefs(row.apiKey) : { ...DEFAULT_AI_PREFS };
+    prefsCache.set(organizationId, { at: Date.now(), value });
+    return { ...value, fallbackModelIds: [...value.fallbackModelIds] };
   } catch (error) {
     logStorage("no se pudieron leer las preferencias de IA", error);
     return { ...DEFAULT_AI_PREFS };
@@ -206,8 +226,10 @@ export async function getAiPrefs(organizationId: string): Promise<AiPrefs> {
 }
 
 export async function saveAiPrefs(organizationId: string, patch: Partial<AiPrefs>): Promise<AiPrefs> {
+  prefsCache.delete(organizationId);
   const next: AiPrefs = { ...(await getAiPrefs(organizationId)), ...patch };
   const apiKey = JSON.stringify(next);
   await prisma.aiProviderKey.upsert({ where: { organizationId_provider: { organizationId, provider: PREFS_PROVIDER } }, create: { organizationId, provider: PREFS_PROVIDER, apiKey }, update: { apiKey } });
+  prefsCache.delete(organizationId);
   return next;
 }

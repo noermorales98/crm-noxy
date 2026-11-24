@@ -76,6 +76,19 @@ function buildPageContextSection(pageContext: { page: string; id?: string; label
   return lines.join("\n");
 }
 
+const CONTEXT_TTL_MS = 60_000;
+const contextCache = new Map<string, { at: number; text: string }>();
+
+async function cachedCrmContext(userId: string, orgId: string): Promise<string> {
+  const key = `${userId}:${orgId}`;
+  const hit = contextCache.get(key);
+  if (hit && Date.now() - hit.at < CONTEXT_TTL_MS) return hit.text;
+  const text = await buildCrmContext(userId, orgId);
+  contextCache.set(key, { at: Date.now(), text });
+  if (contextCache.size > 200) contextCache.delete(contextCache.keys().next().value as string);
+  return text;
+}
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) {
@@ -120,16 +133,16 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
   }
 
-  // Guardar el mensaje, el título, el contexto del CRM y las preferencias no dependen entre sí: en paralelo, para que la
-  // primera palabra llegue antes (cada consulta a la base remota suma su viaje de ida y vuelta).
+  // Guardar el mensaje y el título ya no se esperan: la respuesta no depende de ellos y la función sigue viva mientras dura el stream.
   const isFirstMessage = conversation.messages.length === 0;
   const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
-  const [crmContext, prefs] = await Promise.all([
-    buildCrmContext(session.user.id!, orgId),
-    getAiPrefs(orgId),
+  void Promise.all([
     prisma.aiMessage.create({ data: { conversationId, role: "user", content: trimmed } }),
-    isFirstMessage ? prisma.aiConversation.update({ where: { id: conversationId }, data: { title } }) : Promise.resolve(null),
-  ]);
+    isFirstMessage ? prisma.aiConversation.update({ where: { id: conversationId }, data: { title } }) : null,
+  ]).catch((err) => console.error("[assistant/chat] no se pudo guardar el mensaje del usuario:", err));
+
+  // Contexto del CRM (12 consultas) y preferencias en paralelo; el contexto se reutiliza 60 s.
+  const [crmContext, prefs] = await Promise.all([cachedCrmContext(session.user.id!, orgId), getAiPrefs(orgId)]);
 
   return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId, prefs);
 }
