@@ -17,7 +17,7 @@ Corregí un deal ganado (USD → MXN) y `/pipeline/historial` seguía mostrando 
 ## Checklist
 - [x] Cálculo de gráficos con pruebas — Evidence: `node --test src/lib/history-charts.test.ts` 4/4.
 - [x] Tipos y lint de lo tocado — Evidence: `tsc` sin errores en esos archivos; `eslint` limpio.
-- [ ] Probar en navegador: editar la moneda de un ganado archivado y volver al historial.
+- [x] Probar en navegador: editar la moneda de un ganado archivado y volver al historial — Evidence: PATCH `{value:13000,currency:"MXN"}` → 200; historial: USD $350 (1) y MXN $13,000 (1); gráficos visibles.
 - [ ] Probar el «Cierre de <mes>» de un mes ya cerrado tras editar la moneda.
 
 ## Evidence
