@@ -17,7 +17,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { input as inputCls, selectInline } from "@/src/lib/crm-ui";
-import { fmtUSD, fmtMXN, StatCard, StatChip, type StatDef } from "@/src/components/pipeline/PipelineShared";
+import { fmtUSD, fmtMXN } from "@/src/components/pipeline/PipelineShared";
 import {
   Board,
   BoardCard,
@@ -414,16 +414,6 @@ export default function PipelinePage() {
   const [categoryName, setCategoryName] = useState("");
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [creatingCategory, setCreatingCategory] = useState(false);
-  const [hiddenStats, setHiddenStats] = useState<Set<string>>(new Set());
-
-  // ─── Hidden stat cards (persisted) ─────────────────────────────────────────
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("pipeline_hidden_stats");
-      if (raw) setHiddenStats(new Set(JSON.parse(raw)));
-    } catch { /* ignore */ }
-  }, []);
 
   useEffect(() => {
     try {
@@ -435,23 +425,6 @@ export default function PipelinePage() {
   const chooseCategory = useCallback((value: string) => {
     setSelectedPipeline(value);
     try { localStorage.setItem("pipeline_category", value); } catch { /* ignore */ }
-  }, []);
-
-  const hideStat = useCallback((id: string) => {
-    setHiddenStats((prev) => {
-      const next = new Set(prev).add(id);
-      try { localStorage.setItem("pipeline_hidden_stats", JSON.stringify([...next])); } catch { /* ignore */ }
-      return next;
-    });
-  }, []);
-
-  const restoreStat = useCallback((id: string) => {
-    setHiddenStats((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      try { localStorage.setItem("pipeline_hidden_stats", JSON.stringify([...next])); } catch { /* ignore */ }
-      return next;
-    });
   }, []);
 
   // ─── Header config ────────────────────────────────────────────────────────
@@ -533,81 +506,12 @@ export default function PipelinePage() {
   const allDeals = pipelines.flatMap((p) => p.stages.flatMap((s: any) => s.deals));
   const allStages = pipelines.flatMap((p) => p.stages);
   const wonStages = allStages.filter((s: any) => s.isWon);
-  const wonDeals = allDeals.filter((d: any) => wonStages.some((s: any) => s.id === d.stageId));
   const activeDeals = allDeals.filter(
     (d: any) => !wonStages.some((s: any) => s.id === d.stageId) &&
     !allStages.filter((s: any) => s.isLost).some((s: any) => s.id === d.stageId)
   );
 
-  const pipelineMXN = activeDeals.filter(d => d.currency === "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
-  const pipelineUSD = activeDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
-  const wonMXN = wonDeals.filter(d => d.currency === "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
-  const wonUSD = wonDeals.filter(d => d.currency !== "MXN").reduce((s, d) => s + (d.value ?? 0), 0);
-  const activeDealsUSD = activeDeals.filter((d) => d.currency !== "MXN");
-  const activeDealsMXN = activeDeals.filter((d) => d.currency === "MXN");
-  const wonDealsUSD = wonDeals.filter((d) => d.currency !== "MXN");
-  const wonDealsMXN = wonDeals.filter((d) => d.currency === "MXN");
   const overdueDeals = activeDeals.filter((d) => d.followUpAt && new Date(d.followUpAt) < new Date());
-
-  // ─── Stat card definitions (support hide/restore) ──────────────────────────
-
-  const pipelineStats: StatDef[] = [
-    {
-      id: "total_deals",
-      label: "Total deals",
-      value: String(allDeals.length),
-      sub: `${overdueDeals.length} necesitan atención`,
-      badge: overdueDeals.length > 0 ? `${overdueDeals.length} vencidos` : undefined,
-      badgePositive: false,
-      chipValue: String(allDeals.length),
-    },
-    {
-      id: "pipeline_usd",
-      label: "Pipeline en USD",
-      value: fmtUSD(pipelineUSD),
-      sub: `${activeDealsUSD.length} deals activos`,
-      badge: pipelineUSD > 0 ? "Activo" : undefined,
-      badgePositive: true,
-      chipValue: fmtUSD(pipelineUSD),
-    },
-    {
-      id: "pipeline_mxn",
-      label: "Pipeline en MXN",
-      value: fmtMXN(pipelineMXN),
-      sub: `${activeDealsMXN.length} deals activos`,
-      badge: pipelineMXN > 0 ? "Activo" : undefined,
-      badgePositive: true,
-      chipValue: fmtMXN(pipelineMXN),
-    },
-    {
-      id: "won_usd",
-      label: "Ganados en USD",
-      value: fmtUSD(wonUSD),
-      sub: `${wonDealsUSD.length} deals cerrados`,
-      badge: wonDealsUSD.length > 0 ? `+${wonDealsUSD.length}` : undefined,
-      badgePositive: true,
-      chipValue: fmtUSD(wonUSD),
-    },
-    {
-      id: "won_mxn",
-      label: "Ganados en MXN",
-      value: fmtMXN(wonMXN),
-      sub: `${wonDealsMXN.length} deals cerrados`,
-      badge: wonDealsMXN.length > 0 ? `+${wonDealsMXN.length}` : undefined,
-      badgePositive: true,
-      chipValue: fmtMXN(wonMXN),
-    },
-    {
-      id: "in_progress",
-      label: "En proceso",
-      value: String(activeDeals.length),
-      sub: "Deals sin cerrar",
-      chipValue: String(activeDeals.length),
-    },
-  ];
-
-  const visibleStats = pipelineStats.filter((s) => !hiddenStats.has(s.id));
-  const minimizedStats = pipelineStats.filter((s) => hiddenStats.has(s.id));
 
   const shownPipelines = visiblePipelines(pipelines, selectedPipeline);
   const showHeadings = shownPipelines.length > 1;
@@ -666,9 +570,6 @@ export default function PipelinePage() {
 
         {loading ? (
           <div className="flex flex-col gap-4">
-            <div className="overflow-hidden rounded-surface border border-line bg-surface-elevated">
-              <Skeleton shape="stats" count={4} label="Cargando resumen" />
-            </div>
             <Skeleton shape="board" count={4} label="Cargando tablero" />
           </div>
         ) : loadError && pipelines.length === 0 ? (
@@ -677,34 +578,6 @@ export default function PipelinePage() {
           </div>
         ) : (
           <>
-            {/* Resumen: cada cifra se puede ocultar; las ocultas quedan como chips para restaurarlas. */}
-            {visibleStats.length > 0 && (
-              <Enter index={1}>
-                <section aria-label="Resumen del pipeline" className="mb-3 flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
-                  {visibleStats.map((s) => (
-                    <StatCard
-                      key={s.id}
-                      label={s.label}
-                      value={s.value}
-                      values={s.values}
-                      sub={s.sub}
-                      badge={s.badge}
-                      badgePositive={s.badgePositive}
-                      onHide={() => hideStat(s.id)}
-                    />
-                  ))}
-                </section>
-              </Enter>
-            )}
-
-            {minimizedStats.length > 0 && (
-              <div className="mb-3 flex flex-wrap items-center gap-1.5">
-                {minimizedStats.map((s) => (
-                  <StatChip key={s.id} label={s.label} value={s.chipValue} onRestore={() => restoreStat(s.id)} />
-                ))}
-              </div>
-            )}
-
             {pipelines.length > 0 && (
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <Segmented
