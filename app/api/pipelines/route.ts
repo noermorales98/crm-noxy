@@ -26,7 +26,7 @@ export async function GET(req: Request) {
         stages: {
           orderBy: { order: "asc" },
           ...(slim
-            ? { select: { id: true, name: true, order: true } }
+            ? { select: { id: true, name: true, order: true, isWon: true, isLost: true } }
             : {
                 include: {
                   deals: {

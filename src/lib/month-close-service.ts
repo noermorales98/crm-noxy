@@ -11,6 +11,7 @@ import {
   type MonthKey,
   type MonthMetrics,
 } from "@/src/lib/month-close";
+import { receiptsInRange } from "@/src/lib/quote-sales";
 
 const wonInRange = (from: Date, to: Date) => ({
   stage: { isWon: true },
@@ -20,7 +21,7 @@ const wonInRange = (from: Date, to: Date) => ({
 /** Calcula las métricas de un mes ya terminado. `current` = foto del mes en curso (sin guardar ni archivar). */
 export async function computeMonthMetrics(organizationId: string, key: MonthKey, timeZone: string, options?: { withOpen?: boolean }): Promise<MonthMetrics> {
   const { from, to } = monthRangeInZone(key, timeZone);
-  const [created, won, lostCount, payments, open] = await Promise.all([
+  const [created, won, lostCount, dealPayments, quotePayments, open] = await Promise.all([
     prisma.deal.count({ where: { organizationId, createdAt: { gte: from, lt: to } } }),
     prisma.deal.findMany({
       where: { organizationId, ...wonInRange(from, to) },
@@ -32,11 +33,16 @@ export async function computeMonthMetrics(organizationId: string, key: MonthKey,
       where: { organizationId, status: "RECIBIDO", receivedAt: { gte: from, lt: to } },
       select: { amount: true, currency: true },
     }),
+    // Cobros de cotizaciones (pago único, anticipo o resto): se cuentan por la fecha en que se pagaron.
+    prisma.quote.findMany({
+      where: { organizationId, OR: [{ paidAt: { gte: from, lt: to } }, { depositPaidAt: { gte: from, lt: to } }, { finalPaidAt: { gte: from, lt: to } }] },
+      select: { total: true, currency: true, splitPayment: true, depositPercent: true, acceptedAt: true, paidAt: true, depositPaidAt: true, finalPaidAt: true },
+    }),
     options?.withOpen
       ? prisma.deal.findMany({ where: { organizationId, isArchived: false, stage: { isWon: false, isLost: false } }, select: { value: true, currency: true } })
       : Promise.resolve(undefined),
   ]);
-  return buildMonthMetrics({ month: key, created, won, lostCount, payments, open });
+  return buildMonthMetrics({ month: key, created, won, lostCount, payments: [...dealPayments, ...receiptsInRange(quotePayments, from, to)], open });
 }
 
 /** Archiva los ganados del mes que estén en la etapa ganada final de su pipeline. Devuelve cuántos. */
@@ -90,29 +96,36 @@ export async function closePendingMonths(organizationId: string, timeZone: strin
 }
 
 /**
- * Si el mes en que cayó una venta ganada ya tiene foto guardada, la recalcula: así corregir el valor o la moneda
- * de un deal ganado se refleja en el «Cierre del mes». Conserva lo «abierto al cierre» (no se puede reconstruir).
- * Nunca lanza: es un efecto secundario de editar el deal.
+ * Recalcula la foto guardada del mes al que pertenece cada fecha (si ese mes ya está cerrado): así corregir una venta
+ * o un cobro se refleja en el «Cierre del período». Conserva lo «abierto al cierre» (no se puede reconstruir).
+ * El mes en curso no tiene foto: se calcula en vivo. Nunca lanza: es un efecto secundario de editar.
  */
-export async function refreshSnapshotForDeal(organizationId: string, dealId: string): Promise<void> {
+export async function refreshSnapshotsForDates(organizationId: string, dates: (Date | null | undefined)[]): Promise<void> {
   try {
-    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { wonAt: true, updatedAt: true, stage: { select: { isWon: true } } } });
-    if (!deal?.stage.isWon) return;
     const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: { timezone: true } });
     const timeZone = org?.timezone || "America/Cancun";
-    const key = monthKeyInZone(deal.wonAt ?? deal.updatedAt, timeZone);
-    const parsed = parseMonthKey(key);
-    if (!parsed) return;
-    const where = { organizationId_year_month: { organizationId, year: parsed.year, month: parsed.month } };
-    const snapshot = await prisma.monthlySnapshot.findUnique({ where });
-    if (!snapshot) return; // mes en curso: se calcula en vivo
-    const previous = snapshot.metrics as unknown as MonthMetrics;
-    const metrics = await computeMonthMetrics(organizationId, key, timeZone);
-    if (previous.openAtClose) metrics.openAtClose = previous.openAtClose;
-    await prisma.monthlySnapshot.update({ where, data: { metrics: metrics as unknown as object } });
+    const keys = new Set(dates.flatMap((date) => (date ? [monthKeyInZone(date, timeZone)] : [])));
+    for (const key of keys) {
+      const parsed = parseMonthKey(key);
+      if (!parsed) continue;
+      const where = { organizationId_year_month: { organizationId, year: parsed.year, month: parsed.month } };
+      const snapshot = await prisma.monthlySnapshot.findUnique({ where });
+      if (!snapshot) continue;
+      const previous = snapshot.metrics as unknown as MonthMetrics;
+      const metrics = await computeMonthMetrics(organizationId, key, timeZone);
+      if (previous.openAtClose) metrics.openAtClose = previous.openAtClose;
+      await prisma.monthlySnapshot.update({ where, data: { metrics: metrics as unknown as object } });
+    }
   } catch (error) {
-    console.error("[month-close] refreshSnapshotForDeal", dealId, error);
+    console.error("[month-close] refreshSnapshotsForDates", error);
   }
+}
+
+/** Recalcula la foto del mes de una venta ganada (por su `wonAt`). */
+export async function refreshSnapshotForDeal(organizationId: string, dealId: string): Promise<void> {
+  const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { wonAt: true, updatedAt: true, stage: { select: { isWon: true } } } });
+  if (!deal?.stage.isWon) return;
+  await refreshSnapshotsForDates(organizationId, [deal.wonAt ?? deal.updatedAt]);
 }
 
 /** Cierra los meses pendientes de todas las organizaciones. Nunca lanza: un fallo no debe frenar el resumen diario. */

@@ -7,6 +7,7 @@ import { Add01Icon, Cancel01Icon, Link01Icon } from "@hugeicons/core-free-icons"
 import { Chip, useDialog, type ChipTone } from "@/src/components/ui";
 import { formatMoney } from "@/src/lib/quote-format";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { SaleDateChoice, type SaleDateOption } from "@/src/components/quotes/SaleDateChoice";
 
 export type DealQuote = { id: string; folio: string; status: string; total: number; currency: string; issuedAt: string };
 
@@ -54,12 +55,25 @@ export function DealQuotesPanel({ dealId, initialQuotes, onQuotesChange }: { dea
     void loadCandidates();
   };
 
-  const link = async (quote: Candidate) => {
+  // Si el lead está ganado y la cotización trae otra fecha, se pregunta cuál es la de la venta antes de vincular.
+  const [dateAsk, setDateAsk] = useState<{ quote: Candidate; choices: SaleDateOption[] } | null>(null);
+  const [saleDate, setSaleDate] = useState("");
+
+  const link = async (quote: Candidate, chosenDate?: string) => {
     setBusy(quote.id);
     setError(null);
-    const res = await fetch(`/api/quotes/${quote.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dealId }) });
+    const res = await fetch(`/api/quotes/${quote.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dealId, ...(chosenDate ? { saleDate: chosenDate } : {}) }) });
     setBusy(null);
+    if (res.status === 409) {
+      const data = (await res.json().catch(() => ({}))) as { needsDate?: boolean; choices?: SaleDateOption[] };
+      if (data.needsDate && data.choices) {
+        setDateAsk({ quote, choices: data.choices });
+        setSaleDate(data.choices[0]?.value ?? "");
+        return;
+      }
+    }
     if (!res.ok) return setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo vincular.");
+    setDateAsk(null);
     setQuotes((current) => [{ id: quote.id, folio: quote.folio, status: quote.status, total: quote.total, currency: quote.currency, issuedAt: quote.issuedAt }, ...current]);
     setPickerOpen(false);
   };
@@ -108,6 +122,18 @@ export function DealQuotesPanel({ dealId, initialQuotes, onQuotesChange }: { dea
             </li>
           ))}
         </ul>
+      )}
+
+      {dateAsk && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-brand-obsidian/35 p-4 sm:items-center" onClick={() => setDateAsk(null)}>
+          <div role="dialog" aria-modal="true" aria-label="Fecha de la venta" onClick={(event) => event.stopPropagation()} className="flex w-full max-w-md flex-col gap-4 rounded-surface border border-line bg-surface-elevated p-5 shadow-md">
+            <SaleDateChoice choices={dateAsk.choices} value={saleDate} onChange={setSaleDate} />
+            <div className="flex gap-3">
+              <button type="button" onClick={() => setDateAsk(null)} className="min-h-11 flex-1 rounded-control bg-surface-sidebar text-sm font-semibold text-text-secondary hover:bg-nav-active">Cancelar</button>
+              <button type="button" disabled={!saleDate || busy === dateAsk.quote.id} onClick={() => link(dateAsk.quote, saleDate)} className="crm-press min-h-11 flex-1 rounded-control bg-action-primary text-sm font-semibold text-action-primary-foreground disabled:opacity-60">Usar esta fecha</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {pickerOpen && (

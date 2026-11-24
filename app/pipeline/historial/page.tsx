@@ -18,14 +18,24 @@ type ArchivedDeal = {
   archivedAt?: string | null;
   wonAt?: string | null;
   lostReason?: string | null;
+  quotes?: { id: string; folio: string; status: string; total: number; currency: string }[];
   company?: { name: string } | null;
   contact?: { firstName?: string | null; lastName?: string | null } | null;
   stage?: { name?: string | null; color?: string | null; isWon?: boolean; isLost?: boolean } | null;
 };
 
+type UnlinkedQuote = { id: string; folio: string; clientName: string; total: number; currency: string };
+
+const QUOTE_STATUS: Record<string, string> = { BORRADOR: "Borrador", ENVIADA: "Enviada", ACEPTADA: "Aceptada", PARCIAL: "Parcial", PAGADA: "Pagada", VENCIDA: "Vencida", RECHAZADA: "Rechazada" };
+
+type InProgress = { count: number; byCurrency: Record<string, number>; deals: { id: string; title: string; amount: number; currency: string; reason: string }[] };
+
 type MonthClosing = {
   source: "snapshot" | "live" | "none" | "year";
+  month?: string;
+  year?: number;
   months?: number;
+  inProgress?: InProgress;
   note?: string;
   metrics: {
     created: number;
@@ -36,8 +46,16 @@ type MonthClosing = {
   } | null;
 };
 
+/** El título sale de los datos que se muestran (no del filtro), para que nunca digan un período y enseñen otro mientras carga. */
+const closingTitle = (closing: { source: string; month?: string; year?: number }) => {
+  if (closing.source === "year") return `Resumen de ${closing.year}`;
+  const [y, m] = (closing.month ?? "").split("-");
+  return `Cierre de ${MONTHS[Number(m) - 1] ?? ""} ${y}`.trim();
+};
+
 const moneyByCurrency = (bucket: Record<string, number> | undefined) => {
-  const parts = Object.entries(bucket ?? {}).map(([currency, amount]) => (currency === "MXN" ? fmtMXN(amount) : fmtUSD(amount)));
+  // Cada monto lleva su moneda escrita: «$854.50 USD · $6,500 MXN» (sin ella, dos montos con «$» se confunden).
+  const parts = Object.entries(bucket ?? {}).map(([currency, amount]) => `${currency === "MXN" ? fmtMXN(amount) : fmtUSD(amount)} ${currency}`);
   return parts.length ? parts.join(" · ") : "—";
 };
 
@@ -85,6 +103,11 @@ function DealName({ deal }: { deal: ArchivedDeal }) {
         )}
         {deal.contact && <span>{deal.contact.firstName} {deal.contact.lastName}</span>}
       </span>
+      {deal.quotes && deal.quotes.length > 0 && (
+        <span className="block truncate text-xs text-text-secondary">
+          {deal.quotes.map((quote) => `${quote.folio} · ${QUOTE_STATUS[quote.status] ?? quote.status}`).join("  ·  ")}
+        </span>
+      )}
     </Link>
   );
 }
@@ -112,6 +135,7 @@ export default function HistoryPage() {
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
   const [closing, setClosing] = useState<MonthClosing | null>(null);
+  const [unlinkedPaid, setUnlinkedPaid] = useState<UnlinkedQuote[]>([]);
 
   // Cierre guardado del mes elegido (o cifras en vivo si es el mes en curso).
   useEffect(() => {
@@ -134,6 +158,22 @@ export default function HistoryPage() {
       stale = true;
     };
   }, [month, year, reload]);
+
+  // Cotizaciones ya pagadas que no están vinculadas a ningún deal: no pueden aparecer en el historial hasta vincularlas.
+  useEffect(() => {
+    let stale = false;
+    fetch("/api/quotes?unlinked=1&status=PAGADA", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => {
+        if (!stale) setUnlinkedPaid(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        if (!stale) setUnlinkedPaid([]);
+      });
+    return () => {
+      stale = true;
+    };
+  }, [reload]);
 
   useEffect(() => {
     resetState();
@@ -213,11 +253,31 @@ export default function HistoryPage() {
         />
       </Enter>
 
+      {unlinkedPaid.length > 0 && (
+        <Enter index={1}>
+          <section aria-label="Cotizaciones pagadas sin deal" className="mb-4 rounded-surface border border-line bg-surface-elevated p-4">
+            <h2 className="text-sm font-semibold text-text-primary">
+              {unlinkedPaid.length === 1 ? "1 cotización pagada sin deal" : `${unlinkedPaid.length} cotizaciones pagadas sin deal`}
+            </h2>
+            <p className="mb-2 text-xs text-text-secondary">Vincúlalas a su deal para que cuenten en el historial. Su cobro ya suma en «Cobros recibidos».</p>
+            <ul className="flex flex-wrap gap-2">
+              {unlinkedPaid.map((quote) => (
+                <li key={quote.id}>
+                  <Link href={`/cotizaciones/${quote.folio}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-sidebar px-2.5 py-1 text-xs font-semibold text-text-primary hover:underline">
+                    {quote.folio} · {quote.clientName} · {quote.currency === "MXN" ? fmtMXN(quote.total) : fmtUSD(quote.total)} {quote.currency}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </Enter>
+      )}
+
       {closing && (
         <Enter index={1}>
           <section aria-label="Cierre del período" className="mb-4">
             <h2 className="mb-2 text-sm font-semibold text-text-primary">
-              {month ? `Cierre de ${MONTHS[Number(month) - 1]} ${year}` : `Resumen de ${year}`}
+              {closingTitle(closing)}
               <span className="ml-2 text-xs font-normal text-text-secondary">
                 {closing.source === "snapshot"
                   ? "Guardado al cerrar el mes"
@@ -230,13 +290,36 @@ export default function HistoryPage() {
             </h2>
             {closing.metrics ? (
               <div className="flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
-                <StatCard label="Ventas ganadas" value={String(closing.metrics.won.count)} sub={moneyByCurrency(closing.metrics.won.byCurrency)} />
+                <StatCard
+                  label="Ventas ganadas"
+                  value={String(closing.metrics.won.count)}
+                  sub={moneyByCurrency(closing.metrics.won.byCurrency)}
+                  note={closing.inProgress?.count ? `${closing.inProgress.count} aún en proceso` : undefined}
+                />
                 <StatCard label="Perdidos" value={String(closing.metrics.lost.count)} sub={`${closing.metrics.created} deals nuevos`} />
                 <StatCard label="Tasa de cierre" value={closing.metrics.closingRate === null ? "—" : `${closing.metrics.closingRate}%`} sub="Ganados ÷ cerrados" />
                 <StatCard label="Cobros recibidos" value={moneyByCurrency(closing.metrics.paymentsReceived)} sub={closing.source === "year" ? "En el año" : "En el mes"} />
               </div>
             ) : (
               <p className="rounded-surface border border-line bg-surface-elevated p-4 text-sm text-text-secondary">{closing.note ?? "Sin datos para este mes."}</p>
+            )}
+            {closing.metrics && closing.inProgress && closing.inProgress.count > 0 && (
+              <div className="mt-2 rounded-surface border border-line bg-surface-elevated p-3">
+                <p className="text-xs font-semibold text-text-primary">
+                  {closing.inProgress.count === 1 ? "1 de esas ventas sigue a mitad de proceso" : `${closing.inProgress.count} de esas ventas siguen a mitad de proceso`}
+                  <span className="ml-1 font-normal text-text-secondary">· {moneyByCurrency(closing.inProgress.byCurrency)}. Cuentan como ganadas, pero aún no terminan.</span>
+                </p>
+                <ul className="mt-2 flex flex-wrap gap-2">
+                  {closing.inProgress.deals.map((deal) => (
+                    <li key={deal.id}>
+                      <Link href={`/pipeline/${deal.id}`} className="inline-flex items-center gap-1.5 rounded-full bg-surface-sidebar px-2.5 py-1 text-xs text-text-primary hover:underline">
+                        <span className="font-semibold">{deal.title}</span>
+                        <span className="text-text-secondary">· {moneyByCurrency({ [deal.currency]: deal.amount })} · {deal.reason}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </section>
         </Enter>

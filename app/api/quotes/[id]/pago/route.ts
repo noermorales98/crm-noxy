@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
 import { formatMoney, notifyQuoteEvent } from "@/src/lib/quotes";
+import { refreshSnapshotsForDates } from "@/src/lib/month-close-service";
 
 /** Confirma manualmente el pago de una cotización (p. ej. transferencia bancaria). */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -43,6 +44,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         },
       },
     });
+
+    await refreshSnapshotsForDates(organizationId, [updated.paidAt]);
 
     await notifyQuoteEvent({
       company: quote.senderCompany,

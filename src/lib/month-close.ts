@@ -148,6 +148,20 @@ export function isFinalWonStage(stage: { order: number; name: string }, maxWonOr
 }
 
 /**
+ * ¿Una venta ya contada como ganada sigue a mitad de proceso? Sí si está en una etapa ganada que NO es la final
+ * (p. ej. «Anticipo pagado», «En producción») o si su cotización va en pago parcial (falta cobrar el saldo).
+ * Devuelve el motivo en palabras, o null si ya está terminada. Se evalúa en vivo: cambia cuando el deal avanza.
+ */
+export function inProgressReason(
+  deal: { stage: { order: number; name: string }; quotes: { status: string }[] },
+  maxWonOrderInPipeline: number,
+): string | null {
+  if (!isFinalWonStage(deal.stage, maxWonOrderInPipeline)) return `En etapa «${deal.stage.name}»`;
+  if (deal.quotes.some((quote) => quote.status === "PARCIAL")) return "Falta cobrar el saldo";
+  return null;
+}
+
+/**
  * ¿Lo archiva el cron `auto-archive`? Solo un deal en la última etapa ganadora de su pipeline y con más de N días
  * desde que se ganó (`wonAt`; si falta, la última edición). Un deal en «En producción» o «Anticipo pagado» es trabajo en curso.
  */

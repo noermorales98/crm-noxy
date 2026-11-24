@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { getStripeWebhookSecrets } from "@/src/lib/quotes";
+import { refreshSnapshotsForDates } from "@/src/lib/month-close-service";
 import Stripe from "stripe";
 
 export async function POST(req: Request) {
@@ -96,6 +97,7 @@ export async function POST(req: Request) {
                 },
               });
               console.log(`Quote ${quote.folio} anticipo registrado via Stripe webhook`);
+              await refreshSnapshotsForDates(quote.organizationId, [now]); // el cobro cambia «Cobros recibidos» de ese mes
 
               await notifyQuoteEvent({
                 company: quote.senderCompany,
@@ -137,6 +139,7 @@ export async function POST(req: Request) {
                 },
               });
               console.log(`Quote ${quote.folio} marked as PAGADA via Stripe webhook`);
+              await refreshSnapshotsForDates(quote.organizationId, [now]);
 
               await notifyQuoteEvent({
                 company: quote.senderCompany,

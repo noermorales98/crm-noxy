@@ -90,3 +90,14 @@ test("sumMonthMetrics suma los meses, por moneda, y recalcula la tasa de cierre"
   assert.deepEqual(year.paymentsReceived, { MXN: 200 });
   assert.equal(year.openAtClose, undefined);
 });
+
+test("inProgressReason: ganada pero sin terminar = etapa ganada no final o saldo por cobrar", async () => {
+  const { inProgressReason } = await import("./month-close.ts");
+  const stage = (order: number, name: string) => ({ order, name });
+  // etapas ganadas del pipeline: 4 Anticipo pagado, 5 En producción, 6 Entregado, 7 Ganado (la final)
+  assert.equal(inProgressReason({ stage: stage(4, "Anticipo pagado"), quotes: [] }, 7), "En etapa «Anticipo pagado»");
+  assert.equal(inProgressReason({ stage: stage(5, "En producción"), quotes: [{ status: "PAGADA" }] }, 7), "En etapa «En producción»");
+  assert.equal(inProgressReason({ stage: stage(7, "Ganado"), quotes: [{ status: "PARCIAL" }] }, 7), "Falta cobrar el saldo");
+  assert.equal(inProgressReason({ stage: stage(7, "Ganado"), quotes: [{ status: "PAGADA" }] }, 7), null);
+  assert.equal(inProgressReason({ stage: stage(7, "Ganado"), quotes: [] }, 7), null);
+});

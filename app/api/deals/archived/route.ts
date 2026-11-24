@@ -50,6 +50,7 @@ export async function GET(req: Request) {
         contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
         company: { select: { id: true, name: true } },
         pipeline: { select: { id: true, name: true } },
+        quotes: { orderBy: { issuedAt: "asc" }, select: { id: true, folio: true, status: true, total: true, currency: true } },
       },
     });
 

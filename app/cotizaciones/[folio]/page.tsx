@@ -10,6 +10,7 @@ import { useConfirm } from "@/src/context/ConfirmContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, PencilEdit01Icon, Delete01Icon, Link01Icon, DollarCircleIcon, CheckmarkCircle01Icon } from "@hugeicons/core-free-icons";
 import { QuoteSendDialog } from "@/src/components/quotes/QuoteSendDialog";
+import { QuoteDealDialog } from "@/src/components/quotes/QuoteDealDialog";
 import QuotePdfButton from "@/src/components/quotes/QuotePdfButton";
 import { QuoteStatusBadge, formatQuoteMoney } from "@/src/components/quotes/shared";
 
@@ -43,6 +44,7 @@ function QuoteDetailContent() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [dealOpen, setDealOpen] = useState(false);
 
   const fetchQuote = useCallback(async () => {
     try {
@@ -479,10 +481,14 @@ function QuoteDetailContent() {
                   Vinculado al contacto {quote.contact.firstName} {quote.contact.lastName || ""}
                 </Link>
               )}
-              {quote.deal && (
+              {quote.deal ? (
                 <Link href={`/pipeline/${quote.deal.id}`} className="block mt-2 text-xs text-action-ink hover:underline">
                   Lead: {quote.deal.title}
                 </Link>
+              ) : (
+                <button type="button" onClick={() => setDealOpen(true)} className="crm-press mt-3 inline-flex min-h-11 items-center rounded-control border border-line px-3 text-xs font-semibold text-text-primary hover:bg-nav-hover lg:min-h-9">
+                  Conectar con un deal
+                </button>
               )}
             </div>
           </div>
@@ -526,6 +532,7 @@ function QuoteDetailContent() {
           </div>
         </div>
       </div>
+      <QuoteDealDialog open={dealOpen} onClose={() => setDealOpen(false)} quote={quote} onDone={fetchQuote} />
       <QuoteSendDialog open={sendOpen} onClose={() => setSendOpen(false)} quote={quote} onSent={handleSent} />
     </main>
   );

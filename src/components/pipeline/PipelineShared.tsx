@@ -44,6 +44,7 @@ export function StatCard({
   value,
   values,
   sub,
+  note,
   badge,
   badgePositive,
   onHide,
@@ -52,6 +53,8 @@ export function StatCard({
   value?: string;
   values?: { label: string; amount: string }[];
   sub: string;
+  /** Aclaración que debe verse junto a la cifra (p. ej. «1 en proceso»). */
+  note?: string;
   badge?: string;
   badgePositive?: boolean;
   onHide?: () => void;
@@ -93,6 +96,7 @@ export function StatCard({
         </div>
       )}
       <p className="text-xs text-text-secondary">{sub}</p>
+      {note && <p className="text-xs font-semibold text-text-primary">{note}</p>}
     </div>
   );
 }
