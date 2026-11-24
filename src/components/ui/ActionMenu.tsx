@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { cn } from "./cn";
@@ -19,26 +20,40 @@ type ActionMenuProps = {
   /** Nombre accesible del botón, p. ej. «Acciones de la cita». */
   label: string;
   items: ActionMenuItem[];
+  /** Pinta el menú sobre toda la página (fuera de la fila), para que ningún contenido vecino lo tape ni lo recorte. */
+  portal?: boolean;
 };
 
 /**
  * Menú de acciones de una fila: un solo botón «⋯» que despliega las acciones. Las destructivas van al final,
  * separadas y en rojo, para no tocarlas por error. Flechas, Inicio/Fin, Esc y clic fuera funcionan como en un menú nativo.
  */
-export function ActionMenu({ label, items }: ActionMenuProps) {
+export function ActionMenu({ label, items, portal = false }: ActionMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [upward, setUpward] = useState(false);
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
+    const onMove = () => setOpen(false);
     document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+    if (portal) {
+      window.addEventListener("resize", onMove);
+      window.addEventListener("scroll", onMove, true);
+    }
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("resize", onMove);
+      window.removeEventListener("scroll", onMove, true);
+    };
+  }, [open, portal]);
 
   // Al abrir, el foco entra en la primera acción disponible.
   useEffect(() => {
@@ -49,7 +64,9 @@ export function ActionMenu({ label, items }: ActionMenuProps) {
     if (!open) {
       const rect = rootRef.current?.getBoundingClientRect();
       // Si abajo no cabe el menú (≈ 44 px por acción), se abre hacia arriba.
-      setUpward(rect ? window.innerHeight - rect.bottom < items.length * 44 + 24 : false);
+      const up = rect ? window.innerHeight - rect.bottom < items.length * 44 + 24 : false;
+      setUpward(up);
+      if (portal && rect) setPos(up ? { bottom: window.innerHeight - rect.top + 4, right: window.innerWidth - rect.right } : { top: rect.bottom + 4, right: window.innerWidth - rect.right });
     }
     setOpen((value) => !value);
   };
@@ -97,16 +114,17 @@ export function ActionMenu({ label, items }: ActionMenuProps) {
         <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
       </button>
 
-      {open && (
+      {open && (portal ? (pos ? createPortal(
         <div
           ref={menuRef}
           role="menu"
           aria-label={label}
           onKeyDown={onKeyDown}
           className={cn(
-            "crm-floating-menu absolute right-0 z-30 w-52 rounded-surface border border-line bg-surface-elevated p-1",
-            upward ? "bottom-full mb-1" : "top-full mt-1",
+            "crm-floating-menu w-52 rounded-surface border border-line bg-surface-elevated p-1",
+            portal ? "fixed z-[100]" : cn("absolute right-0 z-30", upward ? "bottom-full mb-1" : "top-full mt-1"),
           )}
+          style={portal && pos ? pos : undefined}
         >
           {items.map((item, index) => (
             <div key={item.key}>
@@ -132,7 +150,43 @@ export function ActionMenu({ label, items }: ActionMenuProps) {
             </div>
           ))}
         </div>
-      )}
+, document.body) : null) : (
+        <div
+          ref={menuRef}
+          role="menu"
+          aria-label={label}
+          onKeyDown={onKeyDown}
+          className={cn(
+            "crm-floating-menu w-52 rounded-surface border border-line bg-surface-elevated p-1",
+            portal ? "fixed z-[100]" : cn("absolute right-0 z-30", upward ? "bottom-full mb-1" : "top-full mt-1"),
+          )}
+          style={portal && pos ? pos : undefined}
+        >
+          {items.map((item, index) => (
+            <div key={item.key}>
+              {index === firstDanger && index > 0 && <div role="separator" className="my-1 border-t border-line" />}
+              <button
+                type="button"
+                role="menuitem"
+                disabled={item.disabled}
+                onClick={() => {
+                  setOpen(false);
+                  item.onSelect();
+                }}
+                className={cn(
+                  "flex h-9 min-h-0! w-full min-w-0! items-center gap-2.5 rounded-control px-2.5 text-left text-sm outline-none transition-colors disabled:opacity-40",
+                  item.tone === "danger"
+                    ? "text-danger hover:bg-danger-soft focus-visible:bg-danger-soft"
+                    : "text-text-primary hover:bg-nav-hover focus-visible:bg-nav-hover",
+                )}
+              >
+                {item.icon && <HugeiconsIcon icon={item.icon} size={16} className="shrink-0" />}
+                <span className="truncate">{item.label}</span>
+              </button>
+            </div>
+          ))}
+        </div>
+))}
     </div>
   );
 }

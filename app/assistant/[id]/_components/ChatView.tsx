@@ -93,7 +93,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const [preferredKey, setPreferredKey] = useState<"1" | "2">("1");
   // Nombres de TODOS los modelos disponibles (también los de NVIDIA): sin esto un modelo fuera de la lista fija se mostraba como Gemma.
   // Cada chat tiene su propia criatura: la de un chat guardado se recuerda por su id; la de uno nuevo es al azar.
-  const [blobSeed, setBlobSeed] = useState(() => randomBlobSeed());
+  const [blobSeed, setBlobSeed] = useState(conversationId);
   const [justFinished, setJustFinished] = useState(false);
   // Nombre que la persona le puso al chat (vacío = automático, del primer mensaje).
   const [chatTitle, setChatTitle] = useState("");
@@ -126,8 +126,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
-    if (conversationId === "new") return;
-    setBlobSeed(chatBlobSeed(conversationId));
+    // El primer render (servidor y cliente) usa solo el id; la cara recordada en el navegador o el sorteo del chat nuevo se aplican ya montado.
+    setBlobSeed(conversationId === "new" ? randomBlobSeed() : chatBlobSeed(conversationId));
   }, [conversationId]);
   const colors = blobColors(blobSeed);
   // En un chat guardado, cambiar la cara se recuerda en el navegador y el nombre se guarda en el servidor.

@@ -371,7 +371,7 @@ export function AssistantNav() {
                         </div>
                       ) : renamingId === conv.id ? null : (
                         <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-150 focus-within:opacity-100 group-hover:opacity-100 has-[[aria-expanded=true]]:opacity-100 motion-reduce:transition-none max-lg:opacity-100">
-                          <ActionMenu label={`Acciones del chat «${conv.title}»`} items={menuItems(conv)} />
+                          <ActionMenu portal label={`Acciones del chat «${conv.title}»`} items={menuItems(conv)} />
                         </div>
                       )}
                     </div>
