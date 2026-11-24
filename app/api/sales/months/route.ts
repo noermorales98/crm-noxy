@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
-import { loadMonthMetrics } from "@/src/lib/month-metrics";
+import { loadMonthMetrics, loadYearMetrics } from "@/src/lib/month-metrics";
 
 // GET /api/sales/months            → lista de meses con foto guardada
+// GET /api/sales/months?year=YYYY    → suma de los meses del año
 // GET /api/sales/months?month=YYYY-MM → métricas del mes (foto guardada; el mes en curso se calcula en vivo)
 export async function GET(req: Request) {
   try {
@@ -12,7 +13,14 @@ export async function GET(req: Request) {
     const organizationId = (session as { currentOrganizationId?: string }).currentOrganizationId;
     if (!organizationId) return NextResponse.json({ error: "No organization context" }, { status: 400 });
 
-    const month = new URL(req.url).searchParams.get("month");
+    const params = new URL(req.url).searchParams;
+    const year = params.get("year");
+    if (year) {
+      const result = await loadYearMetrics(organizationId, Number(year));
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+      return NextResponse.json(result);
+    }
+    const month = params.get("month");
     if (month) {
       const result = await loadMonthMetrics(organizationId, month);
       if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });

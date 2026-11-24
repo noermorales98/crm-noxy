@@ -496,6 +496,7 @@ model Deal {
   isArchived  Boolean     @default(false)
   archivedAt  DateTime?
   wonAt       DateTime? // cuándo pasó a una etapa ganada; el mes de la venta sale de aquí, no de updatedAt
+  lostAt      DateTime? // cuándo pasó a una etapa perdida (null en perdidos anteriores a este campo)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 

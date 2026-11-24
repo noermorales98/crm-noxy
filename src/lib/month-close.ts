@@ -76,6 +76,27 @@ export type MonthMetrics = {
   openAtClose?: { count: number; byCurrency: Money };
 };
 
+/** Resumen de un año: la suma de las métricas de sus meses (lo «abierto al cierre» no se suma: es una foto de un instante). */
+export function sumMonthMetrics(year: number, months: MonthMetrics[]): MonthMetrics {
+  const won: MonthMetrics["won"] = { count: 0, byCurrency: {} };
+  const paymentsReceived: Money = {};
+  let created = 0;
+  let lost = 0;
+  let withQuote = 0;
+  let withoutQuote = 0;
+  for (const month of months) {
+    created += month.created;
+    lost += month.lost.count;
+    won.count += month.won.count;
+    withQuote += month.withQuote;
+    withoutQuote += month.withoutQuote;
+    for (const [currency, amount] of Object.entries(month.won.byCurrency)) add(won.byCurrency, currency, amount);
+    for (const [currency, amount] of Object.entries(month.paymentsReceived)) add(paymentsReceived, currency, amount);
+  }
+  const closed = won.count + lost;
+  return { month: String(year), created, won, lost: { count: lost }, closingRate: closed > 0 ? Math.round((won.count / closed) * 100) : null, withQuote, withoutQuote, paymentsReceived };
+}
+
 const add = (bucket: Money, currency: string, amount: number) => {
   bucket[currency] = (bucket[currency] ?? 0) + amount;
 };

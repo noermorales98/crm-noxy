@@ -530,6 +530,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         } else {
           data.wonAt = null;
         }
+        data.lostAt = stage.isLost ? new Date() : null;
       }
       const deal = await prisma.deal.update({
         where: { id },

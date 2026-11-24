@@ -34,6 +34,7 @@ import {
 import { visiblePipelines } from "@/src/lib/pipeline-categories";
 import { addStageFor, buildBoardColumns, dealsForColumn, dropStageFor, type BoardColumn as BoardColumnDef } from "@/src/lib/pipeline-board";
 import { readCache, writeCache } from "@/src/lib/client-cache";
+import { LostReasonDialog } from "@/src/components/pipeline/LostReasonDialog";
 
 const DEALS_CACHE_KEY = "pipeline:deals";
 const DEALS_CACHE_MS = 5 * 60_000;
@@ -401,6 +402,9 @@ export default function PipelinePage() {
   const [loading, setLoading] = useState(() => readCache<any[]>(DEALS_CACHE_KEY, DEALS_CACHE_MS) === undefined);
   const [loadError, setLoadError] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
+  // Deal arrastrado a «Perdido»: no se mueve hasta que se escribe el motivo.
+  const [pendingLoss, setPendingLoss] = useState<{ dealId: string; stageId: string; title: string } | null>(null);
+  const [savingLoss, setSavingLoss] = useState(false);
   const [defaultStageId, setDefaultStageId] = useState<string | undefined>();
   // Categoría (pipeline) elegida: «all» = todo el pipeline junto. Se recuerda entre visitas.
   const [selectedPipeline, setSelectedPipeline] = useState("all");
@@ -502,6 +506,23 @@ export default function PipelinePage() {
     const newStageId = column && deal ? dropStageFor(column, deal.pipelineId) : null;
     if (!newStageId) return;
 
+    if (column?.isLost) {
+      setPendingLoss({ dealId: draggableId, stageId: newStageId, title: deal.title });
+      return;
+    }
+    await moveDeal(deal, draggableId, newStageId);
+  };
+
+  const confirmLoss = async (reason: string) => {
+    if (!pendingLoss) return;
+    const deal = pipelines.flatMap((p: any) => p.stages.flatMap((s: any) => s.deals)).find((d: any) => d.id === pendingLoss.dealId);
+    setSavingLoss(true);
+    if (deal) await moveDeal(deal, pendingLoss.dealId, pendingLoss.stageId, reason);
+    setSavingLoss(false);
+    setPendingLoss(null);
+  };
+
+  const moveDeal = async (deal: any, draggableId: string, newStageId: string, lostReason?: string) => {
     setPipelines((prev) =>
       prev.map((pipeline) => ({
         ...pipeline,
@@ -515,11 +536,12 @@ export default function PipelinePage() {
       }))
     );
 
-    await fetch("/api/deals", {
+    const res = await fetch("/api/deals", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: draggableId, stageId: newStageId }),
+      body: JSON.stringify({ id: draggableId, stageId: newStageId, ...(lostReason ? { lostReason } : {}) }),
     });
+    if (!res.ok) fetchPipelines(); // el servidor lo rechazó: se vuelve a la posición real
   };
 
   // ─── Stats ────────────────────────────────────────────────────────────────
@@ -752,6 +774,8 @@ export default function PipelinePage() {
           </>
         )}
       </main>
+
+      {pendingLoss && <LostReasonDialog dealTitle={pendingLoss.title} saving={savingLoss} onConfirm={confirmLoss} onCancel={() => setPendingLoss(null)} />}
 
       {showDealModal && (
         <NewDealModal

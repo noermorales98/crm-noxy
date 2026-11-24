@@ -39,6 +39,7 @@ import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
 import { ManualAppointmentDialog } from "@/src/components/ManualAppointmentDialog";
 import { effectiveDealValue } from "@/src/lib/deal-sales";
 import { LinkAppointmentDialog } from "@/src/components/LinkAppointmentDialog";
+import { LostReasonDialog } from "@/src/components/pipeline/LostReasonDialog";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -499,10 +500,20 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
 
   // ─── Stage ───────────────────────────────────────────────────────────────
 
-  async function changeStage(stageId: string) {
+  // Mover a «Perdido» pide antes el motivo; el resto de etapas se mueve directo.
+  const [pendingLostStage, setPendingLostStage] = useState<string | null>(null);
+
+  async function changeStage(stageId: string, lostReason?: string) {
+    const target = deal.stage?.pipeline?.stages?.find((item: any) => item.id === stageId);
+    if (target?.isLost && !lostReason) {
+      setPendingLostStage(stageId);
+      return;
+    }
     setSavingStage(true);
-    await patchDeal({ stageId });
+    await patchDeal({ stageId, ...(lostReason ? { lostReason } : {}) });
+    if (lostReason) setLostReason(lostReason);
     setSavingStage(false);
+    setPendingLostStage(null);
     startTransition(() => router.refresh());
   }
 
@@ -1654,6 +1665,10 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
           onCancel={() => setConfirmDeleteProposal(null)}
           loading={deletingProposal === confirmDeleteProposal}
         />
+      )}
+
+      {pendingLostStage && (
+        <LostReasonDialog dealTitle={deal.title} initialReason={lostReason} saving={savingStage} onConfirm={(reason) => changeStage(pendingLostStage, reason)} onCancel={() => setPendingLostStage(null)} />
       )}
 
       {/* ── Confirm: delete deal ── */}

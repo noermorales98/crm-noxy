@@ -12,7 +12,7 @@ export {
 } from "@/src/lib/db-errors";
 
 // Bump key when Prisma schema changes so dev HMR doesn't keep a stale client.
-const PRISMA_CLIENT_KEY = "prisma_v14";
+const PRISMA_CLIENT_KEY = "prisma_v15";
 
 const globalForPrisma = globalThis as unknown as Record<string, PrismaClient | undefined>;
 

@@ -3,6 +3,7 @@ import { NextResponse, after } from "next/server";
 import { ensureContactForWonDeal, ensureProjectForWonDeal } from "@/src/lib/deal-won";
 import { ensureDeliveryReferrals, ensureLeadFollowups } from "@/src/lib/lead-followup-service";
 import { autoSync } from "@/src/lib/notion-sync";
+import { refreshSnapshotForDeal } from "@/src/lib/month-close-service";
 import { normalizeDealIcon } from "@/src/lib/deal-icons";
 import { prisma } from "@/src/lib/db";
 import { assertOrgRefs } from "@/src/lib/org-refs";
@@ -139,6 +140,7 @@ export async function PATCH(req: Request) {
     if (refError) return NextResponse.json({ error: refError }, { status: 400 });
 
     const updateData: Record<string, any> = {};
+    let lostNote: string | null = null;
     if (title !== undefined) updateData.title = title;
     if (value !== undefined) updateData.value = parseFloat(value);
     if (currency !== undefined) updateData.currency = currency;
@@ -178,6 +180,17 @@ export async function PATCH(req: Request) {
         where: { id: stageId, pipeline: { organizationId } },
       });
       if (!stage) return NextResponse.json({ error: "Stage no válido" }, { status: 404 });
+      // Perder un deal exige decir por qué: queda en lostReason, en lostAt (para el cierre del mes) y en la bitácora.
+      if (stage.isLost) {
+        const reason = typeof lostReason === "string" ? lostReason.trim() : "";
+        const finalReason = reason || existing.lostReason?.trim() || "";
+        if (!finalReason) return NextResponse.json({ error: "Indica por qué se perdió el deal" }, { status: 400 });
+        updateData.lostReason = finalReason;
+        updateData.lostAt = new Date();
+        lostNote = finalReason;
+      } else {
+        updateData.lostAt = null; // dejó de estar perdido (el motivo se conserva por si se pierde otra vez)
+      }
       updateData.stageId = stageId;
       updateData.pipelineId = stage.pipelineId;
       // Fecha de cierre: al entrar a una etapa ganada (si ya era ganado se conserva); al salir de ganado se borra.
@@ -212,7 +225,14 @@ export async function PATCH(req: Request) {
       },
     });
 
+    if (lostNote) {
+      await prisma.activityLog.create({
+        data: { type: "NOTA", description: `Deal perdido en «${deal.stage.name}». Motivo: ${lostNote}`, dealId: deal.id, organizationId, createdById: session.user?.id || null },
+      });
+    }
     after(() => autoSync(organizationId, "deal", deal.id));
+    // Corregir valor/moneda de un ganado de un mes ya cerrado actualiza la foto de ese mes
+    if (deal.stage.isWon && (value !== undefined || currency !== undefined)) after(() => refreshSnapshotForDeal(organizationId, deal.id));
     // Etapa ganada → contacto (si faltaba) + proyecto + tareas base
     let wonProject = null;
     if (deal.stage.isWon) {

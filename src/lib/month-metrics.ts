@@ -1,6 +1,6 @@
 import { prisma } from "@/src/lib/db";
 import { computeMonthMetrics } from "@/src/lib/month-close-service";
-import { monthKeyInZone, parseMonthKey, type MonthKey, type MonthMetrics } from "@/src/lib/month-close";
+import { monthKeyInZone, parseMonthKey, sumMonthMetrics, toMonthKey, type MonthKey, type MonthMetrics } from "@/src/lib/month-close";
 
 export type LoadedMonth =
   | { ok: true; month: MonthKey; source: "snapshot" | "live" | "none"; metrics: MonthMetrics | null; note?: string }
@@ -25,4 +25,17 @@ export async function loadMonthMetrics(organizationId: string, month: string): P
   if (month === current) return { ok: true, month, source: "live", metrics: await computeMonthMetrics(organizationId, month, timeZone, { withOpen: true }), note: "Mes en curso: cifras en vivo, aún sin cerrar." };
   if (month > current) return { ok: true, month, source: "none", metrics: null, note: "Ese mes aún no llega." };
   return { ok: true, month, source: "none", metrics: null, note: "Mes sin cierre guardado; se genera en la próxima ejecución del cron." };
+}
+
+export type LoadedYear =
+  | { ok: true; year: number; source: "year"; metrics: MonthMetrics | null; months: number; note?: string }
+  | { ok: false; error: string };
+
+/** Resumen de un año: suma de los meses que ya tienen cifras (foto guardada o mes en curso en vivo). */
+export async function loadYearMetrics(organizationId: string, year: number): Promise<LoadedYear> {
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) return { ok: false, error: "El año debe tener 4 dígitos (p. ej. 2026)" };
+  const loaded = await Promise.all(Array.from({ length: 12 }, (_, i) => loadMonthMetrics(organizationId, toMonthKey(year, i + 1))));
+  const metrics = loaded.flatMap((item) => (item.ok && item.metrics ? [item.metrics] : []));
+  if (metrics.length === 0) return { ok: true, year, source: "year", metrics: null, months: 0, note: "Sin cifras guardadas para este año." };
+  return { ok: true, year, source: "year", metrics: sumMonthMetrics(year, metrics), months: metrics.length };
 }

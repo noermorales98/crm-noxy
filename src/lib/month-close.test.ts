@@ -74,3 +74,19 @@ test("isAutoArchivable: la última etapa ganadora vieja se archiva; la de produc
   assert.equal(isAutoArchivable({ wonAt: fresh, updatedAt: fresh, stage: { order: 6, name: "Entregado" } }, 6, threshold), false, "aún no cumple los días");
   assert.equal(isAutoArchivable({ wonAt: null, updatedAt: old, stage: { order: 7, name: "Ganado" } }, 7, threshold), true, "sin wonAt usa updatedAt");
 });
+
+test("sumMonthMetrics suma los meses, por moneda, y recalcula la tasa de cierre", async () => {
+  const { sumMonthMetrics } = await import("./month-close.ts");
+  const month = (m: string, wonCount: number, mxn: number, lost: number) => ({
+    month: m, created: 2, won: { count: wonCount, byCurrency: { MXN: mxn } }, lost: { count: lost },
+    closingRate: null, withQuote: 1, withoutQuote: wonCount - 1, paymentsReceived: { MXN: 100 },
+    openAtClose: { count: 9, byCurrency: { MXN: 9 } },
+  });
+  const year = sumMonthMetrics(2026, [month("2026-10", 2, 3000, 1), month("2026-11", 1, 500, 0)]);
+  assert.equal(year.created, 4);
+  assert.deepEqual(year.won, { count: 3, byCurrency: { MXN: 3500 } });
+  assert.equal(year.lost.count, 1);
+  assert.equal(year.closingRate, 75);
+  assert.deepEqual(year.paymentsReceived, { MXN: 200 });
+  assert.equal(year.openAtClose, undefined);
+});

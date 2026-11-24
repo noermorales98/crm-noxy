@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useHeader } from "@/src/context/HeaderContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Building02Icon, Search01Icon } from "@hugeicons/core-free-icons";
 import { input as inputCls, selectInline } from "@/src/lib/crm-ui";
 import { fmtUSD, fmtMXN, StatCard } from "@/src/components/pipeline/PipelineShared";
+import { HistoryCharts } from "@/src/components/pipeline/HistoryCharts";
 import { Chip, DataTable, EmptyState, Enter, ErrorState, FilterBar, PageHeader, Skeleton, type DataColumn } from "@/src/components/ui";
 
 type ArchivedDeal = {
@@ -15,13 +16,16 @@ type ArchivedDeal = {
   value?: number | null;
   currency?: string | null;
   archivedAt?: string | null;
+  wonAt?: string | null;
+  lostReason?: string | null;
   company?: { name: string } | null;
   contact?: { firstName?: string | null; lastName?: string | null } | null;
   stage?: { name?: string | null; color?: string | null; isWon?: boolean; isLost?: boolean } | null;
 };
 
 type MonthClosing = {
-  source: "snapshot" | "live" | "none";
+  source: "snapshot" | "live" | "none" | "year";
+  months?: number;
   note?: string;
   metrics: {
     created: number;
@@ -40,6 +44,16 @@ const moneyByCurrency = (bucket: Record<string, number> | undefined) => {
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const money = (d: ArchivedDeal) => (d.currency === "MXN" ? fmtMXN(d.value ?? 0) : fmtUSD(d.value ?? 0));
+
+/** Monto con su moneda escrita (MXN o USD), para no depender solo del símbolo «$». */
+function MoneyCell({ deal }: { deal: ArchivedDeal }) {
+  return (
+    <span className="inline-flex items-baseline justify-end gap-1.5 whitespace-nowrap">
+      <span className="font-semibold tabular-nums text-text-primary">{money(deal)}</span>
+      <span className="rounded bg-surface-sidebar px-1.5 py-0.5 text-xs font-semibold tracking-wide text-text-secondary">{deal.currency === "MXN" ? "MXN" : "USD"}</span>
+    </span>
+  );
+}
 const archivedOn = (d: ArchivedDeal) =>
   d.archivedAt ? new Date(d.archivedAt).toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "";
 
@@ -54,6 +68,7 @@ function StageCell({ deal }: { deal: ArchivedDeal }) {
       </span>
       {deal.stage?.isWon && <Chip tone="done">Ganado</Chip>}
       {deal.stage?.isLost && <Chip tone="late">Perdido</Chip>}
+      {deal.stage?.isLost && deal.lostReason && <span className="basis-full text-xs text-text-secondary">Motivo: {deal.lostReason}</span>}
     </span>
   );
 }
@@ -76,7 +91,7 @@ function DealName({ deal }: { deal: ArchivedDeal }) {
 
 const COLUMNS: DataColumn<ArchivedDeal>[] = [
   { key: "deal", header: "Deal", render: (d) => <DealName deal={d} /> },
-  { key: "value", header: "Valor", align: "right", render: (d) => <span className="font-semibold text-text-primary">{money(d)}</span> },
+  { key: "value", header: "Valor", align: "right", render: (d) => <MoneyCell deal={d} /> },
   { key: "stage", header: "Etapa final", render: (d) => <StageCell deal={d} /> },
   { key: "archived", header: "Archivado el", render: (d) => <span className="text-text-secondary">{archivedOn(d)}</span> },
 ];
@@ -87,6 +102,8 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reload, setReload] = useState(0);
+  // Las recargas automáticas (volver a la pestaña) no muestran el esqueleto: la lista se queda y se actualiza en silencio.
+  const silentRef = useRef(false);
 
   // Filters
   const now = new Date();
@@ -98,12 +115,14 @@ export default function HistoryPage() {
 
   // Cierre guardado del mes elegido (o cifras en vivo si es el mes en curso).
   useEffect(() => {
-    if (!month || !year) {
+    if (!year) {
       setClosing(null);
       return;
     }
     let stale = false;
-    fetch(`/api/sales/months?month=${year}-${month.padStart(2, "0")}`)
+    // Con un mes elegido: el cierre de ese mes. Con «Todo el año»: la suma de los meses del año.
+    const query = month ? `month=${year}-${month.padStart(2, "0")}` : `year=${year}`;
+    fetch(`/api/sales/months?${query}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!stale) setClosing(data);
@@ -114,7 +133,7 @@ export default function HistoryPage() {
     return () => {
       stale = true;
     };
-  }, [month, year]);
+  }, [month, year, reload]);
 
   useEffect(() => {
     resetState();
@@ -127,7 +146,9 @@ export default function HistoryPage() {
     // Una respuesta lenta de un filtro anterior no pisa la del filtro actual.
     let stale = false;
     async function fetchHistory() {
-      setLoading(true);
+      const silent = silentRef.current;
+      silentRef.current = false;
+      if (!silent) setLoading(true);
       setLoadError(false);
       try {
         const query = new URLSearchParams();
@@ -135,13 +156,13 @@ export default function HistoryPage() {
         if (year) query.set("year", year);
         if (type !== "all") query.set("type", type);
 
-        const res = await fetch(`/api/deals/archived?${query.toString()}`);
+        const res = await fetch(`/api/deals/archived?${query.toString()}`, { cache: "no-store" });
         const data = res.ok ? await res.json() : null;
         if (stale) return;
         if (data) setDeals(data);
-        else setLoadError(true);
+        else if (!silent) setLoadError(true);
       } catch {
-        if (!stale) setLoadError(true);
+        if (!stale && !silent) setLoadError(true);
       } finally {
         if (!stale) setLoading(false);
       }
@@ -151,6 +172,21 @@ export default function HistoryPage() {
       stale = true;
     };
   }, [month, year, type, reload]);
+
+  // Al volver a la pestaña o a esta pantalla (p. ej. tras editar un deal) se vuelven a pedir los datos.
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      silentRef.current = true;
+      setReload((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("pageshow", refresh);
+    return () => {
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("pageshow", refresh);
+    };
+  }, []);
 
   const term = search.toLowerCase();
   const filteredDeals = deals.filter(
@@ -179,11 +215,17 @@ export default function HistoryPage() {
 
       {closing && (
         <Enter index={1}>
-          <section aria-label="Cierre del mes" className="mb-4">
+          <section aria-label="Cierre del período" className="mb-4">
             <h2 className="mb-2 text-sm font-semibold text-text-primary">
-              Cierre de {MONTHS[Number(month) - 1]} {year}
+              {month ? `Cierre de ${MONTHS[Number(month) - 1]} ${year}` : `Resumen de ${year}`}
               <span className="ml-2 text-xs font-normal text-text-secondary">
-                {closing.source === "snapshot" ? "Guardado al cerrar el mes" : closing.source === "live" ? "En vivo: el mes aún no termina" : ""}
+                {closing.source === "snapshot"
+                  ? "Guardado al cerrar el mes"
+                  : closing.source === "live"
+                    ? "En vivo: el mes aún no termina"
+                    : closing.source === "year"
+                      ? `Suma de ${closing.months} ${closing.months === 1 ? "mes" : "meses"} con cifras`
+                      : ""}
               </span>
             </h2>
             {closing.metrics ? (
@@ -191,7 +233,7 @@ export default function HistoryPage() {
                 <StatCard label="Ventas ganadas" value={String(closing.metrics.won.count)} sub={moneyByCurrency(closing.metrics.won.byCurrency)} />
                 <StatCard label="Perdidos" value={String(closing.metrics.lost.count)} sub={`${closing.metrics.created} deals nuevos`} />
                 <StatCard label="Tasa de cierre" value={closing.metrics.closingRate === null ? "—" : `${closing.metrics.closingRate}%`} sub="Ganados ÷ cerrados" />
-                <StatCard label="Cobros recibidos" value={moneyByCurrency(closing.metrics.paymentsReceived)} sub="En el mes" />
+                <StatCard label="Cobros recibidos" value={moneyByCurrency(closing.metrics.paymentsReceived)} sub={closing.source === "year" ? "En el año" : "En el mes"} />
               </div>
             ) : (
               <p className="rounded-surface border border-line bg-surface-elevated p-4 text-sm text-text-secondary">{closing.note ?? "Sin datos para este mes."}</p>
@@ -207,6 +249,12 @@ export default function HistoryPage() {
           <StatCard label="Total perdidos" value={String(totalLost)} sub="Deals no cerrados" />
         </section>
       </Enter>
+
+      {!loading && !loadError && (
+        <Enter index={2}>
+          <HistoryCharts deals={filteredDeals} year={Number(year)} month={month ? Number(month) : ""} />
+        </Enter>
+      )}
 
       <Enter index={2}>
         <FilterBar
@@ -262,7 +310,7 @@ export default function HistoryPage() {
                 <div className="flex w-full min-w-0 flex-col gap-1.5 py-1">
                   <div className="flex items-start justify-between gap-3">
                     <DealName deal={d} />
-                    <span className="shrink-0 text-sm font-semibold tabular-nums text-text-primary">{money(d)}</span>
+                    <span className="shrink-0 text-sm"><MoneyCell deal={d} /></span>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <StageCell deal={d} />

@@ -28,7 +28,7 @@ export async function GET(req: Request) {
       if (!shouldCloseSilentLead({ createdAt: lead.createdAt, stageName: lead.stage.name, lastActivityAt: lead.activities[0]?.createdAt }, now)) continue;
       const lost = await prisma.stage.findFirst({where:{pipelineId:lead.stage.pipelineId,isLost:true}});
       if (!lost) continue;
-      await prisma.deal.updateMany({where:{id:lead.id,stageId:lead.stageId},data:{stageId:lost.id,lostReason:'Sin respuesta en 14 días; confirmar motivo'}});
+      await prisma.deal.updateMany({where:{id:lead.id,stageId:lead.stageId},data:{stageId:lost.id,lostAt:new Date(),lostReason:'Sin respuesta en 14 días; confirmar motivo'}});
       closedSilentLeads++;
     }
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);

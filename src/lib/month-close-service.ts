@@ -26,7 +26,8 @@ export async function computeMonthMetrics(organizationId: string, key: MonthKey,
       where: { organizationId, ...wonInRange(from, to) },
       select: { value: true, currency: true, quotes: { select: { status: true, total: true, currency: true } } },
     }),
-    prisma.deal.count({ where: { organizationId, stage: { isLost: true }, updatedAt: { gte: from, lt: to } } }),
+    // El mes de un perdido es cuando se perdió (lostAt); los anteriores a ese campo no tienen fecha y no se cuentan en ningún mes.
+    prisma.deal.count({ where: { organizationId, stage: { isLost: true }, lostAt: { gte: from, lt: to } } }),
     prisma.payment.findMany({
       where: { organizationId, status: "RECIBIDO", receivedAt: { gte: from, lt: to } },
       select: { amount: true, currency: true },
@@ -86,6 +87,32 @@ export async function closePendingMonths(organizationId: string, timeZone: strin
     closed.push({ month: key, archived: await archiveWonOfMonth(organizationId, key, timeZone) });
   }
   return closed;
+}
+
+/**
+ * Si el mes en que cayó una venta ganada ya tiene foto guardada, la recalcula: así corregir el valor o la moneda
+ * de un deal ganado se refleja en el «Cierre del mes». Conserva lo «abierto al cierre» (no se puede reconstruir).
+ * Nunca lanza: es un efecto secundario de editar el deal.
+ */
+export async function refreshSnapshotForDeal(organizationId: string, dealId: string): Promise<void> {
+  try {
+    const deal = await prisma.deal.findFirst({ where: { id: dealId, organizationId }, select: { wonAt: true, updatedAt: true, stage: { select: { isWon: true } } } });
+    if (!deal?.stage.isWon) return;
+    const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: { timezone: true } });
+    const timeZone = org?.timezone || "America/Cancun";
+    const key = monthKeyInZone(deal.wonAt ?? deal.updatedAt, timeZone);
+    const parsed = parseMonthKey(key);
+    if (!parsed) return;
+    const where = { organizationId_year_month: { organizationId, year: parsed.year, month: parsed.month } };
+    const snapshot = await prisma.monthlySnapshot.findUnique({ where });
+    if (!snapshot) return; // mes en curso: se calcula en vivo
+    const previous = snapshot.metrics as unknown as MonthMetrics;
+    const metrics = await computeMonthMetrics(organizationId, key, timeZone);
+    if (previous.openAtClose) metrics.openAtClose = previous.openAtClose;
+    await prisma.monthlySnapshot.update({ where, data: { metrics: metrics as unknown as object } });
+  } catch (error) {
+    console.error("[month-close] refreshSnapshotForDeal", dealId, error);
+  }
 }
 
 /** Cierra los meses pendientes de todas las organizaciones. Nunca lanza: un fallo no debe frenar el resumen diario. */
