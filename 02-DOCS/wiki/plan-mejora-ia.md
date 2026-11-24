@@ -69,12 +69,12 @@ Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definid
 
 ✅ No hizo falta un cron nuevo: se ejecutan desde el cron del resumen que ya tienes.
 
-- [x] ~~**T5.1** Tabla de programaciones (qué pide, cuándo, a quién avisa) 🔒 SQL~~ — `FASE5` (como las habilidades: JSON de la organización en la tabla de preferencias de IA; sin SQL nuevo)
-- [x] ~~**T5.2** Crear una programación hablando: «cada lunes dame el resumen de la semana»~~ — `FASE5` (tarjeta `create_ai_schedule` con confirmación)
-- [x] ~~**T5.3** Cron que ejecuta las programaciones y entrega el resultado (notificación y/o correo)~~ — `FASE5` (reutiliza el cron del resumen, cada 15 min: no hay que registrar uno nuevo en cron-job.org; entrega = chat nuevo en el asistente + WhatsApp si tienes CallMeBot; no hay correo)
-- [x] ~~**T5.4** Alerta: deal sin movimiento en N días~~ — `FASE5`
-- [x] ~~**T5.5** Alerta: pieza de contenido atrasada o cobro de cliente vencido~~ — `FASE5`
-- [x] ~~**T5.6** Pantalla para ver, pausar y borrar programaciones~~ — `FASE5` (Ajustes › Modelos de IA; también «ejecutar ahora»)
+- [x] ~~**T5.1** Tabla de programaciones (qué pide, cuándo, a quién avisa) 🔒 SQL~~ — `a484ec3` (como las habilidades: JSON de la organización en la tabla de preferencias de IA; sin SQL nuevo)
+- [x] ~~**T5.2** Crear una programación hablando: «cada lunes dame el resumen de la semana»~~ — `a484ec3` (tarjeta `create_ai_schedule` con confirmación)
+- [x] ~~**T5.3** Cron que ejecuta las programaciones y entrega el resultado (notificación y/o correo)~~ — `a484ec3` (reutiliza el cron del resumen, cada 15 min: no hay que registrar uno nuevo en cron-job.org; entrega = chat nuevo en el asistente + WhatsApp si tienes CallMeBot; no hay correo)
+- [x] ~~**T5.4** Alerta: deal sin movimiento en N días~~ — `a484ec3`
+- [x] ~~**T5.5** Alerta: pieza de contenido atrasada o cobro de cliente vencido~~ — `a484ec3`
+- [x] ~~**T5.6** Pantalla para ver, pausar y borrar programaciones~~ — `a484ec3` (Ajustes › Modelos de IA; también «ejecutar ahora»)
 
 ---
 
