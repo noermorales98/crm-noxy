@@ -181,15 +181,28 @@ function KanbanColumn({
       count={deals.length}
       sum={sum}
       accent={column.color || "#6B7280"}
+      collapsed={deals.length === 0}
       footer={
-        <button
-          type="button"
-          onClick={() => onAddDeal(column)}
-          className="flex min-h-11 w-full items-center gap-1.5 rounded-control px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary lg:min-h-9"
-        >
-          <HugeiconsIcon icon={Add01Icon} size={14} />
-          Agregar deal
-        </button>
+        deals.length === 0 ? (
+          <button
+            type="button"
+            onClick={() => onAddDeal(column)}
+            aria-label={`Agregar deal en ${column.name}`}
+            title="Agregar deal"
+            className="flex size-11 items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary lg:size-9"
+          >
+            <HugeiconsIcon icon={Add01Icon} size={14} />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onAddDeal(column)}
+            className="flex min-h-11 w-full items-center gap-1.5 rounded-control px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-surface-elevated hover:text-text-primary lg:min-h-9"
+          >
+            <HugeiconsIcon icon={Add01Icon} size={14} />
+            Agregar deal
+          </button>
+        )
       }
     >
       <Droppable droppableId={column.key}>
