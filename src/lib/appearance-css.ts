@@ -98,6 +98,14 @@ export function appearanceStyleSheet(base: CrmThemeDefinition, appearance: Appea
     const scope = `${frame}[data-appearance="auto"]`;
     parts.push(`@media (prefers-color-scheme: dark){${scope}{color-scheme:dark;${decls(themeVarsFor(dark, appearance), true)}}\n${darkPaletteOverrides(scope)}}`);
   }
+  // Las esquinas escritas a mano (`rounded-lg`, `rounded-xl`…) siguen el radio elegido; se activa con `data-crm-radius` en la raíz
+  // (la pone el marco mientras está abierto), así también llega al Spotlight y a los menús que se pintan fuera del marco.
+  if (appearance.radius !== "normal") {
+    parts.push(
+      `html[data-crm-radius] :is(.rounded-md,.rounded-lg){border-radius:var(--radius-control)}`,
+      `html[data-crm-radius] :is(.rounded-xl,.rounded-2xl,.rounded-3xl){border-radius:var(--radius-surface)}`,
+    );
+  }
   if (appearance.borders === "none") {
     const shadow = appearance.mode === "dark" ? "0 1px 2px rgba(0,0,0,.5)" : "0 1px 2px rgba(11,11,24,.08), 0 0 0 1px rgba(11,11,24,.02)";
     parts.push(`${frame}[data-borders="none"] :is(.rounded-surface,.crm-floating-menu){box-shadow:${shadow}}`);

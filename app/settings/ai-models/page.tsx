@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { AI_MODELS } from "@/src/lib/ai-models";
+import { classifyModel } from "@/src/lib/ai-model-info";
+import ModelTierBadge from "@/src/components/ai/ModelTierBadge";
 import { useHeader } from "@/src/context/HeaderContext";
 import { PageHeader } from "@/src/components/ui";
 import { AiProviderKeys } from "@/src/components/settings/AiProviderKeys";
@@ -238,6 +240,7 @@ export default function AiModelsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-text-primary">{m.name}</span>
+                        <ModelTierBadge tier={classifyModel(m.modelId, m.name).tier} />
                         <span className="text-xs text-text-secondary/60 font-mono">{m.modelId}</span>
                         {tags.map((t) => (
                           <span key={t} className="text-xs font-semibold px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary">
@@ -245,7 +248,7 @@ export default function AiModelsPage() {
                           </span>
                         ))}
                       </div>
-                      {m.description && <p className="text-xs text-text-secondary mt-0.5">{m.description}</p>}
+                      <p className="text-xs text-text-secondary mt-0.5">{m.description || classifyModel(m.modelId, m.name).description}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <button
@@ -309,12 +312,14 @@ export default function AiModelsPage() {
                       <span className={`text-sm font-medium ${isHidden ? "line-through text-text-secondary" : "text-text-primary"}`}>
                         {m.name}
                       </span>
+                      <ModelTierBadge tier={classifyModel(m.id, m.name).tier} />
                       <span className="text-xs px-1.5 py-0.5 rounded-full bg-nav-active text-action-ink font-semibold">{m.group}</span>
                       {isHidden && (
                         <span className="text-xs px-1.5 py-0.5 rounded-full bg-surface-sidebar text-text-secondary font-semibold">Oculto</span>
                       )}
                     </div>
-                    <p className="text-xs text-text-secondary mt-0.5 font-mono">{m.id}</p>
+                    <p className="text-xs text-text-secondary mt-0.5">{classifyModel(m.id, m.name).description}</p>
+                    <p className="text-xs text-text-secondary/70 mt-0.5 font-mono">{m.id}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {isHidden ? (

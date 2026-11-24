@@ -3,11 +3,15 @@ import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, Check } from "lucide-react";
 import { AI_MODELS, getModelById, normalizeModelId, type AiModel } from "@/src/lib/ai-models";
+import { classifyModel, type ModelTier } from "@/src/lib/ai-model-info";
+import ModelTierBadge from "@/src/components/ai/ModelTierBadge";
 
 const TAG_COLORS: Record<string, string> = {
   General: "bg-surface-sidebar text-text-secondary",
   Potente: "bg-amber-50 text-amber-600",
   Rápido: "bg-green-50 text-green-600",
+  Ligero: "bg-green-50 text-green-600",
+  Equilibrado: "bg-surface-sidebar text-text-secondary",
   Código: "bg-nav-hover text-action-ink",
   Razonamiento: "bg-violet-50 text-violet-600",
   Visión: "bg-cyan-50 text-cyan-600",
@@ -29,6 +33,15 @@ interface MenuPosition {
   width: number;
   top?: number;
   bottom?: number;
+}
+
+/** Nivel de un modelo: el que dice su descripción si ya vino clasificado; si no, se deduce del nombre. */
+function tierOf(model: AiModel): ModelTier {
+  const first = model.tags?.[0];
+  if (first === "Potente") return "powerful";
+  if (first === "Ligero") return "light";
+  if (first === "Equilibrado") return "balanced";
+  return classifyModel(model.id, model.name).tier;
 }
 
 function buildGroups(builtins: AiModel[], customs: AiModel[]): { group: string; models: AiModel[] }[] {
@@ -71,7 +84,7 @@ export default function ModelSelector({
     fetch("/api/ai/models", { cache: "no-store" })
       .then(async (r) => {
         if (!r.ok) return;
-        const data = (await r.json()) as { id: string; name: string; group: string; provider: "openrouter" | "nvidia"; configured: boolean }[];
+        const data = (await r.json()) as { id: string; name: string; group: string; provider: "openrouter" | "nvidia"; configured: boolean; description?: string; tags?: string[] }[];
         if (!Array.isArray(data) || data.length === 0) return;
         const catalog = new Map(AI_MODELS.map((m) => [m.id, m]));
         setServerModels(
@@ -80,8 +93,8 @@ export default function ModelSelector({
             name: m.name,
             provider: m.provider,
             group: m.group,
-            description: m.configured ? (catalog.get(m.id)?.description ?? "") : `Sin cuenta de ${m.provider === "nvidia" ? "NVIDIA" : "OpenRouter"}: agrégala en Ajustes › Modelos de IA`,
-            tags: catalog.get(m.id)?.tags,
+            description: m.configured ? (m.description ?? catalog.get(m.id)?.description ?? "") : `Sin cuenta de ${m.provider === "nvidia" ? "NVIDIA" : "OpenRouter"}: agrégala en Ajustes › Modelos de IA`,
+            tags: m.tags ?? catalog.get(m.id)?.tags,
           })),
         );
       })
@@ -177,7 +190,6 @@ export default function ModelSelector({
                 </p>
                 {models.map((model) => {
                   const isSelected = model.id === selectedId;
-                  const tag = model.tags?.[0];
                   return (
                     <button
                       key={model.id}
@@ -196,17 +208,14 @@ export default function ModelSelector({
                           >
                             {model.name}
                           </span>
-                          {tag && (
-                            <span
-                              className={`shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
-                                TAG_COLORS[tag] ?? "bg-surface-sidebar text-text-secondary"
-                              }`}
-                            >
-                              {tag}
+                          <ModelTierBadge tier={tierOf(model)} />
+                          {model.tags?.slice(1, 3).map((extra) => (
+                            <span key={extra} className={`shrink-0 text-xs font-semibold px-1.5 py-0.5 rounded-full ${TAG_COLORS[extra] ?? "bg-surface-sidebar text-text-secondary"}`}>
+                              {extra}
                             </span>
-                          )}
+                          ))}
                         </div>
-                        <p className="text-[10px] text-text-secondary truncate mt-0.5">
+                        <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">
                           {model.description}
                         </p>
                       </div>
@@ -222,7 +231,7 @@ export default function ModelSelector({
 
           <div className="px-3 py-2 border-t border-border-subtle bg-surface-sidebar">
             <p className="text-[10px] text-text-secondary">
-              Los modelos de OpenRouter son gratuitos · Calidad puede variar
+              Potente: más capaz y más lento · Equilibrado: sirve para casi todo · Ligero: rápido y económico
             </p>
           </div>
         </div>,

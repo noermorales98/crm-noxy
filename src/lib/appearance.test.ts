@@ -81,3 +81,11 @@ test("los pasteles de Tailwind pasan a fondos traslúcidos y textos claros en os
   assert.match(css, /\.bg-green-50,\.bg-green-100\)\{background-color:rgba\(34,197,94,0\.16\)\}/);
   assert.match(css, /\.text-red-500/);
 });
+
+test("con un radio distinto del normal, las esquinas escritas a mano siguen el radio elegido", () => {
+  const base = resolveCrmTheme("noxy-indigo");
+  const sharp = appearanceStyleSheet(base, { mode: "light", radius: "sharp", borders: "normal" });
+  assert.match(sharp, /html\[data-crm-radius\] :is\(\.rounded-md,\.rounded-lg\)\{border-radius:var\(--radius-control\)\}/);
+  assert.match(sharp, /\.rounded-xl,\.rounded-2xl,\.rounded-3xl\)\{border-radius:var\(--radius-surface\)\}/);
+  assert.equal(appearanceStyleSheet(base, { mode: "light", radius: "normal", borders: "normal" }), "", "el radio normal no toca nada");
+});

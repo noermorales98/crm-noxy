@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getAvailableAiModels } from "@/src/lib/ai-completion";
 import { describeProviderKeys, listNvidiaModelIds } from "@/src/lib/ai-keys";
 import { mergeNvidiaModels, providerOfModelId } from "@/src/lib/ai-provider";
+import { classifyModel, TIER_ORDER } from "@/src/lib/ai-model-info";
 
 /**
  * Modelos de IA disponibles para la organización (los de fábrica no ocultos y los personalizados), para elegir uno.
@@ -22,5 +23,9 @@ export async function GET() {
   });
   // Con clave de NVIDIA se consulta su lista vigente: los modelos retirados desaparecen y los nuevos aparecen solos.
   const live = await listNvidiaModelIds(orgId);
-  return NextResponse.json(live ? mergeNvidiaModels(catalog, live) : catalog);
+  const merged = live ? mergeNvidiaModels(catalog, live) : catalog;
+  // Cada modelo con su nivel (potente, equilibrado o ligero), etiquetas y una descripción deducidas de su nombre; dentro de cada grupo, los potentes primero.
+  const withInfo = merged.map((m) => ({ ...m, ...classifyModel(m.id, m.name) }));
+  const groupOrder = [...new Set(withInfo.map((m) => m.group))];
+  return NextResponse.json(withInfo.sort((a, b) => groupOrder.indexOf(a.group) - groupOrder.indexOf(b.group) || TIER_ORDER[a.tier] - TIER_ORDER[b.tier]));
 }

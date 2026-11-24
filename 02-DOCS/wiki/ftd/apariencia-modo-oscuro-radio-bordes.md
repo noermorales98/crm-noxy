@@ -19,3 +19,6 @@ status: done
 
 ## Evidence
 `npm test`: 574 pasan, 4 fallan (previos). 8 pruebas nuevas en `appearance.test.ts` (modelo, radios, bordes, oscuro AA de los 18 temas, hoja de estilos).
+
+## Ajuste: el radio y el tema no llegaban al Spotlight
+Causa: el Spotlight (y los menús en `body`) se pintan **fuera** del marco, donde se ponían las variables, así que no heredaban radio, tema ni modo oscuro. Ahora el marco también publica esas variables en `<html>` mientras el CRM está abierto (y las quita al salir; en automático sigue al dispositivo). Además, con un radio distinto del normal, las esquinas escritas a mano (`rounded-md/lg/xl/2xl/3xl`) siguen el radio elegido mediante `html[data-crm-radius]`. Sin ver en navegador.

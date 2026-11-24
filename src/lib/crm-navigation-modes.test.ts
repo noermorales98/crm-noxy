@@ -44,10 +44,10 @@ test("five modes (Trabajo, Ventas, Espacios, Conocimiento e IA, Contenido) with 
   assert.deepEqual(shape(mode("sales").groups), [
     ["Ventas", [["Pipeline de ventas", "/pipeline"], ["Suscripciones", "/pipeline/clientes"], ["Historial de tratos", "/pipeline/historial"], ["Cotizaciones", "/cotizaciones"], ["Formularios", "/forms"]]],
   ]);
-  assert.deepEqual(shape(mode("spaces").groups), [["Espacios", [["Correo", "/emails"], ["Bóveda", "/boveda"]]]]);
-  assert.deepEqual(shape(mode("knowledge").groups), [["Conocimiento e IA", [["Docs", "/kb"], ["Asistente", "/assistant"]]]]);
+  assert.deepEqual(shape(mode("spaces").groups), [["Espacios", [["Correo", "/emails"]]]]);
+  assert.deepEqual(shape(mode("knowledge").groups), [["Conocimiento e IA", [["Docs", "/kb"], ["Bóveda", "/boveda"]]]]);
   assert.deepEqual(shape(mode("content").groups), [
-    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"]]],
+    ["Contenido", [["Resumen", "/contenido"], ["Clientes", "/contenido/clientes"], ["Calendario", "/contenido/general"], ["Videos y viralidad", "/contenido/videos"], ["Recordatorios", "/contenido/recordatorios"], ["Asistente", "/assistant"]]],
   ]);
 });
 
@@ -102,8 +102,8 @@ test("modeForPath picks the mode that owns the route (most specific match, secti
     ["/emails", "spaces"],
     ["/campaigns", "spaces"],
     ["/kb/page-1", "knowledge"],
-    ["/assistant/new", "knowledge"],
-    ["/boveda/client-1", "spaces"],
+    ["/assistant/new", "content"],
+    ["/boveda/client-1", "knowledge"],
     ["/contenido", "content"],
     ["/contenido/clientes", "content"],
     ["/contenido/recordatorios", "content"],

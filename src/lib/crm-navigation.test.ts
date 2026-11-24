@@ -43,8 +43,8 @@ type Group = { label: string; items: Item[] };
 const EXPECTED_TOP: Array<[string, Array<[string, string, string]>]> = [
   ["Principal", [["link", "Inicio", "/"], ["link", "Clientes", "/clientes"], ["area", "Contactos", "/contacts"], ["link", "Tareas", "/tasks"], ["link", "Entregas", "/projects"]]],
   ["Áreas", [["area", "Ventas", "/pipeline"], ["area", "Agenda", "/appointments"]]],
-  ["Espacios", [["link", "Correo", "/emails"], ["link", "Bóveda", "/boveda"], ["link", "Gestión de contenido", "/contenido/general"]]],
-  ["Conocimiento e IA", [["link", "Docs", "/kb"], ["link", "Asistente", "/assistant"]]],
+  ["Espacios", [["link", "Correo", "/emails"], ["link", "Asistente", "/assistant"], ["link", "Gestión de contenido", "/contenido/general"]]],
+  ["Conocimiento e IA", [["link", "Docs", "/kb"], ["link", "Bóveda", "/boveda"]]],
 ];
 const EXPECTED_AREAS: Record<string, Array<[string, string]>> = {
   contacts: [["Contactos", "/contacts"], ["Empresas", "/companies"]],

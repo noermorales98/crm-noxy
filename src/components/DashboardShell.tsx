@@ -61,6 +61,33 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     };
   }, [themeId, appearance.mode, appearance.borders]);
 
+  // Los menús y el Spotlight se pintan fuera del marco (en `body`): para que tomen el tema, el radio, los bordes y el modo oscuro,
+  // las mismas variables se publican en la raíz mientras el CRM está abierto y se quitan al salir. En automático se sigue al dispositivo.
+  useEffect(() => {
+    const html = document.documentElement;
+    const query = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = appearance.mode === "dark" || (appearance.mode === "auto" && query.matches);
+      const active = dark ? darkTheme(baseTheme) : baseTheme;
+      const vars = { ...crmThemeCssVariables(active), ...appearanceVars(active, appearance) } as Record<string, string>;
+      for (const [name, value] of Object.entries(vars)) html.style.setProperty(name, value);
+      html.style.colorScheme = dark ? "dark" : "light";
+      html.dataset.crmRadius = appearance.radius;
+      return Object.keys(vars);
+    };
+    let names = apply();
+    const onChange = () => {
+      names = apply();
+    };
+    query.addEventListener("change", onChange);
+    return () => {
+      query.removeEventListener("change", onChange);
+      for (const name of names) html.style.removeProperty(name);
+      html.style.removeProperty("color-scheme");
+      delete html.dataset.crmRadius;
+    };
+  }, [baseTheme, appearance]);
+
   return (
     <SearchProvider>
       <KbProvider>

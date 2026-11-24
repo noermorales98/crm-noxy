@@ -18,3 +18,6 @@ OpenRouter dejó de funcionar (sin crédito). Solo se podía guardar una cuenta 
 
 ## Sin probar
 Nada se ejecutó contra OpenRouter ni NVIDIA reales ni en navegador; la lógica de cuentas y cambio está probada con funciones puras. `npm test`: 566 pasan, 4 fallan (previos y ajenos).
+
+## Ajuste: niveles de modelo (potente, equilibrado, ligero) y descripciones
+`src/lib/ai-model-info.ts` (puro, 5 pruebas) deduce del nombre el nivel y una descripción: el tamaño en miles de millones de parámetros manda (≥70 B potente, ≤9 B ligero), las palabras del fabricante («lightning», «bolt», «flash», «mini»…) valen como ligero aunque sea un MoE grande, y detecta Código, Razonamiento, Visión y Sin filtros. `/api/ai/models` devuelve `tier`, `tags` y `description` por modelo (potentes primero dentro de cada grupo). Se muestran con una etiqueta y su descripción en el selector de modelo (Resumen diario, asistente…), en Ajustes › Modelos de IA (de fábrica y personalizados) y en los desplegables de predeterminado y respaldo.

@@ -5,12 +5,14 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon, Cancel01Icon, Delete02Icon } from "@hugeicons/core-free-icons";
 import { Switch } from "@/src/components/ui";
 import { input as inputCls } from "@/src/lib/crm-ui";
+import { tierLabel, type ModelTier } from "@/src/lib/ai-model-info";
 
 type Provider = "nvidia" | "openrouter";
 type Account = { id: string; label: string; mask: string; source: "db" | "env"; enabled: boolean; failing: boolean; lastStatus: number | null; failedAt: string | null };
 type ProviderBlock = { provider: Provider; accounts: Account[]; unreadable: boolean };
 type Prefs = { defaultModelId: string | null; autoSwitch: boolean; fallbackModelIds: string[] };
-type Model = { id: string; name: string; group: string; provider: Provider; configured: boolean };
+type Model = { id: string; name: string; group: string; provider: Provider; configured: boolean; tier?: ModelTier; description?: string };
+const optionLabel = (m: Model) => `${m.name}${m.tier ? ` · ${tierLabel(m.tier)}` : ""}${m.configured ? "" : " (sin cuenta)"}`;
 type Message = { type: "success" | "error"; text: string } | null;
 
 const PROVIDER_TEXT: Record<Provider, { name: string; hint: string; placeholder: string }> = {
@@ -196,7 +198,7 @@ export function AiProviderKeys() {
                   {grouped.map(([group, list]) => (
                     <optgroup key={group} label={group}>
                       {list.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}{m.configured ? "" : " (sin cuenta)"}</option>
+                        <option key={m.id} value={m.id}>{optionLabel(m)}</option>
                       ))}
                     </optgroup>
                   ))}
@@ -236,7 +238,7 @@ export function AiProviderKeys() {
                         {grouped.map(([group, list]) => (
                           <optgroup key={group} label={group}>
                             {list.filter((m) => !prefs.fallbackModelIds.includes(m.id)).map((m) => (
-                              <option key={m.id} value={m.id}>{m.name}{m.configured ? "" : " (sin cuenta)"}</option>
+                              <option key={m.id} value={m.id}>{optionLabel(m)}</option>
                             ))}
                           </optgroup>
                         ))}

@@ -70,13 +70,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     label: "Espacios",
     items: [
       space("/emails", "Correo", "mail", "unread-mail"),
-      space("/boveda", "Bóveda", "vault"),
+      space("/assistant", "Asistente", "assistant"),
       space("/contenido/general", "Gestión de contenido", "content"),
     ],
   },
   {
     label: "Conocimiento e IA",
-    items: [space("/kb", "Docs", "kb"), space("/assistant", "Asistente", "assistant")],
+    items: [space("/kb", "Docs", "kb"), space("/boveda", "Bóveda", "vault")],
   },
 ];
 
@@ -244,10 +244,11 @@ export type NavMode = "work" | "sales" | "spaces" | "knowledge" | "content";
 export type NavModeDef = { key: NavMode; label: string; groups: NavGroup[] };
 
 const CONTENT_HOME = "/contenido/general";
-// Gestión de contenido vive en el modo Contenido; el modo Espacios reparte el resto en dos grupos.
-const espaciosModeItems = ((NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[]).filter(
-  (item) => item.href !== CONTENT_HOME,
-);
+// Gestión de contenido y el Asistente viven en el modo Contenido; el modo Espacios se queda con Correo.
+const ASSISTANT_HOME = "/assistant";
+const espaciosGroupItems = (NAV_GROUPS.find((group) => group.label === "Espacios")?.items ?? []) as NavItem[];
+const espaciosModeItems = espaciosGroupItems.filter((item) => item.href !== CONTENT_HOME && item.href !== ASSISTANT_HOME);
+const assistantItem = espaciosGroupItems.find((item) => item.href === ASSISTANT_HOME) as NavItem;
 const conocimientoModeItems = (NAV_GROUPS.find((group) => group.label === "Conocimiento e IA")?.items ?? []) as NavItem[];
 
 /** Pantallas del modo Contenido: resumen, clientes, calendario y recordatorios. */
@@ -257,6 +258,7 @@ const contentItems: NavItem[] = [
   { href: CONTENT_HOME, label: "Calendario", permission: "content" },
   { href: "/contenido/videos", label: "Videos y viralidad", permission: "content" },
   { href: "/contenido/recordatorios", label: "Recordatorios", permission: "content" },
+  assistantItem,
 ];
 
 /**
@@ -287,7 +289,7 @@ export const NAV_MODES: readonly NavModeDef[] = [
     label: "Espacios",
     groups: [{ label: "Espacios", items: espaciosModeItems }],
   },
-  // Docs y Asistente tienen su propia sección: ya no comparten pestaña con Correo y Bóveda.
+  // Docs y Bóveda comparten sección; el Asistente vive con Contenido.
   { key: "knowledge", label: "Conocimiento e IA", groups: [{ label: "Conocimiento e IA", items: conocimientoModeItems }] },
   { key: "content", label: "Contenido", groups: [{ label: "Contenido", items: contentItems }] },
 ];
@@ -317,8 +319,8 @@ const MODE_BY_SECTION: Partial<Record<ContextualSection, NavMode>> = {
   sales: "sales",
   mail: "spaces",
   kb: "knowledge",
-  vault: "spaces",
-  assistant: "knowledge",
+  vault: "knowledge",
+  assistant: "content",
   content: "content",
 };
 
