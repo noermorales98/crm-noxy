@@ -16,3 +16,4 @@
 | Avance — Granola en las citas (cola de decisiones) | `02-DOCS/wiki/sdd/progress/granola-citas.md` |
 | Verificación — Granola en las citas (2026-11-17) | `02-DOCS/wiki/sdd/verifications/granola-citas-2026-11-17.md` |
 | Progreso — Rediseño del CRM privado | `02-DOCS/wiki/sdd/progress/rediseno-obsidiana-estructural.md` |
+| Plan — Mejora del asistente de IA (control de tareas) | `02-DOCS/wiki/plan-mejora-ia.md` |
