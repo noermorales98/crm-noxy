@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, Settings01Icon } from "@hugeicons/core-free-icons";
 import { useDialog } from "@/src/components/ui";
@@ -30,14 +31,15 @@ export default function ChatSettings() {
   };
   useDialog(panelRef, open, close);
 
-  // «Configurar» en el menú del sidebar abre el chat con ?ajustes=1: se abre el panel y se limpia la dirección.
+  // «Configurar» en el menú del sidebar lleva a ?ajustes=1 (también estando ya en ese chat): se abre el panel y se limpia la dirección.
+  const wantsSettings = useSearchParams().get("ajustes") === "1";
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (url.searchParams.get("ajustes") !== "1") return;
+    if (!wantsSettings) return;
     setOpen(true);
+    const url = new URL(window.location.href);
     url.searchParams.delete("ajustes");
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
-  }, []);
+  }, [wantsSettings]);
 
   return (
     <>
