@@ -1,16 +1,12 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- The approved remote reference assets must use native img elements. */
-
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import ModelSelector from "@/app/assistant/[id]/_components/ModelSelector";
 import AnimatedSendButton from "./AnimatedSendButton";
 import { ASSISTANT_NEW_COPY, pickAssistantGreeting } from "./assistant-new-copy";
-import PixelGrid from "./PixelGrid";
 import styles from "../assistant-new.module.css";
 
-const A = "https://qclay.design/lovable/sixsense";
 const TYPEWRITER_PHRASES = ASSISTANT_NEW_COPY.prompts;
 
 interface AssistantNewExperienceProps {
@@ -21,66 +17,6 @@ interface AssistantNewExperienceProps {
   model: string;
   onModelChange: (id: string) => void;
 }
-
-interface LayerAsset {
-  src: string;
-  className: string;
-  width: number;
-  height: number;
-}
-
-interface CardAsset {
-  src: string;
-  label: string;
-  className: string;
-  entranceClassName: string;
-  floatClassName: string;
-  width: number;
-  height: number;
-}
-
-const LAYERS: readonly LayerAsset[] = [
-  { src: "blue-light-2.svg", className: styles.blueLight2, width: 104, height: 170 },
-  { src: "blue-light.svg", className: styles.blueLight, width: 104, height: 170 },
-  { src: "light-1.svg", className: styles.light1, width: 180.5, height: 124.5 },
-  { src: "folder-3.svg", className: styles.folder3, width: 69.71, height: 45 },
-  { src: "small-light-2.svg", className: styles.smallLight2, width: 39, height: 17 },
-  { src: "small-light.svg", className: styles.smallLight, width: 39, height: 25 },
-  { src: "folder-2.svg", className: styles.folder2, width: 79, height: 51 },
-  { src: "light-2.svg", className: styles.light2, width: 109, height: 162.5 },
-  { src: "folder-1.svg", className: styles.folder1, width: 91, height: 58 },
-  { src: "folder-0.svg?v=2", className: styles.folder0, width: 113.67, height: 76.5 },
-] as const;
-
-const CARDS: readonly CardAsset[] = [
-  {
-    src: "image-1.png",
-    label: ASSISTANT_NEW_COPY.cards[0],
-    className: styles.card1,
-    entranceClassName: styles.cardEntranceOne,
-    floatClassName: styles.cardFloatOne,
-    width: 88.55,
-    height: 68.46,
-  },
-  {
-    src: "image-2.png",
-    label: ASSISTANT_NEW_COPY.cards[1],
-    className: styles.card2,
-    entranceClassName: styles.cardEntranceTwo,
-    floatClassName: styles.cardFloatTwo,
-    width: 105,
-    height: 87,
-  },
-  {
-    src: "image-3.png",
-    label: ASSISTANT_NEW_COPY.cards[2],
-    className: styles.card3,
-    entranceClassName: styles.cardEntranceThree,
-    floatClassName: styles.cardFloatThree,
-    width: 105,
-    height: 96,
-  },
-] as const;
 
 export default function AssistantNewExperience({
   mascot,
@@ -93,7 +29,6 @@ export default function AssistantNewExperience({
   const [greeting, setGreeting] = useState<string | null>(null);
   const [value, setValue] = useState("");
   const [promptFocused, setPromptFocused] = useState(false);
-  const [showRightGrid, setShowRightGrid] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const placeholderRef = useRef<HTMLSpanElement>(null);
   const typewriterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,15 +42,6 @@ export default function AssistantNewExperience({
     greetingPickedRef.current = true;
     setGreeting(pickAssistantGreeting(session?.user?.name, new Date()));
   }, [session?.user?.name, status]);
-
-  useEffect(() => {
-    const query = window.matchMedia("(min-width: 768px)");
-    const updateRightGridVisibility = () => setShowRightGrid(query.matches);
-
-    updateRightGridVisibility();
-    query.addEventListener("change", updateRightGridVisibility);
-    return () => query.removeEventListener("change", updateRightGridVisibility);
-  }, []);
 
   useEffect(() => {
     const clearTypewriterTimeout = () => {
@@ -200,44 +126,8 @@ export default function AssistantNewExperience({
 
   return (
     <main className={styles.experience}>
-      <PixelGrid side="left" />
-      {showRightGrid && <PixelGrid side="right" />}
 
       <div className={styles.content}>
-        <div className={styles.visualStage} role="img" aria-label={ASSISTANT_NEW_COPY.visualLabel}>
-          <div className={styles.folderComposition} aria-hidden="true">
-            {LAYERS.map((layer) => (
-              <img
-                key={layer.src}
-                className={`${styles.layer} ${layer.className}`}
-                src={`${A}/${layer.src}`}
-                alt=""
-                width={layer.width}
-                height={layer.height}
-              />
-            ))}
-          </div>
-
-          <div className={styles.cards}>
-            {CARDS.map((card) => (
-              <figure
-                key={card.src}
-                className={`${styles.referenceCard} ${card.className}`}
-              >
-                <span className={`${styles.cardEntrance} ${card.entranceClassName}`}>
-                  <img
-                    className={`${styles.cardImage} ${card.floatClassName}`}
-                    src={`${A}/${card.src}`}
-                    alt={card.label}
-                    width={card.width}
-                    height={card.height}
-                  />
-                </span>
-              </figure>
-            ))}
-          </div>
-        </div>
-
         {mascot && <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>{mascot}</div>}
         <h1 className={styles.heading} aria-label={greeting ?? undefined}>
           {greeting}

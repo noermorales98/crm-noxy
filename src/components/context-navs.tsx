@@ -7,6 +7,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Building04Icon, InboxIcon, Add01Icon, Archive01Icon, SentIcon, SpamIcon, PencilEdit01Icon, Settings01Icon, Delete01Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useOptionalEmailContext } from "@/src/context/EmailContext";
 import { useAssistantConversations } from "@/src/components/useAssistantConversations";
+import { Blobatar } from "@blobatar/react";
+import { chatBlobSeed } from "@/src/lib/chat-blob";
 import { groupConversationsByDay } from "@/src/components/assistant-conversation-list-state";
 import { ICON_SIZE, ICON_IDLE, branchActionClass, sectionLabelClass, navItemClass, rowClass, CountBadge, NavLeaf, CappedList } from "@/src/components/sidebar-parts";
 
@@ -287,6 +289,7 @@ export function AssistantNav() {
                         aria-current={isActive ? "page" : undefined}
                         className={navItemClass(isActive, "pr-11")}
                       >
+                        <span className="shrink-0" aria-hidden="true"><Blobatar name={chatBlobSeed(conv.id)} size={22} /></span>
                         <span className="min-w-0 flex-1 truncate">{conv.title}</span>
                       </Link>
                       {deletingId === conv.id ? (

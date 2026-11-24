@@ -7,6 +7,7 @@ import { RotateCcw, Check, Copy, Maximize2, Minimize2, X } from "lucide-react";
 import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
 import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
 import styles from "../assistant-chat.module.css";
+import ThinkingStatus from "./ThinkingStatus";
 import {
   createAbortableRequestLifecycle,
   createReplaceableTimer,
@@ -269,6 +270,7 @@ export default function MessageBubble({
                 : "px-4 py-3 text-sm leading-relaxed overflow-x-hidden"}
               style={{ wordBreak: "break-word", overflowWrap: "break-word" }}
             >
+              {streaming && !content.trim() && <ThinkingStatus />}
               <div className={usesSoftCards ? `${styles.prose} ${PROSE}` : PROSE}>
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
@@ -291,7 +293,7 @@ export default function MessageBubble({
                   {content}
                 </ReactMarkdown>
               </div>
-              {streaming && (
+              {streaming && content.trim() && (
                 <span
                   className={usesSoftCards
                     ? styles.streamingCaret

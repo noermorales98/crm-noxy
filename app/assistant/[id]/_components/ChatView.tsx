@@ -7,6 +7,7 @@ import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
 import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { providerOfModelId } from "@/src/lib/ai-provider";
 import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
+import { blobColors, chatBlobSeed } from "@/src/lib/chat-blob";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -123,12 +124,10 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => {
     if (conversationId === "new") return;
-    const key = `assistant-blob-${conversationId}`;
-    const saved = getStored(key, "");
-    if (saved) setBlobSeed(saved);
-    else setStored(key, blobSeed);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setBlobSeed(chatBlobSeed(conversationId));
   }, [conversationId]);
+  const colors = blobColors(blobSeed);
+  const chatVars = { "--chat-accent": colors.accent, "--chat-ink": colors.ink } as React.CSSProperties;
   // Contenta unos segundos al terminar de responder.
   const wasStreaming = useRef(false);
   useEffect(() => {
@@ -371,25 +370,27 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
 
   if (isEmpty && emptyExperience === "references") {
     return (
+      <div style={{ display: "contents", ...chatVars }}>
       <AssistantNewExperience
-        mascot={<ChatBlobatar seed={blobSeed} size={72} mood={mood} follow />}
+        mascot={<ChatBlobatar seed={blobSeed} size={104} mood={mood} follow />}
         onSend={sendMessage}
         disabled={streaming}
         model={model}
         onModelChange={switchModel}
       />
+      </div>
     );
   }
 
   return (
-    <div className={styles.experience}>
+    <div className={styles.experience} style={chatVars}>
       <PixelGrid side="left" />
       <PixelGrid side="right" />
       <div ref={scrollAreaRef} className={styles.scrollArea}>
         <div className={styles.messageColumn}>
           {isEmpty ? (
             <div className={styles.emptyState}>
-              <ChatBlobatar seed={blobSeed} size={96} mood={mood} follow />
+              <ChatBlobatar seed={blobSeed} size={132} mood={mood} follow />
               <div>
                 <h2 className={styles.emptyTitle}>¿En qué puedo ayudarte?</h2>
                 <p className={styles.emptyCopy}>Puedo consultar tu CRM, crear registros, redactar emails y más.</p>
@@ -420,7 +421,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 currentModelId={m.model}
                 keyUsed={m.keyUsed}
                 accountLabel={m.accountLabel}
-                avatar={m.role === "assistant" ? <ChatBlobatar seed={blobSeed} size={28} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} /> : undefined}
+                avatar={m.role === "assistant" ? <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} /> : undefined}
                 onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
             ))
