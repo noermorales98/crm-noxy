@@ -14,6 +14,11 @@ import {
   MailIcon,
   Delete01Icon,
   AiBrainIcon,
+  VideoReplayIcon,
+  File01Icon,
+  Calendar03Icon,
+  Wallet01Icon,
+  FolderAddIcon,
 } from "@hugeicons/core-free-icons";
 
 export type ActionCardData =
@@ -45,6 +50,19 @@ export type ActionCardData =
   | { type: "create_form"; prefill?: { name?: string; companyId?: string; description?: string } }
   | { type: "edit_form"; id: string; prefill?: { name?: string; description?: string; isActive?: string } }
   | { type: "delete_form"; id: string; name: string }
+  // Contenido
+  | { type: "create_content_item"; prefill?: { clientId?: string; date?: string; type?: string; title?: string; time?: string; hook?: string; script?: string; caption?: string; cta?: string } }
+  | { type: "edit_content_item"; id: string; title: string; prefill?: { title?: string; date?: string; type?: string; hook?: string; script?: string; caption?: string; cta?: string; publishStatus?: string } }
+  | { type: "set_content_status"; id: string; title: string; prefill?: { publishStatus?: string } }
+  // Docs
+  | { type: "create_kb_doc"; prefill?: { title?: string; content?: string } }
+  | { type: "edit_kb_doc"; id: string; title: string; prefill?: { title?: string; content?: string; appendContent?: string } }
+  // Videos
+  | { type: "create_video"; prefill?: { title?: string; platform?: string; hook?: string; hookType?: string; views?: string; leadsGenerated?: string; notes?: string; contentClientId?: string } }
+  // Pipeline
+  | { type: "create_pipeline_category"; prefill?: { name?: string } }
+  // Cobros de clientes de la agencia
+  | { type: "record_client_payment"; id: string; name: string; prefill?: { month?: string; year?: string; amount?: string } }
   // Query
   | { type: "query_result"; title?: string; columns: string[]; rows: string[][] };
 
@@ -86,6 +104,19 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   create_form:           { icon: AiBrainIcon,         color: "#10B981", title: "Crear formulario" },
   edit_form:             { icon: PencilEditIcon,      color: "#3545D6", title: "Editar formulario" },
   delete_form:           { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar formulario" },
+  // Contenido
+  create_content_item:   { icon: Calendar03Icon,     color: "#10B981", title: "Crear pieza de contenido" },
+  edit_content_item:     { icon: PencilEditIcon,     color: "#3545D6", title: "Editar pieza de contenido" },
+  set_content_status:    { icon: CheckmarkCircleIcon, color: "#3545D6", title: "Cambiar estado de la pieza" },
+  // Docs
+  create_kb_doc:         { icon: File01Icon,         color: "#10B981", title: "Crear doc" },
+  edit_kb_doc:           { icon: PencilEditIcon,     color: "#3545D6", title: "Editar doc" },
+  // Videos
+  create_video:          { icon: VideoReplayIcon,    color: "#10B981", title: "Registrar video" },
+  // Pipeline
+  create_pipeline_category: { icon: FolderAddIcon,   color: "#10B981", title: "Crear categoría del pipeline" },
+  // Cobros
+  record_client_payment: { icon: Wallet01Icon,       color: "#10B981", title: "Registrar cobro recibido" },
   // Query
   query_result:          { icon: AiBrainIcon,         color: "#3545D6", title: "Resultados" },
 };
@@ -146,6 +177,14 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "create_form":           return "Formulario creado";
     case "edit_form":             return "Formulario actualizado";
     case "delete_form":           return "Formulario eliminado";
+    case "create_content_item":   return "Pieza creada";
+    case "edit_content_item":     return "Pieza actualizada";
+    case "set_content_status":    return "Estado actualizado";
+    case "create_kb_doc":         return "Doc creado";
+    case "edit_kb_doc":           return "Doc actualizado";
+    case "create_video":          return "Video registrado";
+    case "create_pipeline_category": return "Categoría creada";
+    case "record_client_payment": return "Cobro registrado";
     case "query_result":          return "Consulta completada";
   }
 }
@@ -163,6 +202,14 @@ function getWarningText(action: ActionCardData): string {
   }
 }
 
+const CONTENT_STATUSES: [string, string][] = [
+  ["pendiente", "Pendiente"],
+  ["en_edicion", "En edición"],
+  ["editado", "Editado"],
+  ["aprobado", "Aprobado"],
+  ["subido", "Subido"],
+];
+
 const inputClass =
   "w-full text-sm border border-border-subtle rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#3545D6]";
 const selectClass = `${inputClass} text-text-primary`;
@@ -174,6 +221,7 @@ function FormFields({
   companies,
   availabilities,
   stages,
+  contentClients,
 }: {
   action: ActionCardData;
   formData: Record<string, string>;
@@ -181,6 +229,7 @@ function FormFields({
   companies: { id: string; name: string }[];
   availabilities: { id: string; name: string }[];
   stages: { id: string; name: string; pipelineName: string }[];
+  contentClients: { id: string; name: string }[];
 }) {
   switch (action.type) {
     case "create_contact":
@@ -325,6 +374,100 @@ function FormFields({
         </div>
       );
 
+    case "create_content_item":
+    case "edit_content_item":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          {action.type === "edit_content_item" && <p className="text-xs text-text-secondary">Pieza: <span className="font-medium text-text-primary">{action.title}</span></p>}
+          {action.type === "create_content_item" && (
+            <select className={selectClass} value={formData.clientId ?? ""} onChange={(e) => onChange("clientId", e.target.value)}>
+              <option value="">Seleccionar cliente o marca *</option>
+              {contentClients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          )}
+          <input className={inputClass} placeholder="Título *" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          <div className="flex gap-2">
+            <input className={inputClass} type="date" aria-label="Fecha" value={formData.date ?? ""} onChange={(e) => onChange("date", e.target.value)} />
+            <select className={selectClass} aria-label="Tipo" value={formData.type ?? "video"} onChange={(e) => onChange("type", e.target.value)}>
+              {["video", "reel", "flyer", "historia", "entrega", "edicion"].map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <input className={inputClass} placeholder="Gancho" value={formData.hook ?? ""} onChange={(e) => onChange("hook", e.target.value)} />
+          <textarea className={`${inputClass} resize-none`} placeholder="Guion" rows={3} value={formData.script ?? ""} onChange={(e) => onChange("script", e.target.value)} />
+          <textarea className={`${inputClass} resize-none`} placeholder="Caption" rows={2} value={formData.caption ?? ""} onChange={(e) => onChange("caption", e.target.value)} />
+          <input className={inputClass} placeholder="CTA" value={formData.cta ?? ""} onChange={(e) => onChange("cta", e.target.value)} />
+          {action.type === "edit_content_item" && (
+            <select className={selectClass} aria-label="Estado" value={formData.publishStatus ?? ""} onChange={(e) => onChange("publishStatus", e.target.value)}>
+              <option value="">Sin cambiar el estado</option>
+              {CONTENT_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          )}
+        </div>
+      );
+
+    case "set_content_status":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <p className="text-xs text-text-secondary">Pieza: <span className="font-medium text-text-primary">{action.title}</span></p>
+          <select className={selectClass} aria-label="Estado" value={formData.publishStatus ?? ""} onChange={(e) => onChange("publishStatus", e.target.value)}>
+            <option value="">Seleccionar estado</option>
+            {CONTENT_STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+      );
+
+    case "create_kb_doc":
+    case "edit_kb_doc":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          {action.type === "edit_kb_doc" && <p className="text-xs text-text-secondary">Doc: <span className="font-medium text-text-primary">{action.title}</span></p>}
+          <input className={inputClass} placeholder="Título *" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          {action.type === "edit_kb_doc" && "appendContent" in (action.prefill ?? {}) ? (
+            <textarea className={`${inputClass} resize-none`} placeholder="Texto a añadir al final" rows={5} value={formData.appendContent ?? ""} onChange={(e) => onChange("appendContent", e.target.value)} />
+          ) : (
+            <textarea className={`${inputClass} resize-none`} placeholder="Contenido (Markdown)" rows={6} value={formData.content ?? ""} onChange={(e) => onChange("content", e.target.value)} />
+          )}
+        </div>
+      );
+
+    case "create_video":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <input className={inputClass} placeholder="Título *" value={formData.title ?? ""} onChange={(e) => onChange("title", e.target.value)} />
+          <input className={inputClass} placeholder="Plataforma * (TikTok, Instagram…)" value={formData.platform ?? ""} onChange={(e) => onChange("platform", e.target.value)} />
+          <select className={selectClass} aria-label="Cliente de contenido" value={formData.contentClientId ?? ""} onChange={(e) => onChange("contentClientId", e.target.value)}>
+            <option value="">Sin cliente de contenido</option>
+            {contentClients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <input className={inputClass} placeholder="Gancho" value={formData.hook ?? ""} onChange={(e) => onChange("hook", e.target.value)} />
+          <div className="flex gap-2">
+            <input className={inputClass} placeholder="Vistas" type="number" value={formData.views ?? ""} onChange={(e) => onChange("views", e.target.value)} />
+            <input className={inputClass} placeholder="Leads" type="number" value={formData.leadsGenerated ?? ""} onChange={(e) => onChange("leadsGenerated", e.target.value)} />
+          </div>
+          <input className={inputClass} placeholder="Notas" value={formData.notes ?? ""} onChange={(e) => onChange("notes", e.target.value)} />
+        </div>
+      );
+
+    case "create_pipeline_category":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <input className={inputClass} placeholder="Nombre de la categoría *" value={formData.name ?? ""} onChange={(e) => onChange("name", e.target.value)} />
+          <p className="text-xs text-text-secondary">Nace con las etapas Nuevo, En proceso, Ganado y Perdido.</p>
+        </div>
+      );
+
+    case "record_client_payment":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <p className="text-xs text-text-secondary">Cliente: <span className="font-medium text-text-primary">{action.name}</span></p>
+          <div className="flex gap-2">
+            <input className={inputClass} placeholder="Mes (1-12) *" type="number" min={1} max={12} value={formData.month ?? ""} onChange={(e) => onChange("month", e.target.value)} />
+            <input className={inputClass} placeholder="Año *" type="number" value={formData.year ?? ""} onChange={(e) => onChange("year", e.target.value)} />
+          </div>
+          <input className={inputClass} placeholder="Monto (vacío = la cuota mensual)" type="number" value={formData.amount ?? ""} onChange={(e) => onChange("amount", e.target.value)} />
+        </div>
+      );
+
     default:
       return null;
   }
@@ -348,6 +491,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
   const [availabilities, setAvailabilities] = useState<{ id: string; name: string }[]>([]);
   const [stages, setStages] = useState<{ id: string; name: string; pipelineName: string }[]>([]);
+  const [contentClients, setContentClients] = useState<{ id: string; name: string }[]>([]);
   const router = useRouter();
 
   // Restore done/cancelled state after mount (storage is client-only)
@@ -407,6 +551,17 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           }
         }
         setStages(flat);
+      })
+      .catch(() => {});
+  }, [action.type]);
+
+  // Clientes de contenido para las piezas y los videos
+  useEffect(() => {
+    if (!["create_content_item", "create_video"].includes(action.type)) return;
+    fetch("/api/content/clients")
+      .then((r) => r.json())
+      .then((data: unknown) => {
+        if (Array.isArray(data)) setContentClients((data as { id: string; name: string }[]).map((c) => ({ id: c.id, name: c.name })));
       })
       .catch(() => {});
   }, [action.type]);
@@ -580,6 +735,82 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           markDone(getSuccessMessage(action.type));
           break;
         }
+        // ── Contenido ─────────────────────────────────────────────────────
+        case "create_content_item": {
+          if (!formData.clientId) throw new Error("Elige el cliente o la marca");
+          const body = { date: formData.date, type: formData.type || "video", title: formData.title, time: formData.time || undefined, hook: formData.hook || undefined, script: formData.script || undefined, caption: formData.caption || undefined, cta: formData.cta || undefined };
+          const res = await fetch(`/api/content/clients/${formData.clientId}/items`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al crear la pieza");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "edit_content_item":
+        case "set_content_status": {
+          const body: Record<string, unknown> = {};
+          for (const key of ["title", "date", "type", "hook", "script", "caption", "cta", "publishStatus"]) if (formData[key]) body[key] = formData[key];
+          if (action.type === "set_content_status" && !body.publishStatus) throw new Error("Elige el estado");
+          const res = await fetch(`/api/content/items/${action.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al actualizar la pieza");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Docs ──────────────────────────────────────────────────────────
+        case "create_kb_doc": {
+          const res = await fetch("/api/kb", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: formData.title, content: formData.content || "" }) });
+          if (!res.ok) throw new Error("Error al crear el doc");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "edit_kb_doc": {
+          const body: Record<string, unknown> = {};
+          if (formData.title) body.title = formData.title;
+          if (formData.content !== undefined && !("appendContent" in (action.prefill ?? {}))) body.content = formData.content;
+          if (formData.appendContent) {
+            const current = await fetch(`/api/kb/${action.id}`);
+            if (!current.ok) throw new Error("No se pudo leer el doc");
+            const page = (await current.json()) as { content?: string | null };
+            body.content = `${page.content ?? ""}${page.content ? "\n\n" : ""}${formData.appendContent}`;
+          }
+          const res = await fetch(`/api/kb/${action.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error("Error al actualizar el doc");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Videos ────────────────────────────────────────────────────────
+        case "create_video": {
+          const body: Record<string, unknown> = { title: formData.title, platform: formData.platform };
+          for (const key of ["hook", "hookType", "views", "leadsGenerated", "notes", "contentClientId"]) if (formData[key]) body[key] = formData[key];
+          const res = await fetch("/api/videos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al registrar el video");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Pipeline ──────────────────────────────────────────────────────
+        case "create_pipeline_category": {
+          const res = await fetch("/api/pipelines", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: formData.name }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al crear la categoría");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        // ── Cobros ────────────────────────────────────────────────────────
+        case "record_client_payment": {
+          const month = Number(formData.month);
+          const year = Number(formData.year);
+          if (!(month >= 1 && month <= 12) || !year) throw new Error("Indica el mes (1-12) y el año");
+          const list = await fetch(`/api/clients/${action.id}/payments`);
+          if (!list.ok) throw new Error("No se pudieron leer los cobros del cliente");
+          const payments = (await list.json()) as { id: string; month: number; year: number }[];
+          let paymentId = payments.find((p) => p.month === month && p.year === year)?.id;
+          if (!paymentId) {
+            const created = await fetch(`/api/clients/${action.id}/payments`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ month, year, amount: formData.amount || undefined }) });
+            if (!created.ok) throw new Error("No se pudo crear el cobro de ese mes");
+            paymentId = ((await created.json()) as { id: string }).id;
+          }
+          const res = await fetch(`/api/clients/${action.id}/payments`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paymentId, status: "RECIBIDO" }) });
+          if (!res.ok) throw new Error("No se pudo marcar el cobro como recibido");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
       }
     } catch (err: unknown) {
       setStatus("error");
@@ -666,6 +897,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
               companies={companies}
               availabilities={availabilities}
               stages={stages}
+              contentClients={contentClients}
             />
           )}
 

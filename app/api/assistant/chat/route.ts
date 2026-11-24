@@ -52,6 +52,25 @@ FORMULARIOS (forms):
 - edit_form: id + prefill: name, description, isActive (true|false)
 - delete_form: id + name
 
+CONTENIDO (usa los [id:...] de clientes de contenido y piezas del contexto):
+- create_content_item: prefill: clientId (id del cliente/marca de contenido), title (requerido), date (AAAA-MM-DD, requerido), type (video|reel|flyer|historia|entrega|edicion), hook, script, caption, cta
+- edit_content_item: id + title + prefill: title, date, type, hook, script, caption, cta, publishStatus
+- set_content_status: id + title + prefill: publishStatus (pendiente|en_edicion|editado|aprobado|subido)
+
+DOCS:
+- create_kb_doc: prefill: title (requerido), content (Markdown)
+- edit_kb_doc: id + title + prefill: title y content (reemplaza) o appendContent (añade al final; úsalo para "agrega esto al doc")
+
+VIDEOS:
+- create_video: prefill: title (requerido), platform (requerido), hook, hookType, views, leadsGenerated, notes, contentClientId
+
+PIPELINE:
+- create_pipeline_category: prefill: name (requerido). Cada categoría es un pipeline con etapas Nuevo, En proceso, Ganado y Perdido.
+- Para mover un deal a otra categoría usa edit_deal con el stageId de una etapa de esa categoría.
+
+COBROS DE CLIENTES DE LA AGENCIA:
+- record_client_payment: id (id del cliente de la lista CLIENTES) + name + prefill: month (1-12), year, amount (opcional; vacío = su cuota mensual). Marca el cobro de ese mes como recibido.
+
 CONSULTAS:
 - query_result: title, columns (array de strings), rows (array de arrays) — para mostrar datos en tabla
 
