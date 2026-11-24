@@ -120,18 +120,18 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
   }
 
-  await prisma.aiMessage.create({
-    data: { conversationId, role: "user", content: trimmed },
-  });
+  // Guardar el mensaje, el título, el contexto del CRM y las preferencias no dependen entre sí: en paralelo, para que la
+  // primera palabra llegue antes (cada consulta a la base remota suma su viaje de ida y vuelta).
+  const isFirstMessage = conversation.messages.length === 0;
+  const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
+  const [crmContext, prefs] = await Promise.all([
+    buildCrmContext(session.user.id!, orgId),
+    getAiPrefs(orgId),
+    prisma.aiMessage.create({ data: { conversationId, role: "user", content: trimmed } }),
+    isFirstMessage ? prisma.aiConversation.update({ where: { id: conversationId }, data: { title } }) : Promise.resolve(null),
+  ]);
 
-  if (conversation.messages.length === 0) {
-    const title = trimmed.slice(0, 60) + (trimmed.length > 60 ? "…" : "");
-    await prisma.aiConversation.update({ where: { id: conversationId }, data: { title } });
-  }
-
-  const crmContext = await buildCrmContext(session.user.id!, orgId);
-
-  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId);
+  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId, prefs);
 }
 
 // ── OpenRouter ───────────────────────────────────────────────────────────────
@@ -140,12 +140,26 @@ type OrSuccess = { ok: true; body: ReadableStream<Uint8Array> };
 type OrFailure = { ok: false; status: number; headers: Headers; errBody: string };
 type OrResult = OrSuccess | OrFailure;
 
-async function callOpenRouter(apiKey: string, modelId: string, messages: unknown[], provider: ChatProvider = "openrouter"): Promise<OrResult> {
-  const res = await fetch(CHAT_ENDPOINTS[provider], {
-    method: "POST",
-    headers: providerHeaders(provider, apiKey),
-    body: JSON.stringify({ model: providerModelName(modelId), messages, stream: true }),
-  });
+// Si el proveedor no contesta ni con las cabeceras en este tiempo, se corta y se prueba la siguiente cuenta o modelo
+// (antes un modelo colgado dejaba la conversación esperando hasta el límite de la función).
+const FIRST_RESPONSE_TIMEOUT_MS = 20_000;
+
+async function callOpenRouter(apiKey: string, modelId: string, messages: unknown[], provider: ChatProvider = "openrouter", timeoutMs = FIRST_RESPONSE_TIMEOUT_MS): Promise<OrResult> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(CHAT_ENDPOINTS[provider], {
+      method: "POST",
+      headers: providerHeaders(provider, apiKey),
+      body: JSON.stringify({ model: providerModelName(modelId), messages, stream: true }),
+      signal: controller.signal,
+    });
+  } catch {
+    return { ok: false, status: 408, headers: new Headers(), errBody: "El modelo tardó demasiado en responder" };
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok || !res.body) {
     const errBody = await res.text().catch(() => "");
@@ -206,6 +220,7 @@ async function streamOpenRouter(
   preferKey: "1" | "2",
   pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
   orgId: string,
+  prefs: Awaited<ReturnType<typeof getAiPrefs>>,
 ) {
   const sanitizedContext = (crmContext
     .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
@@ -220,13 +235,19 @@ async function streamOpenRouter(
 
   // Cuentas del proveedor del modelo pedido y, si ninguna sirve, otro modelo (respaldos fijados y luego automáticos).
   // Si el pedido dejó de funcionar de forma permanente, el que responde queda como predeterminado.
-  const prefs = await getAiPrefs(orgId);
-  const chain = prefs.autoSwitch ? buildModelChain(modelId, { fallbacks: prefs.fallbackModelIds, automatic: await automaticCandidates(orgId, modelId) }) : [modelId];
+  // Los modelos automáticos (que consultan la lista de NVIDIA) solo se calculan si los anteriores fallan: antes se esperaban siempre.
+  let chain = prefs.autoSwitch ? buildModelChain(modelId, { fallbacks: prefs.fallbackModelIds }) : [modelId];
+  let extended = !prefs.autoSwitch;
 
   let lastFailure: { r: OrFailure; provider: ChatProvider } | null = null;
   let missing: ChatProvider | null = null;
   let primaryStatuses: number[] = [];
-  for (let mi = 0; mi < chain.length; mi++) {
+  for (let mi = 0; mi < chain.length || !extended; mi++) {
+    if (mi >= chain.length) {
+      extended = true;
+      chain = buildModelChain(modelId, { fallbacks: prefs.fallbackModelIds, automatic: await automaticCandidates(orgId, modelId) });
+      if (mi >= chain.length) break;
+    }
     const currentModel = chain[mi];
     const provider = providerOfModelId(currentModel);
     const entries = await resolveProviderEntries(orgId, provider);
