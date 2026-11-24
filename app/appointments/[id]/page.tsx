@@ -79,7 +79,7 @@ export default function AppointmentPage() {
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto pb-8">
       {/* La barra va fuera del contenedor angosto: ocupa todo el ancho y se queda arriba al desplazar. */}
       {state === "ready" && appointment && (
-        <AppointmentNavbar title={title} status={appointment.status} subtitle={`${day(appointment.startTime)} · ${clock(appointment.startTime)} – ${clock(appointment.endTime)}`} />
+        <AppointmentNavbar appointmentId={appointment.id} title={title} status={appointment.status} subtitle={`${day(appointment.startTime)} · ${clock(appointment.startTime)} – ${clock(appointment.endTime)}`} />
       )}
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         {state === "loading" && (

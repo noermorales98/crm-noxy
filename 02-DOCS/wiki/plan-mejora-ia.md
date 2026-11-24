@@ -59,9 +59,9 @@ Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definid
 
 ## Fase 4 · Preguntar desde cualquier pantalla (idea 7)
 
-- [ ] **T4.1** Botón «Preguntarle a la IA» en cada cita, doc, deal, cliente y pieza
-- [ ] **T4.2** Abre el chat con ese registro ya cargado como contexto de página
-- [ ] **T4.3** Sugerencias de preguntas según el tipo de registro (p. ej. en una cita: «resume lo acordado»)
+- [x] ~~**T4.1** Botón «Preguntarle a la IA» en cada cita, doc, deal, cliente y pieza~~ — `FASE4` (botón con menú en la cita; en doc, deal y marca el registro queda como contexto y se pregunta desde la burbuja flotante; falta la pieza individual)
+- [x] ~~**T4.2** Abre el chat con ese registro ya cargado como contexto de página~~ — `FASE4` (el servidor lee el contenido real: notas de la cita, texto del doc, datos del deal, voz y piezas de la marca)
+- [x] ~~**T4.3** Sugerencias de preguntas según el tipo de registro (p. ej. en una cita: «resume lo acordado»)~~ — `FASE4`
 
 ---
 

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
+import { AiPageContext } from "@/src/components/ai/AskAiButton";
 import ContentCalendarView from "@/src/components/content/ContentCalendarView";
 
 export default async function ContentClientPage({ params }: { params: Promise<{ clientId: string }> }) {
@@ -19,6 +20,7 @@ export default async function ContentClientPage({ params }: { params: Promise<{ 
 
   return (
     <Suspense fallback={null}>
+      <AiPageContext context={{ page: "content_client", id: client.id, label: client.name }} />
       <ContentCalendarView
         client={{
           id: client.id,

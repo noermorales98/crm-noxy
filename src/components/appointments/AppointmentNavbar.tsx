@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AiMagicIcon, ArrowLeft01Icon, Notion01Icon, NoteAddIcon, ReloadIcon } from "@hugeicons/core-free-icons";
 import { Chip, type ChipTone } from "@/src/components/ui";
+import AskAiButton from "@/src/components/ai/AskAiButton";
 import { onAppointmentBusy, requestAppointmentAction, type AppointmentAction } from "@/src/lib/appointment-actions";
 
 const STATUS_TONES: Record<string, ChipTone> = { CONFIRMED: "neutral", COMPLETED: "done", CANCELLED: "late" };
@@ -15,13 +16,13 @@ const BASE =
 const PRIMARY = `${BASE} bg-action-primary text-action-primary-foreground hover:bg-action-secondary`;
 const QUIET = `${BASE} text-text-secondary-strong hover:bg-nav-hover hover:text-text-primary`;
 
-type Props = { title: string; status: string; subtitle: string };
+type Props = { appointmentId: string; title: string; status: string; subtitle: string };
 
 /**
  * Barra de la cita: volver, título, estado y las acciones (nota, Notion, Granola, IA) con icono. Se queda arriba al desplazarse;
  * en móvil las acciones son solo iconos. Cada acción se la pide a su panel por el bus de acciones.
  */
-export default function AppointmentNavbar({ title, status, subtitle }: Props) {
+export default function AppointmentNavbar({ appointmentId, title, status, subtitle }: Props) {
   const [busy, setBusy] = useState<Partial<Record<AppointmentAction, boolean>>>({});
   useEffect(() => onAppointmentBusy((action, value) => setBusy((b) => ({ ...b, [action]: value }))), []);
 
@@ -50,6 +51,7 @@ export default function AppointmentNavbar({ title, status, subtitle }: Props) {
           {action("notion", "Notion", Notion01Icon, "Notion", QUIET)}
           {action("sync", "Granola", ReloadIcon, "Sincronizando…", QUIET)}
           {action("generate", "Sugerir con IA", AiMagicIcon, "Leyendo…", QUIET)}
+          <AskAiButton context={{ page: "appointment", id: appointmentId, label: title }} />
         </div>
       </div>
     </header>

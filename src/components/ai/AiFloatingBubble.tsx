@@ -9,6 +9,7 @@ import {
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { useAi } from "@/src/hooks/useAi";
+import { suggestedQuestions } from "@/src/lib/ai-ask";
 import MessageBubble from "@/app/assistant/[id]/_components/MessageBubble";
 
 interface BubbleMessage {
@@ -85,7 +86,7 @@ function BubbleInput({
 }
 
 export function AiFloatingBubble() {
-  const { isOpen, conversationId, setConversationId, pageContext, toggle, close } =
+  const { isOpen, conversationId, setConversationId, pageContext, pendingPrompt, consumePrompt, toggle, close } =
     useAi();
   const [messages, setMessages] = useState<BubbleMessage[]>([]);
   const [streaming, setStreaming] = useState(false);
@@ -100,6 +101,14 @@ export function AiFloatingBubble() {
   const handleStop = () => {
     abortControllerRef.current?.abort();
   };
+
+  // «Preguntarle a la IA» deja una pregunta pendiente: se envía sola en cuanto la burbuja está abierta y libre.
+  const sendRef = useRef<(content: string) => void>(() => {});
+  useEffect(() => {
+    if (!isOpen || !pendingPrompt || streaming) return;
+    const prompt = consumePrompt();
+    if (prompt) sendRef.current(prompt);
+  }, [isOpen, pendingPrompt, streaming, consumePrompt]);
 
   const handleSend = async (content: string) => {
     // 1. If no conversationId yet, create one
@@ -184,6 +193,7 @@ export function AiFloatingBubble() {
       streamingIdRef.current = null;
     }
   };
+  sendRef.current = handleSend;
 
   return (
     <>
@@ -239,6 +249,21 @@ export function AiFloatingBubble() {
                 <p className="text-xs text-text-secondary">
                   Pregunta sobre tus contactos, deals, tareas y más.
                 </p>
+                {pageContext !== null && (
+                  <div className="flex w-full flex-col gap-1.5 pt-1">
+                    {suggestedQuestions(pageContext.page).map((q) => (
+                      <button
+                        key={q}
+                        type="button"
+                        disabled={streaming}
+                        onClick={() => handleSend(q)}
+                        className="rounded-control border border-line px-3 py-2 text-left text-xs text-text-primary transition-colors hover:bg-nav-hover disabled:opacity-50"
+                      >
+                        {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <>

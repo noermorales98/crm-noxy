@@ -186,3 +186,70 @@ export async function buildRelevantContext(orgId: string, message: string): Prom
   }
   return L.length ? `\n\n=== COINCIDENCIAS EN EL CRM ===\n${L.join("\n")}` : "";
 }
+
+type PageRef = { page: string; id?: string } | null | undefined;
+
+/**
+ * El contenido real del registro que la persona tiene abierto (cita con sus notas, doc, deal, marca o pieza), siempre de su
+ * organización. Sin esto la IA solo sabría el título de la pantalla.
+ */
+export async function buildPageRecordContext(orgId: string, ref: PageRef): Promise<string> {
+  if (!ref?.id) return "";
+  const id = ref.id;
+  const L: string[] = [];
+
+  if (ref.page === "appointment") {
+    const a = await prisma.appointment.findFirst({
+      where: { id, organizationId: orgId },
+      select: {
+        title: true, startTime: true, endTime: true, status: true, guestName: true, guestEmail: true, notes: true,
+        contact: { select: { id: true, firstName: true, lastName: true } },
+        granolaNotes: { orderBy: { startedAt: "desc" }, take: 3, select: { source: true, title: true, summary: true, privateNotes: true, items: { select: { text: true } } } },
+      },
+    });
+    if (!a) return "";
+    L.push(`CITA ABIERTA: ${a.title ?? "Cita"} | ${fmt(a.startTime)} | ${a.status} | invitado: ${a.guestName} <${a.guestEmail}>${a.contact ? ` | contacto [id:${a.contact.id}]` : ""}`);
+    if (a.notes) L.push(`Descripción: ${clip(a.notes, 600)}`);
+    for (const n of a.granolaNotes) {
+      L.push(`Nota (${n.source}${n.title ? `: ${n.title}` : ""}):`);
+      if (n.summary) L.push(clip(n.summary, 2500));
+      if (n.privateNotes) L.push(`Notas privadas: ${clip(n.privateNotes, 1500)}`);
+      if (n.items.length) L.push(`Pasos detectados: ${n.items.map((i) => i.text).join(" · ")}`);
+    }
+  } else if (ref.page === "kb") {
+    const d = await prisma.kbPage.findFirst({ where: { id, organizationId: orgId }, select: { title: true, isFolder: true, content: true } });
+    if (!d) return "";
+    L.push(`DOC ABIERTO [id:${id}]: ${d.title}${d.isFolder ? " (carpeta)" : ""}`);
+    if (d.content) L.push(clip(d.content, 6000));
+  } else if (ref.page === "deal") {
+    const d = await prisma.deal.findFirst({
+      where: { id, organizationId: orgId },
+      select: {
+        title: true, value: true, currency: true, notes: true, followUpAt: true, source: true,
+        stage: { select: { name: true, isWon: true, isLost: true } },
+        pipeline: { select: { name: true } },
+        contact: { select: { firstName: true, lastName: true, email: true } },
+        company: { select: { name: true } },
+        tasks: { where: { isCompleted: false }, take: 5, select: { title: true } },
+      },
+    });
+    if (!d) return "";
+    L.push(`DEAL ABIERTO [id:${id}]: "${d.title}" | ${d.pipeline?.name ?? ""} → ${d.stage.name}${d.stage.isWon ? " (GANADO)" : d.stage.isLost ? " (PERDIDO)" : ""} | $${(d.value ?? 0).toLocaleString("es-MX")} ${d.currency}${d.source ? ` | fuente ${d.source}` : ""}${d.followUpAt ? ` | seguimiento ${fmt(d.followUpAt)}` : ""}`);
+    if (d.contact) L.push(`Contacto: ${d.contact.firstName} ${d.contact.lastName ?? ""} <${d.contact.email ?? "sin email"}>${d.company ? ` · ${d.company.name}` : ""}`);
+    if (d.notes) L.push(`Notas: ${clip(d.notes, 1500)}`);
+    if (d.tasks.length) L.push(`Tareas abiertas: ${d.tasks.map((t) => t.title).join(" · ")}`);
+  } else if (ref.page === "content_client") {
+    return buildBrandContext(orgId, (await prisma.contentClient.findFirst({ where: { id, organizationId: orgId }, select: { name: true } }))?.name ?? "");
+  } else if (ref.page === "content_item") {
+    const i = await prisma.contentItem.findFirst({
+      where: { id, organizationId: orgId },
+      select: { title: true, type: true, date: true, publishStatus: true, hook: true, script: true, caption: true, cta: true, note: true, client: { select: { id: true, name: true, context: true } } },
+    });
+    if (!i) return "";
+    L.push(`PIEZA ABIERTA [id:${id}]: "${i.title}" | ${i.type} | ${fmt(i.date)} | ${i.publishStatus} | marca ${i.client.name}`);
+    for (const [label, v] of [["Gancho", i.hook], ["Guion", i.script], ["Caption", i.caption], ["CTA", i.cta], ["Nota interna", i.note]] as const) if (v) L.push(`${label}: ${clip(v, 1800)}`);
+    L.push(brandVoiceBlock(i.client.name, i.client.context, null));
+  }
+
+  return L.length ? `\n\n=== REGISTRO QUE LA PERSONA TIENE ABIERTO ===\n${L.join("\n")}` : "";
+}

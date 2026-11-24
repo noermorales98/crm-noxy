@@ -5,7 +5,7 @@ import { CHAT_ENDPOINTS, PROVIDER_LABEL, providerHeaders, providerModelName, pro
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { buildCrmContext } from "@/src/lib/ai-context";
-import { buildBrandContext, buildModulesContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
+import { buildBrandContext, buildModulesContext, buildPageRecordContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 import { normalizeModelId } from "@/src/lib/ai-models";
 
@@ -178,7 +178,7 @@ export async function POST(req: Request) {
   const [summary, prefs, relevant] = await Promise.all([
     cachedCrmContext(session.user.id!, orgId),
     getAiPrefs(orgId),
-    Promise.all([buildBrandContext(orgId, trimmed).catch(() => ""), buildRelevantContext(orgId, trimmed).catch(() => "")]).then(([brand, found]) => brand + found),
+    Promise.all([buildPageRecordContext(orgId, pageContext).catch(() => ""), buildBrandContext(orgId, trimmed).catch(() => ""), buildRelevantContext(orgId, trimmed).catch(() => "")]).then(([record, brand, found]) => record + brand + found),
   ]);
   const crmContext = summary + relevant;
 

@@ -32,6 +32,7 @@ import DatePicker from "./DatePicker";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { useAi } from "@/src/hooks/useAi";
 import { useHeader } from "@/src/context/HeaderContext";
+import { useAiPageContext } from "@/src/components/ai/AskAiButton";
 import { Chip, DealIconBadge, DealIconPicker, PageHeader, RangeBar } from "@/src/components/ui";
 import { sendToNotion } from "@/src/lib/notion-client";
 import { DealQuotesPanel } from "@/src/components/DealQuotesPanel";
@@ -164,6 +165,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const router = useRouter();
+  useAiPageContext({ page: "deal", id: initialDeal.id, label: initialDeal.title });
   const [deal, setDeal] = useState(initialDeal);
   const [, startTransition] = useTransition();
   const [notionState, setNotionState] = useState<{ busy: boolean; message: string | null; ok: boolean; url: string | null }>({ busy: false, message: null, ok: true, url: null });

@@ -16,6 +16,11 @@ export type AiContextValue = {
   isOpen: boolean;
   conversationId: string | null;
   pageContext: PageContext | null;
+  /** Pregunta que espera la burbuja para enviarse sola al abrirse. */
+  pendingPrompt: string | null;
+  /** Abre la burbuja y envía la pregunta con el contexto de la pantalla actual. */
+  ask: (prompt: string) => void;
+  consumePrompt: () => string | null;
   open: () => void;
   close: () => void;
   toggle: () => void;
@@ -29,6 +34,7 @@ export function AiProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [pageContext, setPageContext] = useState<PageContext | null>(null);
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
   // On mount: read conversationId from sessionStorage
   useEffect(() => {
@@ -55,7 +61,20 @@ export function AiProvider({ children }: { children: React.ReactNode }) {
   const close = () => setIsOpen(false);
   const toggle = () => setIsOpen((prev) => !prev);
 
+  const ask = (prompt: string) => {
+    setPendingPrompt(prompt);
+    setIsOpen(true);
+  };
+  const consumePrompt = () => {
+    const current = pendingPrompt;
+    setPendingPrompt(null);
+    return current;
+  };
+
   const value: AiContextValue = {
+    pendingPrompt,
+    ask,
+    consumePrompt,
     isOpen,
     conversationId,
     pageContext,
@@ -86,6 +105,8 @@ const BUBBLE_PATH_PREFIXES = [
   "/appointment-types",
   "/availability",
   "/appointments",
+  "/clientes",
+  "/contenido",
 ];
 
 function ConditionalBubble() {
