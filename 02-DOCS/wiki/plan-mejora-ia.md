@@ -91,9 +91,9 @@ Comandos como `/guion` o `/resumen-semanal`, con instrucciones y fuentes definid
 
 ## Fase 7 · Revisión antes de publicar (idea 6)
 
-- [ ] **T7.1** Botón «Revisar con IA» en cada pieza: tono de la marca, ortografía, CTA coherente
-- [ ] **T7.2** El resultado queda como nota del equipo en la pieza
-- [ ] **T7.3** Opción de bloquear «aprobado» si la revisión encontró problemas graves
+- [x] ~~**T7.1** Botón «Revisar con IA» en cada pieza: tono de la marca, ortografía, CTA coherente~~ — `FASE7` (en la nota de la editora de cada pieza; usa la voz guardada de la marca)
+- [x] ~~**T7.2** El resultado queda como nota del equipo en la pieza~~ — `FASE7` (con un semáforo 🟢 🟡 🔴 al inicio)
+- [x] ~~**T7.3** Opción de bloquear «aprobado» si la revisión encontró problemas graves~~ — `FASE7` (se activa en Ajustes › Modelos de IA, apagada por defecto; si bloquea, el error lo explica; el servidor acepta `overrideReview` para forzar, pero ninguna pantalla lo envía todavía)
 
 🔶 Depende de T2.1.
 

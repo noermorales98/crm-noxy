@@ -20,6 +20,23 @@ export function AiSkillsEditor() {
   const [form, setForm] = useState(EMPTY);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [blocks, setBlocks] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings/ai-review", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { blocksApproval?: boolean } | null) => setBlocks(Boolean(d?.blocksApproval)))
+      .catch(() => {});
+  }, []);
+
+  const toggleBlocks = async (value: boolean) => {
+    setBlocks(value);
+    const res = await fetch("/api/settings/ai-review", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ blocksApproval: value }) }).catch(() => null);
+    if (!res?.ok) {
+      setBlocks(!value);
+      setMessage({ type: "error", text: "No se pudo guardar esta opción (solo dueño o administrador)." });
+    }
+  };
 
   const load = useCallback(async () => {
     const res = await fetch("/api/settings/ai-skills", { cache: "no-store" }).catch(() => null);
@@ -91,6 +108,14 @@ export function AiSkillsEditor() {
           </li>
         ))}
       </ul>
+
+      <div className="flex items-start gap-3 rounded-surface border border-line px-3 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-text-primary">Frenar «aprobado» si la revisión de la IA es grave</p>
+          <p className="text-sm text-text-secondary">Con el botón «Revisar con IA» de cada pieza, si la última revisión encuentra problemas graves, no se podrá pasar la pieza a «aprobado» hasta corregirla y revisar de nuevo.</p>
+        </div>
+        <Switch checked={blocks} label="Frenar aprobado con revisión grave" onChange={(v: boolean) => void toggleBlocks(v)} />
+      </div>
 
       <div className="space-y-2 rounded-surface border border-line p-3">
         <p className="text-sm font-semibold text-text-primary">Nueva habilidad</p>

@@ -645,6 +645,33 @@ function EditorNoteField({
       >
         {saving ? "Guardando…" : "Guardar nota"}
       </button>
+      <button
+        type="button"
+        onClick={() => void run(async () => {
+          const res = await fetch(`/api/content/items/${item.id}/review`, { method: "POST" });
+          const data = (await res.json().catch(() => ({}))) as { note?: string; error?: string };
+          if (!res.ok || !data.note) throw new Error(data.error || "No se pudo revisar con la IA");
+          await onCreate(data.note);
+        })}
+        disabled={saving}
+        title="La IA revisa el tono de la marca, la ortografía y el CTA, y deja el resultado como nota"
+        style={{
+          marginTop: 8,
+          marginLeft: 8,
+          border: "1px solid var(--line, rgba(0,0,0,0.15))",
+          borderRadius: 8,
+          background: "transparent",
+          color: "inherit",
+          fontSize: 13,
+          fontWeight: 600,
+          minHeight: 44,
+          padding: "8px 12px",
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        {saving ? "Revisando…" : "Revisar con IA"}
+      </button>
       {error && <p style={{ color: "#b42318", fontSize: 12, marginTop: 6 }}>{error}</p>}
     </div>
   );

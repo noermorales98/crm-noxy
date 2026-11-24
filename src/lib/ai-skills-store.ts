@@ -7,19 +7,20 @@ import { mergeSkills, parseCustomSkills, MAX_SKILLS, type AiSkill } from "@/src/
  */
 const SKILLS_ROW = "skills";
 
-type Stored = { custom: unknown; disabledFactory: string[] };
+type Stored = { custom: unknown; disabledFactory: string[]; reviewBlocksApproval?: boolean };
 
-async function read(organizationId: string): Promise<{ custom: AiSkill[]; disabledFactory: string[] }> {
+async function read(organizationId: string): Promise<{ custom: AiSkill[]; disabledFactory: string[]; reviewBlocksApproval: boolean }> {
   try {
     const row = await prisma.aiProviderKey.findUnique({ where: { organizationId_provider: { organizationId, provider: SKILLS_ROW } } });
-    if (!row) return { custom: [], disabledFactory: [] };
+    if (!row) return { custom: [], disabledFactory: [], reviewBlocksApproval: false };
     const data = JSON.parse(row.apiKey) as Partial<Stored>;
     return {
       custom: parseCustomSkills(JSON.stringify(data.custom ?? [])),
       disabledFactory: Array.isArray(data.disabledFactory) ? data.disabledFactory.filter((v): v is string => typeof v === "string") : [],
+      reviewBlocksApproval: data.reviewBlocksApproval === true,
     };
   } catch {
-    return { custom: [], disabledFactory: [] };
+    return { custom: [], disabledFactory: [], reviewBlocksApproval: false };
   }
 }
 
@@ -33,11 +34,27 @@ export async function listSkills(organizationId: string): Promise<AiSkill[]> {
 export async function saveSkills(organizationId: string, input: { custom: unknown; disabledFactory: unknown }): Promise<AiSkill[]> {
   const custom = parseCustomSkills(JSON.stringify(input.custom ?? [])).slice(0, MAX_SKILLS);
   const disabledFactory = Array.isArray(input.disabledFactory) ? input.disabledFactory.filter((v): v is string => typeof v === "string" && v.startsWith("factory-")) : [];
-  const apiKey = JSON.stringify({ custom, disabledFactory });
+  const keep = await read(organizationId);
+  const apiKey = JSON.stringify({ custom, disabledFactory, reviewBlocksApproval: keep.reviewBlocksApproval });
   await prisma.aiProviderKey.upsert({
     where: { organizationId_provider: { organizationId, provider: SKILLS_ROW } },
     create: { organizationId, provider: SKILLS_ROW, apiKey },
     update: { apiKey },
   });
   return mergeSkills(custom, disabledFactory);
+}
+
+/** ¿Una revisión grave de la IA impide pasar la pieza a «aprobado»? (opción de la organización, apagada por defecto) */
+export async function getReviewBlocksApproval(organizationId: string): Promise<boolean> {
+  return (await read(organizationId)).reviewBlocksApproval;
+}
+
+export async function setReviewBlocksApproval(organizationId: string, value: boolean): Promise<void> {
+  const current = await read(organizationId);
+  const apiKey = JSON.stringify({ custom: current.custom, disabledFactory: current.disabledFactory, reviewBlocksApproval: value });
+  await prisma.aiProviderKey.upsert({
+    where: { organizationId_provider: { organizationId, provider: SKILLS_ROW } },
+    create: { organizationId, provider: SKILLS_ROW, apiKey },
+    update: { apiKey },
+  });
 }

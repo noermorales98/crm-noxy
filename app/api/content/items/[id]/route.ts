@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getReviewBlocksApproval } from "@/src/lib/ai-skills-store";
+import { approvalBlocked } from "@/src/lib/content-review";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { parseReminderDaysBefore } from "@/src/lib/content-reminder-options";
@@ -72,6 +74,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   if (body.publishStatus !== undefined) {
     const status = parsePublishStatus(body.publishStatus);
+    // Si la organización lo pidió, una revisión grave de la IA frena el paso a «aprobado» (se puede forzar con overrideReview).
+    if (status === "aprobado" && existing.publishStatus !== "aprobado" && (await getReviewBlocksApproval(orgId))) {
+      const latest = await prisma.contentItemEditorNote.findFirst({ where: { itemId: id }, orderBy: { createdAt: "desc" }, select: { body: true } });
+      if (approvalBlocked(latest?.body ?? existing.editorNote, true, body.overrideReview === true)) {
+        return NextResponse.json({ error: "La última revisión de la IA encontró problemas graves. Corrígelos o vuelve a revisar antes de aprobar.", reviewBlocked: true }, { status: 409 });
+      }
+    }
     data.publishStatus = status;
     data.uploadedAt = uploadedAtForStatus(status, existing.publishStatus, existing.uploadedAt);
   }
