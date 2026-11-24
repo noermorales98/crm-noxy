@@ -32,7 +32,8 @@ Corregí un deal ganado (USD → MXN) y `/pipeline/historial` seguía mostrando 
 - [x] Aviso «cotizaciones pagadas sin deal» en el historial (COT-0009 y COT-0010) y las cotizaciones de cada deal bajo su nombre (una fila por deal, nunca una por cotización).
 - [x] Montos del cierre con su moneda escrita («$854.50 USD · $6,500 MXN»).
 - [ ] Vincular COT-2026-0010 al deal «Libro de Leticia Arroyave» (valor $46.84 USD, fecha 6-ago-2026): el deal ya no existía al intentarlo (borrado desde fuera). Pendiente de decidir con Noeli.
-- [ ] No hecho: botón «crear deal desde la cotización» (falta decidir pipeline y etapa).
+- [x] Conectar cotización ↔ deal sin fricción: botón «Conectar con un deal» en la cotización (`QuoteDealDialog`): crear deal nuevo (título, pipeline+etapa; valor, moneda y contacto salen de la cotización; etapa ganada propuesta si ya está aceptada/pagada) o vincular uno existente (`/api/deals/search`, incluye archivados). `POST /api/quotes/[id]/deal`. No crea proyecto ni tareas base al nacer ganado.
+- [x] Fechas distintas → se pregunta (`saleDateChoices`, `SaleDateChoice`): 409 con opciones y se repite con `saleDate`; también al vincular desde el deal (`DealQuotesPanel`). Sin conflicto no pregunta — Evidence: navegador: cotización pagada con aceptada 10-nov y pagada 20-nov → pregunta; elegida 20-nov → `wonAt` 20-nov; revincular ganado con 20-nov → 409 con 2 opciones, fecha inventada → 400, elegida 10-nov → `wonAt` 10-nov. Datos de prueba borrados.
 
 ## Evidence
 Causa: el PATCH sí guardaba la moneda; el «Cierre del mes» sale de una foto congelada y el fetch del historial no se repetía al volver.
