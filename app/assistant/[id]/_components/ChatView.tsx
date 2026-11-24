@@ -6,6 +6,7 @@ import MessageBubble from "./MessageBubble";
 import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
 import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
 import { providerOfModelId } from "@/src/lib/ai-provider";
+import ChatBlobatar, { randomBlobSeed, type BlobMood } from "@/src/components/ai/ChatBlobatar";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -89,6 +90,9 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
   const [preferredKey, setPreferredKey] = useState<"1" | "2">("1");
   // Nombres de TODOS los modelos disponibles (también los de NVIDIA): sin esto un modelo fuera de la lista fija se mostraba como Gemma.
+  // Cada chat tiene su propia criatura: la de un chat guardado se recuerda por su id; la de uno nuevo es al azar.
+  const [blobSeed, setBlobSeed] = useState(() => randomBlobSeed());
+  const [justFinished, setJustFinished] = useState(false);
   const [modelNames, setModelNames] = useState<Record<string, string>>({});
   const nameOfModel = (id: string) => modelNames[id] ?? AI_MODELS.find((m) => m.id === id)?.name ?? prettyModelName(id);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -117,6 +121,26 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   }, [conversationTransitions, streamManager]);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => {
+    if (conversationId === "new") return;
+    const key = `assistant-blob-${conversationId}`;
+    const saved = getStored(key, "");
+    if (saved) setBlobSeed(saved);
+    else setStored(key, blobSeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
+  // Contenta unos segundos al terminar de responder.
+  const wasStreaming = useRef(false);
+  useEffect(() => {
+    if (wasStreaming.current && !streaming) {
+      setJustFinished(true);
+      const t = setTimeout(() => setJustFinished(false), 2200);
+      wasStreaming.current = streaming;
+      return () => clearTimeout(t);
+    }
+    wasStreaming.current = streaming;
+  }, [streaming]);
+  const mood: BlobMood = streaming ? "thinking" : justFinished ? "happy" : "idle";
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/ai/models", { signal: controller.signal })
@@ -184,6 +208,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       if (operationConversationId === "new" && !pendingConversation) {
         if (!conversationTransitions.remember(conversation, transitionScope)) return;
         activeConversationIdRef.current = conversation.id;
+        setStored(`assistant-blob-${conversation.id}`, blobSeed);
       }
 
       const res = await fetch("/api/assistant/chat", {
@@ -347,6 +372,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   if (isEmpty && emptyExperience === "references") {
     return (
       <AssistantNewExperience
+        mascot={<ChatBlobatar seed={blobSeed} size={72} mood={mood} follow />}
         onSend={sendMessage}
         disabled={streaming}
         model={model}
@@ -363,9 +389,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         <div className={styles.messageColumn}>
           {isEmpty ? (
             <div className={styles.emptyState}>
-              <div className={styles.emptyMark} aria-hidden="true">
-                AI
-              </div>
+              <ChatBlobatar seed={blobSeed} size={96} mood={mood} follow />
               <div>
                 <h2 className={styles.emptyTitle}>¿En qué puedo ayudarte?</h2>
                 <p className={styles.emptyCopy}>Puedo consultar tu CRM, crear registros, redactar emails y más.</p>
@@ -396,6 +420,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 currentModelId={m.model}
                 keyUsed={m.keyUsed}
                 accountLabel={m.accountLabel}
+                avatar={m.role === "assistant" ? <ChatBlobatar seed={blobSeed} size={28} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} /> : undefined}
                 onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
             ))

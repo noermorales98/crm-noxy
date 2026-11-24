@@ -14,6 +14,8 @@ const A = "https://qclay.design/lovable/sixsense";
 const TYPEWRITER_PHRASES = ASSISTANT_NEW_COPY.prompts;
 
 interface AssistantNewExperienceProps {
+  /** Criatura del chat, encima del saludo. */
+  mascot?: React.ReactNode;
   onSend: (content: string) => void;
   disabled: boolean;
   model: string;
@@ -81,6 +83,7 @@ const CARDS: readonly CardAsset[] = [
 ] as const;
 
 export default function AssistantNewExperience({
+  mascot,
   onSend,
   disabled,
   model,
@@ -235,6 +238,7 @@ export default function AssistantNewExperience({
           </div>
         </div>
 
+        {mascot && <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>{mascot}</div>}
         <h1 className={styles.heading} aria-label={greeting ?? undefined}>
           {greeting}
         </h1>

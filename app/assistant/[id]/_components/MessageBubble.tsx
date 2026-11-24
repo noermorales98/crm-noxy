@@ -35,6 +35,7 @@ interface Props {
   currentModelId?: string;
   keyUsed?: string;
   accountLabel?: string;
+  avatar?: React.ReactNode;
   onRetry?: (modelId: string, accountId?: string) => void;
   presentation?: MessageBubblePresentation;
 }
@@ -60,6 +61,7 @@ export default function MessageBubble({
   currentModelId,
   keyUsed,
   accountLabel,
+  avatar,
   onRetry,
   presentation,
 }: Props) {
@@ -224,7 +226,8 @@ export default function MessageBubble({
         ? `${styles.messageRow} ${isUser ? styles.userMessage : styles.assistantMessage}`
         : `flex w-full mb-4 ${isUser ? "justify-end" : "justify-start"}`}
     >
-      {!isUser && (
+      {!isUser && avatar && <div className="shrink-0 mt-0.5 mr-1">{avatar}</div>}
+      {!isUser && !avatar && (
         <div
           className={usesSoftCards
             ? styles.assistantAvatar
