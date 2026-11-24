@@ -20,15 +20,15 @@ Control de avance. Lo hecho va **tachado** y con el commit; lo pendiente, con ca
 
 Hoy la IA **lee** los módulos nuevos pero solo **actúa** sobre contactos, deals, tareas, citas, disponibilidad y formularios. Cada acción es una tarjeta que pide confirmación antes de ejecutarse.
 
-- [x] ~~**T1.1** Crear pieza de contenido (cliente, fecha, tipo, título, gancho, guion, caption, CTA)~~ — `fase 1`
-- [x] ~~**T1.2** Cambiar el estado de una pieza (pendiente → en edición → editado → aprobado → subido)~~ — `fase 1`
-- [x] ~~**T1.3** Editar una pieza (reprogramar fecha, reescribir gancho/guion/caption)~~ — `fase 1`
-- [x] ~~**T1.4** Crear un doc (con carpeta padre opcional)~~ — `fase 1` (sin carpeta padre: se crea en la raíz; falta elegir carpeta)
-- [x] ~~**T1.5** Editar un doc (añadir o reemplazar contenido)~~ — `fase 1`
-- [x] ~~**T1.6** Registrar un video con sus métricas (vistas, retención, leads)~~ — `fase 1`
-- [x] ~~**T1.7** Crear una categoría de pipeline y mover un deal de categoría~~ — `fase 1` (la categoría se crea con tarjeta; mover un deal ya funciona con «editar deal» y la etapa de otra categoría)
-- [x] ~~**T1.8** Registrar un cobro recibido de un cliente de la agencia~~ — `fase 1`
-- [x] ~~**T1.9** Prueba: cada acción respeta la organización activa y los permisos del rol~~ — `fase 1` (cubre la organización: todas las acciones llaman rutas que filtran por organización; falta validar permisos por rol)
+- [x] ~~**T1.1** Crear pieza de contenido (cliente, fecha, tipo, título, gancho, guion, caption, CTA)~~ — `0ba8783`
+- [x] ~~**T1.2** Cambiar el estado de una pieza (pendiente → en edición → editado → aprobado → subido)~~ — `0ba8783`
+- [x] ~~**T1.3** Editar una pieza (reprogramar fecha, reescribir gancho/guion/caption)~~ — `0ba8783`
+- [x] ~~**T1.4** Crear un doc (con carpeta padre opcional)~~ — `0ba8783` (sin carpeta padre: se crea en la raíz; falta elegir carpeta)
+- [x] ~~**T1.5** Editar un doc (añadir o reemplazar contenido)~~ — `0ba8783`
+- [x] ~~**T1.6** Registrar un video con sus métricas (vistas, retención, leads)~~ — `0ba8783`
+- [x] ~~**T1.7** Crear una categoría de pipeline y mover un deal de categoría~~ — `0ba8783` (la categoría se crea con tarjeta; mover un deal ya funciona con «editar deal» y la etapa de otra categoría)
+- [x] ~~**T1.8** Registrar un cobro recibido de un cliente de la agencia~~ — `0ba8783`
+- [x] ~~**T1.9** Prueba: cada acción respeta la organización activa y los permisos del rol~~ — `0ba8783` (cubre la organización: todas las acciones llaman rutas que filtran por organización; falta validar permisos por rol)
 
 **Criterio de hecho:** pedir en el chat "crea una pieza para X mañana" muestra la tarjeta, al confirmar se crea y aparece en `/contenido`.
 
