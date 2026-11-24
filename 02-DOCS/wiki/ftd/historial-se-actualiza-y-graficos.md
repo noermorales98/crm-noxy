@@ -27,6 +27,13 @@ Corregí un deal ganado (USD → MXN) y `/pipeline/historial` seguía mostrando 
 - [x] Motivo obligatorio al perder (`LostReasonDialog` en detalle del deal y al arrastrar en el tablero; API 400 sin motivo): guarda `lostReason`, `lostAt` y una NOTA en la bitácora — Evidence: deal de prueba (borrado después): API sin motivo → 400; UI → diálogo, botón deshabilitado vacío, guardó motivo + lostAt + nota.
 - [ ] Probar en navegador el arrastre al tablero hacia «Perdido» (solo probé el botón de etapa del detalle).
 
+- [x] Cotizaciones ↔ historial: una sola fecha por venta (la del deal). Al vincular una cotización a un deal ganado sin `wonAt`, toma la fecha de la cotización (`quoteSaleDate`); si ya tiene, se respeta — Evidence: deal de prueba sin `wonAt` + cotización pagada → `wonAt` = `paidAt` exacto (datos de prueba borrados).
+- [x] «Cobros recibidos» suma los pagos de cotizaciones (pago único, anticipo y resto, por su fecha) — `src/lib/quote-sales.ts` (5 pruebas). Meses cerrados recalculados una vez: ago-2026 $854.50 USD, oct-2026 $6,500 MXN.
+- [x] Aviso «cotizaciones pagadas sin deal» en el historial (COT-0009 y COT-0010) y las cotizaciones de cada deal bajo su nombre (una fila por deal, nunca una por cotización).
+- [x] Montos del cierre con su moneda escrita («$854.50 USD · $6,500 MXN»).
+- [ ] Vincular COT-2026-0010 al deal «Libro de Leticia Arroyave» (valor $46.84 USD, fecha 6-ago-2026): el deal ya no existía al intentarlo (borrado desde fuera). Pendiente de decidir con Noeli.
+- [ ] No hecho: botón «crear deal desde la cotización» (falta decidir pipeline y etapa).
+
 ## Evidence
 Causa: el PATCH sí guardaba la moneda; el «Cierre del mes» sale de una foto congelada y el fetch del historial no se repetía al volver.
 
