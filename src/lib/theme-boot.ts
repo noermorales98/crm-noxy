@@ -1,4 +1,6 @@
 import type { Session } from "next-auth";
+import { cookies } from "next/headers";
+import { APPEARANCE_COOKIE, parseAppearance } from "@/src/lib/appearance";
 import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { EMPTY_THEME_BOOT, resolveActiveThemeId, type ThemeBoot } from "@/src/lib/org-brand";
@@ -22,10 +24,11 @@ async function loadOrg(orgId: string): Promise<BootOrg | null> {
  */
 export async function loadThemeBoot(): Promise<{ boot: ThemeBoot; session: Session | null }> {
   let session: Session | null = null;
+  const appearance = parseAppearance((await cookies().catch(() => null))?.get(APPEARANCE_COOKIE)?.value);
   try {
     session = (await auth()) as Session | null;
     const userId = session?.user?.id;
-    if (!userId) return { boot: EMPTY_THEME_BOOT, session };
+    if (!userId) return { boot: { ...EMPTY_THEME_BOOT, appearance }, session };
 
     const orgId = (session as { currentOrganizationId?: string | null } | null)?.currentOrganizationId ?? null;
     const [user, org] = await Promise.all([
@@ -34,11 +37,11 @@ export async function loadThemeBoot(): Promise<{ boot: ThemeBoot; session: Sessi
     ]);
     const { themeId, lockedByOrg } = resolveActiveThemeId(org?.themeId, user?.crmTheme);
     return {
-      boot: { themeId, lockedByOrg, org: org ? { id: org.id, name: org.name, brandColor: org.brandColor, brandIcon: org.brandIcon } : null },
+      boot: { themeId, lockedByOrg, org: org ? { id: org.id, name: org.name, brandColor: org.brandColor, brandIcon: org.brandIcon } : null, appearance },
       session,
     };
   } catch (error) {
     console.error("[theme-boot]", error);
-    return { boot: EMPTY_THEME_BOOT, session };
+    return { boot: { ...EMPTY_THEME_BOOT, appearance }, session };
   }
 }

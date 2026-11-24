@@ -41,7 +41,7 @@ export type CrmThemeDefinition = {
   id: CrmThemeId;
   label: string;
   description: string;
-  isDark: false;
+  isDark: boolean;
   swatches: readonly [string, string, string, string];
   tokens: CrmThemeTokens;
 };
@@ -587,4 +587,51 @@ export function actionInk(theme: CrmThemeDefinition): string {
 /** Tinta de acción al pasar el puntero: un paso más oscura, nunca con menos contraste. */
 export function actionInkHover(theme: CrmThemeDefinition): string {
   return mixHex(actionInk(theme), theme.tokens.textPrimary, 0.22);
+}
+
+// ─── Modo oscuro ────────────────────────────────────────────────────────────────
+// Cada tema claro tiene su variante oscura, calculada del mismo color de acción: superficies casi negras con un matiz del
+// tema, texto claro y acción aclarada hasta que el texto del botón y la tinta de enlaces lleguen a 4.5:1 sobre todas las
+// superficies. Así el modo oscuro de «Lima» sigue siendo lima y el de «Océano», verde azulado.
+
+const DARK_BASE = "#0B0B18";
+const DARK_TEXT = "#F2F3F8";
+const DARK_TEXT_SECONDARY = "#B4B9CB";
+
+function lightenUntil(color: string, surfaces: string[], min: number): string {
+  let out = color;
+  for (let step = 0; step < 40 && !surfaces.every((s) => contrastRatio(out, s) >= min); step++) out = mixHex(out, "#FFFFFF", 0.07);
+  return out;
+}
+
+export function darkTheme(theme: CrmThemeDefinition): CrmThemeDefinition {
+  const tint = theme.tokens.actionPrimary === OBSIDIAN || theme.tokens.actionPrimary === SECONDARY_TEXT ? "#8A90A6" : theme.tokens.actionPrimary;
+  const surfaceApp = mixHex(DARK_BASE, tint, 0.05);
+  const surfaceSidebar = mixHex(DARK_BASE, tint, 0.08);
+  const surfaceElevated = mixHex(DARK_BASE, tint, 0.12);
+  const navActive = mixHex(DARK_BASE, tint, 0.26);
+  const navHover = mixHex(DARK_BASE, tint, 0.16);
+  const surfaces = [surfaceApp, surfaceSidebar, surfaceElevated, navActive, navHover];
+  const actionPrimary = lightenUntil(tint, surfaces, 4.5);
+  const foreground = contrastRatio(DARK_BASE, actionPrimary) >= 4.5 ? DARK_BASE : "#FFFFFF";
+  return {
+    ...theme,
+    isDark: true,
+    tokens: {
+      surfaceApp,
+      surfaceSidebar,
+      surfaceElevated,
+      textPrimary: DARK_TEXT,
+      textSecondary: DARK_TEXT_SECONDARY,
+      textPlaceholder: DARK_TEXT_SECONDARY,
+      navActive,
+      navHover,
+      borderSubtle: mixHex(DARK_BASE, "#FFFFFF", 0.2),
+      actionPrimary,
+      actionPrimaryForeground: foreground,
+      actionSecondary: mixHex(actionPrimary, "#FFFFFF", 0.18),
+      focus: actionPrimary,
+      highlight: LIME,
+    },
+  };
 }

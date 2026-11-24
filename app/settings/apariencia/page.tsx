@@ -1,6 +1,7 @@
 "use client";
 
 import ThemeSelector from "@/src/components/settings/ThemeSelector";
+import AppearanceSelector from "@/src/components/settings/AppearanceSelector";
 import { SettingsScreen } from "@/src/components/settings/SettingsScreen";
 import { Block, Enter, PageHeader, Switch } from "@/src/components/ui";
 import { useSoundSettings } from "@/src/context/SoundContext";
@@ -10,9 +11,14 @@ export default function SettingsAppearancePage() {
   return (
     <SettingsScreen title="Apariencia y sonidos">
       <Enter index={0}>
-        <PageHeader title="Apariencia y sonidos" subtitle="Tema de color y sonidos de interacción de tu cuenta." />
+        <PageHeader title="Apariencia y sonidos" subtitle="Modo claro u oscuro, esquinas, bordes, tema de color y sonidos de tu cuenta." />
       </Enter>
       <div className="flex flex-col gap-5">
+      <Block title="Modo, esquinas y bordes">
+        <div className="px-4 py-4 sm:px-5">
+          <AppearanceSelector />
+        </div>
+      </Block>
       <Block title="Tema">
         <div className="px-4 py-4 sm:px-5">
           <ThemeSelector />

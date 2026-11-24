@@ -8,6 +8,7 @@ import { AiProvider } from "@/src/components/ai/AiProvider";
 import { SoundProvider } from "@/src/context/SoundContext";
 import AppShell from "@/src/components/AppShell";
 import { ThemeBootProvider } from "@/src/context/CrmThemeContext";
+import { AppearanceProvider } from "@/src/context/AppearanceContext";
 import { loadThemeBoot } from "@/src/lib/theme-boot";
 import PwaRegister from "@/src/components/PwaRegister";
 import "@/src/lib/fonts";
@@ -55,6 +56,7 @@ export default async function RootLayout({
       <body className="bg-surface-app text-text-primary antialiased">
         <AuthProvider session={session}>
           <ThemeBootProvider boot={boot}>
+          <AppearanceProvider initial={boot.appearance}>
           <ToastProvider>
             <ConfirmProvider>
               <HeaderProvider>
@@ -69,6 +71,7 @@ export default async function RootLayout({
               </HeaderProvider>
             </ConfirmProvider>
           </ToastProvider>
+          </AppearanceProvider>
           </ThemeBootProvider>
         </AuthProvider>
       </body>

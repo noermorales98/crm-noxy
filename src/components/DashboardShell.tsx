@@ -15,7 +15,9 @@ import { SearchProvider } from "@/src/context/SearchContext";
 import { MobileChromeProvider } from "@/src/context/MobileChromeContext";
 import { usePathname } from "next/navigation";
 import { useCrmTheme } from "@/src/context/CrmThemeContext";
-import { crmThemeCssVariables } from "@/src/lib/crm-themes";
+import { crmThemeCssVariables, darkTheme } from "@/src/lib/crm-themes";
+import { appearanceStyleSheet, appearanceVars } from "@/src/lib/appearance-css";
+import { useAppearance } from "@/src/context/AppearanceContext";
 import { useEffect, useRef, type CSSProperties } from "react";
 
 function isHideHeaderRoute(pathname: string) {
@@ -24,7 +26,10 @@ function isHideHeaderRoute(pathname: string) {
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { themeId, theme } = useCrmTheme();
+  const { themeId, theme: baseTheme } = useCrmTheme();
+  const { appearance } = useAppearance();
+  // Oscuro fijo: la variante oscura del tema. Automático: la clara en línea y el CSS cambia a oscuro si el dispositivo lo pide.
+  const theme = appearance.mode === "dark" ? darkTheme(baseTheme) : baseTheme;
   const hideHeader = isHideHeaderRoute(pathname ?? "");
   const frameRef = useRef<HTMLDivElement>(null);
   const isAssistant = (pathname ?? "").startsWith("/assistant");
@@ -54,7 +59,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       if (created) meta?.remove();
       else if (meta) meta.content = previous;
     };
-  }, [themeId]);
+  }, [themeId, appearance.mode, appearance.borders]);
 
   return (
     <SearchProvider>
@@ -65,8 +70,11 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               ref={frameRef}
               className="noxy-product-frame crm-shell-enter flex h-dvh overflow-hidden bg-surface-sidebar"
               data-crm-theme={themeId}
-              style={crmThemeCssVariables(theme) as CSSProperties}
+              data-appearance={appearance.mode}
+              data-borders={appearance.borders}
+              style={{ ...crmThemeCssVariables(theme), ...appearanceVars(theme, appearance) } as CSSProperties}
             >
+              <style>{appearanceStyleSheet(baseTheme, appearance)}</style>
               <div className="hidden lg:flex">
                 <Sidebar />
               </div>

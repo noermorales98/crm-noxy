@@ -1,6 +1,8 @@
 // Identidad por empresa (sub-cuenta): color, icono y tema. Funciones puras, sin base de datos.
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { isCrmThemeId, resolveCrmTheme } from "./crm-themes.ts";
+// @ts-expect-error Node's native TypeScript runner requires an explicit extension.
+import { DEFAULT_APPEARANCE, type Appearance } from "./appearance.ts";
 
 /** Colores ofrecidos (sin violeta). El primero es el índigo de Noxy. */
 export const BRAND_COLORS = [
@@ -74,6 +76,8 @@ export type ThemeBoot = {
   /** El tema lo fija la empresa: la persona no puede cambiarlo desde su menú. */
   lockedByOrg: boolean;
   org: { id: string; name: string; brandColor: string | null; brandIcon: string | null } | null;
+  /** Modo, radio y bordes elegidos (cookie del navegador). */
+  appearance: Appearance;
 };
 
-export const EMPTY_THEME_BOOT: ThemeBoot = { themeId: "noxy-indigo", lockedByOrg: false, org: null };
+export const EMPTY_THEME_BOOT: ThemeBoot = { themeId: "noxy-indigo", lockedByOrg: false, org: null, appearance: { ...DEFAULT_APPEARANCE } };
