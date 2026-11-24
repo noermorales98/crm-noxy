@@ -3,7 +3,7 @@
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { isDigestDue, type DigestFrequency } from "./digest-schedule.ts";
 
-export type AiScheduleKind = "prompt" | "stale_deals" | "late_content" | "overdue_payments";
+export type AiScheduleKind = "prompt" | "stale_deals" | "late_content" | "overdue_payments" | "client_reports";
 
 export type AiSchedule = {
   id: string;
@@ -25,12 +25,13 @@ export type AiSchedule = {
 };
 
 export const MAX_SCHEDULES_PER_USER = 10;
-export const KINDS: AiScheduleKind[] = ["prompt", "stale_deals", "late_content", "overdue_payments"];
+export const KINDS: AiScheduleKind[] = ["prompt", "stale_deals", "late_content", "overdue_payments", "client_reports"];
 export const KIND_LABEL: Record<AiScheduleKind, string> = {
   prompt: "Pedirle algo a la IA",
   stale_deals: "Deals sin movimiento",
   late_content: "Contenido atrasado",
   overdue_payments: "Cobros vencidos",
+  client_reports: "Informes mensuales de clientes",
 };
 
 const int = (v: unknown, min: number, max: number, fallback: number) => {
@@ -133,7 +134,7 @@ export function overduePaymentLines(payments: { clientName: string; amount: numb
 }
 
 /** Texto final de una alerta; vacío si no hay nada que avisar. */
-export function alertMessage(kind: Exclude<AiScheduleKind, "prompt">, lines: string[]): string {
+export function alertMessage(kind: Exclude<AiScheduleKind, "prompt" | "client_reports">, lines: string[]): string {
   if (!lines.length) return "";
   const title = kind === "stale_deals" ? "Deals sin movimiento" : kind === "late_content" ? "Contenido atrasado" : "Cobros vencidos";
   return `${title} (${lines.length}):\n${lines.slice(0, 15).join("\n")}${lines.length > 15 ? `\n… y ${lines.length - 15} más` : ""}`;

@@ -46,6 +46,15 @@ export const FACTORY_SKILLS: AiSkill[] = [
     builtin: true,
   },
   {
+    id: "factory-informe-cliente",
+    command: "informe-cliente",
+    name: "Informe mensual de un cliente",
+    description: "Prepara el informe del mes de un cliente de la agencia y lo guarda en Docs.",
+    instructions: "Identifica el cliente de la lista CLIENTES y el mes (por defecto el mes anterior). Explica en 3 líneas qué incluirá el informe (cobros, contenido entregado, videos) y abre la tarjeta create_client_report con el id del cliente. Después de crearlo, ofrece redactar un mensaje breve para enviárselo.",
+    enabled: true,
+    builtin: true,
+  },
+  {
     id: "factory-propuesta",
     command: "propuesta",
     name: "Propuesta comercial",

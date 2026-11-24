@@ -63,6 +63,7 @@ export type ActionCardData =
   | { type: "create_video"; prefill?: { title?: string; platform?: string; hook?: string; hookType?: string; views?: string; leadsGenerated?: string; notes?: string; contentClientId?: string } }
   // Pipeline
   | { type: "create_pipeline_category"; prefill?: { name?: string } }
+  | { type: "create_client_report"; id: string; name: string; prefill?: { month?: string; year?: string; email?: string } }
   // Cobros de clientes de la agencia
   | { type: "record_client_payment"; id: string; name: string; prefill?: { month?: string; year?: string; amount?: string } }
   | { type: "create_ai_schedule"; prefill?: { name?: string; kind?: string; prompt?: string; frequency?: string; weeklyDay?: string; monthlyDay?: string; hour?: string; days?: string } }
@@ -120,6 +121,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   create_video:          { icon: VideoReplayIcon,    color: "#10B981", title: "Registrar video" },
   // Pipeline
   create_pipeline_category: { icon: FolderAddIcon,   color: "#10B981", title: "Crear categoría del pipeline" },
+  create_client_report:  { icon: File01Icon,         color: "#10B981", title: "Informe mensual del cliente" },
   // Cobros
   record_client_payment: { icon: Wallet01Icon,       color: "#10B981", title: "Registrar cobro recibido" },
   create_ai_schedule:    { icon: Calendar03Icon,     color: "#10B981", title: "Programar con la IA" },
@@ -193,6 +195,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "edit_kb_doc":           return "Doc actualizado";
     case "create_video":          return "Video registrado";
     case "create_pipeline_category": return "Categoría creada";
+    case "create_client_report":  return "Informe guardado en Docs";
     case "record_client_payment": return "Cobro registrado";
     case "create_ai_schedule":    return "Programación creada";
     case "query_result":          return "Consulta completada";
@@ -519,8 +522,11 @@ function FormFields({
             <option value="stale_deals">Alerta: deals sin movimiento</option>
             <option value="late_content">Alerta: contenido atrasado</option>
             <option value="overdue_payments">Alerta: cobros vencidos</option>
+            <option value="client_reports">Informes mensuales de clientes</option>
           </select>
-          {(formData.kind ?? "prompt") === "prompt" ? (
+          {(formData.kind ?? "prompt") === "client_reports" ? (
+            <p className="text-xs text-text-secondary">Crea en Docs el informe del mes anterior de cada cliente activo.</p>
+          ) : (formData.kind ?? "prompt") === "prompt" ? (
             <textarea className={`${inputClass} resize-none`} placeholder="Qué debe hacer la IA cada vez" rows={3} value={formData.prompt ?? ""} onChange={(e) => onChange("prompt", e.target.value)} />
           ) : (
             <input className={inputClass} type="number" placeholder="Días de retraso para avisar (5)" value={formData.days ?? ""} onChange={(e) => onChange("days", e.target.value)} />
@@ -547,6 +553,22 @@ function FormFields({
         <div className="flex flex-col gap-2 mt-3">
           <input className={inputClass} placeholder="Nombre de la categoría *" value={formData.name ?? ""} onChange={(e) => onChange("name", e.target.value)} />
           <p className="text-xs text-text-secondary">Nace con las etapas Nuevo, En proceso, Ganado y Perdido.</p>
+        </div>
+      );
+
+    case "create_client_report":
+      return (
+        <div className="flex flex-col gap-2 mt-3">
+          <p className="text-xs text-text-secondary">Cliente: <span className="font-medium text-text-primary">{action.name}</span></p>
+          <div className="flex gap-2">
+            <input className={inputClass} placeholder="Mes (1-12)" type="number" min={1} max={12} value={formData.month ?? ""} onChange={(e) => onChange("month", e.target.value)} />
+            <input className={inputClass} placeholder="Año" type="number" value={formData.year ?? ""} onChange={(e) => onChange("year", e.target.value)} />
+          </div>
+          <label className="flex items-center gap-2 text-xs text-text-secondary">
+            <input type="checkbox" checked={formData.email === "true"} onChange={(e) => onChange("email", e.target.checked ? "true" : "")} />
+            Abrir también el correo con el informe
+          </label>
+          <p className="text-xs text-text-secondary">Se guarda en Docs con los cobros, el contenido entregado y los videos del mes. Lo que no tenga datos se indica, no se inventa.</p>
         </div>
       );
 
@@ -915,6 +937,17 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           break;
         }
         // ── Cobros ────────────────────────────────────────────────────────
+        case "create_client_report": {
+          const res = await fetch(`/api/clients/${action.id}/report`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ month: formData.month ? Number(formData.month) : undefined, year: formData.year ? Number(formData.year) : undefined, save: true }) });
+          const data = (await res.json().catch(() => ({}))) as { error?: string; markdown?: string; docId?: string };
+          if (!res.ok) throw new Error(data.error ?? "Error al crear el informe");
+          markDone(`Informe guardado en Docs`);
+          if (formData.email === "true" && data.markdown) {
+            const params = new URLSearchParams({ subject: `Informe mensual — ${action.name}`, body: data.markdown.slice(0, 6000) });
+            router.push(`/emails?${params.toString()}&compose=true`);
+          }
+          break;
+        }
         case "record_client_payment": {
           const month = Number(formData.month);
           const year = Number(formData.year);

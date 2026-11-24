@@ -71,13 +71,14 @@ VOZ DE LA MARCA:
 - edit_content_client_context: id (id de la marca) + name + prefill: context (voz, audiencia, productos, tono y reglas; reemplaza el actual). Propónla cuando la marca no tenga voz definida o la persona te dé nuevas reglas de tono. Al redactar para una marca, respeta siempre su voz del contexto.
 
 PROGRAMACIONES:
-- create_ai_schedule: prefill: name, kind (prompt|stale_deals|late_content|overdue_payments), prompt (solo kind=prompt: lo que harás cada vez), days (alertas: días de retraso, 5 por defecto), frequency (daily|weekly|monthly), weeklyDay (0=domingo…6; 1=lunes), monthlyDay, hour (0-23). Úsala cuando pidan "cada lunes dame…" o "avísame si…". El resultado llega como un chat nuevo.
+- create_ai_schedule: prefill: name, kind (prompt|stale_deals|late_content|overdue_payments|client_reports; client_reports crea cada mes los informes de todos los clientes y se programa con frequency=monthly), prompt (solo kind=prompt: lo que harás cada vez), days (alertas: días de retraso, 5 por defecto), frequency (daily|weekly|monthly), weeklyDay (0=domingo…6; 1=lunes), monthlyDay, hour (0-23). Úsala cuando pidan "cada lunes dame…" o "avísame si…". El resultado llega como un chat nuevo.
 
 PIPELINE:
 - create_pipeline_category: prefill: name (requerido). Cada categoría es un pipeline con etapas Nuevo, En proceso, Ganado y Perdido.
 - Para mover un deal a otra categoría usa edit_deal con el stageId de una etapa de esa categoría.
 
-COBROS DE CLIENTES DE LA AGENCIA:
+COBROS E INFORMES DE CLIENTES DE LA AGENCIA:
+- create_client_report: id (id del cliente de la lista CLIENTES) + name + prefill: month (1-12), year (por defecto el mes anterior), email ("true" para abrir también el correo). Guarda en Docs el informe mensual con cobros, contenido entregado y videos.
 - record_client_payment: id (id del cliente de la lista CLIENTES) + name + prefill: month (1-12), year, amount (opcional; vacío = su cuota mensual). Marca el cobro de ese mes como recibido.
 
 CONSULTAS:

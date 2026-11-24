@@ -77,7 +77,7 @@ export function AiSchedulesPanel() {
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-text-primary">{s.name}</p>
-                  <p className="text-xs text-text-secondary">{KIND_LABEL[s.kind]}{s.kind !== "prompt" ? ` (${s.days}+ días)` : ""} · {when(s)}</p>
+                  <p className="text-xs text-text-secondary">{KIND_LABEL[s.kind]}{s.kind === "stale_deals" || s.kind === "late_content" || s.kind === "overdue_payments" ? ` (${s.days}+ días)` : ""} · {when(s)}</p>
                   {s.kind === "prompt" && <p className="mt-1 line-clamp-2 text-sm text-text-secondary">{s.prompt}</p>}
                 </div>
                 <Switch checked={s.enabled} disabled={busy !== null} label={`Activar ${s.name}`} onChange={(v: boolean) => void call(s.id, { method: "PATCH", body: JSON.stringify({ id: s.id, enabled: v }) })} />
@@ -106,6 +106,8 @@ export function AiSchedulesPanel() {
         </div>
         {form.kind === "prompt" ? (
           <textarea className={`${inputCls} min-h-20`} placeholder="Qué quieres que haga la IA (ej. Dame el resumen de la semana: ventas, tareas y contenido)" aria-label="Pedido" value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} />
+        ) : form.kind === "client_reports" ? (
+          <p className="text-sm text-text-secondary">Crea en Docs un informe del mes anterior por cada cliente activo (cobros, contenido y videos). Conviene programarlo «cada mes» el día 1 o 2.</p>
         ) : (
           <label className="flex items-center gap-2 text-sm text-text-secondary">
             Avisar cuando lleve

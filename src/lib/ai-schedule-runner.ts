@@ -6,6 +6,8 @@ import { buildCrmContext } from "@/src/lib/ai-context";
 import { buildModulesContext } from "@/src/lib/ai-context-modules";
 import { sendWhatsAppNotification } from "@/src/lib/whatsapp";
 import { alertMessage, isScheduleDue, lateContentLines, overduePaymentLines, staleDealLines, type AiSchedule } from "@/src/lib/ai-schedules";
+import { buildMonthlyReports } from "@/src/lib/client-report-service";
+import { monthLabel, previousMonth } from "@/src/lib/client-report";
 import { listAllScheduleRows, listSchedules, saveSchedules } from "@/src/lib/ai-schedules-store";
 
 const SYSTEM = "Eres el asistente del CRM Noxy. Responde en español, directo y con datos concretos del contexto. No inventes cifras.";
@@ -22,6 +24,12 @@ export async function produceScheduleText(s: AiSchedule, organizationId: string,
       maxTokens: 900,
       maxOutputChars: 3500,
     });
+  }
+  if (s.kind === "client_reports") {
+    const period = previousMonth(now);
+    const reports = await buildMonthlyReports(organizationId, period);
+    if (!reports.length) return "";
+    return `Informes de ${monthLabel(period)} listos en Docs (${reports.length}):\n${reports.map((r) => `• ${r.clientName} — /kb/${r.docId}`).join("\n")}`;
   }
   if (s.kind === "stale_deals") {
     const deals = await prisma.deal.findMany({
