@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
 import PixelGrid from "@/app/assistant/new/_components/PixelGrid";
-import { DEFAULT_MODEL_ID, getModelById, normalizeModelId } from "@/src/lib/ai-models";
+import { AI_MODELS, DEFAULT_MODEL_ID, normalizeModelId } from "@/src/lib/ai-models";
+import { providerOfModelId } from "@/src/lib/ai-provider";
 import styles from "../assistant-chat.module.css";
 import {
   assistantRequestErrorMessage,
@@ -33,6 +34,7 @@ interface Message {
   createdAt: string;
   model?: string;
   keyUsed?: string;
+  accountLabel?: string;
 }
 
 interface Props {
@@ -70,8 +72,14 @@ function isAbortError(error: unknown): boolean {
     : typeof error === "object" && error !== null && "name" in error && error.name === "AbortError";
 }
 
+/** Nombre legible de un modelo que no está en la lista fija (p. ej. uno de NVIDIA): «nvidia:z-ai/glm-5.3-flash» → «glm-5.3-flash». */
+function prettyModelName(id: string): string {
+  const bare = id.replace(/^nvidia:/, "").replace(/:free$/, "");
+  return bare.split("/").pop() || id;
+}
+
 function defaultKeyUsed(modelId: string, preferKey: "1" | "2"): string | undefined {
-  if (getModelById(modelId).provider !== "openrouter") return undefined;
+  if (providerOfModelId(modelId) !== "openrouter") return undefined;
   return preferKey === "2" ? "secundaria" : "primaria";
 }
 
@@ -80,6 +88,9 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   const [streaming, setStreaming] = useState(false);
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
   const [preferredKey, setPreferredKey] = useState<"1" | "2">("1");
+  // Nombres de TODOS los modelos disponibles (también los de NVIDIA): sin esto un modelo fuera de la lista fija se mostraba como Gemma.
+  const [modelNames, setModelNames] = useState<Record<string, string>>({});
+  const nameOfModel = (id: string) => modelNames[id] ?? AI_MODELS.find((m) => m.id === id)?.name ?? prettyModelName(id);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const streamingIdRef = useRef<string | null>(null);
@@ -106,6 +117,14 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
   }, [conversationTransitions, streamManager]);
 
   useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/ai/models", { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((list: { id: string; name: string }[]) => setModelNames(Object.fromEntries(list.map((m) => [m.id, m.name]))))
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     const storedModel = getStored("assistant-model", DEFAULT_MODEL_ID);
     const normalizedModel = normalizeModelId(storedModel);
@@ -144,6 +163,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
     activeModel: string,
     activeKey: "1" | "2",
     onKeyDetected?: (key: string) => void,
+    accountId?: string,
+    onResponseMeta?: (meta: { model?: string; accountLabel?: string }) => void,
   ) => {
     const operation = streamManager.start();
     const operationConversationId = activeConversationIdRef.current;
@@ -168,7 +189,7 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       const res = await fetch("/api/assistant/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey }),
+        body: JSON.stringify({ conversationId: conversation.id, content: userContent, model: activeModel, preferKey: activeKey, accountId }),
         signal: operation.signal,
       });
 
@@ -177,6 +198,14 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
         showAssistantError(assistantId, res.status);
         return;
       }
+
+      // El servidor dice con qué modelo y cuenta respondió de verdad (puede haber cambiado si el pedido falló).
+      const headerValue = (name: string) => {
+        const raw = res.headers.get(name);
+        if (!raw) return undefined;
+        try { return decodeURIComponent(raw); } catch { return raw; }
+      };
+      if (operation.isCurrent()) onResponseMeta?.({ model: headerValue("X-AI-Model-Used"), accountLabel: headerValue("X-AI-Account-Used") });
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -268,10 +297,12 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       setMessages((prev) =>
         prev.map((m) => m.id === assistantId ? { ...m, keyUsed: key } : m),
       );
+    }, undefined, (meta) => {
+      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, model: meta.model ?? m.model, accountLabel: meta.accountLabel } : m));
     });
   };
 
-  const retryMessage = async (assistantMsgId: string, newModelId: string) => {
+  const retryMessage = async (assistantMsgId: string, newModelId: string, accountId?: string) => {
     if (streaming) return;
 
     const currentMessages = messagesRef.current;
@@ -306,6 +337,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
       setMessages((prev) =>
         prev.map((m) => m.id === newAssistantId ? { ...m, keyUsed: key } : m),
       );
+    }, accountId, (meta) => {
+      setMessages((prev) => prev.map((m) => m.id === newAssistantId ? { ...m, model: meta.model ?? m.model, accountLabel: meta.accountLabel } : m));
     });
   };
 
@@ -359,10 +392,11 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 role={m.role}
                 content={m.content}
                 streaming={streaming && m.id === streamingIdRef.current}
-                modelName={m.model ? getModelById(m.model).name : undefined}
+                modelName={m.model ? nameOfModel(m.model) : undefined}
                 currentModelId={m.model}
                 keyUsed={m.keyUsed}
-                onRetry={m.role === "assistant" ? (newModelId) => retryMessage(m.id, newModelId) : undefined}
+                accountLabel={m.accountLabel}
+                onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
             ))
           )}

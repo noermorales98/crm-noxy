@@ -34,7 +34,8 @@ interface Props {
   modelName?: string;
   currentModelId?: string;
   keyUsed?: string;
-  onRetry?: (modelId: string) => void;
+  accountLabel?: string;
+  onRetry?: (modelId: string, accountId?: string) => void;
   presentation?: MessageBubblePresentation;
 }
 
@@ -58,6 +59,7 @@ export default function MessageBubble({
   modelName,
   currentModelId,
   keyUsed,
+  accountLabel,
   onRetry,
   presentation,
 }: Props) {
@@ -68,6 +70,9 @@ export default function MessageBubble({
   const [fullscreen, setFullscreen] = useState(false);
   const [groups, setGroups] = useState(() => getModelGroups());
   const [groupsLoaded, setGroupsLoaded] = useState(false);
+  // Cuentas guardadas (OpenRouter y NVIDIA) para reintentar con una en concreto; vacío = automático.
+  const [accounts, setAccounts] = useState<{ id: string; label: string; provider: "openrouter" | "nvidia" }[]>([]);
+  const [accountId, setAccountId] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const fullscreenTriggerRef = useRef<HTMLButtonElement>(null);
   const fullscreenBackdropRef = useRef<HTMLDivElement>(null);
@@ -161,7 +166,9 @@ export default function MessageBubble({
 
   const handleSelect = (model: AiModel) => {
     setRetryOpen(false);
-    onRetry?.(model.id);
+    // La cuenta elegida solo vale para el proveedor al que pertenece; con otro modelo se usa el orden automático.
+    const chosen = accounts.find((a) => a.id === accountId);
+    onRetry?.(model.id, chosen && chosen.provider === model.provider ? chosen.id : undefined);
   };
 
   const openRetry = async () => {
@@ -169,32 +176,28 @@ export default function MessageBubble({
       modelRequestLifecycleRef.current ??= createAbortableRequestLifecycle();
       const request = modelRequestLifecycleRef.current.start();
       try {
-        const res = await fetch("/api/settings/ai-models", {
-          cache: "no-store",
-          signal: request.signal,
-        });
+        // Catálogo completo (de fábrica, personalizados y los modelos vigentes de NVIDIA) y las cuentas guardadas.
+        const [res, accRes] = await Promise.all([
+          fetch("/api/ai/models", { cache: "no-store", signal: request.signal }),
+          fetch("/api/settings/ai-accounts", { cache: "no-store", signal: request.signal }).catch(() => null),
+        ]);
         if (!request.isCurrent()) return;
         if (res.ok) {
-          const data = (await res.json()) as {
-            hiddenBuiltins?: unknown;
-            models?: CustomModelPayload[];
-          };
+          const list = (await res.json()) as { id: string; name: string; group: string; provider: "openrouter" | "nvidia"; configured?: boolean; description?: string; tags?: string[] }[];
           if (!request.isCurrent()) return;
-          const hidden: string[] = Array.isArray(data.hiddenBuiltins) ? data.hiddenBuiltins : [];
-          const customs: AiModel[] = (data.models ?? [])
-            .filter((m): m is CustomModelPayload & { modelId: string; name: string } => (
-              Boolean(m.enabled && m.modelId && m.name)
-            ))
-            .map((m) => ({
-              id: m.modelId,
-              name: m.name,
-              provider: "openrouter" as const,
-              group: m.group || "Personalizados",
-              description: m.description || "",
-              tags: JSON.parse(m.tags || "[]"),
-            }));
-          const visibleBuiltins = AI_MODELS.filter((m) => !hidden.includes(m.id));
-          setGroups(buildGroups(visibleBuiltins, customs));
+          const byGroup = new Map<string, AiModel[]>();
+          for (const m of list) {
+            if (m.configured === false) continue;
+            const bucket = byGroup.get(m.group) ?? [];
+            bucket.push({ id: m.id, name: m.name, provider: m.provider, group: m.group, description: m.description ?? "", tags: m.tags ?? [] });
+            byGroup.set(m.group, bucket);
+          }
+          if (byGroup.size) setGroups([...byGroup.entries()].map(([group, models]) => ({ group, models })));
+        }
+        if (accRes?.ok) {
+          const snap = (await accRes.json()) as { providers?: { provider: "openrouter" | "nvidia"; accounts: { id: string; label: string; enabled: boolean }[] }[] };
+          if (!request.isCurrent()) return;
+          setAccounts((snap.providers ?? []).flatMap((p) => p.accounts.filter((a) => a.enabled).map((a) => ({ id: a.id, label: a.label, provider: p.provider }))));
         }
       } catch {}
       if (!request.finish()) return;
@@ -340,7 +343,9 @@ export default function MessageBubble({
                 <span>reintentar</span>
               </button>
             )}
-            {keyUsed && (
+            {accountLabel ? (
+              <span className={usesSoftCards ? styles.keyLabel : "text-[10px] text-text-secondary/50 select-none"}>· {accountLabel}</span>
+            ) : keyUsed && (
               <span className={usesSoftCards ? styles.keyLabel : "text-[10px] text-text-secondary/50 select-none"}>
                 ·{" "}
                 {keyUsed === "fallback"
@@ -379,6 +384,22 @@ export default function MessageBubble({
                     Reintentar con…
                   </p>
                 </div>
+                {accounts.length > 0 && (
+                  <div className="px-3 py-2 border-b border-border-subtle">
+                    <label className="block text-[10px] font-semibold text-text-secondary uppercase tracking-wider mb-1" htmlFor="retry-account">Cuenta</label>
+                    <select
+                      id="retry-account"
+                      value={accountId}
+                      onChange={(e) => setAccountId(e.target.value)}
+                      className="w-full rounded-md border border-border-subtle bg-white px-2 py-1 text-xs text-text-primary"
+                    >
+                      <option value="">Automática</option>
+                      {accounts.map((a) => (
+                        <option key={a.id} value={a.id}>{a.provider === "nvidia" ? "NVIDIA" : "OpenRouter"} · {a.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="max-h-52 overflow-y-auto">
                   {groups.map(({ group, models }) => (
                     <div key={group}>

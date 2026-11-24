@@ -100,6 +100,7 @@ export async function POST(req: Request) {
   }
 
   let conversationId: string, content: string, model: string, preferKey: "1" | "2";
+  let accountId: string | null = null;
   let pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null = null;
   try {
     const body = await req.json() as {
@@ -107,12 +108,14 @@ export async function POST(req: Request) {
       content: string;
       model?: string;
       preferKey?: "1" | "2";
+      accountId?: string;
       pageContext?: { page: string; id?: string; label?: string; data?: Record<string, unknown> };
     };
     conversationId = body.conversationId;
     content = body.content;
     model = normalizeModelId(body.model);
     preferKey = body.preferKey ?? "1";
+    accountId = typeof body.accountId === "string" && body.accountId ? body.accountId : null;
     pageContext = body.pageContext ?? null;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
@@ -144,7 +147,7 @@ export async function POST(req: Request) {
   // Contexto del CRM (12 consultas) y preferencias en paralelo; el contexto se reutiliza 60 s.
   const [crmContext, prefs] = await Promise.all([cachedCrmContext(session.user.id!, orgId), getAiPrefs(orgId)]);
 
-  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId, prefs);
+  return streamOpenRouter(selectedModel, crmContext, conversation, trimmed, conversationId, preferKey, pageContext, orgId, prefs, accountId);
 }
 
 // ── OpenRouter ───────────────────────────────────────────────────────────────
@@ -234,6 +237,7 @@ async function streamOpenRouter(
   pageContext: { page: string; id?: string; label?: string; data?: Record<string, unknown> } | null,
   orgId: string,
   prefs: Awaited<ReturnType<typeof getAiPrefs>>,
+  accountId: string | null,
 ) {
   const sanitizedContext = (crmContext
     .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
@@ -266,6 +270,11 @@ async function streamOpenRouter(
     const entries = await resolveProviderEntries(orgId, provider);
     // La preferencia de cuenta del cliente (1 = principal, 2 = secundaria) solo reordena las dos primeras de OpenRouter.
     if (provider === "openrouter" && preferKey === "2" && entries.length > 1) [entries[0], entries[1]] = [entries[1], entries[0]];
+    // Cuenta elegida a mano (p. ej. al reintentar): va primero para el modelo pedido; si falla, se siguen probando las demás.
+    if (mi === 0 && accountId) {
+      const chosen = entries.findIndex((e) => e.id === accountId);
+      if (chosen > 0) entries.unshift(...entries.splice(chosen, 1));
+    }
     if (entries.length === 0) {
       missing = provider;
       continue;
@@ -279,7 +288,7 @@ async function streamOpenRouter(
         if (switched && shouldPromote(primaryStatuses, currentModel, modelId)) await promoteDefaultModel(orgId, modelId, currentModel);
         // Marcadores de cuenta de OpenRouter que lee el cliente: P/S = usó la 1.ª/2.ª directamente; F/G = cayó a otra cuenta.
         const marker = provider === "openrouter" ? (ei === 0 ? (preferKey === "2" ? "S" : "P") : preferKey === "2" ? "G" : "F") : undefined;
-        return buildStream(r.body, conversationId, "sse", marker, switched ? { "X-AI-Model-Used": encodeURIComponent(currentModel), "X-AI-Model-Requested": encodeURIComponent(modelId) } : undefined);
+        return buildStream(r.body, conversationId, "sse", marker, { "X-AI-Model-Used": encodeURIComponent(currentModel), "X-AI-Model-Requested": encodeURIComponent(modelId), "X-AI-Account-Used": encodeURIComponent(entries[ei].label), "X-AI-Account-Id": encodeURIComponent(entries[ei].id) });
       }
       lastFailure = { r, provider };
       statuses.push(r.status);
