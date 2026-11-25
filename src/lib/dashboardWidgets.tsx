@@ -25,6 +25,7 @@ import { KpiWidget } from "@/src/components/dashboard/KpiWidget";
 import { WidgetCard } from "@/src/components/dashboard/WidgetCard";
 import { DetailTrigger, type RowDetail } from "@/src/components/dashboard/DetailDialog";
 import { DataList, EmptyState } from "@/src/components/ui";
+import { pickStageRows } from "@/src/lib/dashboard-stages";
 import { formatCurrency } from "@/src/lib/format";
 import { contentTypeLabel } from "@/src/lib/content-client-colors";
 import { publishStatusColor, publishStatusLabel } from "@/src/lib/content-publish";
@@ -357,7 +358,8 @@ export const WIDGET_REGISTRY: WidgetDefinition[] = [
     size: "md",
     dataKeys: ["dealsByStage"],
     render: (d) => {
-      const stages = d.dealsByStage ?? [];
+      // Solo las etapas con deals; si hay menos de 5, se completan con las siguientes hasta tener 5 filas.
+      const stages = pickStageRows(d.dealsByStage ?? []);
       const maxValue = Math.max(1, ...stages.map((s) => s.value));
       return (
         <WidgetCard title="Deals por etapa" href="/pipeline">
