@@ -40,6 +40,7 @@ TAREAS:
 
 EMAIL:
 - draft_email: prefill: companyId (empresa del contexto, si se conoce), to (déjalo vacío si no hay correo registrado), subject, body — GUARDA el correo como borrador en el CRM (Correo → Borradores); no envía nada. Úsalo siempre que la persona pida redactar/escribir un correo. Escribe el cuerpo completo y listo para enviar, con saludo y firma, y sin inventar datos que no estén en el contexto.
+- send_draft: id (id de un BORRADOR del contexto) + subject + to — envía un borrador ya guardado; pide confirmación a la persona. Solo si ella lo pide.
 - send_email: prefill: companyId (empresa con correo configurado, del contexto), to, cc, subject, body — envía el correo al confirmar; úsalo cuando la persona pide enviar directamente
 
 COTIZACIONES:
@@ -112,7 +113,7 @@ Ejemplo de formato:
 Reglas:
 1. SIEMPRE escribe texto explicativo ANTES del bloque action
 2. Usa query_result para mostrar listas de datos consultados en tablas
-3. Solo propone UNA acción a la vez (create_content_batch cuenta como una aunque traiga varias piezas)
+3. Puedes encadenar VARIOS bloques action en una misma respuesta cuando la persona pide varias cosas (por ejemplo: draft_email para guardar el borrador y create_task para el seguimiento). draft_email y create_task se ejecutan solas al aparecer; todo lo demás (enviar, borrar, mover a perdida, editar) espera el clic de la persona. Ordénalos en el orden en que deben ocurrir y di en el texto qué hace cada uno. Nunca propongas enviar un correo en el mismo mensaje en que lo redactas, salvo que la persona haya pedido enviarlo. (create_content_batch cuenta como una aunque traiga varias piezas)
 4. Para delete_* y complete_task incluye el id y name/title del elemento
 5. Para los IDs usa los IDs reales del contexto CRM cuando los tengas disponibles
 `.trim();

@@ -18,6 +18,7 @@ import { createDealFromQuote, findQuoteForLink, linkQuoteToDeal } from "@/src/li
 import { dealToQuotePrefill } from "@/src/lib/deal-sales";
 import { computeQuoteTotals, nextQuoteFolio } from "@/src/lib/quotes";
 import { tryPublicUrls } from "@/src/lib/url";
+import { normalizeDraft } from "@/src/lib/email-drafts";
 // @ts-expect-error Node's native TypeScript runner requires an explicit extension.
 import { canEditQuote, quoteScalarData, validateQuoteEdit } from "./quote-input.ts";
 
@@ -870,6 +871,31 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
         }),
       ]);
       return json({ total, emails });
+    }
+  );
+
+  server.registerTool(
+    "create_email_draft",
+    {
+      description: "Guarda un correo como BORRADOR en el CRM (Correo → Borradores) para que una persona lo revise. NO envía nada. El destinatario puede ir vacío si no se conoce; nunca lo inventes.",
+      inputSchema: {
+        companyId: z.string().describe("Empresa desde la que se enviaría (id de list_companies)"),
+        to: z.string().max(500).optional(),
+        cc: z.string().max(500).optional(),
+        subject: z.string().max(500).optional(),
+        body: z.string().min(1).max(100000).describe("Mensaje en texto plano; las líneas en blanco separan párrafos"),
+      },
+    },
+    async ({ companyId, to, cc, subject, body }) => {
+      const company = await prisma.company.findFirst({ where: { id: companyId, organizationId: org }, select: { id: true, name: true, smtpFromEmail: true, smtpUser: true } });
+      if (!company) return err("Empresa inválida");
+      const draft = normalizeDraft({ to, cc, subject, body });
+      if (!draft.ok) return err(draft.error);
+      const email = await prisma.email.create({
+        data: { ...draft.data, type: "DRAFT", isRead: true, fromAddress: company.smtpFromEmail || company.smtpUser || "", fromName: company.name, companyId: company.id, organizationId: org },
+        select: { id: true, subject: true, toAddress: true },
+      });
+      return json({ ...email, estado: "borrador guardado; no se envió" });
     }
   );
 

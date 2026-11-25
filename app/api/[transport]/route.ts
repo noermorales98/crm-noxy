@@ -7,7 +7,9 @@ import { registerContentTools } from "@/src/lib/mcp/content-tools";
 import { registerSkillTools } from "@/src/lib/mcp/skill-tools";
 import { verifyAccessToken, verifyPayload, type OAuthClient } from "@/src/lib/mcp/oauth";
 import { OAUTH_CORS, corsOptions } from "@/src/lib/mcp/cors";
-import { currentMcpOrganization, runWithMcpContext } from "@/src/lib/mcp/client-context";
+import { currentMcpAgent, currentMcpOrganization, runWithMcpContext } from "@/src/lib/mcp/client-context";
+import { prisma } from "@/src/lib/db";
+import { guardServer, hashAgentKey, isAgentToken, isAgentToolAllowed } from "@/src/lib/mcp/agent-keys";
 import { registerOrgTools } from "@/src/lib/mcp/org-tools";
 import { registerCrudTools } from "@/src/lib/mcp/crud-tools";
 import { loadMcpAccess } from "@/src/lib/mcp/org-access";
@@ -20,7 +22,22 @@ import { pickMcpOrganization } from "@/src/lib/mcp/org-scope";
 // Datos scopeados a MCP_ORGANIZATION_ID; con ?org=<id> (una sub-cuenta del dueño de esa organización) a esa otra.
 
 const handler = createMcpHandler(
-  (server) => {
+  (rawServer) => {
+    const agent = currentMcpAgent();
+    if (agent) {
+      // Clave de agente externo: solo su organización, solo la lista permitida (el resto no existe para ella) y cada llamada queda registrada.
+      const server = guardServer(rawServer, {
+        allowed: isAgentToolAllowed,
+        log: async (e) => {
+          await prisma.agentActivity.create({ data: { agentKeyId: agent.keyId, organizationId: agent.organizationId, tool: e.tool, ok: e.ok, error: e.error ?? null } });
+        },
+      });
+      registerCrmTools(server, agent.organizationId);
+      registerCrudTools(server, agent.organizationId);
+      registerContentTools(server, agent.organizationId);
+      return;
+    }
+    const server = rawServer;
     const baseOrganizationId = process.env.MCP_ORGANIZATION_ID!;
     // Cada conexión trabaja con UNA organización: la base, o una sub-cuenta pedida con ?org= (ya validada en withAuth).
     const organizationId = currentMcpOrganization() ?? baseOrganizationId;
@@ -94,7 +111,34 @@ function sseListener(): Response {
   });
 }
 
+// Clave de agente: se compara por hash; revocada o desconocida = no entra. No necesita MCP_API_KEY.
+async function agentFromRequest(req: Request) {
+  const token = req.headers.get("authorization")?.startsWith("Bearer ") ? req.headers.get("authorization")!.slice(7) : "";
+  if (!token || !isAgentToken(token)) return undefined;
+  const key = await prisma.agentKey.findUnique({ where: { keyHash: hashAgentKey(token) }, select: { id: true, name: true, organizationId: true, revokedAt: true } });
+  if (!key || key.revokedAt) return null;
+  await prisma.agentKey.update({ where: { id: key.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
+  return key;
+}
+
+function unauthorized(req: Request) {
+  const origin = new URL(req.url).origin;
+  return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    status: 401,
+    headers: { "Content-Type": "application/json", ...OAUTH_CORS, "WWW-Authenticate": `Bearer realm="noxthy-crm", resource_metadata="${origin}/.well-known/oauth-protected-resource"` },
+  });
+}
+
 async function withAuth(req: Request) {
+  const agentKey = await agentFromRequest(req);
+  if (agentKey === null) return unauthorized(req);
+  if (agentKey) {
+    if (req.method === "GET") return sseListener();
+    return runWithMcpContext(
+      { client: `agente:${agentKey.name}`, origin: new URL(req.url).origin, organizationId: agentKey.organizationId, agent: { keyId: agentKey.id, organizationId: agentKey.organizationId } },
+      () => handler(req)
+    );
+  }
   const apiKey = process.env.MCP_API_KEY;
   const organizationId = process.env.MCP_ORGANIZATION_ID;
   if (!apiKey || !organizationId) {

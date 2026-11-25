@@ -23,6 +23,13 @@ export async function POST(req: Request) {
     });
     if (!company) return NextResponse.json({ error: "Company not found" }, { status: 404 });
 
+    // Idempotente: si el mismo borrador ya existe (la IA se vuelve a mostrar o se reintenta), se devuelve ese y no se duplica.
+    const dup = await prisma.email.findFirst({
+      where: { organizationId, companyId: company.id, type: "DRAFT", toAddress: draft.data.toAddress, subject: draft.data.subject, bodyText: draft.data.bodyText },
+      select: { id: true, subject: true, toAddress: true, companyId: true },
+    });
+    if (dup) return NextResponse.json({ email: dup, duplicate: true }, { status: 200 });
+
     const email = await prisma.email.create({
       data: {
         ...draft.data,

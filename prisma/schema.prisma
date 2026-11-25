@@ -103,6 +103,8 @@ model GoogleCalendarReminderLog {
 }
 
 model Organization {
+  agentKeys     AgentKey[]
+  agentActivity AgentActivity[]
   id        String   @id @default(cuid())
   name      String
   timezone  String   @default("America/Cancun")
@@ -1830,4 +1832,39 @@ model MonthlySnapshot {
 
   @@unique([organizationId, year, month])
   @@index([organizationId])
+}
+
+// Clave propia de un agente externo (OpenClaw / Kimi Claw). Solo se guarda el hash; revocable; abre una lista corta de herramientas del MCP.
+model AgentKey {
+  id          String    @id @default(cuid())
+  name        String
+  keyHash     String    @unique @db.VarChar(64)
+  keyPrefix   String    @db.VarChar(16)
+  revokedAt   DateTime?
+  lastUsedAt  DateTime?
+  createdById String?
+  createdAt   DateTime  @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  activity       AgentActivity[]
+
+  @@index([organizationId])
+}
+
+// Lo que hizo cada clave de agente: herramienta y resultado (nunca argumentos ni secretos).
+model AgentActivity {
+  id        String   @id @default(cuid())
+  tool      String   @db.VarChar(100)
+  ok        Boolean
+  error     String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+
+  agentKeyId     String
+  agentKey       AgentKey     @relation(fields: [agentKeyId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([agentKeyId])
 }

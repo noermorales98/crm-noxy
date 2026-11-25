@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS `AgentActivity`;
+DROP TABLE IF EXISTS `AgentKey`;
