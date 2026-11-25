@@ -28,6 +28,13 @@ Que la página de una cita se lea como un CRM SaaS: barra baja con el contacto d
 - Sin aviso en el panel, esos 32 s parecían un botón roto. Ahora el panel muestra el progreso.
 - ESLint limpio en los archivos tocados. `tsc` solo falla en archivos `*.test.ts` que no se tocaron.
 
+## Ronda 2: barra como /kb/:id y sugerencias como sidebar
+- [x] `AppointmentNavbar` con el diseño de `KbEditorNavbar`: franja `h-12` en `bg-surface-elevated`, migas «‹ Citas › Título», botones de 32 px con texto (desde `lg`; iconos en móvil) y avatar con menú.
+- [x] Menú de usuario extraído a `src/components/NavbarUserMenu.tsx` y reutilizado por la barra de `/kb` (sin cambio de comportamiento).
+- [x] Sugerencias: columna de 22 rem pegada al borde derecho, alto completo, `border-l`, con scroll propio; en pantallas angostas va debajo de las notas.
+- [x] Sin buscador en la barra: a 1698 px cortaba el nombre del contacto, y la barra lateral ya tiene «Buscar».
+- Evidencia: capturas a 1698×893; contacto, fecha y 5 botones con texto visibles en la franja; ESLint limpio.
+
 ## Next
 - Decidir si el modelo predeterminado (Ajustes › Modelos de IA) pasa a uno que responda rápido, o si el failover debe saltarse un modelo que expira.
 - `modelUsed` del servicio informa el modelo pedido, no el que respondió.
