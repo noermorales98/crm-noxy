@@ -45,6 +45,13 @@ Que la página de una cita se lea como un CRM SaaS: barra baja con el contacto d
 - Evidencia: capturas del menú «Acciones» y del menú ⋯ en la cita con Granola vinculada; ESLint limpio.
 - **No verificado visualmente:** la cita sin notas (`cmwl3t0se0001i6085v22s77m`); el navegador cortó la sesión antes de esa captura.
 
+## Ronda 4: pastillas fuera de la barra
+- [x] Las pastillas pasan a `AppointmentInfoPills`, justo debajo de la barra (al inicio de las notas). La barra queda solo con el título y las acciones.
+- [x] Sin el encabezado «Notas»: el filtro por origen solo sale si hay más de un origen.
+- [x] En cada nota: título primero y debajo una fila ligera (origen · fecha, enlace, editar/borrar). El origen ya no es una cápsula.
+- [x] Selector Editar/Vista previa de `/kb/:id` circular.
+- Evidencia: ESLint y `tsc` sin errores en los archivos tocados. **Sin comprobar en pantalla** (el navegador quedó pausado).
+
 ## Next
 - Decidir si el modelo predeterminado (Ajustes › Modelos de IA) pasa a uno que responda rápido, o si el failover debe saltarse un modelo que expira.
 - `modelUsed` del servicio informa el modelo pedido, no el que respondió.
