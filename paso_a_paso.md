@@ -13,7 +13,7 @@ El objetivo es tener la estructura base y la conexión a la base de datos MariaD
     *   Instalar dependencias necesarias (ej. `mysql2` si usamos SQL directo, o `prisma` / `drizzle-orm` para ORM).
     *   Configurar las variables de entorno (`.env`) con los datos de MariaDB:
         ```env
-        DATABASE_URL="mysql://u627288392_noxybd:Mr@driguez98@82.197.82.158:3306/u627288392_noxybd"
+        DATABASE_URL="mysql://usuario:contraseña@host:3306/nombre_de_la_base"
         ```
 3.  **Generar Tablas Base:** Crear las tablas de Usuarios (`users`) y Organizaciones/Tenants (`organizations`) en MariaDB.
 
