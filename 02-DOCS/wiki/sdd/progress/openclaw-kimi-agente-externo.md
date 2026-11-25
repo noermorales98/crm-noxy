@@ -22,5 +22,9 @@ Spec aprobada. Orden: IA primero (hecho), luego OpenClaw.
 - [ ] Sin desplegar: el MCP de producción no tiene este código hasta el próximo push.
 
 ## Fase 2 — G2 (dos vías) y G3 (trabajo pesado): pendiente, depende de lo que soporte Kimi Claw.
-## Fase 3 — G4 (seguimiento tras cita): desbloqueada (existen borradores y `create_email_draft`).
+## Fase 3 — G4 (seguimiento tras cita): hecha en código (lo redacta el CRM; OpenClaw opcional más adelante)
+- [x] `Appointment.followupDraftedAt` (SQL aditivo `prisma/sql/followup-draft.up.sql`, aplicado 2026-11-25).
+- [x] `src/lib/followup-draft.ts` (6 pruebas) + `src/lib/followup-service.ts`: tras la sincronización de Granola, cada cita reciente (3 días) con notas y persona conocida recibe UN borrador desde **Noxy Digital** + una tarea «Revisar y enviar el seguimiento a X». Reclamo atómico (sin duplicados); si la IA falla se libera y se reintenta. Un borrador por ejecución del cron.
+- [x] Probado de punta a punta con la cita de ejemplo: borrador completo y corto, `to` vacío con aviso en la tarea (la persona no tiene correo), segunda llamada no duplica. Datos de prueba borrados.
+- [ ] Sin desplegar. El cron en cron-job.org debe correr (la última sincronización en la base es del 24-nov 06:31).
 ## Fase 4 — G5 (métricas de videos sin CSV): pendiente.

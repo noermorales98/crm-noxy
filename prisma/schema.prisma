@@ -958,6 +958,8 @@ model Appointment {
   endTime           DateTime
   timezone          String          @default("America/Mexico_City")
   status            String          @default("CONFIRMED")
+  // Cuándo se dejó el borrador de seguimiento tras la cita (nulo = aún no). Evita redactarlo dos veces.
+  followupDraftedAt DateTime?
   guestName         String
   guestEmail        String
   guestPhone        String?

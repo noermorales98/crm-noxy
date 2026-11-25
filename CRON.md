@@ -22,7 +22,7 @@ Define `CRON_SECRET` en Vercel → Settings → Environment Variables (mismo val
 | `GET /api/cron/digest` | Cada 15 min | Resumen CRM por WhatsApp (IA + CallMeBot; si la IA falla, manda el resumen sin IA y avisa en la campanita si no se pudo enviar). También **ejecuta el cierre mensual** |
 | `GET /api/cron/google-calendar-reminders` | Cada 15 min | Recordatorios WhatsApp de eventos Google Calendar |
 | `GET /api/cron/content-reminders` | **Cada 15 min** | Avisa por WhatsApp las piezas con recordatorio activo cuyo día de aviso es hoy (mismo día o N días antes; Gestión de contenido) |
-| `GET /api/cron/granola` | **Cada 30 min** | Sincroniza las reuniones de Granola (resumen, notas y pasos) y las guarda en la cita que coincide; no crea tareas ni envía mensajes |
+| `GET /api/cron/granola` | **Cada 15 min** | Sincroniza las reuniones de Granola (resumen, notas y pasos) y las guarda en la cita que coincide. Después genera sugerencias y deja **un borrador de seguimiento por cita** (desde Noxy Digital, con una tarea para revisarlo); nunca envía correos |
 | `GET /api/cron/auto-archive` | Cada día | Archiva los leads ganados en la última etapa ganadora, `autoArchiveDays` días después de ganarse (por organización) |
 | `GET /api/cron/notion-sync` | Cada 5 min | Respaldo del auto-sync de documentos de `/kb`: envía a Notion los editados desde su último envío |
 | `GET /api/cron/payment-alerts` | **Cada hora** | Avisa por WhatsApp los cobros (pagos de deals y mensualidades) que vencen en 2 días o menos; una sola vez por cobro |

@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { granolaRedirectUrl, runGranolaSync } from "@/src/lib/granola-service";
 import { autoGenerateForAppointments } from "@/src/lib/suggestions-service";
+import { autoDraftFollowups } from "@/src/lib/followup-service";
 
 export const maxDuration = 60;
 
@@ -23,8 +24,9 @@ export async function GET(req: Request) {
       synced += result.synced;
       // Sugerencias automáticas para las citas con notas nuevas (tope por organización; el resto, en el siguiente evento).
       if (result.appointmentIds.length) after(() => autoGenerateForAppointments(organizationId, result.appointmentIds, 2));
-    }
-    else if (result.code !== "BUSY") errors.push(`${organizationId}: ${result.code}`);
+      // Seguimiento tras la cita: borrador (nunca se envía) para las citas con notas que aún no lo tienen; una por ejecución.
+      after(() => autoDraftFollowups(organizationId, result.appointmentIds, 1));
+    } else if (result.code !== "BUSY") errors.push(`${organizationId}: ${result.code}`);
   }
   return NextResponse.json({ organizations: configs.length, synced, errors });
 }
