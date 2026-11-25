@@ -16,8 +16,8 @@ type BlockProps = {
 export function Block({ title, action, children, className }: BlockProps) {
   return (
     <section className={cn("min-w-0 rounded-surface border border-line bg-surface-elevated", className)}>
-      <header className="flex min-h-14 items-center gap-3 border-b border-line px-4 sm:px-5">
-        <h2 className="min-w-0 flex-1 truncate text-base font-semibold text-text-primary">{title}</h2>
+      <header className="flex min-h-12 items-center gap-3 border-b border-line px-3.5 sm:min-h-14 sm:px-5">
+        <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-text-primary sm:text-base">{title}</h2>
         {(Array.isArray(action) ? action : action ? [action] : []).map((item) =>
           item.href ? (
             <Link

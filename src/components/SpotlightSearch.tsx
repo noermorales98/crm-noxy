@@ -209,23 +209,24 @@ export default function SpotlightSearch({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-start justify-center pt-[18vh]"
+      className="fixed inset-0 z-[9999] flex items-start justify-center max-lg:bg-surface-elevated lg:pt-[18vh]"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-brand-obsidian/35" />
+      <div className="absolute inset-0 bg-brand-obsidian/35 max-lg:hidden" />
 
+      {/* En móvil ocupa toda la pantalla (cubre también la barra inferior); en escritorio es una tarjeta centrada. */}
       <div
-        className="relative w-full max-w-[560px] mx-4 bg-surface-elevated rounded-surface shadow-md overflow-hidden border border-line"
+        className="relative flex w-full max-lg:h-dvh max-lg:flex-col max-lg:rounded-none max-lg:border-0 max-lg:pt-[env(safe-area-inset-top)] max-lg:pb-[env(safe-area-inset-bottom)] lg:mx-4 lg:max-w-[560px] bg-surface-elevated rounded-surface shadow-md overflow-hidden border border-line lg:block"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-line px-5 py-3.5">
+        <div className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-3 lg:px-5 lg:py-3.5">
           <HugeiconsIcon icon={mode === "ask" ? AiMagicIcon : Search01Icon} size={18} aria-hidden="true" className="shrink-0 text-text-secondary-strong" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={mode === "ask" ? "Pregunta algo sobre tu CRM…" : "Buscar secciones, contactos, empresas, docs…"}
+            placeholder={mode === "ask" ? "Pregunta algo sobre tu CRM…" : "Buscar contactos, empresas, docs…"}
             aria-label={mode === "ask" ? "Preguntar a la IA" : "Buscar"}
             className="min-w-0 flex-1 border-none bg-transparent text-base text-text-primary outline-none! placeholder:text-text-secondary focus:outline-none! focus-visible:outline-none! focus-visible:ring-0"
           />
@@ -238,12 +239,15 @@ export default function SpotlightSearch({
               <HugeiconsIcon icon={Cancel01Icon} size={14} />
             </button>
           )}
-          <kbd className="shrink-0 rounded-control border border-line px-1.5 py-0.5 font-mono text-xs text-text-secondary">
+          <kbd className="hidden shrink-0 rounded-control border border-line px-1.5 py-0.5 font-mono text-xs text-text-secondary lg:inline">
             ESC
           </kbd>
+          <button type="button" onClick={onClose} className="min-h-11 shrink-0 rounded-control px-2 text-sm font-semibold text-action-ink outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden">
+            Cancelar
+          </button>
         </div>
 
-        <div role="tablist" aria-label="Modo" className="flex items-center gap-1 border-b border-line px-4 py-2">
+        <div role="tablist" aria-label="Modo" className="flex shrink-0 items-center gap-1 border-b border-line px-4 py-2">
           {([
             ["search", "Buscar"],
             ["ask", "Preguntar a la IA"],
@@ -254,7 +258,7 @@ export default function SpotlightSearch({
               role="tab"
               aria-selected={mode === key}
               onClick={() => { setMode(key); inputRef.current?.focus(); }}
-              className={`min-h-9 rounded-full border px-3 text-xs outline-none focus-visible:ring-2 focus-visible:ring-focus ${
+              className={`min-h-11 rounded-full border px-3.5 text-sm outline-none lg:min-h-9 lg:px-3 lg:text-xs focus-visible:ring-2 focus-visible:ring-focus ${
                 mode === key ? "border-line bg-nav-active font-semibold text-[var(--nav-active-ink)]" : "border-transparent font-medium text-text-secondary-strong hover:bg-nav-hover"
               }`}
             >
@@ -264,7 +268,7 @@ export default function SpotlightSearch({
         </div>
 
         {mode === "search" && results.length > 0 && (
-          <div className="max-h-80 overflow-y-auto py-1.5">
+          <div className="overflow-y-auto py-1.5 max-lg:min-h-0 max-lg:flex-1 lg:max-h-80">
             {results.map((r, i) => {
               const Icon = RESULT_ICONS[r.type];
               const isSelected = i === selectedIndex;
@@ -273,7 +277,7 @@ export default function SpotlightSearch({
                   key={`${r.type}-${r.id}`}
                   onClick={() => navigate(r.href)}
                   onMouseEnter={() => setSelectedIndex(i)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                  className={`w-full flex min-h-14 items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                     isSelected ? "bg-nav-hover" : "hover:bg-nav-hover"
                   }`}
                 >
@@ -300,7 +304,7 @@ export default function SpotlightSearch({
             type="button"
             onClick={() => void ask(query)}
             onMouseEnter={() => setSelectedIndex(askIndex)}
-            className={`flex w-full items-center gap-3 border-t border-line px-4 py-2.5 text-left ${selectedIndex === askIndex ? "bg-nav-hover" : "hover:bg-nav-hover"}`}
+            className={`flex min-h-14 w-full shrink-0 items-center gap-3 border-t border-line px-4 py-2.5 text-left ${selectedIndex === askIndex ? "bg-nav-hover" : "hover:bg-nav-hover"}`}
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-obsidian text-white">
               <HugeiconsIcon icon={AiMagicIcon} size={15} aria-hidden="true" />
@@ -310,7 +314,7 @@ export default function SpotlightSearch({
         )}
 
         {mode === "ask" && (
-          <div className="max-h-96 min-h-32 overflow-y-auto px-5 py-4" aria-live="polite">
+          <div className="min-h-32 overflow-y-auto px-4 py-4 max-lg:min-h-0 max-lg:flex-1 lg:max-h-96 lg:px-5" aria-live="polite">
             {thread.length === 0 ? (
               <p className="text-sm text-text-secondary">Haz una consulta sobre tus contactos, ventas, tareas o citas. Escribe y pulsa Enter.</p>
             ) : (
@@ -348,7 +352,7 @@ export default function SpotlightSearch({
           </div>
         )}
 
-        <div className="flex items-center gap-4 border-t border-line px-5 py-2.5">
+        <div className="hidden items-center gap-4 border-t border-line px-5 py-2.5 lg:flex">
           <span className="text-xs text-text-secondary">
             <kbd className="font-mono rounded-control border border-line px-1">↑↓</kbd> navegar
           </span>

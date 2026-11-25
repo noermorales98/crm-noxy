@@ -172,6 +172,7 @@ function TasksContent() {
               <>
                 <Link
                   href="/projects"
+                  aria-label="Proyectos"
                   className="crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line bg-surface-elevated px-4 text-sm font-semibold text-text-primary hover:bg-surface-sidebar lg:min-h-10"
                 >
                   <HugeiconsIcon icon={FolderKanbanIcon} size={16} />

@@ -16,7 +16,6 @@ import {
   Unlink01Icon,
 } from "@hugeicons/core-free-icons";
 import AskAiButton from "@/src/components/ai/AskAiButton";
-import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import { useToast } from "@/src/context/ToastContext";
 import { DEFAULT_MODEL_TARGET, readSuggestionModel, storeSuggestionModel, type SuggestionModelOption } from "@/src/lib/suggestion-model";
 import { onAppointmentBusy, onLinkedGranola, requestAppointmentAction, type AppointmentAction, type LinkedGranola } from "@/src/lib/appointment-actions";
@@ -132,7 +131,6 @@ export default function AppointmentNavbar({ appointmentId, title }: Props) {
     <div className="crm-safe-top relative z-30 shrink-0 border-b border-line bg-surface-elevated">
       <div className="flex h-12 items-center gap-2 px-3 sm:px-4">
         <div className="flex min-w-0 flex-1 items-center gap-1">
-          <MobileSidebarToggle />
           <Link
             href="/appointments"
             className="-ml-1 flex size-10 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-control text-text-secondary hover:bg-nav-hover hover:text-text-primary sm:size-8"

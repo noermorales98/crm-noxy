@@ -60,7 +60,7 @@ export function StatCard({
   onHide?: () => void;
 }) {
   return (
-    <div className="relative flex min-w-[160px] flex-1 flex-col gap-1 border-line px-4 py-3 [&:not(:first-child)]:border-l">
+    <div className="relative flex min-w-[136px] flex-1 flex-col gap-0.5 border-line px-3 py-2.5 sm:min-w-[160px] sm:gap-1 sm:px-4 sm:py-3 [&:not(:first-child)]:border-l">
       <div className="flex items-start justify-between gap-2">
         <p className="text-xs font-semibold text-text-secondary">{label}</p>
         {onHide && (
@@ -91,7 +91,7 @@ export function StatCard({
         </div>
       ) : (
         <div className="flex items-baseline gap-1.5">
-          <p className="truncate text-xl font-semibold tabular-nums text-text-primary">{value}</p>
+          <p className="truncate text-lg font-semibold tabular-nums text-text-primary sm:text-xl">{value}</p>
           {badge && <StatBadge positive={badgePositive}>{badge}</StatBadge>}
         </div>
       )}

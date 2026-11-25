@@ -14,7 +14,7 @@ export function DataList<T>({ rows, renderRow, empty, getKey, label }: DataListP
   return (
     <ul aria-label={label} className="divide-y divide-line">
       {rows.map((row) => (
-        <li key={getKey(row)} className="flex min-h-14 min-w-0 items-center gap-3 px-4 py-2 sm:px-5">
+        <li key={getKey(row)} className="flex min-h-12 min-w-0 items-center gap-3 px-3.5 py-1.5 sm:min-h-14 sm:px-5 sm:py-2">
           {renderRow(row)}
         </li>
       ))}

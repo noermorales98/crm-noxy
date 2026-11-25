@@ -10,7 +10,7 @@ export function Board({ children, label }: BoardProps) {
     <div
       role={label ? "region" : undefined}
       aria-label={label}
-      className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:snap-none lg:px-0"
+      className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 sm:gap-4 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:mx-0 lg:snap-none lg:px-0"
     >
       {children}
     </div>
@@ -46,7 +46,7 @@ export function BoardColumn({ title, accent, footer, collapsed, children }: Boar
   return (
     <section
       aria-label={title}
-      className="flex w-[82%] shrink-0 snap-start flex-col rounded-surface bg-surface-sidebar p-3 sm:w-72 lg:w-auto lg:min-w-[240px] lg:flex-1 lg:basis-0"
+      className="flex w-[78%] shrink-0 snap-start flex-col rounded-surface bg-surface-sidebar p-2.5 sm:w-72 sm:p-3 lg:w-auto lg:min-w-[240px] lg:flex-1 lg:basis-0"
     >
       <header className="flex items-baseline gap-2 px-1 pb-3">
         {accent && <span className="size-2.5 shrink-0 self-center rounded-full" style={{ backgroundColor: accent }} aria-hidden="true" />}
@@ -70,7 +70,7 @@ export function BoardCard({ children, dragging }: BoardCardProps) {
   return (
     <article
       className={cn(
-        "crm-lift rounded-surface border border-line bg-surface-elevated p-3 hover:border-text-secondary/40",
+        "crm-lift rounded-surface border border-line bg-surface-elevated p-2.5 sm:p-3 hover:border-text-secondary/40",
         dragging && "shadow-[0_8px_8px_rgba(11,11,24,0.10)]",
       )}
     >

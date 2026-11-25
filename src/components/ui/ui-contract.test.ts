@@ -211,15 +211,15 @@ test("DataList and DataTable require an empty state and stable keys", () => {
   assert.match(list, /\bdivide-y\b|\bborder-b\b/, "a divider between rows");
 });
 
-test("DataTable shows a table from lg up and stacked 56px rows below", () => {
+test("DataTable shows a table from lg up and stacked 48px rows below", () => {
   const src = code(PIECES.DataTable);
   assert.match(src, /<table\b/);
   assert.match(src, /<th\b[^>]*scope="col"/);
   assert.match(src, /\bhidden\s+lg:(?:block|table)\b/, "table hidden below lg");
   assert.match(src, /\blg:hidden\b/, "stacked rows hidden from lg");
   assert.match(src, /mobileRow\(/, "mobileRow is rendered");
-  // Las filas apiladas son <div>/<li>: el mínimo de 56 px sí aplica ahí (no en <tr>).
-  assert.match(src, /\blg:hidden\b[\s\S]*\bmin-h-14\b/, "stacked rows at least 56px");
+  // Las filas apiladas son <div>/<li>: el mínimo de 48 px (más que los 44 px táctiles) aplica ahí, no en <tr>.
+  assert.match(src, /\blg:hidden\b[\s\S]*\bmin-h-12\b/, "stacked rows at least 48px");
 });
 
 test("FilterBar wraps on small screens and never overflows", () => {

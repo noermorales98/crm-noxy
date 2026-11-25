@@ -17,17 +17,17 @@ export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlig
   return (
     <Link
       href={href}
-      className={`crm-lift flex h-full flex-col items-start gap-3 rounded-surface border bg-surface-elevated p-5 ${
+      className={`crm-lift flex h-full flex-col items-start gap-2 rounded-surface border bg-surface-elevated p-3 sm:gap-3 sm:p-5 ${
         highlight ? "border-danger/30 hover:border-danger/60" : "border-line hover:border-text-secondary/40"
       }`}
     >
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: iconBg }}>
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full sm:size-10" style={{ backgroundColor: iconBg }}>
         <HugeiconsIcon icon={icon} size={18} color={iconColor} />
       </span>
       <span className="w-full min-w-0">
         <span className="block text-xs font-semibold text-text-secondary">{label}</span>
         <span
-          className={`mt-1 block break-words text-2xl font-semibold leading-tight tracking-[-0.02em] tabular-nums ${
+          className={`mt-0.5 block break-words text-xl font-semibold sm:mt-1 sm:text-2xl leading-tight tracking-[-0.02em] tabular-nums ${
             highlight ? "text-danger" : "text-text-primary"
           }`}
         >

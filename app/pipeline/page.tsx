@@ -670,7 +670,7 @@ export default function PipelinePage() {
             subtitle={loading ? "Cargando pipeline…" : `${activeDeals.length} deals en proceso · ${overdueDeals.length} necesitan atención`}
             actions={
               <>
-                <Link href="/pipeline/historial" className={secondaryAction}>
+                <Link href="/pipeline/historial" aria-label="Historial" className={secondaryAction}>
                   <HugeiconsIcon icon={Folder01Icon} size={16} />
                   Historial
                 </Link>

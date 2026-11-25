@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { More01Icon } from "@hugeicons/core-free-icons";
-import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import KbSharePanel from "@/src/components/kb/KbSharePanel";
 import {
   KB_MARKDOWN_THEMES,
@@ -101,7 +100,6 @@ export default function KbEditorNavbar({
       <div className="flex h-12 items-center gap-2 px-3 sm:px-4">
         {/* Breadcrumbs / title */}
         <div className="flex min-w-0 flex-1 items-center gap-0.5 text-xs text-text-secondary">
-          <MobileSidebarToggle />
           <Link
             href="/kb"
             className="-ml-1 flex size-10 min-h-0! min-w-0! shrink-0 items-center justify-center rounded-control hover:bg-nav-hover hover:text-text-primary sm:size-auto sm:h-8 sm:px-2 sm:font-medium"

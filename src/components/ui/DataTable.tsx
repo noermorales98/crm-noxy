@@ -69,7 +69,7 @@ export function DataTable<T>({ columns, rows, mobileRow, empty, getKey, label }:
       </div>
       <ul aria-label={label} className="divide-y divide-line lg:hidden">
         {rows.map((row) => (
-          <li key={getKey(row)} className="flex min-h-14 min-w-0 items-center gap-3 px-4 py-1.5">
+          <li key={getKey(row)} className="flex min-h-12 min-w-0 items-center gap-3 px-3.5 py-1">
             {mobileRow(row)}
           </li>
         ))}

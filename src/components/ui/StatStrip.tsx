@@ -20,7 +20,7 @@ export function StatStrip({ items }: StatStripProps) {
         <div
           key={`${index}-${label}`}
           className={cn(
-            "min-w-0 border-line px-4 py-4 sm:px-5",
+            "min-w-0 border-line px-3.5 py-3 sm:px-5 sm:py-4",
             // Rejilla de 2 columnas (< lg) y de 4 (lg): divisores entre celdas para cualquier número de cifras.
             index % 2 === 1 && "border-l",
             index >= 2 && "border-t",

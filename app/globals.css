@@ -143,6 +143,20 @@ body {
     }
   }
 
+  /* Botones del encabezado en móvil: caben junto al título. Los secundarios con icono quedan solo en icono
+     (el texto sigue en el DOM para lectores de pantalla); el último, el principal, conserva su texto. */
+  @media (max-width: 639.98px) {
+    .crm-header-actions > :where(a, button):not(:last-child):has(> svg) {
+      font-size: 0 !important;
+      gap: 0 !important;
+      min-width: 2.75rem !important;
+      padding-inline: 0.5rem !important;
+    }
+    .crm-header-actions > :where(a, button) {
+      white-space: nowrap;
+    }
+  }
+
   .crm-table-scroll {
     min-width: 0;
     max-width: 100%;
