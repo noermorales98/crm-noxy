@@ -55,7 +55,7 @@ Que la página de una cita se lea como un CRM SaaS: barra baja con el contacto d
 ## Ronda 5: modelo desde la barra, sidebar sin cabecera, fecha y hora separadas
 - [x] Sidebar de sugerencias sin cabecera ni selector: solo avisos de progreso y la lista.
 - [x] «Sugerir con IA» de la barra abre un menú (Predeterminado + modelos por grupo, «sin clave» deshabilitado); elegir uno genera con él. El último elegido se recuerda (`src/lib/suggestion-model.ts`).
-- [x] Título de cada nota a 20 px (el `#` del markdown mide 17 px).
+- [x] ~~Título de cada nota a 20 px~~ revertido a pedido: vuelve a `text-base` (16 px), menor que el título principal de la barra.
 - [x] Fecha y horario en dos pastillas.
 - [x] Menú de modelos: solo los que tienen clave y, bajo cada nombre, su categoría (`tags` de `classifyModel`: Potente/Equilibrado/Ligero + Razonamiento, Código, Visión).
 - Evidencia: ESLint y `tsc` sin errores en lo tocado. **Sin comprobar en pantalla** (navegador pausado).
