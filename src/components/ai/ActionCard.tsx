@@ -1,7 +1,7 @@
 "use client";
 
 import { isAutoRunnable } from "@/src/lib/action-safety";
-import { draftReadyToSend } from "@/src/lib/email-drafts";
+import { draftReadyToSend, textToHtml } from "@/src/lib/email-drafts";
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { formatQuoteLines, parseQuoteLines } from "@/src/lib/ai-quote-items";
@@ -741,6 +741,63 @@ function FormFields({
   }
 }
 
+type SavedDraft = { id: string; companyId: string; companyName: string; to: string; cc: string; subject: string; body: string; sent?: boolean };
+
+/** Vista previa del borrador guardado, con envío desde el mismo chat (el clic de la persona es la confirmación). */
+function DraftPreview({ draft, storageKey, onChange }: { draft: SavedDraft; storageKey: string; onChange: (d: SavedDraft) => void }) {
+  const [to, setTo] = useState(draft.to);
+  const [state, setState] = useState<"idle" | "sending" | "error">("idle");
+  const [error, setError] = useState("");
+  const subject = draft.subject?.trim() || "(sin asunto)";
+  const check = draftReadyToSend({ toAddress: to, subject: draft.subject || "", bodyHtml: draft.body });
+
+  async function send() {
+    if (!check.ready) { setError(`Falta ${check.missing.join(", ")}`); setState("error"); return; }
+    setState("sending"); setError("");
+    try {
+      const res = await fetch("/api/emails/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyId: draft.companyId, to: to.trim(), cc: draft.cc?.trim() || undefined, subject, bodyHtml: textToHtml(draft.body), bodyText: draft.body, draftId: draft.id }),
+      });
+      if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo enviar el correo");
+      const next = { ...draft, to: to.trim(), sent: true };
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* ya se envió */ }
+      onChange(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo enviar el correo");
+      setState("error");
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-lg border border-border-subtle bg-white text-sm text-text-primary overflow-hidden">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 px-3 py-2 border-b border-border-subtle text-xs">
+        <dt className="text-text-secondary">De</dt><dd>{draft.companyName || "Tu empresa"}</dd>
+        <dt className="text-text-secondary">Para</dt>
+        <dd>{draft.sent ? draft.to : (
+          <input className="w-full bg-transparent outline-none border-b border-dashed border-border-subtle focus:border-[#3545D6]" type="email" aria-label="Destinatario" placeholder="Escribe el correo del destinatario" value={to} onChange={(e) => setTo(e.target.value)} />
+        )}</dd>
+        <dt className="text-text-secondary">Asunto</dt><dd className="font-medium">{subject}</dd>
+      </dl>
+      <div className="px-3 py-3 whitespace-pre-wrap leading-relaxed">{draft.body}</div>
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2 border-t border-border-subtle bg-surface-elevated">
+        {draft.sent ? (
+          <span className="text-sm font-medium text-[#10B981]">Correo enviado</span>
+        ) : (
+          <>
+            <button onClick={send} disabled={state === "sending"} className="bg-[#3545D6] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#5363EE] disabled:opacity-60">
+              {state === "sending" ? "Enviando…" : "Enviar ahora"}
+            </button>
+            <a href="/emails?box=drafts" className="text-text-secondary text-sm px-3 py-1.5 rounded-lg hover:bg-white">Editar en Borradores</a>
+          </>
+        )}
+        {state === "error" && <span className="text-[#EF4444] text-xs">{error}</span>}
+      </div>
+    </div>
+  );
+}
+
 export function ActionCard({ action }: { action: ActionCardData }) {
   const params = useParams();
   // Scope keys to the current conversation so a new chat always starts fresh.
@@ -763,6 +820,8 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const [dateChoices, setDateChoices] = useState<SaleDateOption[] | null>(null);
   const [contentClients, setContentClients] = useState<{ id: string; name: string }[]>([]);
   const [batchItems, setBatchItems] = useState<BatchItem[]>(() => initialBatch(action));
+  // Borrador ya guardado: se muestra su vista previa y se puede enviar desde aquí mismo.
+  const [savedDraft, setSavedDraft] = useState<SavedDraft | null>(null);
   const router = useRouter();
 
   // Restore done/cancelled state after mount (storage is client-only)
@@ -773,6 +832,12 @@ export function ActionCard({ action }: { action: ActionCardData }) {
     if (done) {
       setSuccessMessage(getSuccessMessage(action.type));
       setStatus("success");
+      if (action.type === "draft_email") {
+        try {
+          const raw = localStorage.getItem(`${storageKey}_draft`);
+          if (raw) setSavedDraft(JSON.parse(raw) as SavedDraft);
+        } catch { /* sin vista previa si no se puede leer */ }
+      }
       return;
     }
     if (sessionStorage.getItem(cancelKey) === "yes") {
@@ -1074,6 +1139,12 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           if (!formData.body?.trim()) throw new Error("El borrador no tiene mensaje");
           const res = await fetch("/api/emails/drafts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: formData.companyId, to: formData.to, cc: formData.cc, subject: formData.subject, body: formData.body }) });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo guardar el borrador");
+          const saved = (await res.json().catch(() => ({}))) as { email?: { id?: string } };
+          if (saved.email?.id) {
+            const draft: SavedDraft = { id: saved.email.id, companyId: formData.companyId, companyName: companies.find((c) => c.id === formData.companyId)?.name ?? "", to: formData.to ?? "", cc: formData.cc ?? "", subject: formData.subject ?? "", body: formData.body };
+            setSavedDraft(draft);
+            try { localStorage.setItem(`${storageKey}_draft`, JSON.stringify(draft)); } catch { /* sin vista previa tras recargar */ }
+          }
           markDone(getSuccessMessage(action.type));
           break;
         }
@@ -1306,6 +1377,9 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           <HugeiconsIcon icon={CheckmarkCircleIcon} size={18} />
           <span className="text-sm font-medium">{successMessage}</span>
         </div>
+      )}
+      {!cancelled && status === "success" && action.type === "draft_email" && savedDraft && (
+        <DraftPreview draft={savedDraft} storageKey={`${storageKey}_draft`} onChange={setSavedDraft} />
       )}
 
       {/* Error */}

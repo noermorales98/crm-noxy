@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { RotateCcw, Check, Copy, Maximize2, Minimize2, X } from "lucide-react";
 import { AI_MODELS, getModelGroups, type AiModel } from "@/src/lib/ai-models";
-import { ActionCard, type ActionCardData } from "@/src/components/ai/ActionCard";
+import { ActionBlock } from "@/src/components/ai/ActionBlock";
 import styles from "../assistant-chat.module.css";
 import ThinkingStatus from "./ThinkingStatus";
 import { stripEmojis } from "@/src/lib/strip-emoji";
@@ -281,14 +281,7 @@ export default function MessageBubble({
                     code({ className, children }) {
                       const lang = /language-(\w+)/.exec(className ?? "")?.[1];
                       const codeStr = String(children).replace(/\n$/, "");
-                      if (lang === "action") {
-                        try {
-                          const parsed = JSON.parse(codeStr) as ActionCardData;
-                          return <ActionCard action={parsed} />;
-                        } catch {
-                          return <code className={className}>{children}</code>;
-                        }
-                      }
+                      if (lang === "action") return <ActionBlock raw={codeStr} streaming={streaming} />;
                       return <code className={className}>{children}</code>;
                     },
                   }}
@@ -496,14 +489,7 @@ export default function MessageBubble({
                         code({ className, children }) {
                           const lang = /language-(\w+)/.exec(className ?? "")?.[1];
                           const codeStr = String(children).replace(/\n$/, "");
-                          if (lang === "action") {
-                            try {
-                              const parsed = JSON.parse(codeStr) as ActionCardData;
-                              return <ActionCard action={parsed} />;
-                            } catch {
-                              return <code className={className}>{children}</code>;
-                            }
-                          }
+                          if (lang === "action") return <ActionBlock raw={codeStr} streaming={streaming} />;
                           return <code className={className}>{children}</code>;
                         },
                       }}

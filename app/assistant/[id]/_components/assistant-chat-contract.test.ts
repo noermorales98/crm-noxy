@@ -20,7 +20,7 @@ test("existing chats use the approved simplified composer", () => {
 
 test("the redesign preserves message capabilities", () => {
   assert.match(bubbleSource, /ReactMarkdown/);
-  assert.match(bubbleSource, /ActionCard/);
+  assert.match(bubbleSource, /ActionBlock/);
   assert.match(bubbleSource, /openRetry/);
   assert.match(bubbleSource, /handleCopy/);
   assert.match(bubbleSource, /setFullscreen/);

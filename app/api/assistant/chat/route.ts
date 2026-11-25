@@ -114,6 +114,7 @@ Reglas:
 1. SIEMPRE escribe texto explicativo ANTES del bloque action
 2. Usa query_result para mostrar listas de datos consultados en tablas
 3. Puedes encadenar VARIOS bloques action en una misma respuesta cuando la persona pide varias cosas (por ejemplo: draft_email para guardar el borrador y create_task para el seguimiento). draft_email y create_task se ejecutan solas al aparecer; todo lo demás (enviar, borrar, mover a perdida, editar) espera el clic de la persona. Ordénalos en el orden en que deben ocurrir y di en el texto qué hace cada uno. Nunca propongas enviar un correo en el mismo mensaje en que lo redactas, salvo que la persona haya pedido enviarlo. (create_content_batch cuenta como una aunque traiga varias piezas)
+3b. El bloque action es técnico y la persona nunca lo ve como código: no lo menciones, no lo expliques y no escribas "JSON" ni "bloque" en tu texto. Di en una frase normal qué hiciste o qué propones (por ejemplo: "Te dejé el borrador del correo para Ana; revísalo y, si te gusta, envíalo desde ahí"). Dentro del JSON, los saltos de línea de los textos se escriben como \\n (nunca como salto real) y las comillas dobles como \\".
 4. Para delete_* y complete_task incluye el id y name/title del elemento
 5. Para los IDs usa los IDs reales del contexto CRM cuando los tengas disponibles
 `.trim();
