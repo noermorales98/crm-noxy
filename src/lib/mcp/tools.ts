@@ -830,7 +830,7 @@ export function registerCrmTools(server: McpServer, organizationId: string) {
     {
       description: "Lista los emails recibidos/enviados (sin cuerpo). Usa get_email para leer el contenido.",
       inputSchema: {
-        type: z.enum(["RECEIVED", "SENT"]).optional(),
+        type: z.enum(["RECEIVED", "SENT", "DRAFT"]).optional(),
         isRead: z.boolean().optional().describe("Filtrar por leídos/no leídos"),
         search: z.string().optional().describe("Buscar en asunto, remitente o destinatario"),
         ...pagination,

@@ -72,7 +72,7 @@ type EmailSummary = {
   fromAddress: string;
   fromName: string | null;
   toAddress: string;
-  type: "RECEIVED" | "SENT";
+  type: "RECEIVED" | "SENT" | "DRAFT";
   isRead: boolean;
   isArchived: boolean;
   isSpam: boolean;
@@ -96,11 +96,12 @@ type EmailDetail = EmailSummary & {
   attachments: EmailAttachmentInfo[];
 };
 
-type Folder = "inbox" | "sent" | "archived" | "spam";
+type Folder = "inbox" | "sent" | "drafts" | "archived" | "spam";
 
 const FOLDERS: { key: Folder; label: string; icon: React.ReactNode }[] = [
   { key: "inbox", label: "Entrada", icon: <HugeiconsIcon icon={InboxIcon} size={15} /> },
   { key: "sent", label: "Enviados", icon: <HugeiconsIcon icon={SentIcon} size={15} /> },
+  { key: "drafts", label: "Borradores", icon: <HugeiconsIcon icon={PencilEdit01Icon} size={15} /> },
   { key: "archived", label: "Archivados", icon: <HugeiconsIcon icon={Archive01Icon} size={15} /> },
   { key: "spam", label: "Spam", icon: <HugeiconsIcon icon={SpamIcon} size={15} /> },
 ];
@@ -176,6 +177,9 @@ function EmailsPageInner() {
     scheduledAt: "",
   });
   const [isSending, setIsSending] = useState(false);
+  // Borrador que se está editando en el compositor (null = correo nuevo).
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewCompose, setPreviewCompose] = useState(false);
@@ -238,7 +242,7 @@ function EmailsPageInner() {
     urlInitialized.current = true;
     const box = searchParams.get("box");
     const company = searchParams.get("company");
-    if (box === "sent" || box === "archived" || box === "spam") {
+    if (box === "sent" || box === "drafts" || box === "archived" || box === "spam") {
       emailCtx.setFolder(box);
     }
     if (company) {
@@ -249,6 +253,7 @@ function EmailsPageInner() {
       const subject = searchParams.get("subject") ?? "";
       const body = searchParams.get("body") ?? "";
       setComposeData((p) => ({ ...p, to, subject, bodyHtml: body }));
+      setDraftId(null);
       setAttachments([]);
       setIsComposing(true);
       loadContacts();
@@ -266,6 +271,7 @@ function EmailsPageInner() {
   useEffect(() => {
     emailCtx.setOnCompose(() => {
       setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: emailCtx.selectedCompanyId || "", scheduledAt: "" });
+      setDraftId(null);
       setAttachments([]);
       setPreviewCompose(false);
       setShowSchedulePicker(false);
@@ -519,6 +525,7 @@ function EmailsPageInner() {
           subject: composeData.subject,
           bodyHtml: composeData.bodyHtml,
           scheduledAt: composeData.scheduledAt || undefined,
+          draftId: draftId || undefined,
           attachments: attachmentPayload.length > 0 ? attachmentPayload : undefined,
         }),
       });
@@ -529,8 +536,9 @@ function EmailsPageInner() {
         setPreviewCompose(false);
         setShowSchedulePicker(false);
         setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: "", scheduledAt: "" });
+        setDraftId(null);
         setAttachments([]);
-        if (folder === "sent") fetchEmails();
+        if (folder === "sent" || folder === "drafts") fetchEmails();
       } else {
         addToast(data.error || "Error al enviar.", "error");
       }
@@ -550,6 +558,55 @@ function EmailsPageInner() {
     }
   };
 
+  // Guarda lo escrito como borrador (crea o actualiza). No envía nada.
+  const handleSaveDraft = async () => {
+    const companyId = composeData.companyId || selectedCompanyId;
+    if (!companyId) {
+      addToast("Elige desde qué empresa se guarda el borrador.", "error");
+      return;
+    }
+    setIsSavingDraft(true);
+    try {
+      const payload = { to: composeData.to, cc: composeData.cc, subject: composeData.subject, bodyHtml: composeData.bodyHtml };
+      const res = draftId
+        ? await fetch(`/api/emails/${draftId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+        : await fetch("/api/emails/drafts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...payload, companyId }) });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        addToast(data.error || "No se pudo guardar el borrador.", "error");
+        return;
+      }
+      addToast("Borrador guardado.", "success");
+      setIsComposing(false);
+      setPreviewCompose(false);
+      setDraftId(null);
+      setComposeData({ to: "", cc: "", subject: "", bodyHtml: "", companyId: "", scheduledAt: "" });
+      setAttachments([]);
+      if (folder === "drafts") fetchEmails();
+    } catch {
+      addToast("Error de conexión.", "error");
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const openDraft = (email: EmailDetail) => {
+    setComposeData({
+      to: email.toAddress,
+      cc: email.ccAddress ?? "",
+      subject: email.subject === "(sin asunto)" ? "" : email.subject,
+      bodyHtml: email.bodyHtml || email.bodyText || "",
+      companyId: email.companyId,
+      scheduledAt: "",
+    });
+    setDraftId(email.id);
+    setAttachments([]);
+    setPreviewCompose(false);
+    setShowSchedulePicker(false);
+    setIsComposing(true);
+    loadContacts();
+  };
+
   const openReply = (email: EmailDetail) => {
     setComposeData({
       to: sanitizeEmail(email.fromAddress, ""),
@@ -559,6 +616,7 @@ function EmailsPageInner() {
       companyId: email.companyId,
       scheduledAt: "",
     });
+    setDraftId(null);
     setAttachments([]);
     setPreviewCompose(false);
     setShowSchedulePicker(false);
@@ -816,7 +874,9 @@ function EmailsPageInner() {
                                 : "font-medium text-text-primary"
                             }`}
                           >
-                            {email.type === "SENT"
+                            {email.type === "DRAFT"
+                              ? `Borrador · ${email.toAddress ? sanitizeEmail(email.toAddress) : "sin destinatario"}`
+                              : email.type === "SENT"
                               ? `→ ${sanitizeEmail(email.toAddress)}`
                               : email.fromName || sanitizeEmail(email.fromAddress)}
                           </span>
@@ -931,6 +991,15 @@ function EmailsPageInner() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1 lg:shrink-0">
+                    {selectedEmail.type === "DRAFT" && (
+                      <button
+                        onClick={() => openDraft(selectedEmail)}
+                        className="flex min-h-11 items-center gap-1.5 rounded-control bg-surface-sidebar px-3 text-sm font-medium text-text-primary transition-colors hover:bg-nav-active lg:min-h-8"
+                      >
+                        <HugeiconsIcon icon={PencilEdit01Icon} size={13} />
+                        Editar y enviar
+                      </button>
+                    )}
                     {selectedEmail.type === "RECEIVED" && (
                       <button
                         onClick={() => openReply(selectedEmail)}
@@ -1447,6 +1516,15 @@ function EmailsPageInner() {
                       {composeData.scheduledAt ? "Programado" : "Programar"}
                     </button>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => void handleSaveDraft()}
+                    disabled={isSending || isSavingDraft}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors border border-line bg-surface-elevated text-text-secondary hover:bg-nav-hover disabled:opacity-50"
+                  >
+                    <HugeiconsIcon icon={PencilEdit01Icon} size={14} />
+                    {isSavingDraft ? "Guardando..." : "Guardar borrador"}
+                  </button>
                   <button
                     type="submit"
                     disabled={isSending}

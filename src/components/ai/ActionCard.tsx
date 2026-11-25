@@ -44,7 +44,7 @@ export type ActionCardData =
   | { type: "edit_task"; id: string; title: string; prefill?: { title?: string; description?: string; dueDate?: string } }
   | { type: "delete_task"; id: string; title: string }
   // Email
-  | { type: "draft_email"; prefill?: { to?: string; subject?: string; body?: string } }
+  | { type: "draft_email"; prefill?: { companyId?: string; to?: string; cc?: string; subject?: string; body?: string } }
   | { type: "send_email"; prefill?: { companyId?: string; to?: string; cc?: string; subject?: string; body?: string } }
   | { type: "create_quote"; prefill?: QuotePrefill }
   | { type: "edit_quote"; id: string; folio: string; prefill?: QuotePrefill }
@@ -213,7 +213,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "delete_deal":           return "Deal eliminado";
     case "create_task":           return "Tarea creada";
     case "complete_task":         return "Tarea completada";
-    case "draft_email":           return "Compositor abierto";
+    case "draft_email":           return "Borrador guardado en Correo → Borradores";
     case "edit_task":             return "Tarea actualizada";
     case "delete_task":           return "Tarea eliminada";
     case "send_email":            return "Correo enviado";
@@ -462,9 +462,15 @@ function FormFields({
     case "draft_email":
       return (
         <div className="flex flex-col gap-2 mt-3">
-          <input className={inputClass} placeholder="Para" type="email" value={formData.to ?? ""} onChange={(e) => onChange("to", e.target.value)} />
+          <select className={selectClass} aria-label="Guardar en" value={formData.companyId ?? ""} onChange={(e) => onChange("companyId", e.target.value)}>
+            <option value="">Guardar en… (empresa)</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <input className={inputClass} placeholder="Para (puede quedar vacío)" type="email" value={formData.to ?? ""} onChange={(e) => onChange("to", e.target.value)} />
           <input className={inputClass} placeholder="Asunto" value={formData.subject ?? ""} onChange={(e) => onChange("subject", e.target.value)} />
-          <textarea className={`${inputClass} resize-none`} placeholder="Cuerpo" rows={3} value={formData.body ?? ""} onChange={(e) => onChange("body", e.target.value)} />
+          <textarea className={`${inputClass} resize-none`} placeholder="Cuerpo" rows={6} value={formData.body ?? ""} onChange={(e) => onChange("body", e.target.value)} />
         </div>
       );
 
@@ -778,7 +784,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
 
   // Load companies for contact + form actions
   useEffect(() => {
-    const needsCompanies = ["create_contact", "edit_contact", "create_form", "send_email"].includes(action.type);
+    const needsCompanies = ["create_contact", "edit_contact", "create_form", "send_email", "draft_email"].includes(action.type);
     if (!needsCompanies) return;
     fetch("/api/companies")
       .then((r) => r.json())
@@ -787,7 +793,8 @@ export function ActionCard({ action }: { action: ActionCardData }) {
         const list = data as { id: string; name: string }[];
         setCompanies(list);
         setFormData((prev) => {
-          if (!prev.companyId) return prev;
+          // Un borrador necesita empresa: si solo hay una, es esa.
+          if (!prev.companyId) return action.type === "draft_email" && list.length === 1 ? { ...prev, companyId: list[0].id } : prev;
           return list.some((c) => c.id === prev.companyId) ? prev : { ...prev, companyId: "" };
         });
       })
@@ -861,7 +868,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const config = typeConfig[action.type];
   const cardTitle = action.type === "query_result" ? (action.title ?? "Resultados") : config.title;
   const isConfirmOnly = CONFIRM_ONLY_TYPES.includes(action.type);
-  const confirmLabel = action.type === "draft_email" ? "Abrir compositor" : action.type === "send_email" || action.type === "send_quote" ? "Enviar" : "Confirmar";
+  const confirmLabel = action.type === "draft_email" ? "Guardar borrador" : action.type === "send_email" || action.type === "send_quote" ? "Enviar" : "Confirmar";
   const warningText = getWarningText(action);
 
   const handleFieldChange = (key: string, value: string) => {
@@ -1029,12 +1036,13 @@ export function ActionCard({ action }: { action: ActionCardData }) {
           break;
         }
         case "draft_email": {
-          const params = new URLSearchParams();
-          if (formData.to) params.set("to", formData.to);
-          if (formData.subject) params.set("subject", formData.subject);
-          if (formData.body) params.set("body", formData.body);
-          router.push(`/emails?${params.toString()}&compose=true`);
-          return;
+          // Se guarda como borrador en el CRM; no se envía nada. La persona lo revisa en Correo → Borradores.
+          if (!formData.companyId) throw new Error("Elige en qué empresa se guarda el borrador");
+          if (!formData.body?.trim()) throw new Error("El borrador no tiene mensaje");
+          const res = await fetch("/api/emails/drafts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: formData.companyId, to: formData.to, cc: formData.cc, subject: formData.subject, body: formData.body }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo guardar el borrador");
+          markDone(getSuccessMessage(action.type));
+          break;
         }
         // ── Appointments ──────────────────────────────────────────────────
         case "update_appointment": {

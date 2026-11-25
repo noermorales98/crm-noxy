@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/src/lib/db";
 import { auth } from "@/auth";
+import { normalizeDraft } from "@/src/lib/email-drafts";
 
 export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -56,7 +57,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 
     const email = await prisma.email.findUnique({
       where: { id },
-      select: { organizationId: true },
+      select: { organizationId: true, type: true, toAddress: true, ccAddress: true, subject: true, bodyHtml: true },
     });
 
     if (!email || email.organizationId !== currentOrganizationId) {
@@ -65,6 +66,22 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 
     const body = await req.json();
     const { isRead, isArchived, isSpam } = body;
+
+    // Editar el contenido solo es posible en borradores: un correo recibido o enviado no se reescribe.
+    if (email.type === "DRAFT" && ["to", "cc", "subject", "body", "bodyHtml"].some((k) => k in body)) {
+      // Lo que no se envía se conserva: un cambio de asunto no borra el cuerpo.
+      const hasBody = "body" in body || "bodyHtml" in body;
+      const draft = normalizeDraft({
+        to: "to" in body ? body.to : email.toAddress,
+        cc: "cc" in body ? body.cc : email.ccAddress,
+        subject: "subject" in body ? body.subject : email.subject,
+        body: hasBody ? body.body : undefined,
+        bodyHtml: hasBody ? body.bodyHtml : email.bodyHtml,
+      });
+      if (!draft.ok) return NextResponse.json({ error: draft.error }, { status: 400 });
+      const saved = await prisma.email.update({ where: { id }, data: draft.data });
+      return NextResponse.json(saved, { status: 200 });
+    }
 
     const dataToUpdate: any = {};
     if (typeof isRead === "boolean") dataToUpdate.isRead = isRead;

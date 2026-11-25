@@ -21,6 +21,7 @@ type EmailCompany = { id: string; name: string; smtpHost: string | null; imapHos
 const EMAIL_FOLDERS = [
   { key: "inbox" as const, label: "Bandeja de entrada", icon: InboxIcon },
   { key: "sent" as const, label: "Enviados", icon: SentIcon },
+  { key: "drafts" as const, label: "Borradores", icon: PencilEdit01Icon },
   { key: "archived" as const, label: "Archivados", icon: Archive01Icon },
   { key: "spam" as const, label: "Spam", icon: SpamIcon },
 ];
@@ -56,7 +57,7 @@ export function MailNav({ unreadCount, onNavigate }: { unreadCount: number; onNa
   const isOnEmail = pathname.startsWith("/emails");
   const activeFolder: string | null = isOnEmail
     ? (emailCtx?.folder ??
-      (pathname.includes("box=sent") ? "sent" : pathname.includes("box=archived") ? "archived" : pathname.includes("box=spam") ? "spam" : "inbox"))
+      (pathname.includes("box=sent") ? "sent" : pathname.includes("box=drafts") ? "drafts" : pathname.includes("box=archived") ? "archived" : pathname.includes("box=spam") ? "spam" : "inbox"))
     : null;
   const selectedCompanyId = emailCtx?.selectedCompanyId ?? null;
 

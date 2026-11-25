@@ -11,7 +11,7 @@ interface EmailListItem {
   fromAddress: string;
   fromName: string | null;
   toAddress: string;
-  type: "RECEIVED" | "SENT";
+  type: "RECEIVED" | "SENT" | "DRAFT";
   isRead: boolean;
   receivedAt: string;
 }

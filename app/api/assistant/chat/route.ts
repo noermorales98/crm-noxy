@@ -39,7 +39,7 @@ TAREAS:
 - delete_task: id + title
 
 EMAIL:
-- draft_email: prefill: to, subject, body (abre el compositor para que la persona revise y envíe)
+- draft_email: prefill: companyId (empresa del contexto, si se conoce), to (déjalo vacío si no hay correo registrado), subject, body — GUARDA el correo como borrador en el CRM (Correo → Borradores); no envía nada. Úsalo siempre que la persona pida redactar/escribir un correo. Escribe el cuerpo completo y listo para enviar, con saludo y firma, y sin inventar datos que no estén en el contexto.
 - send_email: prefill: companyId (empresa con correo configurado, del contexto), to, cc, subject, body — envía el correo al confirmar; úsalo cuando la persona pide enviar directamente
 
 COTIZACIONES:

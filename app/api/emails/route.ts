@@ -42,10 +42,14 @@ export async function GET(req: Request) {
     } else if (folder === "sent") {
       where.type = "SENT";
       where.isArchived = false;
+    } else if (folder === "drafts") {
+      where.type = "DRAFT";
     } else if (folder === "archived") {
+      where.type = { not: "DRAFT" };
       where.isArchived = true;
       where.isSpam = false;
     } else if (folder === "spam") {
+      where.type = { not: "DRAFT" };
       where.isSpam = true;
     }
 

@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { companyId, to, cc, subject, bodyHtml, bodyText, scheduledAt, attachments } = body;
+    const { companyId, to, cc, subject, bodyHtml, bodyText, scheduledAt, attachments, draftId } = body;
 
     if (!companyId || !to || !subject || !bodyHtml) {
       return NextResponse.json({ error: "companyId, to, subject and bodyHtml are required" }, { status: 400 });
@@ -145,6 +145,13 @@ export async function POST(req: Request) {
           : {}),
       },
     });
+
+    // Si el correo salió de un borrador, el borrador ya cumplió: se quita (solo uno de esta organización y de tipo borrador).
+    if (typeof draftId === "string" && draftId) {
+      await prisma.email
+        .deleteMany({ where: { id: draftId, organizationId: currentOrganizationId, type: "DRAFT" } })
+        .catch((err: unknown) => console.error("No se pudo quitar el borrador enviado:", err));
+    }
 
     return NextResponse.json(
       {

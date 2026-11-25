@@ -1001,6 +1001,7 @@ model TaskCategory {
 enum EmailType {
   RECEIVED
   SENT
+  DRAFT // borrador: se guarda sin enviar y la persona lo revisa, edita o envía
 }
 
 model Email {
