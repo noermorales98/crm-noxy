@@ -17,6 +17,7 @@ type ArchivedDeal = {
   currency?: string | null;
   archivedAt?: string | null;
   wonAt?: string | null;
+  lostAt?: string | null;
   lostReason?: string | null;
   quotes?: { id: string; folio: string; status: string; total: number; currency: string }[];
   company?: { name: string } | null;
@@ -72,8 +73,11 @@ function MoneyCell({ deal }: { deal: ArchivedDeal }) {
     </span>
   );
 }
-const archivedOn = (d: ArchivedDeal) =>
-  d.archivedAt ? new Date(d.archivedAt).toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "";
+// Fecha en que se ganó o se perdió el deal (no la de archivado). Los perdidos anteriores a este dato no la tienen.
+const closedOn = (d: ArchivedDeal) => {
+  const at = d.stage?.isLost ? d.lostAt : d.wonAt ?? d.lostAt;
+  return at ? new Date(at).toLocaleDateString("es-MX", { year: "numeric", month: "short", day: "numeric" }) : "Sin fecha de cierre";
+};
 
 /** Etapa final con el color que guardó el usuario (dato) y el resultado en texto. */
 function StageCell({ deal }: { deal: ArchivedDeal }) {
@@ -116,7 +120,7 @@ const COLUMNS: DataColumn<ArchivedDeal>[] = [
   { key: "deal", header: "Deal", render: (d) => <DealName deal={d} /> },
   { key: "value", header: "Valor", align: "right", render: (d) => <MoneyCell deal={d} /> },
   { key: "stage", header: "Etapa final", render: (d) => <StageCell deal={d} /> },
-  { key: "archived", header: "Archivado el", render: (d) => <span className="text-text-secondary">{archivedOn(d)}</span> },
+  { key: "closed", header: "Cerrado el", render: (d) => <span className="text-text-secondary">{closedOn(d)}</span> },
 ];
 
 export default function HistoryPage() {
@@ -397,7 +401,7 @@ export default function HistoryPage() {
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <StageCell deal={d} />
-                    <span className="text-xs text-text-secondary">{archivedOn(d)}</span>
+                    <span className="text-xs text-text-secondary">{d.stage?.isLost ? "Perdido" : "Ganado"} el {closedOn(d)}</span>
                   </div>
                 </div>
               )}

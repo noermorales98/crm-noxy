@@ -204,6 +204,10 @@ export async function POST(req: Request) {
   void Promise.all([
     prisma.aiMessage.create({ data: { conversationId, role: "user", content: trimmed } }),
     isFirstMessage ? prisma.aiConversation.update({ where: { id: conversationId }, data: { title } }) : null,
+    // El contexto adjunto se guarda una vez, para saber después de qué trataba el chat.
+    !conversation.contextLabel && pageContext?.label
+      ? prisma.aiConversation.update({ where: { id: conversationId }, data: { contextLabel: pageContext.label.slice(0, 200), contextPage: String(pageContext.page ?? "").slice(0, 40) || null } })
+      : null,
   ]).catch((err) => console.error("[assistant/chat] no se pudo guardar el mensaje del usuario:", err));
 
   // Contexto del CRM (12 consultas) y preferencias en paralelo; el contexto se reutiliza 60 s.

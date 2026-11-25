@@ -1335,6 +1335,8 @@ model AiConversation {
   title          String       @default("Nueva conversación")
   userId         String
   organizationId String
+  contextLabel   String?      @db.VarChar(200) // registro o pantalla que se consultaba al empezar el chat
+  contextPage    String?      @db.VarChar(40)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   messages       AiMessage[]

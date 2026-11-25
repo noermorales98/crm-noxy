@@ -44,7 +44,12 @@ interface Props {
   conversationId: string;
   initialMessages: Message[];
   emptyExperience?: "references";
+  /** Registro o pantalla que se consultaba cuando empezó el chat. */
+  contextLabel?: string | null;
+  contextPage?: string | null;
 }
+
+const CONTEXT_KIND: Record<string, string> = { deal: "Deal", contact: "Contacto", company: "Empresa", appointment: "Cita", quote: "Cotización", client: "Cliente", project: "Proyecto", task: "Tarea", tasks: "Tareas", pipeline: "Pipeline", companies: "Empresas", email: "Correo" };
 
 const SUGGESTIONS = [
   "¿Cuántos contactos nuevos tengo esta semana?",
@@ -86,7 +91,7 @@ function defaultKeyUsed(modelId: string, preferKey: "1" | "2"): string | undefin
   return preferKey === "2" ? "secundaria" : "primaria";
 }
 
-export default function ChatView({ conversationId, initialMessages, emptyExperience }: Props) {
+export default function ChatView({ conversationId, initialMessages, emptyExperience, contextLabel, contextPage }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [streaming, setStreaming] = useState(false);
   const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
@@ -427,7 +432,14 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
               </div>
             </div>
           ) : (
-            messages.map((m) => (
+            <>
+            {contextLabel && (
+              <p className="mb-2 flex flex-wrap items-center gap-1.5 text-xs text-text-secondary" aria-label="Contexto de este chat">
+                <span className="font-semibold">Contexto:</span>
+                <span className="rounded-full bg-surface-sidebar px-2.5 py-1 font-medium text-text-primary">{contextPage && CONTEXT_KIND[contextPage] ? `${CONTEXT_KIND[contextPage]} · ` : ""}{contextLabel}</span>
+              </p>
+            )}
+            {messages.map((m) => (
               <MessageBubble
                 key={m.id}
                 presentation="soft-card"
@@ -441,7 +453,8 @@ export default function ChatView({ conversationId, initialMessages, emptyExperie
                 avatar={m.role === "user" ? undefined : <ChatBlobatar seed={blobSeed} size={44} mood={streaming && m.id === streamingIdRef.current ? "thinking" : "idle"} />}
                 onRetry={m.role === "assistant" ? (newModelId, accountId) => retryMessage(m.id, newModelId, accountId) : undefined}
               />
-            ))
+            ))}
+            </>
           )}
           <div ref={bottomRef} />
         </div>

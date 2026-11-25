@@ -30,5 +30,5 @@ export default async function AssistantConversationPage({ params }: { params: Pr
     createdAt: m.createdAt.toISOString(),
   }));
 
-  return <ChatView conversationId={conversation.id} initialMessages={messages} />;
+  return <ChatView conversationId={conversation.id} initialMessages={messages} contextLabel={conversation.contextLabel} contextPage={conversation.contextPage} />;
 }

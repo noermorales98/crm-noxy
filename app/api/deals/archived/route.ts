@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       where.stage = { isLost: true };
     }
 
-    // El mes de una venta ganada es su fecha de cierre (wonAt); el resto, la fecha de archivado.
+    // El mes de un deal es el día en que se ganó (wonAt) o se perdió (lostAt); solo si no tiene ninguno, la fecha de archivado.
     // Así lo cerrado en octubre aparece en octubre aunque se archive el 1 de noviembre.
     let range: { gte: Date; lte: Date } | null = null;
     if (month && year) {
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       range = { gte: new Date(parseInt(year), 0, 1), lte: new Date(parseInt(year), 11, 31, 23, 59, 59, 999) };
     }
     if (range) {
-      where.OR = [{ wonAt: range }, { wonAt: null, archivedAt: range }];
+      where.OR = [{ wonAt: range }, { lostAt: range }, { wonAt: null, lostAt: null, archivedAt: range }];
     }
 
     const deals = await prisma.deal.findMany({
