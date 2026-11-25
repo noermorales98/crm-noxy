@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { isAutoRunnable } from "@/src/lib/action-safety";
+import { draftReadyToSend } from "@/src/lib/email-drafts";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { formatQuoteLines, parseQuoteLines } from "@/src/lib/ai-quote-items";
 import { SaleDateChoice, type SaleDateOption } from "@/src/components/quotes/SaleDateChoice";
@@ -50,6 +52,7 @@ export type ActionCardData =
   | { type: "edit_quote"; id: string; folio: string; prefill?: QuotePrefill }
   | { type: "delete_quote"; id: string; folio: string }
   | { type: "send_quote"; id: string; folio: string }
+  | { type: "send_draft"; id: string; subject?: string; to?: string }
   | { type: "connect_quote_deal"; id: string; folio: string; prefill?: { dealId?: string; dealTitle?: string; stageId?: string; title?: string } }
   | { type: "create_company"; prefill?: { name?: string; website?: string; industry?: string } }
   | { type: "edit_company"; id: string; name: string; prefill?: { name?: string; website?: string; industry?: string } }
@@ -120,6 +123,7 @@ const typeConfig: Record<ActionCardData["type"], TypeConfig> = {
   edit_quote:            { icon: PencilEditIcon,      color: "#3545D6", title: "Editar cotización" },
   delete_quote:          { icon: Delete01Icon,        color: "#EF4444", title: "Eliminar cotización" },
   send_quote:            { icon: MailIcon,            color: "#10B981", title: "Enviar cotización" },
+  send_draft:            { icon: MailIcon,            color: "#10B981", title: "Enviar borrador" },
   connect_quote_deal:    { icon: SaleTagIcon,         color: "#3545D6", title: "Conectar cotización con un deal" },
   create_company:        { icon: AiBrainIcon,         color: "#10B981", title: "Crear empresa" },
   edit_company:          { icon: PencilEditIcon,      color: "#3545D6", title: "Editar empresa" },
@@ -164,7 +168,7 @@ const CONFIRM_ONLY_TYPES: ActionCardData["type"][] = [
   "delete_contact", "delete_deal", "complete_task",
   "delete_appointment", "delete_availability",
   "delete_appointment_type", "delete_form",
-  "delete_task", "delete_quote", "send_quote", "delete_company",
+  "delete_task", "delete_quote", "send_quote", "send_draft", "delete_company",
 ];
 
 // Permanent one-time operations (delete/complete) go to localStorage.
@@ -174,7 +178,9 @@ const PERMANENT_TYPES: ActionCardData["type"][] = [
   "delete_contact", "delete_deal", "complete_task",
   "delete_appointment", "delete_availability",
   "delete_appointment_type", "delete_form",
-  "delete_task", "delete_quote", "send_quote", "delete_company", "send_email",
+  "delete_task", "delete_quote", "send_quote", "delete_company", "send_email", "send_draft",
+  // Corren solas: se marcan como hechas de forma permanente para no repetirse al reabrir la conversación.
+  "draft_email", "create_task",
 ];
 
 // Key uses full JSON so two different edits of the same deal have different keys.
@@ -221,6 +227,7 @@ function getSuccessMessage(type: ActionCardData["type"]): string {
     case "edit_quote":            return "Cotización actualizada";
     case "delete_quote":          return "Cotización eliminada";
     case "send_quote":            return "Cotización enviada al cliente";
+    case "send_draft":            return "Borrador enviado";
     case "create_company":        return "Empresa creada";
     case "edit_company":          return "Empresa actualizada";
     case "delete_company":        return "Empresa eliminada";
@@ -262,6 +269,7 @@ function getWarningText(action: ActionCardData): string {
     case "delete_form":           return `¿Eliminar el formulario "${action.name}"?`;
     case "delete_task":           return `¿Eliminar la tarea "${action.title}"?`;
     case "delete_quote":          return `¿Eliminar la cotización ${action.folio}? No se puede deshacer.`;
+    case "send_draft":            return `¿Enviar el borrador "${action.subject ?? ""}"${action.to ? ` a ${action.to}` : ""}? Saldrá desde la empresa con correo configurado.`;
     case "send_quote":            return `¿Enviar la cotización ${action.folio} al correo del cliente con el mensaje estándar?`;
     case "delete_company":        return `¿Eliminar la empresa "${action.name}"?`;
     default: return "";
@@ -801,6 +809,18 @@ export function ActionCard({ action }: { action: ActionCardData }) {
       .catch(() => {});
   }, [action.type]);
 
+  // Cadena de acciones: lo interno y reversible (borrador, tarea) corre solo; lo demás espera el clic de la persona.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoStarted.current || status !== "pending" || cancelled) return;
+    if (!isAutoRunnable(action as { type: string; prefill?: Record<string, unknown> })) return;
+    if (action.type === "draft_email" && !formData.companyId) return; // sin empresa queda la tarjeta para elegirla
+    if (localStorage.getItem(storageKey) === "done") return;
+    autoStarted.current = true;
+    void executeAction();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, cancelled, formData.companyId]);
+
   // Editar una cotización: se traen sus datos actuales (el servidor reemplaza todo, así que lo no editable se conserva tal cual).
   useEffect(() => {
     if (action.type !== "edit_quote") return;
@@ -868,7 +888,7 @@ export function ActionCard({ action }: { action: ActionCardData }) {
   const config = typeConfig[action.type];
   const cardTitle = action.type === "query_result" ? (action.title ?? "Resultados") : config.title;
   const isConfirmOnly = CONFIRM_ONLY_TYPES.includes(action.type);
-  const confirmLabel = action.type === "draft_email" ? "Guardar borrador" : action.type === "send_email" || action.type === "send_quote" ? "Enviar" : "Confirmar";
+  const confirmLabel = action.type === "draft_email" ? "Guardar borrador" : action.type === "send_email" || action.type === "send_quote" || action.type === "send_draft" ? "Enviar" : "Confirmar";
   const warningText = getWarningText(action);
 
   const handleFieldChange = (key: string, value: string) => {
@@ -1015,6 +1035,19 @@ export function ActionCard({ action }: { action: ActionCardData }) {
         case "delete_quote": {
           const res = await fetch(`/api/quotes/${action.id}`, { method: "DELETE" });
           if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Error al eliminar la cotización");
+          markDone(getSuccessMessage(action.type));
+          break;
+        }
+        case "send_draft": {
+          // Confirmado con el botón: se lee el borrador tal como está ahora y sale por el envío normal.
+          const dr = await fetch(`/api/emails/${action.id}`);
+          if (!dr.ok) throw new Error("No se encontró el borrador");
+          const d = (await dr.json()) as { type: string; companyId: string; toAddress: string; ccAddress: string | null; subject: string; bodyHtml: string | null; bodyText: string | null };
+          if (d.type !== "DRAFT") throw new Error("Ese correo ya no es un borrador");
+          const check = draftReadyToSend({ toAddress: d.toAddress, subject: d.subject, bodyHtml: d.bodyHtml ?? "" });
+          if (!check.ready) throw new Error(`Al borrador le falta: ${check.missing.join(", ")}. Edítalo en Correo → Borradores.`);
+          const res = await fetch("/api/emails/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId: d.companyId, to: d.toAddress, cc: d.ccAddress || undefined, subject: d.subject, bodyHtml: d.bodyHtml, bodyText: d.bodyText ?? "", draftId: action.id }) });
+          if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "No se pudo enviar el borrador");
           markDone(getSuccessMessage(action.type));
           break;
         }

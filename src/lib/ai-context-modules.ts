@@ -194,6 +194,16 @@ type PageRef = { page: string; id?: string } | null | undefined;
  * organización. Sin esto la IA solo sabría el título de la pantalla.
  */
 export async function buildPageRecordContext(orgId: string, ref: PageRef): Promise<string> {
+  // Correo: sin registro abierto, pero la IA necesita los borradores (con su id) y las empresas desde las que se guarda o envía.
+  if (ref?.page === "email") {
+    const [drafts, companies] = await Promise.all([
+      prisma.email.findMany({ where: { organizationId: orgId, type: "DRAFT" }, orderBy: { updatedAt: "desc" }, take: 8, select: { id: true, subject: true, toAddress: true } }),
+      prisma.company.findMany({ where: { organizationId: orgId }, take: 10, select: { id: true, name: true, smtpHost: true } }),
+    ]);
+    const out = [`CORREO: empresas [companyId]: ${companies.map((c) => `${c.name} [${c.id}]${c.smtpHost ? " (puede enviar)" : ""}`).join(" · ") || "ninguna"}`];
+    out.push(drafts.length ? `BORRADORES [id]: ${drafts.map((d) => `"${d.subject}" para ${d.toAddress || "sin destinatario"} [${d.id}]`).join(" · ")}` : "BORRADORES: ninguno");
+    return out.join("\n");
+  }
   if (!ref?.id) return "";
   const id = ref.id;
   const L: string[] = [];

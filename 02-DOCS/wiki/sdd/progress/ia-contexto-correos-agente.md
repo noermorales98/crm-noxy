@@ -31,4 +31,11 @@ Spec aprobada por la persona; modo autopiloto por fases.
 - [x] «Editar y enviar» abre el compositor con el borrador; al pulsar **Enviar** (la confirmación) sale por `/api/emails/send` y el servidor borra ese borrador (solo de la misma organización y tipo borrador).
 - [ ] Pendiente: que la IA pueda proponer «enviar este borrador» como acción con confirmación (fase 4).
 
-## Fase 4 — Cadena de acciones con confirmación (pendiente)
+## Fase 4 — Cadena de acciones con confirmación (hecha)
+- [x] `src/lib/action-safety.ts` (`isSensitiveAction`, `isAutoRunnable`, `AUTO_RUN_TYPES`) con 4 pruebas: solo `draft_email` y `create_task` corren solas (y con lo mínimo); enviar, borrar y editar un deal a «perdida» nunca (AC7).
+- [x] `ActionCard`: las acciones automáticas se ejecutan al aparecer (una sola vez; se marcan hechas de forma permanente); sin empresa elegida, el borrador queda como tarjeta manual.
+- [x] Nueva acción `send_draft` (con confirmación): lee el borrador actual, comprueba que esté completo y lo envía por `/api/emails/send`, que lo borra.
+- [x] `POST /api/emails/drafts` es idempotente (mismo destinatario, asunto y texto no duplica).
+- [x] Prompt: la IA puede encadenar varios bloques `action`; no propone enviar en el mismo mensaje en que redacta. Contexto de `/emails` lista borradores (con id) y empresas.
+- [x] AC6 con el modelo real y la cita de ejemplo: una sola petición produjo `draft_email` + `create_task`, sin acciones de envío.
+- [ ] Sin verificar en navegador que la tarjeta se auto-ejecuta (sesión de navegador detenida).
