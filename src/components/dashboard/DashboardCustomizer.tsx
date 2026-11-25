@@ -21,7 +21,10 @@ interface DashboardCustomizerProps {
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function DashboardCustomizer({ initialWidgets, initialTabs, data }: DashboardCustomizerProps) {
+export function DashboardCustomizer({ initialWidgets, initialTabs, data: initialData }: DashboardCustomizerProps) {
+  // Al agregar un widget nuevo se piden sus datos; aquí se guardan para que salga con información sin recargar.
+  const [data, setData] = useState(initialData);
+  useEffect(() => setData(initialData), [initialData]);
   const [widgets, setWidgets] = useState(initialWidgets);
   const [tabs, setTabs] = useState(initialTabs);
   const [editMode, setEditMode] = useState(false);
@@ -88,6 +91,9 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
     };
   }, [widgets, tabs]);
 
+  function handleMergeData(partial: DashboardData) {
+    setData((prev) => ({ ...prev, ...partial }));
+  }
   function handleAddWidget(id: string) {
     setWidgets((prev) => [...prev, id]);
   }
@@ -165,6 +171,8 @@ export function DashboardCustomizer({ initialWidgets, initialTabs, data }: Dashb
         <WidgetPicker
           activeWidgetIds={widgets}
           activeTabIds={tabs}
+          data={data}
+          onData={handleMergeData}
           onAddWidget={handleAddWidget}
           onAddTab={handleAddTab}
           onClose={() => setPickerOpen(false)}

@@ -2,6 +2,9 @@ import { ACTIVE_DEALS } from "@/src/lib/deal-filters";
 import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
 import { listGoogleCalendarEvents } from "@/src/lib/google-calendar";
+import { loadMonthMetrics, type InProgressSales } from "@/src/lib/month-metrics";
+import { monthKeyInZone } from "@/src/lib/month-close";
+import type { Money } from "@/src/lib/deal-sales";
 import type { Appointment, AppointmentType, Contact, Task, EmailCampaign, Project, ActivityLog } from "@prisma/client";
 
 export interface DealsByStageEntry {
@@ -54,6 +57,43 @@ export interface ContentPieceRow {
   time: string | null;
   clientId: string;
   clientName: string;
+  hook: string | null;
+  note: string | null;
+}
+
+/** Cierre del mes en curso: lo mismo que ve /pipeline/historial (ganadas, perdidos, cobros y lo que sigue a mitad de proceso). */
+export interface MonthSalesData {
+  month: string;
+  won: { count: number; byCurrency: Money };
+  lost: { count: number };
+  closingRate: number | null;
+  paymentsReceived: Money;
+  inProgress: InProgressSales;
+}
+
+export interface LostDealRow {
+  id: string;
+  title: string;
+  value: number | null;
+  currency: string;
+  lostReason: string | null;
+  lostAt: string | null;
+  contactName: string | null;
+}
+
+export interface QuoteRow {
+  id: string;
+  folio: string;
+  clientName: string;
+  clientCompany: string | null;
+  status: string;
+  total: number;
+  currency: string;
+  validUntil: string | null;
+  /** Saldo que falta cobrar (solo cotizaciones con pago en dos partes). */
+  balance: number | null;
+  dealId: string | null;
+  dealTitle: string | null;
 }
 
 export interface GoogleCalendarData {
@@ -65,6 +105,7 @@ export interface GoogleCalendarData {
     end: string;
     location: string | null;
     htmlLink: string | null;
+    description: string | null;
   }[];
 }
 
@@ -116,6 +157,12 @@ export interface DashboardData {
   contentInEditing?: ContentPieceRow[];
   companiesCount?: number;
   openQuotesCount?: number;
+  monthSales?: MonthSalesData;
+  pipelineByCurrency?: Money;
+  lostDealsRecent?: LostDealRow[];
+  unlinkedPaidQuotes?: { count: number; rows: QuoteRow[] };
+  partialQuotes?: QuoteRow[];
+  openQuotesList?: QuoteRow[];
 }
 
 export type DataKey = keyof DashboardData;
@@ -183,6 +230,8 @@ const contentPieceSelect = {
   date: true,
   time: true,
   clientId: true,
+  hook: true,
+  note: true,
   client: { select: { name: true } },
 } as const;
 
@@ -194,6 +243,8 @@ function toContentPieceRow(item: {
   date: Date;
   time: string | null;
   clientId: string;
+  hook: string | null;
+  note: string | null;
   client: { name: string };
 }): ContentPieceRow {
   return {
@@ -205,6 +256,57 @@ function toContentPieceRow(item: {
     time: item.time,
     clientId: item.clientId,
     clientName: item.client.name,
+    hook: item.hook,
+    note: item.note,
+  };
+}
+
+const quoteRowSelect = {
+  id: true,
+  folio: true,
+  clientName: true,
+  clientCompany: true,
+  status: true,
+  total: true,
+  currency: true,
+  validUntil: true,
+  splitPayment: true,
+  depositPercent: true,
+  depositPaidAt: true,
+  finalPaidAt: true,
+  dealId: true,
+  deal: { select: { title: true } },
+} as const;
+
+function toQuoteRow(q: {
+  id: string;
+  folio: string;
+  clientName: string;
+  clientCompany: string | null;
+  status: string;
+  total: number;
+  currency: string;
+  validUntil: Date | null;
+  splitPayment: boolean;
+  depositPercent: number;
+  depositPaidAt: Date | null;
+  finalPaidAt: Date | null;
+  dealId: string | null;
+  deal: { title: string } | null;
+}): QuoteRow {
+  const waitingBalance = q.splitPayment && q.depositPaidAt && !q.finalPaidAt;
+  return {
+    id: q.id,
+    folio: q.folio,
+    clientName: q.clientName,
+    clientCompany: q.clientCompany,
+    status: q.status,
+    total: q.total,
+    currency: q.currency,
+    validUntil: q.validUntil ? q.validUntil.toISOString() : null,
+    balance: waitingBalance ? Math.round(q.total * (100 - q.depositPercent)) / 100 : null,
+    dealId: q.dealId,
+    dealTitle: q.deal?.title ?? null,
   };
 }
 
@@ -508,6 +610,93 @@ export const DATA_FETCHERS: {
       where: { organizationId, status: { notIn: ["PAGADA", "RECHAZADA", "VENCIDA"] } },
     }),
   }),
+  monthSales: async (organizationId, now) => {
+    const timeZone = await organizationTimeZone(organizationId);
+    const month = monthKeyInZone(now, timeZone);
+    const loaded = await loadMonthMetrics(organizationId, month);
+    const empty: MonthSalesData = {
+      month,
+      won: { count: 0, byCurrency: {} },
+      lost: { count: 0 },
+      closingRate: null,
+      paymentsReceived: {},
+      inProgress: { count: 0, byCurrency: {}, deals: [] },
+    };
+    if (!loaded.ok || !loaded.metrics) return { monthSales: empty };
+    const m = loaded.metrics;
+    return {
+      monthSales: {
+        month,
+        won: m.won,
+        lost: m.lost,
+        closingRate: m.closingRate,
+        paymentsReceived: m.paymentsReceived,
+        inProgress: loaded.inProgress ?? empty.inProgress,
+      },
+    };
+  },
+  pipelineByCurrency: async (organizationId) => {
+    const deals = await prisma.deal.findMany({
+      where: { organizationId, ...ACTIVE_DEALS, stage: { isWon: false, isLost: false } },
+      select: { value: true, currency: true },
+    });
+    const byCurrency: Money = {};
+    for (const d of deals) byCurrency[d.currency] = (byCurrency[d.currency] ?? 0) + (d.value ?? 0);
+    return { pipelineByCurrency: byCurrency };
+  },
+  lostDealsRecent: async (organizationId) => {
+    const deals = await prisma.deal.findMany({
+      where: { organizationId, ...ACTIVE_DEALS, stage: { isLost: true } },
+      orderBy: [{ lostAt: { sort: "desc", nulls: "last" } }, { updatedAt: "desc" }],
+      take: 5,
+      select: {
+        id: true,
+        title: true,
+        value: true,
+        currency: true,
+        lostReason: true,
+        lostAt: true,
+        contact: { select: { firstName: true, lastName: true } },
+      },
+    });
+    return {
+      lostDealsRecent: deals.map((d) => ({
+        id: d.id,
+        title: d.title,
+        value: d.value,
+        currency: d.currency,
+        lostReason: d.lostReason,
+        lostAt: d.lostAt ? d.lostAt.toISOString() : null,
+        contactName: d.contact ? `${d.contact.firstName} ${d.contact.lastName ?? ""}`.trim() : null,
+      })),
+    };
+  },
+  unlinkedPaidQuotes: async (organizationId) => {
+    const where = { organizationId, status: "PAGADA" as const, dealId: null };
+    const [count, rows] = await Promise.all([
+      prisma.quote.count({ where }),
+      prisma.quote.findMany({ where, orderBy: { paidAt: "desc" }, take: 5, select: quoteRowSelect }),
+    ]);
+    return { unlinkedPaidQuotes: { count, rows: rows.map(toQuoteRow) } };
+  },
+  partialQuotes: async (organizationId) => {
+    const rows = await prisma.quote.findMany({
+      where: { organizationId, status: "PARCIAL" },
+      orderBy: { depositPaidAt: "desc" },
+      take: 5,
+      select: quoteRowSelect,
+    });
+    return { partialQuotes: rows.map(toQuoteRow) };
+  },
+  openQuotesList: async (organizationId) => {
+    const rows = await prisma.quote.findMany({
+      where: { organizationId, status: { notIn: ["PAGADA", "RECHAZADA", "VENCIDA"] } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: quoteRowSelect,
+    });
+    return { openQuotesList: rows.map(toQuoteRow) };
+  },
   googleCalendar: async (organizationId, now) => {
     const token = await prisma.googleCalendarToken.findUnique({ where: { organizationId } });
     if (!token) return { googleCalendar: { connected: false, events: [] } };
@@ -524,6 +713,7 @@ export const DATA_FETCHERS: {
           end: e.end.toISOString(),
           location: e.location ?? null,
           htmlLink: e.htmlLink ?? null,
+          description: e.description ?? null,
         })),
       },
     };

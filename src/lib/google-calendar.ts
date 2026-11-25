@@ -171,6 +171,7 @@ export interface CalendarEventSummary {
   end: Date;
   location?: string | null;
   htmlLink?: string | null;
+  description?: string | null;
 }
 
 function parseEventDate(
@@ -223,6 +224,7 @@ export async function listGoogleCalendarEvents(
         end: dates.end,
         location: item.location ?? null,
         htmlLink: item.htmlLink ?? null,
+        description: item.description ?? null,
       });
     }
 

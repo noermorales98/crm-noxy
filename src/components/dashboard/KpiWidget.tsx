@@ -27,7 +27,7 @@ export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlig
       <span className="w-full min-w-0">
         <span className="block text-xs font-semibold text-text-secondary">{label}</span>
         <span
-          className={`mt-1 block text-2xl font-semibold leading-tight tracking-[-0.02em] tabular-nums ${
+          className={`mt-1 block break-words text-2xl font-semibold leading-tight tracking-[-0.02em] tabular-nums ${
             highlight ? "text-danger" : "text-text-primary"
           }`}
         >
