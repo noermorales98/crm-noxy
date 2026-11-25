@@ -1,4 +1,6 @@
 "use client";
+
+import { useAiPageContext } from "@/src/components/ai/AskAiButton";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
@@ -19,6 +21,7 @@ type CompanyRow = {
 };
 
 export default function CompaniesPage() {
+  useAiPageContext({ page: "companies", label: "Lista de empresas" });
   const { addToast } = useToast();
   const { confirm } = useConfirm();
   const { setConfig, resetState, sortField, sortOrder } = useHeader();

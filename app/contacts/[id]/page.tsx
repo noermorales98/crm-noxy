@@ -4,6 +4,7 @@ import { prisma } from "@/src/lib/db";
 import { visibleContactWhere } from "@/src/lib/visible-contacts";
 import { summarizeContact } from "@/src/lib/record-summary";
 import ContactDetail from "@/src/components/detail/ContactDetail";
+import { AiPageContext } from "@/src/components/ai/AskAiButton";
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,5 +45,10 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     appointments: contact.appointments,
   });
 
-  return <ContactDetail contact={JSON.parse(JSON.stringify(contact))} summary={JSON.parse(JSON.stringify(summary))} />;
+  return (
+    <>
+      <AiPageContext context={{ page: "contact", id: contact.id, label: `${contact.firstName} ${contact.lastName ?? ""}`.trim() }} />
+      <ContactDetail contact={JSON.parse(JSON.stringify(contact))} summary={JSON.parse(JSON.stringify(summary))} />
+    </>
+  );
 }

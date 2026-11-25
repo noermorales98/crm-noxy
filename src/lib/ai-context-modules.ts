@@ -185,6 +185,8 @@ export async function buildRelevantContext(orgId: string, message: string): Prom
   return L.length ? `\n\n=== COINCIDENCIAS EN EL CRM ===\n${L.join("\n")}` : "";
 }
 
+const NO_EMAIL = "SIN CORREO REGISTRADO (pídeselo a la persona; no lo inventes)";
+
 type PageRef = { page: string; id?: string } | null | undefined;
 
 /**
@@ -200,20 +202,110 @@ export async function buildPageRecordContext(orgId: string, ref: PageRef): Promi
     const a = await prisma.appointment.findFirst({
       where: { id, organizationId: orgId },
       select: {
-        title: true, startTime: true, endTime: true, status: true, guestName: true, guestEmail: true, notes: true,
-        contact: { select: { id: true, firstName: true, lastName: true } },
+        title: true, startTime: true, endTime: true, status: true, guestName: true, guestEmail: true, guestPhone: true, notes: true,
+        appointmentType: { select: { name: true, location: true } },
+        contact: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+        deal: { select: { id: true, title: true } },
         granolaNotes: { orderBy: { startedAt: "desc" }, take: 3, select: { source: true, title: true, summary: true, privateNotes: true, items: { select: { text: true } } } },
       },
     });
     if (!a) return "";
-    L.push(`CITA ABIERTA: ${a.title ?? "Cita"} | ${fmt(a.startTime)} | ${a.status} | invitado: ${a.guestName} <${a.guestEmail}>${a.contact ? ` | contacto [id:${a.contact.id}]` : ""}`);
+    // A quién se le escribe: el correo de la reserva o, si no hay, el del contacto vinculado. Si no hay ninguno, la IA debe pedirlo.
+    const email = a.guestEmail?.trim() || a.contact?.email?.trim() || "";
+    L.push(`CITA ABIERTA: ${a.title ?? a.appointmentType?.name ?? "Cita"} | ${fmt(a.startTime)} | ${a.status}${a.appointmentType?.location ? ` | lugar: ${a.appointmentType.location}` : ""}`);
+    L.push(`Persona de la cita: ${a.contact ? `${a.contact.firstName} ${a.contact.lastName ?? ""}`.trim() : a.guestName}${a.contact ? ` [contactId:${a.contact.id}]` : ""}`);
+    L.push(`Correo para escribirle: ${email || NO_EMAIL}${a.guestPhone || a.contact?.phone ? ` | teléfono: ${a.guestPhone || a.contact?.phone}` : ""}`);
+    if (a.deal) L.push(`Deal relacionado: "${a.deal.title}" [id:${a.deal.id}]`);
     if (a.notes) L.push(`Descripción: ${clip(a.notes, 600)}`);
+    if (!a.granolaNotes.length) L.push("Esta cita aún no tiene notas de reunión.");
     for (const n of a.granolaNotes) {
       L.push(`Nota (${n.source}${n.title ? `: ${n.title}` : ""}):`);
       if (n.summary) L.push(clip(n.summary, 2500));
       if (n.privateNotes) L.push(`Notas privadas: ${clip(n.privateNotes, 1500)}`);
       if (n.items.length) L.push(`Pasos detectados: ${n.items.map((i) => i.text).join(" · ")}`);
     }
+  } else if (ref.page === "contact") {
+    const c = await prisma.contact.findFirst({
+      where: { id, organizationId: orgId },
+      select: {
+        firstName: true, lastName: true, email: true, phone: true, source: true,
+        company: { select: { id: true, name: true } },
+        deals: { orderBy: { createdAt: "desc" }, take: 5, select: { id: true, title: true, value: true, currency: true, stage: { select: { name: true } } } },
+        tasks: { where: { isCompleted: false }, take: 5, select: { title: true, dueDate: true } },
+        appointments: { orderBy: { startTime: "desc" }, take: 3, select: { id: true, title: true, startTime: true, status: true } },
+      },
+    });
+    if (!c) return "";
+    L.push(`CONTACTO ABIERTO [id:${id}]: ${c.firstName} ${c.lastName ?? ""}`.trim());
+    L.push(`Correo para escribirle: ${c.email?.trim() || NO_EMAIL}${c.phone ? ` | teléfono: ${c.phone}` : ""}${c.company ? ` | empresa: ${c.company.name} [id:${c.company.id}]` : ""}${c.source ? ` | fuente: ${c.source}` : ""}`);
+    if (c.deals.length) L.push(`Deals: ${c.deals.map((d) => `"${d.title}" [id:${d.id}] ${d.stage.name} $${(d.value ?? 0).toLocaleString("es-MX")} ${d.currency}`).join(" · ")}`);
+    if (c.appointments.length) L.push(`Citas: ${c.appointments.map((x) => `${x.title ?? "Cita"} [id:${x.id}] ${fmt(x.startTime)} ${x.status}`).join(" · ")}`);
+    if (c.tasks.length) L.push(`Tareas abiertas: ${c.tasks.map((t) => t.title + (t.dueDate ? ` (${fmt(t.dueDate)})` : "")).join(" · ")}`);
+  } else if (ref.page === "company") {
+    const c = await prisma.company.findFirst({
+      where: { id, organizationId: orgId },
+      select: {
+        name: true, website: true, industry: true, smtpHost: true,
+        contacts: { take: 10, select: { id: true, firstName: true, lastName: true, email: true } },
+        deals: { orderBy: { createdAt: "desc" }, take: 5, select: { id: true, title: true, stage: { select: { name: true } } } },
+      },
+    });
+    if (!c) return "";
+    L.push(`EMPRESA ABIERTA [id:${id}]: ${c.name}${c.industry ? ` | ${c.industry}` : ""}${c.website ? ` | ${c.website}` : ""}${c.smtpHost ? " | con correo configurado (puede enviar)" : ""}`);
+    if (c.contacts.length) L.push(`Contactos: ${c.contacts.map((p) => `${`${p.firstName} ${p.lastName ?? ""}`.trim()} [id:${p.id}] <${p.email ?? "sin correo"}>`).join(" · ")}`);
+    if (c.deals.length) L.push(`Deals: ${c.deals.map((d) => `"${d.title}" [id:${d.id}] ${d.stage.name}`).join(" · ")}`);
+  } else if (ref.page === "client") {
+    const c = await prisma.client.findFirst({
+      where: { id, organizationId: orgId },
+      select: { name: true, monthlyFee: true, currency: true, billingDay: true, startDate: true, isActive: true, notes: true, contactName: true, email: true, phone: true },
+    });
+    if (!c) return "";
+    L.push(`CLIENTE ABIERTO [id:${id}]: ${c.name} | $${c.monthlyFee.toLocaleString("es-MX")} ${c.currency}/mes | cobra el día ${c.billingDay} | desde ${fmt(c.startDate)} | ${c.isActive ? "activo" : "inactivo"}`);
+    L.push(`Correo para escribirle: ${c.email?.trim() || NO_EMAIL}${c.contactName ? ` | contacto: ${c.contactName}` : ""}${c.phone ? ` | teléfono: ${c.phone}` : ""}`);
+    if (c.notes) L.push(`Notas: ${clip(c.notes, 1200)}`);
+  } else if (ref.page === "quote") {
+    // El id de la cotización puede ser su id o su folio (la pantalla solo conoce el folio).
+    const q = await prisma.quote.findFirst({
+      where: { organizationId: orgId, OR: [{ id }, { folio: id }] },
+      select: {
+        id: true, folio: true, status: true, clientName: true, clientCompany: true, clientEmail: true, clientPhone: true, currency: true, taxRate: true, total: true, validUntil: true, notes: true,
+        items: { orderBy: { order: "asc" }, select: { description: true, quantity: true, unitPrice: true } },
+        deal: { select: { id: true, title: true } },
+      },
+    });
+    if (!q) return "";
+    L.push(`COTIZACIÓN ABIERTA [id:${q.id}] ${q.folio}: ${q.status} | cliente ${q.clientName}${q.clientCompany ? ` (${q.clientCompany})` : ""} | total ${q.total.toLocaleString("es-MX")} ${q.currency} (IVA ${q.taxRate}%)${q.validUntil ? ` | válida hasta ${fmt(q.validUntil)}` : ""}`);
+    L.push(`Correo para escribirle: ${q.clientEmail?.trim() || NO_EMAIL}${q.clientPhone ? ` | teléfono: ${q.clientPhone}` : ""}${q.deal ? ` | deal: "${q.deal.title}" [id:${q.deal.id}]` : ""}`);
+    if (q.items.length) L.push(`Conceptos: ${q.items.map((i) => `${i.description} x${i.quantity} @ ${i.unitPrice}`).join(" · ")}`);
+    if (q.notes) L.push(`Notas: ${clip(q.notes, 600)}`);
+  } else if (ref.page === "project") {
+    const p = await prisma.project.findFirst({
+      where: { id, organizationId: orgId },
+      select: {
+        name: true, description: true,
+        contact: { select: { id: true, firstName: true, lastName: true, email: true } },
+        clientCompany: { select: { id: true, name: true } },
+        deal: { select: { id: true, title: true } },
+        tasks: { where: { isCompleted: false }, take: 8, select: { id: true, title: true, dueDate: true } },
+      },
+    });
+    if (!p) return "";
+    L.push(`PROYECTO ABIERTO [id:${id}]: ${p.name}`);
+    if (p.description) L.push(`Descripción: ${clip(p.description, 800)}`);
+    if (p.contact) L.push(`Contacto: ${`${p.contact.firstName} ${p.contact.lastName ?? ""}`.trim()} [id:${p.contact.id}] | Correo para escribirle: ${p.contact.email?.trim() || NO_EMAIL}`);
+    if (p.clientCompany) L.push(`Empresa: ${p.clientCompany.name} [id:${p.clientCompany.id}]`);
+    if (p.deal) L.push(`Deal: "${p.deal.title}" [id:${p.deal.id}]`);
+    if (p.tasks.length) L.push(`Tareas abiertas: ${p.tasks.map((t) => `${t.title} [id:${t.id}]`).join(" · ")}`);
+  } else if (ref.page === "task") {
+    const t = await prisma.task.findFirst({
+      where: { id, organizationId: orgId },
+      select: { title: true, description: true, dueDate: true, isCompleted: true, contact: { select: { id: true, firstName: true, lastName: true, email: true } }, deal: { select: { id: true, title: true } } },
+    });
+    if (!t) return "";
+    L.push(`TAREA ABIERTA [id:${id}]: "${t.title}" | ${t.isCompleted ? "completada" : "pendiente"}${t.dueDate ? ` | vence ${fmt(t.dueDate)}` : ""}`);
+    if (t.description) L.push(`Descripción: ${clip(t.description, 800)}`);
+    if (t.contact) L.push(`Contacto: ${`${t.contact.firstName} ${t.contact.lastName ?? ""}`.trim()} [id:${t.contact.id}] | Correo para escribirle: ${t.contact.email?.trim() || NO_EMAIL}`);
+    if (t.deal) L.push(`Deal: "${t.deal.title}" [id:${t.deal.id}]`);
   } else if (ref.page === "kb") {
     const d = await prisma.kbPage.findFirst({ where: { id, organizationId: orgId }, select: { title: true, isFolder: true, content: true } });
     if (!d) return "";
@@ -233,7 +325,7 @@ export async function buildPageRecordContext(orgId: string, ref: PageRef): Promi
     });
     if (!d) return "";
     L.push(`DEAL ABIERTO [id:${id}]: "${d.title}" | ${d.pipeline?.name ?? ""} → ${d.stage.name}${d.stage.isWon ? " (GANADO)" : d.stage.isLost ? " (PERDIDO)" : ""} | $${(d.value ?? 0).toLocaleString("es-MX")} ${d.currency}${d.source ? ` | fuente ${d.source}` : ""}${d.followUpAt ? ` | seguimiento ${fmt(d.followUpAt)}` : ""}`);
-    if (d.contact) L.push(`Contacto: ${d.contact.firstName} ${d.contact.lastName ?? ""} <${d.contact.email ?? "sin email"}>${d.company ? ` · ${d.company.name}` : ""}`);
+    if (d.contact) L.push(`Contacto: ${d.contact.firstName} ${d.contact.lastName ?? ""}${d.company ? ` · ${d.company.name}` : ""} | Correo para escribirle: ${d.contact.email?.trim() || NO_EMAIL}`);
     if (d.notes) L.push(`Notas: ${clip(d.notes, 1500)}`);
     if (d.tasks.length) L.push(`Tareas abiertas: ${d.tasks.map((t) => t.title).join(" · ")}`);
   } else if (ref.page === "content_client") {

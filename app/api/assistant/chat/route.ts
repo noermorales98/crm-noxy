@@ -10,6 +10,7 @@ import { expandSkill, matchSkill } from "@/src/lib/ai-skills";
 import { buildBrandContext, buildModulesContext, buildSalesDocsContext, buildPageRecordContext, buildRelevantContext } from "@/src/lib/ai-context-modules";
 import { persistBeforeClosingStream } from "@/src/lib/assistant-stream-lifecycle";
 import { normalizeModelId } from "@/src/lib/ai-models";
+import { assembleSystemPrompt } from "@/src/lib/ai-prompt";
 
 const ACTION_CARDS_PROMPT = `
 === ESTILO ===
@@ -205,19 +206,21 @@ export async function POST(req: Request) {
 
   // Contexto del CRM (12 consultas) y preferencias en paralelo; el contexto se reutiliza 60 s.
   // Además se buscan en docs, contenido y videos las palabras del mensaje, para que la IA vea justo lo que se menciona.
-  const [summary, prefs, skills, relevant] = await Promise.all([
+  const [summary, prefs, skills, record, relevant] = await Promise.all([
     cachedCrmContext(session.user.id!, orgId),
     getAiPrefs(orgId),
     listSkills(orgId).catch(() => []),
-    Promise.all([buildPageRecordContext(orgId, pageContext).catch(() => ""), buildBrandContext(orgId, trimmed).catch(() => ""), buildRelevantContext(orgId, trimmed).catch(() => "")]).then(([record, brand, found]) => record + brand + found),
+    buildPageRecordContext(orgId, pageContext).catch((err) => { console.error("[assistant/chat] contexto del registro abierto:", err); return ""; }),
+    Promise.all([buildBrandContext(orgId, trimmed).catch(() => ""), buildRelevantContext(orgId, trimmed).catch(() => "")]).then(([brand, found]) => brand + found),
   ]);
-  const crmContext = summary + relevant;
+  // El registro abierto va primero y no se recorta; el resumen general es lo que cede (ver ai-prompt.ts).
+  const systemPrompt = assembleSystemPrompt({ summary, record, relevant, pageSection: buildPageContextSection(pageContext), actions: ACTION_CARDS_PROMPT });
 
   // Si empieza con /comando de una habilidad activa, el modelo recibe sus instrucciones; en el historial queda lo que la persona escribió.
   const matched = matchSkill(trimmed, skills);
   const modelContent = matched ? expandSkill(matched.skill, matched.rest) : trimmed;
 
-  return streamOpenRouter(selectedModel, crmContext, conversation, modelContent, conversationId, preferKey, pageContext, orgId, prefs, accountId);
+  return streamOpenRouter(selectedModel, systemPrompt, conversation, modelContent, conversationId, preferKey, pageContext, orgId, prefs, accountId);
 }
 
 // ── OpenRouter ───────────────────────────────────────────────────────────────
@@ -299,7 +302,7 @@ function openRouterErrorStream(failure: OrFailure, provider: ChatProvider = "ope
 
 async function streamOpenRouter(
   modelId: string,
-  crmContext: string,
+  systemPrompt: string,
   conversation: { messages: { role: string; content: string }[] },
   trimmed: string,
   conversationId: string,
@@ -309,13 +312,8 @@ async function streamOpenRouter(
   prefs: Awaited<ReturnType<typeof getAiPrefs>>,
   accountId: string | null,
 ) {
-  const sanitizedContext = (crmContext
-    .replace(/[═─┌┐└┘├┤┬┴┼│]/g, "-")
-    .replace(/•/g, "-")
-    .slice(0, 16000)) + buildPageContextSection(pageContext) + "\n\n" + ACTION_CARDS_PROMPT;
-
   const messages = [
-    { role: "system", content: sanitizedContext },
+    { role: "system", content: systemPrompt },
     ...conversation.messages.map((m) => ({ role: m.role, content: m.content })),
     { role: "user", content: trimmed },
   ];

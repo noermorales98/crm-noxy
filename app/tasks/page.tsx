@@ -1,5 +1,7 @@
 "use client";
 
+import { useAiPageContext } from "@/src/components/ai/AskAiButton";
+
 import { Suspense, useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -27,6 +29,7 @@ type TaskRow = {
 };
 
 function TasksContent() {
+  useAiPageContext({ page: "tasks", label: "Lista de tareas" });
   const searchParams = useSearchParams();
   const filterProjectId = searchParams.get("projectId");
 

@@ -1,4 +1,5 @@
 import { prisma, isDbUnavailableError } from "@/src/lib/db";
+import { AiPageContext } from "@/src/components/ai/AskAiButton";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 import ProjectWorkspaceHeader from "@/src/components/ProjectWorkspaceHeader";
@@ -51,6 +52,7 @@ export default async function ProjectLayout({
 
     return (
       <>
+        <AiPageContext context={{ page: "project", id: project.id, label: project.name }} />
         <ProjectHeaderSetter
           projectId={project.id}
           projectName={project.name}

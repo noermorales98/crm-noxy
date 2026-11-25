@@ -1,5 +1,7 @@
 "use client";
 
+import { useAiPageContext } from "@/src/components/ai/AskAiButton";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -396,6 +398,7 @@ function NewDealModal({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function PipelinePage() {
+  useAiPageContext({ page: "pipeline", label: "Tablero del pipeline de ventas" });
   const { setConfig, resetState } = useHeader();
   // Al volver a la pantalla se pinta al instante con lo último visto y se actualiza en segundo plano.
   const [pipelines, setPipelines] = useState<any[]>(() => readCache<any[]>(DEALS_CACHE_KEY, DEALS_CACHE_MS) ?? []);

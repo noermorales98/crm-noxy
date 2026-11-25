@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/src/lib/db";
 import { summarizeClientPayments } from "@/src/lib/record-summary";
 import ClientDetail from "@/src/components/detail/ClientDetail";
+import { AiPageContext } from "@/src/components/ai/AskAiButton";
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -85,6 +86,8 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   const summary = summarizeClientPayments(client.payments);
   return (
+    <>
+    <AiPageContext context={{ page: "client", id: client.id, label: client.name }} />
     <ClientDetail
       client={JSON.parse(JSON.stringify(client))}
       deals={JSON.parse(JSON.stringify(related[0]))}
@@ -95,5 +98,6 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       tasks={JSON.parse(JSON.stringify(tasks))}
       summary={summary}
     />
+    </>
   );
 }

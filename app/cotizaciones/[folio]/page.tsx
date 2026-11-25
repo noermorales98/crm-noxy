@@ -1,5 +1,7 @@
 "use client";
 
+import { useAiPageContext } from "@/src/components/ai/AskAiButton";
+
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -45,6 +47,7 @@ function QuoteDetailContent() {
   const [notFound, setNotFound] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [dealOpen, setDealOpen] = useState(false);
+  useAiPageContext(quote ? { page: "quote", id: quote.id, label: `Cotización ${quote.folio}` } : null);
 
   const fetchQuote = useCallback(async () => {
     try {
