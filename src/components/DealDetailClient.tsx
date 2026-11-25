@@ -1262,7 +1262,7 @@ export default function DealDetailClient({ deal: initialDeal }: { deal: any }) {
                     >
                       {fmt(effectiveValue.amount, effectiveValue.currency)}
                       {effectiveValue.source === "quotes" && (
-                        <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-[11px] font-semibold text-text-secondary" title="Suma de las cotizaciones aceptadas, parciales o pagadas. Escribe un valor para fijarlo a mano.">
+                        <span className="rounded-full bg-surface-sidebar px-2 py-0.5 text-xs font-semibold text-text-secondary" title="Suma de las cotizaciones aceptadas, parciales o pagadas. Escribe un valor para fijarlo a mano.">
                           De cotizaciones
                         </span>
                       )}

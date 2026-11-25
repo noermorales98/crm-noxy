@@ -290,7 +290,6 @@ export default function PublicFormPage() {
     <div className="min-h-screen bg-surface-app flex items-center justify-center p-4" style={pageBgStyle}>
       <div className="noxy-form-panel w-full max-w-sm px-6 py-5 text-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-action-ink border-t-transparent rounded-full animate-spin"></div>
           <p
             role="status"
             aria-live="polite"
@@ -315,7 +314,7 @@ export default function PublicFormPage() {
               setIsLoading(true);
               fetchFormDefinition();
             }}
-            className="mt-2 px-6 py-2.5 bg-action-primary text-action-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity"
+            className="mt-2 px-6 py-2.5 bg-action-primary text-action-primary-foreground font-semibold rounded-lg hover:opacity-90"
           >
             Reintentar
           </button>

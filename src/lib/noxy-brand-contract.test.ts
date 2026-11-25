@@ -89,8 +89,9 @@ test("favicon and metadata use the supplied cache-busted brand asset", () => {
   const layout = read("app/layout.tsx");
   const middleware = read("middleware.ts");
 
-  assert.equal(digest, "d00d12fbc17b596c9e2a4d85295477ebbb203785442b70d5d6d365f335d7e923");
-  assert.match(layout, /\/favicon\.webp\?v=noxy-2026/);
+  assert.equal(digest, "11eba384ce9809be3dfbbe0c5a312e74a85fe322200ad244a69fab8a07efba25");
+  assert.match(layout, /ICON_V = "noxy-2026/);
+  assert.match(layout, /\/favicon\.webp\?v=\$\{ICON_V\}/);
   assert.match(layout, /sizes:\s*"222x222"/);
   assert.match(layout, /type:\s*"image\/webp"/);
   assert.match(middleware, /favicon\.webp/, "the auth middleware must allow the public favicon asset");
