@@ -52,6 +52,13 @@ Que la página de una cita se lea como un CRM SaaS: barra baja con el contacto d
 - [x] Selector Editar/Vista previa de `/kb/:id` circular.
 - Evidencia: ESLint y `tsc` sin errores en los archivos tocados. **Sin comprobar en pantalla** (el navegador quedó pausado).
 
+## Ronda 5: modelo desde la barra, sidebar sin cabecera, fecha y hora separadas
+- [x] Sidebar de sugerencias sin cabecera ni selector: solo avisos de progreso y la lista.
+- [x] «Sugerir con IA» de la barra abre un menú (Predeterminado + modelos por grupo, «sin clave» deshabilitado); elegir uno genera con él. El último elegido se recuerda (`src/lib/suggestion-model.ts`).
+- [x] Título de cada nota a 20 px (el `#` del markdown mide 17 px).
+- [x] Fecha y horario en dos pastillas.
+- Evidencia: ESLint y `tsc` sin errores en lo tocado. **Sin comprobar en pantalla** (navegador pausado).
+
 ## Next
 - Decidir si el modelo predeterminado (Ajustes › Modelos de IA) pasa a uno que responda rápido, o si el failover debe saltarse un modelo que expira.
 - `modelUsed` del servicio informa el modelo pedido, no el que respondió.
