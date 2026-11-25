@@ -2,7 +2,7 @@
 type: spec
 title: IA con contexto real, borradores de correo y acciones como agente
 slug: ia-contexto-correos-agente
-status: draft — pendiente de aprobación
+status: approved en autopiloto por fases (contexto → borradores → envío → agente)
 branch: main
 timestamp: 2026-11-25T00:00:00Z
 topic: sdd
