@@ -11,7 +11,7 @@ import { suggestedQuestions } from "@/src/lib/ai-ask";
  * «Preguntarle a la IA»: declara el registro que se está viendo (cita, doc, deal, marca…) como contexto del asistente y
  * ofrece preguntas sugeridas según su tipo. Al elegir una, la burbuja se abre y la envía sola.
  */
-export default function AskAiButton({ context, className }: { context: PageContext; className?: string }) {
+export default function AskAiButton({ context, className, compact = false, labelFrom }: { context: PageContext; className?: string; compact?: boolean; labelFrom?: "lg" }) {
   const { setPageContext, ask, open } = useAi();
   const [menu, setMenu] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -46,12 +46,13 @@ export default function AskAiButton({ context, className }: { context: PageConte
         onClick={() => setMenu((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={menu}
+        aria-label="Preguntar a la IA"
         className={className ?? "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control px-3 text-sm font-semibold text-text-secondary-strong outline-none transition-colors hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus lg:min-h-9"}
         title="Preguntarle a la IA sobre esto"
       >
         <HugeiconsIcon icon={AiMagicIcon} size={16} aria-hidden="true" />
-        <span className="max-sm:sr-only">Preguntar a la IA</span>
-        <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden="true" className="max-sm:hidden" />
+        <span className={compact ? "sr-only" : labelFrom === "lg" ? "hidden lg:inline" : "max-sm:sr-only"}>Preguntar a la IA</span>
+        {!compact && <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden="true" className={labelFrom === "lg" ? "hidden lg:block" : "max-sm:hidden"} />}
       </button>
       {menu && (
         <div role="menu" className="crm-floating-menu absolute right-0 top-full z-50 mt-1 w-72 overflow-hidden rounded-surface border border-line bg-surface-elevated py-1">

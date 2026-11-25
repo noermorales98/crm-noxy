@@ -2,22 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  UserMultipleIcon,
-  Settings01Icon,
-  Logout01Icon,
-  More01Icon,
-} from "@hugeicons/core-free-icons";
-import GlobalSearchTrigger from "@/src/components/GlobalSearchTrigger";
+import { More01Icon } from "@hugeicons/core-free-icons";
 import MobileSidebarToggle from "@/src/components/MobileSidebarToggle";
 import KbSharePanel from "@/src/components/kb/KbSharePanel";
 import {
   KB_MARKDOWN_THEMES,
   type KbMarkdownThemeId,
 } from "@/src/lib/kb-markdown-themes";
-import { userAvatarSrc } from "@/src/lib/user-sexo";
 import { ArrowDown01Icon, ArrowRight01Icon, ArrowLeft01Icon, Clock01Icon, CloudUploadIcon, Download01Icon, Globe02Icon, LockIcon, Message01Icon, PaintBoardIcon, PencilEdit01Icon, ViewIcon } from "@hugeicons/core-free-icons";
 
 export interface KbBreadcrumb {
@@ -77,19 +69,13 @@ export default function KbEditorNavbar({
   notionLoading = false,
   hasLocalDraft = false,
 }: Props) {
-  const { data: session } = useSession();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const themeMenuRef = useRef<HTMLDivElement>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
         setThemeMenuOpen(false);
       }
@@ -114,7 +100,7 @@ export default function KbEditorNavbar({
     <div className="crm-safe-top relative z-30 shrink-0 border-b border-line bg-surface-elevated">
       <div className="flex h-12 items-center gap-2 px-3 sm:px-4">
         {/* Breadcrumbs / title */}
-        <div className="flex min-w-0 flex-1 items-center gap-0.5 text-xs text-text-secondary sm:max-w-[30%] sm:flex-none">
+        <div className="flex min-w-0 flex-1 items-center gap-0.5 text-xs text-text-secondary">
           <MobileSidebarToggle />
           <Link
             href="/kb"
@@ -141,11 +127,6 @@ export default function KbEditorNavbar({
           <span className="truncate font-medium text-text-primary sm:hidden">
             {pageTitle || "Sin título"}
           </span>
-        </div>
-
-        {/* Global search — desktop */}
-        <div className="mx-auto hidden max-w-xs flex-1 md:block">
-          <GlobalSearchTrigger square />
         </div>
 
         {/* Actions */}
@@ -192,7 +173,6 @@ export default function KbEditorNavbar({
                   type="button"
                   onClick={() => {
                     setThemeMenuOpen((v) => !v);
-                    setUserMenuOpen(false);
                     setMoreOpen(false);
                   }}
                   className={`${TOOL} gap-1 px-2`}
@@ -265,7 +245,7 @@ export default function KbEditorNavbar({
           )}
 
           {!isFolder && (
-            <div className="hidden items-center gap-0.5 rounded-control bg-surface-sidebar p-0.5 sm:flex" role="group" aria-label="Modo del editor">
+            <div className="hidden items-center gap-0.5 rounded-full bg-surface-sidebar p-0.5 sm:flex" role="group" aria-label="Modo del editor">
               {(["edit", "preview"] as ViewMode[]).map((m) => (
                 <button
                   key={m}
@@ -274,7 +254,7 @@ export default function KbEditorNavbar({
                   title={m === "edit" ? "Editar" : "Vista previa"}
                   aria-label={m === "edit" ? "Editar" : "Vista previa"}
                   aria-pressed={mode === m}
-                  className={`flex size-7 min-h-0! min-w-0! items-center justify-center rounded-[8px] transition-colors ${
+                  className={`flex size-7 min-h-0! min-w-0! items-center justify-center rounded-full transition-colors ${
                     mode === m ? "bg-surface-elevated text-text-primary shadow-sm" : "text-text-secondary hover:text-text-primary"
                   }`}
                 >
@@ -290,7 +270,6 @@ export default function KbEditorNavbar({
               type="button"
               onClick={() => {
                 setMoreOpen((v) => !v);
-                setUserMenuOpen(false);
               }}
               className="flex size-10 min-h-0! min-w-0! items-center justify-center rounded-control text-text-secondary transition-colors hover:bg-nav-hover hover:text-text-primary"
               aria-expanded={moreOpen}
@@ -390,59 +369,6 @@ export default function KbEditorNavbar({
             )}
           </div>
 
-          {/* User menu */}
-          <div className="relative ml-0.5" ref={userMenuRef}>
-            <button
-              onClick={() => {
-                setUserMenuOpen(!userMenuOpen);
-                setMoreOpen(false);
-              }}
-              className="size-9 min-h-0! min-w-0! overflow-hidden rounded-full ring-1 ring-line transition-opacity hover:opacity-90 sm:size-8"
-              title={session?.user?.name || "Usuario"}
-            >
-              <img
-                src={userAvatarSrc(session?.user?.sexo)}
-                alt={session?.user?.name || "Usuario"}
-                className="h-full w-full object-cover"
-              />
-            </button>
-
-            {userMenuOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-line bg-surface-elevated py-1">
-                <div className="border-b border-line px-4 py-3">
-                  <p className="truncate text-sm font-semibold text-text-primary">
-                    {session?.user?.name || "Usuario"}
-                  </p>
-                  <p className="truncate text-xs text-text-secondary">{session?.user?.email || ""}</p>
-                </div>
-                <Link
-                  href="/profile"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-nav-hover"
-                >
-                  <HugeiconsIcon icon={UserMultipleIcon} size={15} color="#6B7184" />
-                  Mi perfil
-                </Link>
-                <Link
-                  href="/settings"
-                  onClick={() => setUserMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-nav-hover"
-                >
-                  <HugeiconsIcon icon={Settings01Icon} size={15} color="#6B7184" />
-                  Configuración
-                </Link>
-                <div className="mt-1 border-t border-line pt-1">
-                  <button
-                    onClick={() => signOut()}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
-                  >
-                    <HugeiconsIcon icon={Logout01Icon} size={15} color="#ef4444" />
-                    Cerrar sesión
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>

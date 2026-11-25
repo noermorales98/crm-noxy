@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete02Icon, Link01Icon, Notion01Icon, PencilEdit01Icon, ReloadIcon, Unlink01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete02Icon, Link01Icon, Notion01Icon, PencilEdit01Icon, ReloadIcon } from "@hugeicons/core-free-icons";
 import { Segmented } from "@/src/components/ui";
 import KbMarkdown from "@/src/components/kb/KbMarkdown";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { input as inputCls } from "@/src/lib/crm-ui";
 import { extractMarkdownTitle } from "@/src/lib/markdown-title";
-import { NOTE_SOURCE_INFO, countBySource, filterNotes, onAppointmentAction, reportAppointmentBusy, type NoteSource } from "@/src/lib/appointment-actions";
+import { NOTE_SOURCE_INFO, countBySource, filterNotes, onAppointmentAction, reportAppointmentBusy, reportLinkedGranola, showUnassignedSessions, type NoteSource } from "@/src/lib/appointment-actions";
 
 type Item = { id: string; text: string; taskId: string | null; task: { id: string; title: string; isCompleted: boolean } | null };
 type MeetingNote = {
@@ -83,7 +83,7 @@ function NoteEditor({
       ) : (
         <div className="min-h-[12rem] rounded-control border border-line bg-surface-elevated p-3">
           {detected.body.trim() || (!detected.title && draftText.trim()) ? (
-            <KbMarkdown content={detected.title ? detected.body : draftText} allowImages={false} />
+            <KbMarkdown content={detected.title ? detected.body : draftText} allowImages={false} className="kb-compact" />
           ) : detected.title ? (
             <p className="text-sm text-text-secondary">Solo título; el cuerpo queda vacío.</p>
           ) : (
@@ -104,17 +104,11 @@ function NoteEditor({
 }
 
 const SOURCE_ICON = { GRANOLA: ReloadIcon, MANUAL: PencilEdit01Icon, NOTION: Notion01Icon } as const;
-const SOURCE_STYLE: Record<NoteSource, string> = {
-  GRANOLA: "bg-nav-active text-[var(--nav-active-ink)]",
-  MANUAL: "bg-nav-hover text-text-secondary-strong",
-  NOTION: "bg-surface-sidebar text-text-primary",
-};
-
-/** Etiqueta de origen de una nota: icono y texto, para distinguir de un vistazo una nota de Granola de una escrita a mano o de Notion. */
-function SourceBadge({ source }: { source: NoteSource }) {
+/** Origen de una nota: icono y texto discretos, para distinguir una nota de Granola de una escrita a mano o de Notion. */
+function SourceLabel({ source }: { source: NoteSource }) {
   const info = NOTE_SOURCE_INFO[source];
   return (
-    <span title={info.hint} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${SOURCE_STYLE[source]}`}>
+    <span title={info.hint} className="inline-flex items-center gap-1.5 font-medium text-text-secondary-strong">
       <HugeiconsIcon icon={SOURCE_ICON[source]} size={12} aria-hidden="true" />
       {info.label}
     </span>
@@ -184,7 +178,7 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
 
   const syncNow = () => call("sync", "/api/granola/sync", { method: "POST" }, "Granola sincronizado.");
   const link = (noteId: string) => call(`link-${noteId}`, `/api/granola/notes/${noteId}`, json("PATCH", { appointmentId: appointmentId }), "Sesión vinculada a la cita.");
-  const unlink = async (note: MeetingNote) => {
+  const unlink = async (note: { id: string }) => {
     if (!(await confirm({ title: "Desvincular la sesión", description: "La nota deja de mostrarse en esta cita y queda como «sin asignar».", confirmText: "Desvincular", variant: "warning" }))) return;
     await call(`unlink-${note.id}`, `/api/granola/notes/${note.id}`, json("PATCH", { appointmentId: null }), "Sesión desvinculada.");
   };
@@ -224,16 +218,25 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
   // La barra de la cita pide estas acciones; el estado de «sincronizando» vuelve a su botón.
   const syncRef = useRef(syncNow);
   syncRef.current = syncNow;
+  const unlinkRef = useRef(unlink);
+  unlinkRef.current = unlink;
   useEffect(
     () =>
-      onAppointmentAction((action) => {
+      onAppointmentAction((action, target) => {
         if (action === "write") openWrite();
         else if (action === "notion") setAdding((current) => (current === "notion" ? null : "notion"));
         else if (action === "sync") void syncRef.current();
+        else if (action === "unlink" && target) void unlinkRef.current({ id: target });
       }),
     [openWrite],
   );
   useEffect(() => reportAppointmentBusy("sync", busy === "sync"), [busy]);
+
+  // La barra ofrece «Desvincular» por cada sesión de Granola de la cita.
+  useEffect(() => {
+    reportLinkedGranola((notes ?? []).filter((n) => n.source === "GRANOLA").map((n) => ({ id: n.id, title: n.title })));
+  }, [notes]);
+  useEffect(() => () => reportLinkedGranola([]), []);
 
   const counts = countBySource(notes ?? []);
   const sourcesPresent = (Object.keys(counts) as NoteSource[]).filter((k) => counts[k] > 0);
@@ -241,20 +244,14 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
 
   return (
     <section aria-label="Notas de la reunión" className="space-y-6">
-      <header className="flex flex-wrap items-center gap-3">
-        <h2 className="text-base font-semibold text-text-primary">
-          Notas
-          {notes && notes.length > 0 && <span className="ml-2 text-sm font-normal text-text-secondary tabular-nums">{notes.length}</span>}
-        </h2>
-        {sourcesPresent.length > 1 && (
-          <Segmented
-            label="Origen de las notas"
-            value={filter}
-            onChange={(value) => setFilter(value as NoteSource | "ALL")}
-            options={[{ value: "ALL", label: "Todas" }, ...sourcesPresent.map((k) => ({ value: k, label: `${NOTE_SOURCE_INFO[k].label} · ${counts[k]}` }))]}
-          />
-        )}
-      </header>
+      {sourcesPresent.length > 1 && (
+        <Segmented
+          label="Origen de las notas"
+          value={filter}
+          onChange={(value) => setFilter(value as NoteSource | "ALL")}
+          options={[{ value: "ALL", label: "Todas" }, ...sourcesPresent.map((k) => ({ value: k, label: `${NOTE_SOURCE_INFO[k].label} · ${counts[k]}` }))]}
+        />
+      )}
 
       {adding === "write" && (
         <div className="rounded-surface bg-surface-elevated p-4">
@@ -280,14 +277,22 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
         <p role="alert" className="text-sm text-danger">No se pudo cargar la reunión.</p>
       ) : notes.length === 0 ? (
         adding === null && (
-          <div className="flex flex-col items-center gap-3 rounded-surface bg-surface-elevated px-6 py-12 text-center">
-            <HugeiconsIcon icon={PencilEdit01Icon} size={28} aria-hidden="true" className="text-text-secondary" />
-            <p className="text-base font-semibold text-text-primary">Aún no hay notas de esta reunión</p>
-            <p className="max-w-[44ch] text-sm text-text-secondary">Sincroniza Granola, escribe una nota o importa una página de Notion. Puedes agregar tantas como necesites.</p>
-            <button type="button" className={smallBtn} onClick={openWrite}>
-              <HugeiconsIcon icon={Add01Icon} size={14} aria-hidden="true" className="mr-1.5" />
-              Escribir la primera nota
-            </button>
+          <div className="flex flex-col items-center gap-3 rounded-surface bg-surface-elevated px-6 py-10 text-center">
+            <HugeiconsIcon icon={PencilEdit01Icon} size={26} aria-hidden="true" className="text-text-secondary" />
+            <p className="text-sm font-semibold text-text-primary">Aún no hay notas de esta reunión</p>
+            <p className="max-w-[44ch] text-xs text-text-secondary">
+              {unassigned.length > 0 ? "Hay sesiones de Granola sin asignar: vincula la de esta reunión, o escribe una nota." : "Sincroniza Granola para traer la sesión de esta reunión, o escribe una nota."}
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button type="button" className={smallBtn} onClick={syncNow} disabled={busy === "sync"}>
+                <HugeiconsIcon icon={ReloadIcon} size={14} aria-hidden="true" className={`mr-1.5 ${busy === "sync" ? "animate-spin motion-reduce:animate-none" : ""}`} />
+                {busy === "sync" ? "Sincronizando…" : "Sincronizar Granola"}
+              </button>
+              <button type="button" className={smallBtn} onClick={openWrite}>
+                <HugeiconsIcon icon={Add01Icon} size={14} aria-hidden="true" className="mr-1.5" />
+                Escribir una nota
+              </button>
+            </div>
           </div>
         )
       ) : (
@@ -297,9 +302,11 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
               const editable = note.source !== "GRANOLA";
               return (
                 <article key={note.id} aria-label={note.title ?? "Nota"} className="group/note space-y-3">
-                  <header className="flex flex-wrap items-center gap-2">
-                    <SourceBadge source={note.source} />
-                    {note.startedAt && <span className="text-xs text-text-secondary">{when(note.startedAt)}</span>}
+                  {note.title && <h2 className="text-base font-semibold leading-snug text-text-primary">{note.title}</h2>}
+
+                  <div className="flex items-center gap-2 text-xs text-text-secondary">
+                    <SourceLabel source={note.source} />
+                    {note.startedAt && <span>· {when(note.startedAt)}</span>}
                     <span className="flex-1" />
                     {safeHref(note.url) && (
                       <a href={safeHref(note.url)!} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 rounded-control px-2 text-xs font-medium text-action-ink hover:underline lg:min-h-9">
@@ -317,29 +324,22 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
                         </button>
                       </>
                     )}
-                    {!editable && (
-                      <button type="button" aria-label="Desvincular de esta cita" title="Desvincular de esta cita" onClick={() => unlink(note)} className={iconBtn}>
-                        <HugeiconsIcon icon={Unlink01Icon} size={16} aria-hidden="true" />
-                      </button>
-                    )}
-                  </header>
-
-                  {note.title && <h3 className="text-lg font-semibold leading-snug text-text-primary">{note.title}</h3>}
+                  </div>
 
                   {editingId === note.id ? (
                     <div className="rounded-surface bg-surface-elevated p-4">
                       <NoteEditor draftText={draftText} setDraftText={setDraftText} draftTitle={draftTitle} setDraftTitle={setDraftTitle} onCancel={() => setEditingId(null)} onSave={() => saveEdit(note)} busy={busy === "save"} showTitleField />
                     </div>
                   ) : (
-                    <div className="text-base leading-relaxed">
-                      {note.summary ? <KbMarkdown content={note.summary} allowImages={false} /> : <p className="text-sm text-text-secondary">Sin contenido.</p>}
+                    <div>
+                      {note.summary ? <KbMarkdown content={note.summary} allowImages={false} className="kb-compact" /> : <p className="text-sm text-text-secondary">Sin contenido.</p>}
                     </div>
                   )}
 
                   {note.privateNotes && (
                     <details>
                       <summary className="cursor-pointer text-xs font-semibold text-text-secondary">Notas privadas</summary>
-                      <KbMarkdown content={note.privateNotes} allowImages={false} />
+                      <KbMarkdown content={note.privateNotes} allowImages={false} className="kb-compact" />
                     </details>
                   )}
                 </article>
@@ -357,9 +357,9 @@ export function AppointmentMeetingPanel({ appointmentId }: { appointmentId: stri
         </>
       )}
 
-      {unassigned.length > 0 && (
+      {notes !== null && !loadError && unassigned.length > 0 && showUnassignedSessions(notes) && (
         <section aria-label="Sesiones de Granola sin asignar" className="space-y-2">
-          <h3 className="text-xs font-semibold text-text-secondary">Sesiones de Granola sin asignar</h3>
+          <h2 className="text-xs font-semibold text-text-secondary">Sesiones de Granola sin asignar</h2>
           <ul className="divide-y divide-line rounded-surface bg-surface-elevated">
             {unassigned.map((note) => (
               <li key={note.id} className="flex items-center gap-3 px-4 py-2">

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error: node --test carga el .ts directo
-import { NOTE_SOURCE_INFO, countBySource, filterNotes } from "./appointment-actions.ts";
+import { NOTE_SOURCE_INFO, countBySource, filterNotes, showUnassignedSessions } from "./appointment-actions.ts";
 
 const notes = [{ source: "GRANOLA" as const, id: 1 }, { source: "MANUAL" as const, id: 2 }, { source: "MANUAL" as const, id: 3 }, { source: "NOTION" as const, id: 4 }];
 
@@ -21,4 +21,11 @@ test("cada origen tiene su etiqueta y su explicación", () => {
     assert.ok(NOTE_SOURCE_INFO[key].label && NOTE_SOURCE_INFO[key].hint);
   }
   assert.match(NOTE_SOURCE_INFO.GRANOLA.hint, /Granola/);
+});
+
+test("las sesiones sin asignar solo se ofrecen mientras no haya una de Granola vinculada", () => {
+  assert.equal(showUnassignedSessions([]), true, "cita nueva, sin notas");
+  assert.equal(showUnassignedSessions([{ source: "MANUAL" as const }, { source: "NOTION" as const }]), true, "solo notas a mano o de Notion");
+  assert.equal(showUnassignedSessions([{ source: "GRANOLA" as const }]), false);
+  assert.equal(showUnassignedSessions(notes), false, "con una de Granola entre otras");
 });

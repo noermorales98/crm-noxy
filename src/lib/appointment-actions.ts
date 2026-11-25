@@ -1,19 +1,45 @@
 // Bus mínimo entre la barra de una cita y sus paneles (notas y sugerencias): la barra pide una acción y el panel dueño la ejecuta.
 // Evita subir al padre el estado de las notas y de la IA solo para dos botones. Solo corre en el navegador.
 
-export type AppointmentAction = "write" | "notion" | "sync" | "generate";
+export type AppointmentAction = "write" | "notion" | "sync" | "generate" | "unlink";
 
 const ACTION_EVENT = "appointment-action";
 const BUSY_EVENT = "appointment-busy";
 
-export function requestAppointmentAction(action: AppointmentAction): void {
-  window.dispatchEvent(new CustomEvent(ACTION_EVENT, { detail: { action } }));
+/** `target` identifica sobre qué actúa la acción (hoy: la nota de Granola que se desvincula). */
+export function requestAppointmentAction(action: AppointmentAction, target?: string): void {
+  window.dispatchEvent(new CustomEvent(ACTION_EVENT, { detail: { action, target } }));
 }
 
-export function onAppointmentAction(handler: (action: AppointmentAction) => void): () => void {
-  const listener = (event: Event) => handler((event as CustomEvent<{ action: AppointmentAction }>).detail.action);
+export function onAppointmentAction(handler: (action: AppointmentAction, target?: string) => void): () => void {
+  const listener = (event: Event) => {
+    const { action, target } = (event as CustomEvent<{ action: AppointmentAction; target?: string }>).detail;
+    handler(action, target);
+  };
   window.addEventListener(ACTION_EVENT, listener);
   return () => window.removeEventListener(ACTION_EVENT, listener);
+}
+
+/** Sesiones de Granola vinculadas a la cita: el panel las anuncia para que la barra ofrezca «Desvincular» por cada una. */
+export type LinkedGranola = { id: string; title: string | null };
+const LINKED_EVENT = "appointment-linked-granola";
+
+export function reportLinkedGranola(notes: LinkedGranola[]): void {
+  window.dispatchEvent(new CustomEvent(LINKED_EVENT, { detail: notes }));
+}
+
+export function onLinkedGranola(handler: (notes: LinkedGranola[]) => void): () => void {
+  const listener = (event: Event) => handler((event as CustomEvent<LinkedGranola[]>).detail);
+  window.addEventListener(LINKED_EVENT, listener);
+  return () => window.removeEventListener(LINKED_EVENT, listener);
+}
+
+/**
+ * ¿Mostrar las sesiones de Granola sin asignar? Solo mientras la cita no tenga ya una sesión de Granola vinculada:
+ * con una vinculada ofrecer otra solo estorba (para cambiarla se desvincula primero).
+ */
+export function showUnassignedSessions(notes: { source: NoteSource }[]): boolean {
+  return !notes.some((n) => n.source === "GRANOLA");
 }
 
 /** El panel avisa a la barra de que una acción está en curso (para mostrar «Sincronizando…» en su botón). */

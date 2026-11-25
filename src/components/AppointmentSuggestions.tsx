@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Chip, type ChipTone } from "@/src/components/ui";
 import { useToast } from "@/src/context/ToastContext";
 import { onAppointmentAction, reportAppointmentBusy } from "@/src/lib/appointment-actions";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { AiMagicIcon } from "@hugeicons/core-free-icons";
+import { modelFromTarget, readSuggestionModel, storeSuggestionModel } from "@/src/lib/suggestion-model";
 
 type Suggestion = {
   id: string;
@@ -21,28 +20,9 @@ const TYPE_TONE: Record<Suggestion["type"], ChipTone> = { TASK: "neutral", APPOI
 const ADD_LABEL: Record<Suggestion["type"], string> = { TASK: "Agregar tarea", APPOINTMENT: "Agendar cita", CONTACT: "Crear contacto", SUGGESTION: "Aceptar" };
 
 const smallBtn =
-  "crm-press inline-flex min-h-11 items-center rounded-control border border-line bg-surface-elevated px-3 text-xs font-semibold text-text-primary hover:bg-surface-sidebar disabled:opacity-50 lg:min-h-9";
+  "crm-press inline-flex min-h-11 items-center rounded-control border border-line bg-surface-elevated px-3 text-xs font-semibold text-text-primary hover:bg-surface-sidebar disabled:opacity-50 lg:h-8 lg:min-h-0!";
 const primaryBtn =
-  "crm-press inline-flex min-h-11 items-center rounded-control bg-action-primary px-4 text-xs font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-9";
-
-type ModelOption = { id: string; name: string; group: string; provider: string; configured: boolean };
-const MODEL_STORAGE_KEY = "noxy.suggestions.model";
-
-const readStoredModel = () => {
-  try {
-    return localStorage.getItem(MODEL_STORAGE_KEY) ?? "";
-  } catch {
-    return "";
-  }
-};
-const storeModel = (id: string) => {
-  try {
-    if (id) localStorage.setItem(MODEL_STORAGE_KEY, id);
-    else localStorage.removeItem(MODEL_STORAGE_KEY);
-  } catch {
-    // sin almacenamiento: el modelo elegido solo dura esta visita
-  }
-};
+  "crm-press inline-flex min-h-11 items-center rounded-control bg-action-primary px-3 text-xs font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:h-8 lg:min-h-0!";
 
 const text = (value: unknown) => (typeof value === "string" && value ? value : null);
 
@@ -60,8 +40,6 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
   const [items, setItems] = useState<Suggestion[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const [models, setModels] = useState<ModelOption[]>([]);
-  const [modelId, setModelId] = useState("");
   // Fallo de la IA que se puede resolver cambiando de modelo: se muestra con el motivo y un botón para reintentar.
   const [failure, setFailure] = useState<string | null>(null);
   // Tras cambiar las notas la IA genera sola: se consulta cada pocos segundos (máx. 1 minuto) hasta que lleguen.
@@ -90,23 +68,6 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     void load();
   }, [load]);
 
-  // Modelos disponibles para elegir; si el recordado ya no existe (se ocultó o se quitó), se vuelve al predeterminado.
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/ai/models")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((list: ModelOption[]) => {
-        if (cancelled || !Array.isArray(list)) return;
-        setModels(list);
-        const stored = readStoredModel();
-        setModelId(list.some((m) => m.id === stored) ? stored : "");
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   useEffect(() => {
     const onNotesChanged = () => {
       baseline.current = items?.length ?? 0;
@@ -134,16 +95,12 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     }
   }, [items, watching, addToast]);
 
-  const chooseModel = (id: string) => {
-    setModelId(id);
-    storeModel(id);
-  };
-
-  const generate = async () => {
+  const generate = async (modelId: string = readSuggestionModel()) => {
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy("generate");
     setFailure(null);
+    storeSuggestionModel(modelId);
     try {
       const res = await fetch(`/api/appointments/${appointmentId}/suggestions`, {
         method: "POST",
@@ -187,64 +144,35 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
     }
   };
 
-  // La barra de la cita pide «Sugerir con IA»; el estado vuelve a su botón.
+  // La barra de la cita pide «Sugerir con IA» (con el modelo que eligió); el estado vuelve a su botón.
   const generateRef = useRef(generate);
   generateRef.current = generate;
-  useEffect(() => onAppointmentAction((action) => action === "generate" && void generateRef.current()), []);
+  useEffect(() => onAppointmentAction((action, target) => action === "generate" && void generateRef.current(modelFromTarget(target))), []);
   useEffect(() => reportAppointmentBusy("generate", busy === "generate"), [busy]);
 
   const pending = (items ?? []).filter((s) => s.status === "PENDING");
   const decided = (items ?? []).filter((s) => s.status !== "PENDING");
 
-  const selectedModelName = modelId ? models.find((m) => m.id === modelId)?.name : null;
-
   return (
-    <section aria-label="Sugerencias de la IA" className="space-y-3 rounded-surface bg-surface-elevated p-4">
-      <header className="flex flex-wrap items-center gap-2">
-        <h2 className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-text-primary">
-          <HugeiconsIcon icon={AiMagicIcon} size={16} aria-hidden="true" className="shrink-0 text-text-secondary" />
-          Sugerencias de la IA
-        </h2>
-        {models.length > 0 && (
-          <label className="inline-flex max-w-[11rem] items-center gap-1 text-[11px] text-text-secondary">
-            <span className="sr-only">Modelo de IA</span>
-            <select
-              value={modelId}
-              onChange={(e) => chooseModel(e.target.value)}
-              disabled={busy === "generate"}
-              title={selectedModelName ?? "Predeterminado"}
-              className="min-h-8 max-w-full truncate rounded-control border border-line bg-transparent px-1.5 py-0.5 text-[11px] font-normal text-text-secondary outline-none hover:border-line-strong focus-visible:ring-1 focus-visible:ring-focus"
-            >
-              <option value="">Predeterminado</option>
-              {Array.from(new Set(models.map((m) => m.group))).map((group) => (
-                <optgroup key={group} label={group}>
-                  {models
-                    .filter((m) => m.group === group)
-                    .map((m) => (
-                      <option key={m.id} value={m.id} disabled={!m.configured}>
-                        {m.name}
-                        {m.configured ? "" : " — sin clave"}
-                      </option>
-                    ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-        )}
-      </header>
-      <p className="text-xs text-text-secondary">Lee las notas y propone acciones; se piden con «Sugerir con IA» arriba. Nada se crea hasta que tú lo agregues.</p>
-      {watching && (
-        <p role="status" className="text-xs font-medium text-action-ink">
-          La IA está leyendo las notas…
+    <section aria-label="Sugerencias de la IA" className="space-y-3 p-4">
+      {busy === "generate" ? (
+        <p role="status" className="flex items-center gap-2 text-xs font-medium text-action-ink">
+          <span aria-hidden="true" className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+          Leyendo las notas… puede tardar hasta un minuto.
         </p>
-      )}
+      ) : watching ? (
+        <p role="status" className="flex items-center gap-2 text-xs font-medium text-action-ink">
+          <span aria-hidden="true" className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+          La IA está leyendo la nota nueva…
+        </p>
+      ) : null}
 
       {failure && (
         <div role="alert" className="space-y-2 rounded-control border border-danger/40 bg-danger-soft p-3 text-sm text-danger">
           <p>{failure}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs">Prueba con otro modelo de la lista y vuelve a intentar.</span>
-            <button type="button" className={smallBtn} onClick={generate} disabled={busy === "generate"}>
+            <span className="text-xs">Elige otro modelo en «Sugerir con IA», arriba, o reintenta.</span>
+            <button type="button" className={smallBtn} onClick={() => void generate()} disabled={busy === "generate"}>
               Reintentar con este modelo
             </button>
           </div>
@@ -256,20 +184,18 @@ export function AppointmentSuggestions({ appointmentId }: { appointmentId: strin
       ) : loadError ? (
         <p role="alert" className="text-sm text-danger">No se pudieron cargar las sugerencias.</p>
       ) : pending.length === 0 ? (
-        <p className="text-sm text-text-secondary">{items.length ? "No quedan sugerencias pendientes." : "Aún no hay sugerencias. Pídelas con «Sugerir con IA» cuando haya notas."}</p>
+        <p className="text-sm text-text-secondary">{items.length ? "No quedan sugerencias pendientes." : "Aún no hay sugerencias. Se crean solas al agregar una nota, o con «Sugerir con IA», arriba."}</p>
       ) : (
         <ul className="divide-y divide-line">
           {pending.map((s) => (
-            <li key={s.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start">
-              <div className="min-w-0 flex-1 space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Chip tone={TYPE_TONE[s.type]}>{TYPE_LABEL[s.type]}</Chip>
-                  <p className="text-sm font-semibold text-text-primary">{s.title}</p>
-                </div>
-                {s.detail && <p className="text-sm text-text-secondary">{s.detail}</p>}
+            <li key={s.id} className="space-y-2 py-3">
+              <div className="min-w-0 space-y-1">
+                <Chip tone={TYPE_TONE[s.type]}>{TYPE_LABEL[s.type]}</Chip>
+                <p className="text-sm font-semibold leading-snug text-text-primary">{s.title}</p>
+                {s.detail && <p className="text-xs leading-relaxed text-text-secondary">{s.detail}</p>}
                 {facts(s).length > 0 && <p className="text-xs text-text-secondary">{facts(s).join(" · ")}</p>}
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex gap-2">
                 <button type="button" className={primaryBtn} disabled={busy !== null} onClick={() => decide(s, "accept")}>{ADD_LABEL[s.type]}</button>
                 <button type="button" className={smallBtn} disabled={busy !== null} onClick={() => decide(s, "dismiss")}>Descartar</button>
               </div>
