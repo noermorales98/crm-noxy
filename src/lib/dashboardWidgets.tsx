@@ -890,6 +890,7 @@ export const DEFAULT_WIDGETS: string[] = [
   "pipeline_value",
   "closing_rate",
   "revenue_month",
+  "sales_month_summary",
   "followups_overdue",
   "google_calendar_events",
   "client_mrr",

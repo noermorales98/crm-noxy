@@ -22,4 +22,4 @@ Que al agregar widgets se vean antes, que los eventos y filas abran más detalle
 - [x] Pruebas: 653 pasan; `tsc` sin errores fuera de pruebas.
 
 ## Siguiente
-- Pendiente de decidir: agregar alguno de los nuevos a `DEFAULT_WIDGETS` (hoy solo los ven quienes los agreguen).
+- [x] «Cierre del mes» agregado a `DEFAULT_WIDGETS` (solo afecta a quien aún no personalizó su inicio).
