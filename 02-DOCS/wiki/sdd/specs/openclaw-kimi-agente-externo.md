@@ -2,7 +2,7 @@
 type: spec
 title: OpenClaw (Kimi Claw) como agente externo del CRM
 slug: openclaw-kimi-agente-externo
-status: draft — pendiente de aprobación
+status: approved
 branch: main
 timestamp: 2026-11-25T00:00:00Z
 topic: sdd
