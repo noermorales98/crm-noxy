@@ -35,6 +35,16 @@ Que la página de una cita se lea como un CRM SaaS: barra baja con el contacto d
 - [x] Sin buscador en la barra: a 1698 px cortaba el nombre del contacto, y la barra lateral ya tiene «Buscar».
 - Evidencia: capturas a 1698×893; contacto, fecha y 5 botones con texto visibles en la franja; ESLint limpio.
 
+## Ronda 3: título arriba, pastillas, «Acciones» y Granola
+- [x] Avatar fuera de la barra de la cita y de `/kb/:id`; `NavbarUserMenu` eliminado (quedó sin uso).
+- [x] Título en la primera línea; debajo pastillas redondas: estado, persona, deal, fecha, tipo, lugar, correo, teléfono.
+- [x] «Acciones» junta Nota, Notion y Granola, cada una con su explicación. «Sugerir con IA» y «Preguntar a la IA» quedan aparte.
+- [x] Menú de tres puntos (`MoreHorizontalIcon`): «Desvincular «…»» por cada sesión de Granola vinculada y «Copiar enlace». El icono de desvincular por nota se retiró.
+- [x] Sesiones sin asignar: solo si la cita no tiene ya una sesión de Granola (`showUnassignedSessions`, con prueba: 4 pasan).
+- [x] Cita sin notas: tarjeta con «Sincronizar Granola» y «Escribir una nota», y debajo las sesiones sin asignar si las hay.
+- Evidencia: capturas del menú «Acciones» y del menú ⋯ en la cita con Granola vinculada; ESLint limpio.
+- **No verificado visualmente:** la cita sin notas (`cmwl3t0se0001i6085v22s77m`); el navegador cortó la sesión antes de esa captura.
+
 ## Next
 - Decidir si el modelo predeterminado (Ajustes › Modelos de IA) pasa a uno que responda rápido, o si el failover debe saltarse un modelo que expira.
 - `modelUsed` del servicio informa el modelo pedido, no el que respondió.
