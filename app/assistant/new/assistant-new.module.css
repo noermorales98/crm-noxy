@@ -838,10 +838,18 @@
 }
 
 @media (max-width: 767px) {
-  /* Más ancho que el resto del contenido: casi de borde a borde (8 px a cada lado). */
+  /* Casi de borde a borde (8 px a cada lado). No se usan márgenes negativos: la zona desplazable los recortaría. */
+  .experience {
+    padding-inline: 8px;
+  }
+
+  .experience .content {
+    padding-inline: 12px;
+  }
+
   .experience .promptOuter {
-    right: -12px;
-    left: -12px;
+    right: 0;
+    left: 0;
   }
 
   .experience .promptInner {
