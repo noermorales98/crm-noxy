@@ -132,7 +132,8 @@ function CotizacionesContent() {
               </Link>
               <Link href="/cotizaciones/nueva" className={primaryAction}>
                 <HugeiconsIcon icon={Add01Icon} size={16} />
-                Nueva cotización
+                <span className="sm:hidden">Nueva</span>
+                <span className="hidden sm:inline">Nueva cotización</span>
               </Link>
             </>
           }

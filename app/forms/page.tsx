@@ -18,8 +18,9 @@ import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import { input as inputCls } from "@/src/lib/crm-ui";
-import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
+import { ActionMenu, Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Form = {
   id: string;
@@ -55,6 +56,7 @@ const dialogShell = "w-full rounded-surface bg-surface-elevated shadow-[0_8px_8p
 export default function FormsPage() {
   const { addToast } = useToast();
   const { confirm } = useConfirm();
+  const router = useRouter();
   const { setConfig, resetState, sortField, sortOrder, activeFilters } = useHeader();
 
   const [forms, setForms] = useState<Form[]>([]);
@@ -220,7 +222,21 @@ export default function FormsPage() {
             <span className="tabular-nums">{new Date(form.createdAt).toLocaleDateString("es-MX")}</span>
           </span>
         </Link>
-        <div className="flex shrink-0 flex-wrap items-center gap-1">
+        <div className="shrink-0 lg:hidden">
+          <ActionMenu
+            label={`Acciones de ${form.name}`}
+            triggerLabel="Acciones"
+            portal
+            items={[
+              { key: "contacts", label: `${form._count.contacts || 0} registrados`, icon: UserMultipleIcon, onSelect: () => handleViewContacts(form) },
+              { key: "builder", label: "Editar en el constructor", icon: PencilEdit01Icon, onSelect: () => router.push(`/forms/${form.id}`) },
+              { key: "link", label: "Copiar enlace público", icon: LinkSquare01Icon, onSelect: () => copyToClipboard(formUrl, "Enlace público") },
+              { key: "iframe", label: "Copiar código iframe", icon: CodeIcon, onSelect: () => copyToClipboard(iframeCode, "Código iframe") },
+              { key: "delete", label: "Eliminar formulario", icon: Delete01Icon, tone: "danger", onSelect: () => handleDelete(form.id, form.name) },
+            ]}
+          />
+        </div>
+        <div className="hidden shrink-0 flex-wrap items-center gap-1 lg:flex">
           <button type="button" onClick={() => handleViewContacts(form)} className={secondaryAction}>
             <HugeiconsIcon icon={UserMultipleIcon} size={16} />
             <span className="tabular-nums">{form._count.contacts || 0}</span> registrados
@@ -260,7 +276,8 @@ export default function FormsPage() {
             actions={
               <button type="button" onClick={() => setIsModalOpen(true)} className={primaryAction}>
                 <HugeiconsIcon icon={Add01Icon} size={16} />
-                Crear formulario
+                <span className="sm:hidden">Crear</span>
+                <span className="hidden sm:inline">Crear formulario</span>
               </button>
             }
           />

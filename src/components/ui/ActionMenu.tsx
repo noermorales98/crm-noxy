@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { MoreHorizontalIcon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons";
 import { cn } from "./cn";
 
 export type ActionMenuItem = {
@@ -22,13 +22,15 @@ type ActionMenuProps = {
   items: ActionMenuItem[];
   /** Pinta el menú sobre toda la página (fuera de la fila), para que ningún contenido vecino lo tape ni lo recorte. */
   portal?: boolean;
+  /** Si se da, el botón dice este texto (p. ej. «Acciones») en vez de mostrar solo «⋯». */
+  triggerLabel?: string;
 };
 
 /**
  * Menú de acciones de una fila: un solo botón «⋯» que despliega las acciones. Las destructivas van al final,
  * separadas y en rojo, para no tocarlas por error. Flechas, Inicio/Fin, Esc y clic fuera funcionan como en un menú nativo.
  */
-export function ActionMenu({ label, items, portal = false }: ActionMenuProps) {
+export function ActionMenu({ label, items, portal = false, triggerLabel }: ActionMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -106,12 +108,20 @@ export function ActionMenu({ label, items, portal = false }: ActionMenuProps) {
         aria-label={label}
         title={label}
         className={cn(
-          "flex size-9 min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary outline-none transition-colors",
+          "flex min-h-0! min-w-0! items-center justify-center rounded-full text-text-secondary outline-none transition-colors",
+          triggerLabel ? "h-10 gap-1.5 border border-line bg-surface-elevated px-3.5 text-sm font-semibold text-text-primary" : "size-9",
           "hover:bg-nav-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-focus",
           open && "bg-nav-hover text-text-primary",
         )}
       >
-        <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
+        {triggerLabel ? (
+          <>
+            {triggerLabel}
+            <HugeiconsIcon icon={ArrowDown01Icon} size={14} aria-hidden="true" />
+          </>
+        ) : (
+          <HugeiconsIcon icon={MoreHorizontalIcon} size={18} />
+        )}
       </button>
 
       {open && (portal ? (pos ? createPortal(

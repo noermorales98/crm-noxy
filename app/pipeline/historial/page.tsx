@@ -246,7 +246,7 @@ export default function HistoryPage() {
   const totalWonMXN = wonMXN.reduce((s, d) => s + (d.value || 0), 0);
   const totalLost = filteredDeals.filter((d) => d.stage?.isLost).length;
 
-  const selectCls = selectInline;
+  const selectCls = `${selectInline} max-sm:w-full max-sm:min-w-0`;
 
   return (
     <main className="crm-mobile-bottom-clearance flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
@@ -293,7 +293,7 @@ export default function HistoryPage() {
               </span>
             </h2>
             {closing.metrics ? (
-              <div className="flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
+              <div className="crm-hscroll flex rounded-surface border border-line bg-surface-elevated">
                 <StatCard
                   label="Ventas ganadas"
                   value={String(closing.metrics.won.count)}
@@ -330,7 +330,7 @@ export default function HistoryPage() {
       )}
 
       <Enter index={1}>
-        <section aria-label="Resumen del período" className="mb-4 flex overflow-x-auto rounded-surface border border-line bg-surface-elevated">
+        <section aria-label="Resumen del período" className="crm-hscroll mb-4 flex rounded-surface border border-line bg-surface-elevated">
           <StatCard label="Total ganado USD" value={fmtUSD(totalWonUSD)} sub={`${wonUSD.length} deals`} />
           <StatCard label="Total ganado MXN" value={fmtMXN(totalWonMXN)} sub={`${wonMXN.length} deals`} />
           <StatCard label="Total perdidos" value={String(totalLost)} sub="Deals no cerrados" />
@@ -359,7 +359,7 @@ export default function HistoryPage() {
             </div>
           }
           actions={
-            <>
+            <div className="grid w-full grid-cols-3 gap-2 sm:flex sm:w-auto">
               <select aria-label="Mes" value={month} onChange={(e) => setMonth(e.target.value)} className={selectCls}>
                 <option value="">Todo el año</option>
                 {MONTHS.map((m, i) => (
@@ -376,7 +376,7 @@ export default function HistoryPage() {
                 <option value="won">Ganados</option>
                 <option value="lost">Perdidos</option>
               </select>
-            </>
+            </div>
           }
         />
       </Enter>

@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Delete01Icon, Clock01Icon, LinkSquare01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Delete01Icon, Clock01Icon, LinkSquare01Icon, Calendar03Icon, PencilEdit01Icon, Cancel01Icon, Note01Icon, Building04Icon, Mail01Icon } from "@hugeicons/core-free-icons";
 import { useToast } from "@/src/context/ToastContext";
 import { useConfirm } from "@/src/context/ConfirmContext";
 import { useHeader } from "@/src/context/HeaderContext";
 import Link from "next/link";
 import { input as inputCls } from "@/src/lib/crm-ui";
-import { Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
+import { ActionMenu, Chip, DataList, EmptyState, Enter, ErrorState, PageHeader, Skeleton, useDialog } from "@/src/components/ui";
 
 const primaryAction =
   "crm-press inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-action-primary px-4 text-sm font-semibold text-action-primary-foreground hover:bg-action-secondary disabled:opacity-50 lg:min-h-10";
@@ -206,19 +206,17 @@ export default function AppointmentTypesPage() {
           </span>
         </span>
       </button>
-      <div className="flex shrink-0 items-center gap-1">
-        <button type="button" onClick={() => copyLink(type.slug)} className={iconAction} aria-label={`Copiar link de ${type.name}`} title="Copiar link">
-          <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
-        </button>
-        <button
-          type="button"
-          onClick={() => handleDelete(type.id, type.name)}
-          className={`${iconAction} hover:bg-danger-soft hover:text-danger`}
-          aria-label={`Eliminar ${type.name}`}
-          title="Eliminar"
-        >
-          <HugeiconsIcon icon={Delete01Icon} size={16} />
-        </button>
+      <div className="shrink-0">
+        <ActionMenu
+          label={`Acciones de ${type.name}`}
+          triggerLabel="Acciones"
+          portal
+          items={[
+            { key: "edit", label: "Editar", icon: PencilEdit01Icon, onSelect: () => openEdit(type) },
+            { key: "link", label: "Copiar link", icon: LinkSquare01Icon, onSelect: () => copyLink(type.slug) },
+            { key: "delete", label: "Eliminar", icon: Delete01Icon, tone: "danger", onSelect: () => handleDelete(type.id, type.name) },
+          ]}
+        />
       </div>
     </div>
   );
@@ -234,7 +232,10 @@ export default function AppointmentTypesPage() {
             subtitle="Define los tipos de reunión que tus clientes pueden agendar."
             actions={
               <>
-                <Link href="/availability" className={secondaryAction}>Gestionar disponibilidad</Link>
+                <Link href="/availability" className={secondaryAction} aria-label="Gestionar disponibilidad">
+                  <HugeiconsIcon icon={Calendar03Icon} size={16} />
+                  Gestionar disponibilidad
+                </Link>
                 <button type="button" onClick={openCreate} disabled={schedules.length === 0} className={primaryAction}>
                   <HugeiconsIcon icon={Add01Icon} size={16} />
                   Nuevo tipo

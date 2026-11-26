@@ -14,6 +14,7 @@ interface KpiWidgetProps {
 
 /** Cifra clave del dashboard: etiqueta, cifra grande tabular y un acento de dato. */
 export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlight }: KpiWidgetProps) {
+  const parts = value.split(" · ");
   return (
     <Link
       href={href}
@@ -27,11 +28,20 @@ export function KpiWidget({ icon, iconBg, iconColor, value, label, href, highlig
       <span className="w-full min-w-0">
         <span className="block text-xs font-semibold text-text-secondary">{label}</span>
         <span
-          className={`mt-0.5 block break-words text-xl font-semibold sm:mt-1 sm:text-2xl leading-tight tracking-[-0.02em] tabular-nums ${
-            highlight ? "text-danger" : "text-text-primary"
-          }`}
+          className={`mt-0.5 block break-words font-semibold leading-tight tracking-[-0.02em] tabular-nums sm:mt-1 sm:text-2xl ${
+            parts.length > 1 ? "text-base" : "text-lg"
+          } ${highlight ? "text-danger" : "text-text-primary"}`}
         >
-          {value}
+          {/* Varias monedas: una por línea, con la moneda en chico para que las cifras no se amontonen. */}
+          {parts.map((part) => {
+            const match = /^(.*\S)\s([A-Z]{3})$/.exec(part);
+            return (
+              <span key={part} className="block">
+                {match ? match[1] : part}
+                {match && <span className="ml-1 text-xs font-medium tracking-normal text-text-secondary sm:text-sm">{match[2]}</span>}
+              </span>
+            );
+          })}
         </span>
       </span>
     </Link>
