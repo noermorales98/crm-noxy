@@ -838,9 +838,15 @@
 }
 
 @media (max-width: 767px) {
+  /* Más ancho que el resto del contenido: casi de borde a borde (8 px a cada lado). */
   .experience .promptOuter {
-    right: 0;
-    left: 0;
+    right: -12px;
+    left: -12px;
+  }
+
+  .experience .promptInner {
+    padding: 14px 12px 10px 14px;
+    border-radius: 22px;
   }
 }
 
